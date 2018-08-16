@@ -1,0 +1,48 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Text;
+
+namespace Databus
+{
+    public enum DataViewerRangeType
+    {
+        Time, Index
+    }
+
+    public delegate void DataViewerRangeUpdated(double from, double to);
+
+    public class DataViewerContext
+    {
+        public DataViewerRangeType RangeType { get; private set; }
+
+        public double RangeFrom { get; private set; }
+        public double RangeTo { get; private set; }
+
+        // Force the whole range to be updated at the same time, to stop double-loading of data
+        // It's still possible to supply only one of the values, and leave the other unchanged (using null)
+        public void UpdateRange(double? from, double? to)
+        {
+            if (from.HasValue) RangeFrom = from.Value;
+            if (to.HasValue) RangeTo = to.Value;
+
+            RangeUpdated?.Invoke(RangeFrom, RangeTo);
+        }
+
+        public event DataViewerRangeUpdated RangeUpdated;
+
+        private Dictionary<IDataPoint, IDataViewer> dataviewers = new Dictionary<IDataPoint, IDataViewer>();
+
+        public IDataViewer GetViewerFor(IDataPoint datapoint)
+        {
+            // Check if there already is a viewer for this datapoint
+            if (!dataviewers.TryGetValue(datapoint, out IDataViewer viewer))
+            {
+                // If not, create one
+                viewer = datapoint.CreateViewerIn(this);
+                dataviewers[datapoint] = viewer;
+            }
+            return viewer;
+        }
+
+    }
+}
