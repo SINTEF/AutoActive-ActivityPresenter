@@ -13,6 +13,13 @@ namespace Databus
 
     public class DataViewerContext
     {
+        public DataViewerContext(DataViewerRangeType range, double from, double to)
+        {
+            RangeType = range;
+            RangeFrom = from;
+            RangeTo = to;
+        }
+
         public DataViewerRangeType RangeType { get; private set; }
 
         public double RangeFrom { get; private set; }

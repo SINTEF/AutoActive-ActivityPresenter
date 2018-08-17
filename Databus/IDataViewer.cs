@@ -11,6 +11,7 @@ namespace Databus
     {
         event DataViewWasChangedHandler Changed;
         //event DataViewChanged<T> Updated;
-        Span<T> GetCurrent<T>();
+        //Span<T> GetCurrent<T>();
+        Span<float> GetCurrentFloat();
     }
 }
