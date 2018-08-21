@@ -98,7 +98,7 @@
     <Folder Include="Resources\drawable\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SINTEF.AutoActive.UI\UI.csproj">
+    <ProjectReference Include="..\UI\UI.csproj">
       <Project>{49095D3F-92C6-40C6-87E6-27FC06E493EF}</Project>
       <Name>UI</Name>
     </ProjectReference>
