@@ -2,6 +2,8 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.Archive</AssemblyName>
+    <RootNamespace>SINTEF.AutoActive.Archive</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

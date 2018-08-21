@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Databus
+namespace SINTEF.AutoActive.Databus
 {
     public delegate void DataPointAddedHandler(IDataPoint datapoint);
     public delegate void DataPointAddedToHandler(IDataPoint datapoint, DataStructure parent);

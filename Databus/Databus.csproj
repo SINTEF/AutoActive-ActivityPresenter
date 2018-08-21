@@ -2,6 +2,9 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.Databus</AssemblyName>
+    <ApplicationIcon />
+    <RootNamespace>SINTEF.AutoActive.Databus</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

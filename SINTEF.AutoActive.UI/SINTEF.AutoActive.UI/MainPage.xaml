@@ -1,0 +1,29 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:local="clr-namespace:SINTEF.AutoActive.UI"
+             x:Class="SINTEF.AutoActive.UI.MainPage">
+
+    <StackLayout>
+        <!-- Place new controls here -->
+        <Label Text="Welcome to Xamarin.Forms!" 
+           HorizontalOptions="Center"
+           VerticalOptions="CenterAndExpand" />
+
+        <local:LinePlot
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="FillAndExpand"
+            ViewerContext="{x:Static local:MockData.MockData.Context}"
+            Data="{x:Static local:MockData.MockData.Sinusoidal}"
+            />
+
+        <Slider
+            HorizontalOptions="FillAndExpand"
+            VerticalOptions="End"
+            Minimum="0"
+            Maximum="5000"
+            ValueChanged="Slider_ValueChanged"
+            />
+    </StackLayout>
+
+</ContentPage>

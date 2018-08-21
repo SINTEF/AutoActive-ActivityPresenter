@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 using ICSharpCode.SharpZipLib.Zip;
 
-namespace Archive
+namespace SINTEF.AutoActive.Archive
 {
     public class Reader
     {

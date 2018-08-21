@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Databus
+namespace SINTEF.AutoActive.Databus
 {
     public delegate void DataViewWasChangedHandler();
     //public delegate void DataViewChanged<T>(Span<T> data);
