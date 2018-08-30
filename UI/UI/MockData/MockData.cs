@@ -5,16 +5,18 @@ namespace SINTEF.AutoActive.UI.MockData
 {
     public static class MockData
     {
-        public static readonly DataViewerContext Context = new DataViewerContext(DataViewerRangeType.Time, 0, 10);
+        public static readonly DataViewerContext Context = new DataViewerContext(DataViewerRangeType.Time, 0, 100);
 
-        public static readonly MockDataPoint Sinusoidal = new MockDataPoint(60, 0.01f, (float t) => (float)Math.Sin(2 * Math.PI * t / 2));
+        // static readonly MockDataPoint Sinusoidal = new MockDataPoint("Sinusoidal", 60, 0.01f, (float t) => (float)Math.Sin(2 * Math.PI * t / 2));
     }
-
+    /*
     public class MockDataViewer : IDataViewer
     {
         float[] _data;
         int currentFirst;
         int currentLength;
+
+        public IDataPoint DataPoint { get => null;  }
 
         public MockDataViewer(float[] data, double start, double end, double dt, DataViewerContext context)
         {
@@ -47,13 +49,16 @@ namespace SINTEF.AutoActive.UI.MockData
     {
         public Type Type => typeof(float);
 
+        public string Name { get; set; }
+
         double start = 0;
         double end;
         double step;
         float[] data;
 
-        public MockDataPoint(float T, float dt, MockDataGenerator generator)
+        public MockDataPoint(string name, float T, float dt, MockDataGenerator generator)
         {
+            Name = name;
             // Generate some data
             var N = ((long)(T / dt)) + 1;
             end = T;
@@ -72,4 +77,5 @@ namespace SINTEF.AutoActive.UI.MockData
             return new MockDataViewer(data, start, end, step, context);
         }
     }
+    */
 }

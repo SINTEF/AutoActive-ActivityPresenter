@@ -4,6 +4,7 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>SINTEF.AutoActive.UI</AssemblyName>
     <RootNamespace>SINTEF.AutoActive.UI</RootNamespace>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -13,11 +14,14 @@
 
   <ItemGroup>
     <PackageReference Include="SkiaSharp.Views.Forms" Version="1.60.3" />
-    <PackageReference Include="Xamarin.Forms" Version="3.1.0.583944" />
+    <PackageReference Include="Xamarin.Forms" Version="3.1.0.697729" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Archive\Archive.csproj" />
     <ProjectReference Include="..\..\Databus\Databus.csproj" />
+    <ProjectReference Include="..\..\FileSystem\FileSystem.csproj" />
+    <ProjectReference Include="..\..\Plugins.Archive\Plugins.Archive.csproj" />
   </ItemGroup>
 
   <ItemGroup>

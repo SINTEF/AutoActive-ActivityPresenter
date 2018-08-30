@@ -4,10 +4,18 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <AssemblyName>SINTEF.AutoActive.Archive</AssemblyName>
     <RootNamespace>SINTEF.AutoActive.Archive</RootNamespace>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="SharpZipLib" Version="1.0.0-rc2" />
+    <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
+    <PackageReference Include="SharpZipLib" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Databus\Databus.csproj" />
+    <ProjectReference Include="..\FileSystem\FileSystem.csproj" />
+    <ProjectReference Include="..\Plugins\Plugins.csproj" />
   </ItemGroup>
 
 </Project>

@@ -6,7 +6,7 @@ namespace SINTEF.AutoActive.Databus
 {
     public abstract class DataStructure
     {
-        // Name
+        public abstract string Name { get; set;  }
         // Path
         // Icon
         // Description

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus
 {
@@ -39,13 +40,13 @@ namespace SINTEF.AutoActive.Databus
 
         private Dictionary<IDataPoint, IDataViewer> dataviewers = new Dictionary<IDataPoint, IDataViewer>();
 
-        public IDataViewer GetViewerFor(IDataPoint datapoint)
+        public async Task<IDataViewer> GetViewerFor(IDataPoint datapoint)
         {
             // Check if there already is a viewer for this datapoint
             if (!dataviewers.TryGetValue(datapoint, out IDataViewer viewer))
             {
                 // If not, create one
-                viewer = datapoint.CreateViewerIn(this);
+                viewer = await datapoint.CreateViewerIn(this);
                 dataviewers[datapoint] = viewer;
             }
             return viewer;

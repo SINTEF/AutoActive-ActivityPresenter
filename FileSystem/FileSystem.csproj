@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.FileSystem</AssemblyName>
+    <RootNamespace>SINTEF.AutoActive.FileSystem</RootNamespace>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+
+</Project>
