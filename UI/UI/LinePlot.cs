@@ -5,6 +5,7 @@ using SkiaSharp.Views.Forms;
 using System.Runtime.CompilerServices;
 
 using SINTEF.AutoActive.Databus;
+using System.Diagnostics;
 
 namespace SINTEF.AutoActive.UI
 {
@@ -38,14 +39,14 @@ namespace SINTEF.AutoActive.UI
 
         private IDataViewer viewer;
 
-        protected override void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected async override void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             base.OnPropertyChanged(propertyName);
             if (propertyName == "Data" || propertyName == "ViewerContext")
             {
                 if (Data != null && ViewerContext != null)
                 {
-                    viewer = Data.CreateViewerIn(ViewerContext);
+                    viewer = await Data.CreateViewerIn(ViewerContext);
                     viewer.Changed += () =>
                     {
                         InvalidateSurface();
@@ -70,18 +71,34 @@ namespace SINTEF.AutoActive.UI
 
                 // Draw the data
                 SKPath plot = new SKPath();
-                plot.MoveTo(0, 0);
 
                 var data = viewer.GetCurrentFloat();
-                var dx = 1f / data.Length;
-                var x = 0f;
-                foreach (float y in data)
-                {
-                    plot.LineTo(x, y);
-                    x += dx;
-                }
+                var en = data.GetEnumerator();
 
-                canvas.DrawPath(plot, new SKPaint() { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 0.01f, StrokeJoin = SKStrokeJoin.Round, IsAntialias = true });
+                var count = 0;
+                var width = 0f;
+                
+                if (en.MoveNext())
+                {
+                    // Move to first point
+                    var first = en.Current;
+                    plot.MoveTo(0, first.y);
+                    count = 1;
+
+                    // Draw the rest
+                    while (en.MoveNext())
+                    {
+                        var (x, y) = en.Current;
+                        plot.LineTo((x - first.x)/100, y/10);
+                        count++;
+                        width = x - first.x;
+                    }
+
+                }
+                //canvas.ResetMatrix();
+                //canvas.Scale(1, 1f/2);
+
+                canvas.DrawPath(plot, new SKPaint() { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 0.01f, StrokeJoin = SKStrokeJoin.Miter, IsAntialias = true });
             }
         }
     }

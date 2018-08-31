@@ -4,12 +4,14 @@ using System.Text;
 
 namespace SINTEF.AutoActive.Databus
 {
-    public class RootDataStructure : DataStructure
+    class RootDataStructure : DataStructure
     {
         internal RootDataStructure()
         {
 
         }
+
+        public override string Name { get => "Root"; set { } }
     }
 
     public static class DataRegistry
@@ -67,7 +69,7 @@ namespace SINTEF.AutoActive.Databus
                 lock (root)
                 {
                     // Make sure the parent is in our tree
-                    if (SearchForDataStructure(parent, root) != null)
+                    if (parent == root || SearchForDataStructure(parent, root) != null)
                     {
                         parent._children.Add(datastructure);
                         wasAdded = true;
@@ -86,7 +88,7 @@ namespace SINTEF.AutoActive.Databus
                 lock (root)
                 {
                     // Make sure the parent is in our tree
-                    if (SearchForDataStructure(parent, root) != null)
+                    if (parent == root || SearchForDataStructure(parent, root) != null)
                     {
                         parent._datapoints.Add(datapoint);
                         datapoints.Add(datapoint);

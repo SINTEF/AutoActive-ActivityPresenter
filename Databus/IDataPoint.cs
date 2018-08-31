@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus
 {
@@ -10,12 +11,14 @@ namespace SINTEF.AutoActive.Databus
 
         Type Type { get; }
 
+        string Name { get; set; }
+
         // Type
         // Name
         // Path
 
         // Other metadata?
 
-        IDataViewer CreateViewerIn(DataViewerContext context);
+        Task<IDataViewer> CreateViewerIn(DataViewerContext context);
     }
 }

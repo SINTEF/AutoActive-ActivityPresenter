@@ -5,6 +5,7 @@
     <AssemblyName>SINTEF.AutoActive.Databus</AssemblyName>
     <ApplicationIcon />
     <RootNamespace>SINTEF.AutoActive.Databus</RootNamespace>
+    <LangVersion>7.2</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
