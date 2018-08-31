@@ -10,8 +10,11 @@ namespace SINTEF.AutoActive.UI
         public App()
         {
             InitializeComponent();
+#if DEBUG
+            LiveReload.Init();
+#endif
 
-            MainPage = new MainPage();
+            MainPage = new NavigationPage(new WelcomePage());
         }
 
         protected override void OnStart()
