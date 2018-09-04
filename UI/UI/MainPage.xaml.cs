@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Xamarin.Forms;
 
 using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
+using System.Diagnostics;
 
 namespace SINTEF.AutoActive.UI
 {
@@ -20,11 +22,26 @@ namespace SINTEF.AutoActive.UI
             DataRegistry.DataPointAdded += DataRegistry_DataPointAdded;
         }
 
-        private void DataRegistry_DataPointAdded(IDataPoint datapoint)
+        private async void DataRegistry_DataPointAdded(IDataPoint datapoint)
         {
+            var content = Content as StackLayout;
+
+            if (datapoint is ArchiveVideoVideo)
+            {
+                // For now, just run it in the backgroun
+                var viewer = await datapoint.CreateViewerIn(MockData.MockData.Context) as IImageViewer;
+                await viewer.SetSize(20, 10);
+
+                viewer.GetCurrentData();
+
+                
+
+                return;
+            }
+
             //if (plotCount > 3) return;
             // Show all the graphs
-            var content = Content as StackLayout;
+            
             var plot = new LinePlot
             {
                 Data = datapoint,

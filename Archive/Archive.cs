@@ -101,6 +101,11 @@ namespace SINTEF.AutoActive.Archive
             return await zipFile.OpenReadSeekStream(entry, streamFactory);
         }
 
+        public IReadSeekStreamFactory OpenFileFactory(ZipEntry entry)
+        {
+            return new ArchiveFileBoundFactory(this, entry);
+        }
+
 
         public async static Task<Archive> Open(IReadWriteSeekStreamFactory file)
         {
@@ -124,6 +129,24 @@ namespace SINTEF.AutoActive.Archive
         public static Archive Create()
         {
             throw new NotImplementedException();
+        }
+
+        /* ---- Helpers ---- */
+        internal class ArchiveFileBoundFactory : IReadSeekStreamFactory
+        {
+            Archive archive;
+            ZipEntry entry;
+
+            internal ArchiveFileBoundFactory(Archive archive, ZipEntry entry)
+            {
+                this.archive = archive;
+                this.entry = entry;
+            }
+
+            public async Task<Stream> GetReadStream()
+            {
+                return await archive.OpenFile(entry);
+            }
         }
     }
 }

@@ -30,8 +30,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             var index = Meta["index"].ToObject<int[]>() ?? throw new ArgumentException("Table is missing 'index'");
             // TODO: Add the rest of the metadata
 
-            Debug.WriteLine($"Creating table! {columns} - {path}");
-
             // Find the file in the archive
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
 
@@ -259,6 +257,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         public SpanPair<float> GetCurrentFloat()
         {
             return new SpanPair<float>(time.GetData(startIndex, endIndex), column.GetData(startIndex, endIndex));
+        }
+
+        public Span<byte> GetCurrentData()
+        {
+            throw new NotImplementedException();
         }
     }
 

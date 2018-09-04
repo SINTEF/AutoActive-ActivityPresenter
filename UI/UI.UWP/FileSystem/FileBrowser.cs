@@ -7,6 +7,7 @@ using SINTEF.AutoActive.UI.UWP.FileSystem;
 using System.Threading.Tasks;
 using System.IO;
 using Windows.Storage;
+using System.Diagnostics;
 
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.UWP.FileSystem
