@@ -14,26 +14,18 @@
                     HorizontalOptions="Start"
                     Clicked="OnButtonClicked"
                     Margin="0,0,0,10"/>
-
-            <Label Text="Recently loaded"
-                       FontSize="20"
-                       VerticalOptions="Start"
-                       HorizontalOptions="Start"
-                       Margin="0,0,0,10"/>
-            
-            <StackLayout VerticalOptions="Start"
-                         HorizontalOptions="Start"
-                         Padding="20,0,0,0">
-                <Label Text="Garmin stuff"
-                       VerticalOptions="Start"
-                       HorizontalOptions="Start"/>
-                <Label Text="GaitUp stuff"
-                       VerticalOptions="Start"
-                       HorizontalOptions="Start"/>
-                <Label Text="Skiing stuff"
-                       VerticalOptions="Start"
-                       HorizontalOptions="Start"/>
-            </StackLayout>
+            <ListView x:Name="EmployeeView" ItemSelected="OnItemSelected">
+                <ListView.Header>
+                    <StackLayout Padding="0,0,0,0">
+                        <Label Text="Recently Loaded" FontSize="20" />
+                    </StackLayout>
+                </ListView.Header>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextCell Text="{x:Binding Title}"/>
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

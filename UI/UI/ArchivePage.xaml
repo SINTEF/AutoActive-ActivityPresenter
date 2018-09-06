@@ -7,6 +7,12 @@
             <Label Text="This is your archive"
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" />
+            <Label x:Name="TitleLabel"
+                   VerticalOptions="CenterAndExpand"
+                   HorizontalOptions="CenterAndExpand"/>
+            <Label x:Name="PathLabel"
+                   VerticalOptions="CenterAndExpand"
+                   HorizontalOptions="CenterAndExpand"/>
             <Button Text="Show it!"
                     VerticalOptions="CenterAndExpand"
                     HorizontalOptions="CenterAndExpand"
