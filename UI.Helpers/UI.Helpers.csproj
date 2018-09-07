@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.UI.Helpers</AssemblyName>
+    <RootNamespace>SINTEF.AutoActive.UI.Helpers</RootNamespace>
+  </PropertyGroup>
+
+</Project>

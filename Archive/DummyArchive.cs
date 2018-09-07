@@ -4,6 +4,7 @@ using System.Text;
 using System.ComponentModel;
 
 using System.Collections.ObjectModel;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Archive
 {
@@ -14,11 +15,7 @@ namespace SINTEF.AutoActive.Archive
         public string Name
         {
             get => _name;
-            set
-            {
-                _name = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Name"));
-            }
+            set => this.SetProperty(ref _name, value, PropertyChanged);
         }
 
         public event PropertyChangedEventHandler PropertyChanged;
@@ -30,21 +27,13 @@ namespace SINTEF.AutoActive.Archive
         public string Title
         {
             get => title;
-            set
-            {
-                title = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Title"));
-            }
+            set => this.SetProperty(ref title, value, PropertyChanged);
         }
         private string path;
         public string Path
         {
             get => path;
-            set
-            {
-                path = value;
-                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Path"));
-            }
+            set => this.SetProperty(ref path, value, PropertyChanged);
         }
 
         private ObservableCollection<DummyFile> _files;
