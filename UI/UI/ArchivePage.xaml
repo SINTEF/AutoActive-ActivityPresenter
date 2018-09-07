@@ -7,6 +7,22 @@
             <Label Text="This is your archive"
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" />
+            <FlexLayout VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                <Label x:Name="TitleLabel"
+                       VerticalOptions="CenterAndExpand"
+                       HorizontalOptions="CenterAndExpand"/>
+                <Label x:Name="PathLabel"
+                       VerticalOptions="CenterAndExpand"
+                       HorizontalOptions="CenterAndExpand"/>
+            </FlexLayout>
+            <ListView x:Name="fileList" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextCell Text="{Binding Name}"></TextCell>
+                        
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
             <Button Text="Show it!"
                     VerticalOptions="CenterAndExpand"
                     HorizontalOptions="CenterAndExpand"
