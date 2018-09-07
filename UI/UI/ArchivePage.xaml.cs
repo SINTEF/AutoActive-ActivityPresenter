@@ -26,6 +26,8 @@ namespace SINTEF.AutoActive.UI
             TitleLabel.SetBinding(Label.TextProperty, "Title");
             PathLabel.BindingContext = Archive;
             PathLabel.SetBinding(Label.TextProperty, "Path");
+
+            fileList.ItemsSource = Ar.Files;
 		}
 
         async void OnShowButtonClicked(Object sender, EventArgs args)

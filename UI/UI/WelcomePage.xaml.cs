@@ -15,7 +15,6 @@ namespace SINTEF.AutoActive.UI
     [XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class WelcomePage : ContentPage
 	{
-        DummyArchive ar = new DummyArchive("title", "path");
         ObservableCollection<DummyArchive> arList = new ObservableCollection<DummyArchive>();
 
         public WelcomePage ()
@@ -23,13 +22,13 @@ namespace SINTEF.AutoActive.UI
 			InitializeComponent ();
             EmployeeView.ItemsSource = arList;
 
-            arList.Add(new DummyArchive("Title1", "Path1"));
-            arList.Add(new DummyArchive("Title2", "Path2"));
-            arList.Add(new DummyArchive("Title3", "Path3"));
+            arList.Add(new DummyArchive("Garmin", "C:/Garmin", new[] { "Pulse", "Cadence", "Speed", "Temperature" }));
+            arList.Add(new DummyArchive("GaitUp", "C:/GaitUp", new[] { "LeftArm", "RightArm" }));
+            arList.Add(new DummyArchive("Video", "C:/Video", new[] { "Front", "Back", "Drone" }));
         }
 
         async void OnButtonClicked(object sender, EventArgs args) {
-            var nextPage = new ArchivePage(new DummyArchive("Title0", "Path0"));
+            var nextPage = new ArchivePage(new DummyArchive("New Archive", "C:/New Archive", new[] { "Empty File" }));
             await Navigation.PushAsync(nextPage);
         }
 
