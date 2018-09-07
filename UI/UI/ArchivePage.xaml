@@ -7,12 +7,35 @@
             <Label Text="This is your archive"
                 VerticalOptions="CenterAndExpand" 
                 HorizontalOptions="CenterAndExpand" />
-            <Label x:Name="TitleLabel"
-                   VerticalOptions="CenterAndExpand"
-                   HorizontalOptions="CenterAndExpand"/>
-            <Label x:Name="PathLabel"
-                   VerticalOptions="CenterAndExpand"
-                   HorizontalOptions="CenterAndExpand"/>
+            <FlexLayout VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                <Label x:Name="TitleLabel"
+                       VerticalOptions="CenterAndExpand"
+                       HorizontalOptions="CenterAndExpand"/>
+                <Label x:Name="PathLabel"
+                       VerticalOptions="CenterAndExpand"
+                       HorizontalOptions="CenterAndExpand"/>
+            </FlexLayout>
+            <ListView VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand">
+                <ListView.ItemsSource>
+                    <x:Array Type="{x:Type x:String}">
+                        <x:String>Fil 1</x:String>
+                        <x:String>Fil 2</x:String>
+                        <x:String>Fil 3</x:String>
+                        <x:String>Fil 4</x:String>
+                        <x:String>Fil 5</x:String>
+                        <x:String>Fil 6</x:String>
+                        <x:String>Fil 7</x:String>
+                        <x:String>Fil 8</x:String>
+                        <x:String>Fil 9</x:String>
+                    </x:Array>
+                </ListView.ItemsSource>
+                <ListView.ItemTemplate>
+                    <DataTemplate>
+                        <TextCell Text="{Binding}"></TextCell>
+                        
+                    </DataTemplate>
+                </ListView.ItemTemplate>
+            </ListView>
             <Button Text="Show it!"
                     VerticalOptions="CenterAndExpand"
                     HorizontalOptions="CenterAndExpand"

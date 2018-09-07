@@ -29,13 +29,14 @@ namespace SINTEF.AutoActive.UI
         }
 
         async void OnButtonClicked(object sender, EventArgs args) {
-            var nextPage = new ArchivePage(new DummyArchive("Title1", "Path1"));
+            var nextPage = new ArchivePage(new DummyArchive("Title0", "Path0"));
             await Navigation.PushAsync(nextPage);
         }
 
         async void OnItemSelected(object sender, EventArgs args)
         {
-            var nextPage = new ArchivePage(new DummyArchive("Title1", "Path1"));
+            DummyArchive selected = (DummyArchive)EmployeeView.SelectedItem;
+            var nextPage = new ArchivePage(selected);
             await Navigation.PushAsync(nextPage);
         }
 	}
