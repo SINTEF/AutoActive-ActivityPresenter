@@ -79,18 +79,87 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
     public class ArchiveVideoVideoViewer : IImageViewer
     {
+        DataViewerContext context;
+        ArchiveVideoVideo video;
+        BufferedVideoDecoder decoder;
+
+        VideoDecoderFrame currentFrame;
+
+        readonly object locker = new object();
+        CancellationTokenSource cancellation;
+
+        internal ArchiveVideoVideoViewer(DataViewerContext context, ArchiveVideoVideo video, IVideoDecoder decoder)
+        {
+            this.context = context;
+            this.video = video;
+            this.decoder = new BufferedVideoDecoder(decoder)
+            {
+                MaxFramesBefore = 5,
+                MinFramesAfter = 10,
+                BatchFramesToRead = 10,
+            };
+
+            this.context.RangeUpdated += (double from, double to) =>
+            {
+                UpdateCurrentFrame(from);
+            };
+            UpdateCurrentFrame(this.context.RangeFrom);
+        }
+
+        async void UpdateCurrentFrame(double time)
+        {
+            time = time / 24; // FIXME : Remove when we get a propert slider
+            CancellationToken token;
+            lock (locker)
+            {
+                // Stop any previous frame grabbing
+                if (cancellation != null)
+                {
+                    cancellation.Cancel();
+                }
+                cancellation = new CancellationTokenSource();
+                token = cancellation.Token;
+            }
+            try
+            {
+                var frame = await decoder.GetFrameAtAsync(time, cancellation.Token);
+                currentFrame = frame;
+                Changed?.Invoke();
+            }
+            catch (OperationCanceledException) { }
+        }
+
+        public IDataPoint DataPoint => video;
+
+        public event DataViewWasChangedHandler Changed;
+
+        public SpanPair<float> GetCurrentFloat()
+        {
+            throw new NotImplementedException();
+        }
+
+        public ImageFrame GetImage()
+        {
+            return new ImageFrame(currentFrame.Width, currentFrame.Height, currentFrame.Frame);
+        }
+
+        public Task SetSize(uint width, uint height)
+        {
+            return decoder.SetSizeAsync(width, height);
+        }
+    }
+
+
+    /*
+    public class ArchiveVideoVideoViewer : IImageViewer
+    {
         private DataViewerContext context;
         private ArchiveVideoVideo video;
         private IVideoDecoder decoder;
 
-        int width = 100;
-        int height = 50;
+        int width = 1;
+        int height = 1;
 
-        /*uint width = 0;
-        uint height = 0;
-        bool loaded = false;
-        */
-        
         readonly SemaphoreSlim bufferSignal = new SemaphoreSlim(0, 1);
         readonly SemaphoreSlim bufferControl = new SemaphoreSlim(1, 1);
         bool bufferOperationCancel = false;
@@ -109,8 +178,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         internal ArchiveVideoVideoViewer(DataViewerContext context, ArchiveVideoVideo video, IVideoDecoder decoder)
         {
+            this.context = context;
             this.video = video;
             this.decoder = decoder;
+
 
             // Run the buffer handlin in the background
             Task.Factory.StartNew(StartBufferHandlingAsync);
@@ -130,7 +201,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                 // Wait until we are signaled to do something
                 await bufferSignal.WaitAsync();
                 bufferOperationRunning = true;
-                
+
                 // Make sure we have control
                 await bufferControl.WaitAsync();
 
@@ -271,7 +342,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             bufferStartFromTime = time;
             bufferDecodeNew = 24;
             // Signal to the buffer to do something
-            bufferSignal.Release();
+            if (bufferSignal.CurrentCount < 1) bufferSignal.Release();
             // Give control back
             bufferControl.Release();
         }
@@ -280,19 +351,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task SetSize(uint width, uint height)
         {
-            /*
-            if (width < 1) throw new ArgumentOutOfRangeException("Width", width, "Invalid 'width' of ImageViewer");
-            if (height < 1) throw new ArgumentOutOfRangeException("Height", height, "Invalid 'height' of ImageViewer");
-
-            if (!decoder.Loaded)
+            await Task.Factory.StartNew(() =>
             {
-                await decoder.Load(width, height);
-            }
-            else
-            {
-                await decoder.SetOutputFrameSize(width, height);
-            }
-            */
+                // The size has changed, so we need start loading frames from scratch
+                bufferOperationCancel = true;
+                this.width = (int)width;
+                this.height = (int)height;
+                // Do the re-filling
+                TriggerBufferFillingFrom(context.RangeFrom);
+            });
         }
 
         public event DataViewWasChangedHandler Changed;
@@ -302,18 +369,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             throw new NotImplementedException();
         }
 
-        public Span<byte> GetCurrentData()
+        public byte[] GetPixels()
         {
-            /*
-            var (time, frame) = decoder.CurrentFrame;
-            Debug.WriteLine($"GetCurrentData {time} - {frame.Length}");
-            return null;
-            */
-            return null;
-        }
-
-        
+            if (currentFrameInBuffer != null)
+                return currentFrameInBuffer.Value.frame;
+            else
+                return null;
+        }        
     }
+    */
 
     public class ArchiveVideoPlugin : IArchivePlugin
     {

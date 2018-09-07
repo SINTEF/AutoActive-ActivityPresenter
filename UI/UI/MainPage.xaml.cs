@@ -28,16 +28,26 @@ namespace SINTEF.AutoActive.UI
 
             if (datapoint is ArchiveVideoVideo)
             {
+                var image = new ImageView
+                {
+                    Data = datapoint,
+                    ViewerContext = MockData.MockData.Context,
+                    HeightRequest = 500,
+                    WidthRequest = 50,
+                };
+                /*
                 // For now, just run it in the backgroun
                 var viewer = await datapoint.CreateViewerIn(MockData.MockData.Context) as IImageViewer;
                 await viewer.SetSize(20, 10);
 
                 viewer.GetCurrentData();
-
+                */
+                content?.Children.Add(image);
                 
 
                 return;
             }
+            /*
 
             //if (plotCount > 3) return;
             // Show all the graphs
@@ -50,6 +60,7 @@ namespace SINTEF.AutoActive.UI
             };
             content?.Children.Add(plot);
             plotCount++;
+            */
         }
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)

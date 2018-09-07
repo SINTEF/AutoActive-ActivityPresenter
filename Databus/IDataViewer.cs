@@ -64,8 +64,6 @@ namespace SINTEF.AutoActive.Databus
         //Span<T> GetCurrent<T>();
         SpanPair<float> GetCurrentFloat();
 
-        Span<byte> GetCurrentData();
-
         IDataPoint DataPoint { get; }
     }
 }

@@ -2,29 +2,41 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 using SINTEF.AutoActive.FileSystem;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
+    public readonly struct VideoDecoderFrame
+    {
+        public double Time { get; }
+        public uint Width { get; }
+        public uint Height { get; }
+        public byte[] Frame { get; }
+
+        public VideoDecoderFrame(double time, uint width, uint height, byte[] frame)
+        {
+            Time = time;
+            Width = width;
+            Height = height;
+            Frame = frame;
+        }
+    }
+
     public interface IVideoDecoder
     {
         Task<double> GetLengthAsync();
-        Task<(double time, byte[] frame)> DecodeNextFrame(int width, int height);
-        Task<double> SeekTo(double time);
 
-        /*
-        double Length { get; }
-        (double time, byte[] frame) CurrentFrame { get; }
+        Task<double> SeekToAsync(double time, CancellationToken cancellationToken);
+        Task<double> SeekToAsync(double time);
 
-        bool Loaded { get;  }
+        Task SetSizeAsync(uint width, uint height, CancellationToken cancellationToken);
+        Task SetSizeAsync(uint width, uint height);
 
-        Task Load(uint width, uint height);
-        Task SetOutputFrameSize(uint width, uint height);
-        Task SeekTo(double time);
-        Task DecodeNextFrame();
-        */
+        Task<VideoDecoderFrame> DecodeNextFrameAsync(CancellationToken cancellationToken);
+        Task<VideoDecoderFrame> DecodeNextFrameAsync();
     }
 
     public interface IVideoDecoderFactory

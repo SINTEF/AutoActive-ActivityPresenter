@@ -22,19 +22,25 @@ using Windows.Foundation;
 using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks.Schedulers;
+using System.Collections.Concurrent;
 
 [assembly: Dependency(typeof(VideoDecoderFactory))]
 namespace SINTEF.AutoActive.UI.UWP.Video
 {
+    delegate bool VideoDecoderAction(); // Returns whether the last decoded frame was consumed or not
+
     public class VideoDecoder : IVideoDecoder
     {
         MediaPlayer decoder;
         SoftwareBitmap destination;
         CanvasBitmap bitmap;
 
-        TaskCompletionSource<double> length = new TaskCompletionSource<double>();
-        TaskCompletionSource<double> seeking = new TaskCompletionSource<double>();
-        TaskCompletionSource<object> decoding = new TaskCompletionSource<object>();
+        readonly object locker = new object();
+        bool isDecoding;
+        readonly Queue<VideoDecoderAction> queue;
+
+        TaskCompletionSource<double> length;
 
         internal VideoDecoder(IRandomAccessStream stream, string mime)
         {
@@ -48,79 +54,163 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 Source = item,
             };
             decoder.VideoFrameAvailable += Decoder_VideoFrameAvailable;
-            decoder.SeekCompleted += Decoder_SeekCompleted;
+
+            isDecoding = true;
+            queue = new Queue<VideoDecoderAction>();
+
+            length = new TaskCompletionSource<double>();
+
+            CreateBitmaps(1, 1);
         }
 
-        private void Decoder_SeekCompleted(MediaPlayer sender, object args)
+        void RunNextActions()
         {
-            seeking.TrySetResult(decoder.PlaybackSession.Position.TotalSeconds);
+            //Debug.WriteLine($"RunNextActions #{Thread.CurrentThread.ManagedThreadId}");
+            while (queue.TryDequeue(out var nextAction))
+            {
+                //Debug.WriteLine($"RunNextAction - Running #{Thread.CurrentThread.ManagedThreadId}");
+                // Run the next action in the queue
+                if (nextAction())
+                {
+                    //Debug.WriteLine($"RunNextAction - Starting new decode #{Thread.CurrentThread.ManagedThreadId}");
+                    // The previously decoded frame was consumed, so we need to decode the next one
+                    decoder.StepForwardOneFrame();
+                    isDecoding = true;
+                }
+            }
         }
 
-        private void CreateBitmaps(int width, int height)
+        void EnqueueAndPossiblyRun(params VideoDecoderAction[] actions)
         {
-            destination = new SoftwareBitmap(BitmapPixelFormat.Rgba8, width, height, BitmapAlphaMode.Ignore);
+            //Debug.WriteLine($"EnqueueAndPossiblyRun #{Thread.CurrentThread.ManagedThreadId}");
+            lock (locker)
+            {
+                foreach (var action in actions)
+                    queue.Enqueue(action);
+
+                if (!isDecoding)
+                {
+                    // Decoding is already done, so we are free to run the next action here
+                    RunNextActions();
+                }
+            }
+        }
+
+        void CreateBitmaps(uint width, uint height)
+        {
+            //Debug.WriteLine($"CreateBitmaps #{Thread.CurrentThread.ManagedThreadId}");
+            destination = new SoftwareBitmap(BitmapPixelFormat.Rgba8, (int)width, (int)height, BitmapAlphaMode.Ignore);
             bitmap = CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), destination);
         }
 
-        private void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
+        VideoDecoderFrame CopyCurrentDecodedFrame()
         {
-            // Set initial loading video data
+            //Debug.WriteLine($"CopyCurrentDecodedFrame #{Thread.CurrentThread.ManagedThreadId}");
+            var time = decoder.PlaybackSession.Position.TotalSeconds;
+            var width = (uint)destination.PixelWidth;
+            var height = (uint)destination.PixelHeight;
+            var frame = bitmap.GetPixelBytes();
+            return new VideoDecoderFrame(time, width, height, frame);
+        }
+
+        void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
+        {
+            //Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
             length.TrySetResult(decoder.PlaybackSession.NaturalDuration.TotalSeconds);
 
-            // We need to copy the frame somewhere for the decoder to stop calling this method, so if we don't have a size yet, use the natural video size
-            if (bitmap == null)
-            {
-                CreateBitmaps((int)decoder.PlaybackSession.NaturalVideoWidth, (int)decoder.PlaybackSession.NaturalVideoHeight);
-            }
-
-            // Copy the decoded frame
             decoder.CopyFrameToVideoSurface(bitmap);
-            if (!decoding.TrySetResult(null))
+
+            lock (locker)
             {
-                // FIXME : if this appears, probably has something to do with seeking
-                Debug.WriteLine("ERROR: Frame available when already decoded!");
+                isDecoding = false;
+                RunNextActions();
             }
         }
 
-        public async Task<(double time, byte[] frame)> DecodeNextFrame(int width, int height)
-        {
-            // Wait for decoding to complete
-            await decoding.Task;
-
-            // Check that the frame buffer is the right size
-            if (destination.PixelWidth != width || destination.PixelHeight != height)
-            {
-                CreateBitmaps(width, height);
-                decoder.CopyFrameToVideoSurface(bitmap);
-            }
-
-            // Get the frame time and pixels
-            var time = decoder.PlaybackSession.Position.TotalSeconds;
-            var frame = bitmap.GetPixelBytes();
-
-            // Start decoding the next frame
-            decoding = new TaskCompletionSource<object>();
-            decoder.StepForwardOneFrame();
-
-            return (time, frame);
-        }
-
+        /* -- Public API -- */
         public Task<double> GetLengthAsync()
         {
-            return length.Task;
+            throw new NotImplementedException();
         }
 
-        public async Task<double> SeekTo(double time)
+        public Task<VideoDecoderFrame> DecodeNextFrameAsync(CancellationToken cancellationToken)
         {
-            // Wait for a decoding to complete
-            await decoding.Task;
+            //Debug.WriteLine($"DecodeNextFrameAsync #{Thread.CurrentThread.ManagedThreadId}");
+            TaskCompletionSource<VideoDecoderFrame> source = new TaskCompletionSource<VideoDecoderFrame>();
+            EnqueueAndPossiblyRun(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    source.SetCanceled();
+                    return false;
+                }
 
-            // Start the seeking
-            seeking = new TaskCompletionSource<double>();
-            decoder.PlaybackSession.Position = TimeSpan.FromSeconds(time);
+                // Return the current decoded frame to the caller
+                source.SetResult(CopyCurrentDecodedFrame());
+                return true;
+            });
+            return source.Task;
+        }
+        public Task<VideoDecoderFrame> DecodeNextFrameAsync()
+        {
+            return DecodeNextFrameAsync(CancellationToken.None);
+        }
 
-            // Wait for the seeking to finish
-            return await seeking.Task;
+        public Task<double> SeekToAsync(double time, CancellationToken cancellationToken)
+        {
+            //Debug.WriteLine($"SeekToAsync {Thread.CurrentThread.ManagedThreadId}");
+            TaskCompletionSource<double> source = new TaskCompletionSource<double>();
+            EnqueueAndPossiblyRun(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    return false;
+                }
+
+                // First, tell the decoder to seek
+                decoder.PlaybackSession.Position = TimeSpan.FromSeconds(time);
+                return false;
+            }, () =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    source.SetCanceled();
+                    return false;
+                }
+
+                // Then, when the next frame is available, we are done seeking
+                source.SetResult(decoder.PlaybackSession.Position.TotalSeconds);
+                return false;
+            });
+            return source.Task;
+        }
+        public Task<double> SeekToAsync(double time)
+        {
+            return SeekToAsync(time, CancellationToken.None);
+        }
+
+        public Task SetSizeAsync(uint width, uint height, CancellationToken cancellationToken)
+        {
+            //Debug.WriteLine($"SetSizeAsync {width}x{height} #{Thread.CurrentThread.ManagedThreadId}");
+            TaskCompletionSource<object> source = new TaskCompletionSource<object>();
+            EnqueueAndPossiblyRun(() =>
+            {
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    source.SetCanceled();
+                    return false;
+                }
+
+                // Just create new bitmaps
+                CreateBitmaps(width, height);
+                source.SetResult(null);
+                return false;
+            });
+            return source.Task;
+        }
+        public Task SetSizeAsync(uint width, uint height)
+        {
+            return SetSizeAsync(width, height, CancellationToken.None);
         }
     }
 
@@ -134,8 +224,8 @@ namespace SINTEF.AutoActive.UI.UWP.Video
     }
     
 
-        /* --- IRandomAccessStream helper --- */
-        internal class FactoryRandomAccessStream : IRandomAccessStream
+    /* --- IRandomAccessStream helper --- */
+    internal class FactoryRandomAccessStream : IRandomAccessStream
     {
         IRandomAccessStream original;
         IReadSeekStreamFactory factory;
