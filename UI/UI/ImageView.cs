@@ -77,7 +77,7 @@ namespace SINTEF.AutoActive.UI
             if (viewer != null)
             {
                 var frame = viewer.GetImage();
-                if (frame.Frame != null)
+                if (frame.Frame != null && frame.Frame.Array != null)
                 {
                     if (bitmap == null || bitmap.Width != frame.Width || bitmap.Height != frame.Height)
                     {
@@ -86,8 +86,8 @@ namespace SINTEF.AutoActive.UI
                     }
 
                     // Cannot copy more pixels than in the image or the size of the canvas
-                    var toCopy = Math.Min(frame.Frame.Length, bitmap.Width * bitmap.Height * 4);
-                    Marshal.Copy(frame.Frame, 0, bitmap.GetPixels(), toCopy);
+                    var toCopy = Math.Min(frame.Frame.Count, bitmap.Width * bitmap.Height * 4);
+                    Marshal.Copy(frame.Frame.Array, frame.Frame.Offset, bitmap.GetPixels(), toCopy);
 
                     // Calculate the offset to put the image in the center of the canvas
                     var offsetX = (Width - frame.Width) / 2;

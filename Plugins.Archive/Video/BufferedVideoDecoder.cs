@@ -9,70 +9,111 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
     public class BufferedVideoDecoder
     {
-        public uint MaxFramesBefore { get; set; }
-        public uint MinFramesAfter { get; set; }
-        public uint BatchFramesToRead { get; set; }
-
         readonly IVideoDecoder decoder;
 
+        readonly uint minFramesAfter;
+        readonly uint batchFramesToRead;
+
+        // A circular buffer of frames
         readonly SemaphoreSlim bufferLock;
         bool isDecodingFrames;
-        readonly LinkedList<VideoDecoderFrame> frameBuffer;
+        readonly uint frameBufferLength;
+        readonly VideoDecoderFrame[] frameBuffer;
+        uint frameBufferNextWritePosition;
+
+        byte[] dataBuffer;
+        uint dataBufferFrameStride;
 
         public BufferedVideoDecoder(IVideoDecoder decoder)
         {
             this.decoder = decoder;
             bufferLock = new SemaphoreSlim(1, 1);
             isDecodingFrames = false;
-            frameBuffer = new LinkedList<VideoDecoderFrame>();
 
-            MaxFramesBefore = 24;
-            MinFramesAfter = 24;
-            BatchFramesToRead = 24;
+            minFramesAfter = 10;
+            batchFramesToRead = 10;
+
+            frameBufferLength = minFramesAfter + batchFramesToRead + 1;
+            frameBuffer = new VideoDecoderFrame[frameBufferLength];
+            frameBufferNextWritePosition = 0;
+
+            CreateDataBuffer(0, 0);
         }
 
-        bool TryFindFrameInBuffer(double time, out VideoDecoderFrame frame, out uint framesBefore, out uint framesAfter, out double approxFramerate, out double lastBufferedFrameTime)
+        bool TryFindFrameInBuffer(double time, out VideoDecoderFrame frame, out uint framesAfter, out double approxFramerate, out double lastBufferedFrameTime)
         {
             lock (frameBuffer)
             {
-                framesBefore = 0;
+                approxFramerate = double.Epsilon;
+                frame = new VideoDecoderFrame();
                 framesAfter = 0;
 
-                // Start looking
-                var bufferedFrame = frameBuffer.First;
-
-                // The buffer is empty, or only has one frame (so it is impossible to decide if this is the right frame)
-                if (bufferedFrame == null || bufferedFrame.Next == null)
-                {
-                    frame = new VideoDecoderFrame();
-                    approxFramerate = double.Epsilon;
-                    lastBufferedFrameTime = bufferedFrame?.Value.Time ?? double.MinValue;
-                    return false;
-                }
-
-                // There are two or more elements in the list
+                var framesInBuffer = 0;
                 var foundInBuffer = false;
-                frame = new VideoDecoderFrame();
-                
-                while (bufferedFrame.Next != null)
+                VideoDecoderFrame lastBufferedFrame = new VideoDecoderFrame();
+
+                // Loop through all frames in circular buffer
+                for (var i = 0; i < frameBufferLength-1; i++)
                 {
-                    if (bufferedFrame.Value.Time <= time && bufferedFrame.Next.Value.Time > time)
+                    var j = (frameBufferNextWritePosition + 1 + i) % frameBufferLength;
+                    var bufferedFrame = frameBuffer[j];
+                    if (!bufferedFrame.Loaded)
                     {
-                        // This is the frame we want
-                        frame = bufferedFrame.Value;
-                        foundInBuffer = true;
+                        // This frame is not loaded
+                        continue;
                     }
-                    if (!foundInBuffer) framesBefore++;
-                    else framesAfter++;
-                    bufferedFrame = bufferedFrame.Next;
+
+                    // We need more than one frame, so don't do anything for the first
+                    if (framesInBuffer > 0)
+                    {
+                        if (lastBufferedFrame.Time <= time && bufferedFrame.Time > time)
+                        {
+                            // The last frame is the frame we want
+                            frame = lastBufferedFrame;
+                            foundInBuffer = true;
+                        }
+                        if (foundInBuffer) framesAfter++;
+
+                        approxFramerate += bufferedFrame.Time - lastBufferedFrame.Time;
+                    }
+
+                    // Keep the last one in memory
+                    lastBufferedFrame = bufferedFrame;
+                    framesInBuffer++;
                 }
 
-                // Set the rest of the stats
-                approxFramerate = (framesBefore+framesAfter)/(frameBuffer.Last.Value.Time - frameBuffer.First.Value.Time);
-                lastBufferedFrameTime = frameBuffer.Last.Value.Time;
+                if (framesInBuffer > 2)
+                {
+                    approxFramerate /= framesInBuffer - 1;
+                }
 
-                return foundInBuffer; 
+                if (framesInBuffer > 0)
+                {
+                    lastBufferedFrameTime = lastBufferedFrame.Time;
+                }
+                else
+                {
+                    lastBufferedFrameTime = double.MinValue;
+                }
+
+                return foundInBuffer;
             }
+        }
+
+        void ClearBuffer()
+        {
+            for (var i = 0; i < frameBufferLength; i++)
+            {
+                frameBuffer[i] = new VideoDecoderFrame();
+            }
+            frameBufferNextWritePosition = 0;
+        }
+
+        void CreateDataBuffer(uint width, uint height)
+        {
+            dataBufferFrameStride = width * height * 4;
+            Debug.WriteLine($"CREATING DATA BUFFER SIZE: {width}x{height} - {dataBufferFrameStride * frameBufferLength}");
+            dataBuffer = new byte[dataBufferFrameStride*frameBufferLength];
         }
 
         async Task LoadMoreFrames()
@@ -83,12 +124,14 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             isDecodingFrames = true;
 
             // Start loading a set of new frames
-            for (var i = 0; i < BatchFramesToRead; i++)
+            for (var i = 0; i < batchFramesToRead; i++)
             {
-                var frame = await decoder.DecodeNextFrameAsync();
+                var nextSegment = new ArraySegment<byte>(dataBuffer, (int)(frameBufferNextWritePosition * dataBufferFrameStride), (int)dataBufferFrameStride);
+                var frame = await decoder.DecodeNextFrameAsync(nextSegment);
                 lock (frameBuffer)
                 {
-                    frameBuffer.AddLast(frame);
+                    frameBuffer[frameBufferNextWritePosition] = frame;
+                    frameBufferNextWritePosition = (frameBufferNextWritePosition + 1) % frameBufferLength;
                 }
             }
 
@@ -106,58 +149,45 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         }
 
         // TODO: TOKEN??
-        public async Task SetSizeAsync(uint width, uint height, bool flushOldBuffered = false)
+        public async Task SetSizeAsync(uint width, uint height)
         {
-            if (flushOldBuffered)
+            // Wait for loading to finish
+            await bufferLock.WaitAsync();
+            // Clear the buffer, and keep track of which frames we had
+            double? firstFrameTime = null;
+            lock (frameBuffer)
             {
-                // Wait for loading to finish
-                await bufferLock.WaitAsync();
-                // Clear the buffer, and keep track of which frames we had
-                double? firstFrameTime;
-                lock (frameBuffer)
-                {
-                    firstFrameTime = frameBuffer.First?.Value.Time;
-                    frameBuffer.Clear();
-                }
-                // Resize the decoder
-                await decoder.SetSizeAsync(width, height);
-                // Seek to the first frame we had
-                if (firstFrameTime.HasValue)
-                {
-                    await decoder.SeekToAsync(firstFrameTime.Value);
-                }
-                // Then let's load some more frames
-                bufferLock.Release();
-                LoadMoreFrames();
+                var j = (frameBufferNextWritePosition + 1) % frameBufferLength;
+                var previousFirstFrame = frameBuffer[j];
+                if (previousFirstFrame.Loaded)
+                    firstFrameTime = previousFirstFrame.Time;
+
+                ClearBuffer();
             }
-            else
+            // Resize the decoder, and our databuffer
+            var (actualWidth, actualHeight) = await decoder.SetSizeAsync(width, height);
+            CreateDataBuffer(actualWidth, actualHeight);
+            // Seek to the first frame we had
+            if (firstFrameTime.HasValue)
             {
-                await decoder.SetSizeAsync(width, height);
+                await decoder.SeekToAsync(firstFrameTime.Value);
             }
+            // Then let's load some more frames
+            bufferLock.Release();
+            LoadMoreFrames();
         }
 
         public async Task<VideoDecoderFrame> GetFrameAtAsync(double time, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             
-            if (TryFindFrameInBuffer(time, out var frame, out var before, out var after, out var framerate, out var last))
+            if (TryFindFrameInBuffer(time, out var frame, out var after, out var framerate, out var last))
             {
                 // We already have this frame :)
-                if (before > MaxFramesBefore)
+                if (after < minFramesAfter && !isDecodingFrames)
                 {
-                    // Clear up the frames before the current
-                    lock (frameBuffer)
-                    {
-                        while (before > 0)
-                        {
-                            frameBuffer.RemoveFirst();
-                            before--;
-                        }
-                    }
-                }
-                if (after < MinFramesAfter)
-                {
-                    // Also start loading some more
+                    // Start loading some more frames
+                    Debug.WriteLine($"BUFFEREDVIDEODECODER - 1");
                     LoadMoreFrames();
                 }
                 // Return the frame
@@ -165,14 +195,16 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             }
             else
             {
+                Debug.WriteLine($"BUFFEREDVIDEODECODER - NOT FOUND {time},{after},{framerate},{last}");
                 // We need to load this frame somehow
-                var needToDecode = (time - last) * framerate;
-                if (needToDecode >= 0 && needToDecode < 2*BatchFramesToRead)
+                var needToDecode = (time - last) / framerate;
+                if (needToDecode >= 0 && needToDecode < 2*batchFramesToRead)
                 {
                     // We can just continue to load more frames sequentially, it shouldn't be too long until we get it
                     if (!isDecodingFrames)
                     {
                         // We are currently not loading, so we need to trigger it
+                        Debug.WriteLine($"BUFFEREDVIDEODECODER - 2 - {needToDecode}");
                         await LoadMoreFrames();
                     }
                     else
@@ -195,13 +227,14 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                         // Clear the buffer
                         lock (frameBuffer)
                         {
-                            frameBuffer.Clear();
+                            ClearBuffer();
                         }
                         // Seek to the selected time
                         seeked = await decoder.SeekToAsync(time, cancellationToken);
 
                         // Load some more frames
                         bufferLock.Release();
+                        Debug.WriteLine($"BUFFEREDVIDEODECODER - 3");
                         await LoadMoreFrames();
                         
                     }

@@ -6,6 +6,7 @@ using Xamarin.Forms;
 
 using SINTEF.AutoActive.Archive;
 using SINTEF.AutoActive.FileSystem;
+using System.Diagnostics;
 
 namespace SINTEF.AutoActive.UI.FileSystem
 {
@@ -22,11 +23,18 @@ namespace SINTEF.AutoActive.UI.FileSystem
 
         private async void OpenArchiveButton_Clicked(object sender, EventArgs e)
         {
-            var browser = DependencyService.Get<IFileBrowser>();
-            var file = await browser?.BrowseForArchive();
-            if (file != null)
+            try
             {
-                await Archive.Archive.Open(file);
+                var browser = DependencyService.Get<IFileBrowser>();
+                var file = await browser?.BrowseForArchive();
+                if (file != null)
+                {
+                    await Archive.Archive.Open(file);
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
             }
         }
 

@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         internal ReadSeekStreamFactory(StorageFile file)
         {
             _file = file;
-            // Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff
+            // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
         }
 
         public async Task<Stream> GetReadStream()

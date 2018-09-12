@@ -92,12 +92,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             this.context = context;
             this.video = video;
-            this.decoder = new BufferedVideoDecoder(decoder)
-            {
-                MaxFramesBefore = 5,
-                MinFramesAfter = 10,
-                BatchFramesToRead = 10,
-            };
+            this.decoder = new BufferedVideoDecoder(decoder);
 
             this.context.RangeUpdated += (double from, double to) =>
             {

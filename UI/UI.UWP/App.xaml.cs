@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SINTEF.AutoActive.UI.FileSystem;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -30,6 +31,9 @@ namespace SINTEF.AutoActive.UI.UWP
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+
+            // FIXME: Remove, this is only used for testing
+            var allSessions = SessionDatabase.All;
         }
 
         /// <summary>

@@ -96,6 +96,22 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             }
         }
 
+        (uint width, uint height) GetActualSize(uint requestedWidth, uint requestedHeight)
+        {
+            var naturalWidth = (double)decoder.PlaybackSession.NaturalVideoWidth;
+            var naturalHeight = (double)decoder.PlaybackSession.NaturalVideoHeight;
+            var widthFactor = requestedWidth / naturalWidth;
+            var heightFactor = requestedHeight / naturalHeight;
+            if (widthFactor < heightFactor)
+            {
+                return (requestedWidth, (uint)(naturalHeight * widthFactor));
+            }
+            else
+            {
+                return ((uint)(naturalWidth * heightFactor), requestedHeight);
+            }
+        }
+
         void CreateBitmaps(uint width, uint height)
         {
             //Debug.WriteLine($"CreateBitmaps #{Thread.CurrentThread.ManagedThreadId}");
@@ -103,19 +119,21 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             bitmap = CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), destination);
         }
 
-        VideoDecoderFrame CopyCurrentDecodedFrame()
+        VideoDecoderFrame CopyCurrentDecodedFrame(ArraySegment<byte> buffer)
         {
             //Debug.WriteLine($"CopyCurrentDecodedFrame #{Thread.CurrentThread.ManagedThreadId}");
             var time = decoder.PlaybackSession.Position.TotalSeconds;
             var width = (uint)destination.PixelWidth;
             var height = (uint)destination.PixelHeight;
-            var frame = bitmap.GetPixelBytes();
-            return new VideoDecoderFrame(time, width, height, frame);
+            var slice = buffer.Array.AsBuffer(buffer.Offset, buffer.Count);
+            /*destination.CopyToBuffer(slice);*/
+            bitmap.GetPixelBytes(slice);
+            return new VideoDecoderFrame(time, width, height, buffer);
         }
 
         void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
         {
-            //Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
+            Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
             length.TrySetResult(decoder.PlaybackSession.NaturalDuration.TotalSeconds);
 
             decoder.CopyFrameToVideoSurface(bitmap);
@@ -133,7 +151,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             throw new NotImplementedException();
         }
 
-        public Task<VideoDecoderFrame> DecodeNextFrameAsync(CancellationToken cancellationToken)
+        public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
         {
             //Debug.WriteLine($"DecodeNextFrameAsync #{Thread.CurrentThread.ManagedThreadId}");
             TaskCompletionSource<VideoDecoderFrame> source = new TaskCompletionSource<VideoDecoderFrame>();
@@ -145,15 +163,27 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                     return false;
                 }
 
-                // Return the current decoded frame to the caller
-                source.SetResult(CopyCurrentDecodedFrame());
-                return true;
+                if (buffer.Count >= destination.PixelHeight*destination.PixelWidth*4)
+                {
+                    Debug.WriteLine($"VIDEO FRAME COPIED");
+                    // If there is room in the assigned buffer, return the current decoded frame to the caller
+                    source.SetResult(CopyCurrentDecodedFrame(buffer));
+                    return true;
+                }
+                else
+                {
+                    Debug.WriteLine($"VIDEO FRAME SKIPPED");
+                    // If not, return a not decoded frame, and leave the current data for later
+                    source.SetResult(new VideoDecoderFrame());
+                    return false;
+                }
+                
             });
             return source.Task;
         }
-        public Task<VideoDecoderFrame> DecodeNextFrameAsync()
+        public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer)
         {
-            return DecodeNextFrameAsync(CancellationToken.None);
+            return DecodeNextFrameAsync(buffer, CancellationToken.None);
         }
 
         public Task<double> SeekToAsync(double time, CancellationToken cancellationToken)
@@ -189,10 +219,10 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             return SeekToAsync(time, CancellationToken.None);
         }
 
-        public Task SetSizeAsync(uint width, uint height, CancellationToken cancellationToken)
+        public Task<(uint width, uint height)> SetSizeAsync(uint width, uint height, CancellationToken cancellationToken)
         {
             //Debug.WriteLine($"SetSizeAsync {width}x{height} #{Thread.CurrentThread.ManagedThreadId}");
-            TaskCompletionSource<object> source = new TaskCompletionSource<object>();
+            TaskCompletionSource<(uint width, uint height)> source = new TaskCompletionSource<(uint width, uint height)>();
             EnqueueAndPossiblyRun(() =>
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -201,14 +231,17 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                     return false;
                 }
 
+                // Calculate appropriate size
+                var (actualWidth, actualHeight) = GetActualSize(width, height);
+
                 // Just create new bitmaps
-                CreateBitmaps(width, height);
-                source.SetResult(null);
+                CreateBitmaps(actualWidth, actualHeight);
+                source.SetResult((actualWidth, actualHeight));
                 return false;
             });
             return source.Task;
         }
-        public Task SetSizeAsync(uint width, uint height)
+        public Task<(uint width, uint height)> SetSizeAsync(uint width, uint height)
         {
             return SetSizeAsync(width, height, CancellationToken.None);
         }

@@ -9,9 +9,9 @@ namespace SINTEF.AutoActive.Databus
     {
         public uint Width { get; }
         public uint Height { get; }
-        public byte[] Frame { get; }
+        public ArraySegment<byte> Frame { get; }
 
-        public ImageFrame(uint width, uint height, byte[] frame)
+        public ImageFrame(uint width, uint height, ArraySegment<byte> frame)
         {
             Width = width;
             Height = height;

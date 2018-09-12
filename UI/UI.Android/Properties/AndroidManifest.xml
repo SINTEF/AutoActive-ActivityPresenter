@@ -1,5 +1,13 @@
-<?xml version="1.0" encoding="utf-8"?>
-<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="com.companyname.SINTEF.AutoActive.UI">
-    <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="27" />
-    <application android:label="SINTEF.AutoActive.UI.Android"></application>
+﻿<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" android:versionCode="1" android:versionName="1.0" package="no.sintef.autoactive" android:installLocation="auto">
+	<uses-sdk android:minSdkVersion="19" android:targetSdkVersion="27" />
+	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+	<application android:label="AutoActive">
+		<provider android:name="no.sintef.autoactive.ArchivesProvider" android:authorities="no.sintef.autoactive.archives" android:exported="true" android:grantUriPermissions="true" android:permission="android.permission.MANAGE_DOCUMENTS" android:enabled="true">
+			<intent-filter>
+				<action android:name="android.content.action.DOCUMENTS_PROVIDER" />
+			</intent-filter>
+		</provider>
+	</application>
 </manifest>

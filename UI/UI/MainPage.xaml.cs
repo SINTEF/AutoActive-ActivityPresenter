@@ -47,9 +47,8 @@ namespace SINTEF.AutoActive.UI
 
                 return;
             }
-            /*
 
-            //if (plotCount > 3) return;
+            if (plotCount > 3) return;
             // Show all the graphs
             
             var plot = new LinePlot
@@ -60,7 +59,6 @@ namespace SINTEF.AutoActive.UI
             };
             content?.Children.Add(plot);
             plotCount++;
-            */
         }
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
