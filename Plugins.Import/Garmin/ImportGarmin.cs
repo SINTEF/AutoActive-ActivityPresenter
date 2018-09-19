@@ -4,12 +4,36 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
+using System.Diagnostics;
+using System.Linq;
+using System.Xml.Linq;
 
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
 
 namespace SINTEF.AutoActive.Plugins.Import.Garmin
 {
+
+    public class TrackPoint
+    {
+        public string Time { set; get; }
+        public double AltitudeMeters { get; set; }
+        public double DistanceMeters { get; set; }
+        public int HeartRateBpm { get; set; }
+        public int Cadence { get; set; }
+        public string SensorState { get; set; }
+        //public List<Position> Positionx { get; set; }
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+    }
+
+    public class Position
+    {
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+    }
+
+
     public class GarminImporter : IDataProvider
     {
         public event DataPointAddedToHandler DataPointAddedTo;
@@ -22,88 +46,65 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         }
 
         /* Open an existing gamin file */
-        public async static void Open(IReadWriteSeekStreamFactory file)
+        public async static void Open(IReadSeekStreamFactory file)
         {
+            XElement root = XElement.Load(await file.GetReadStream());
+            XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
 
-            int ws = 0;
-            int pi = 0;
-            int dc = 0;
-            int cc = 0;
-            int ac = 0;
-            int et = 0;
-            int el = 0;
-            int xd = 0;
+            IEnumerable<XElement> lap =
+                from el in root.Descendants(ns1 + "Lap")
+                select el;
 
-            // Import data
+            int c3 = lap.Count();
+            Trace.WriteLine("lap.Count(): " + lap.Count());
 
-            // Read a document  
 
-            XmlTextReader textReader = new XmlTextReader(await file.GetReadWriteStream());
-            // Read until end of file  
-            while (textReader.Read())
+            int lapCount = 0;
+            int trackpointCount = 0;
+            foreach (XElement lapEl in lap)
             {
-                XmlNodeType nType = textReader.NodeType;
-                // If node type us a declaration  
-                if (nType == XmlNodeType.XmlDeclaration)
+                Trace.WriteLine("Lap num: " + lapCount++);
+
+                IEnumerable<TrackPoint> trackpoint =
+                    from el in lapEl.Descendants(ns1 + "Trackpoint")
+                    select new TrackPoint
+                    {
+                        Time = el.Element(ns1 + "Time") != null ?
+                        (string)el.Element(ns1 + "Time").Value :
+                        "No time",
+
+                        HeartRateBpm = el.Element(ns1 + "HeartRateBpm") != null ?
+                        Convert.ToInt16((string) el.Element(ns1 + "HeartRateBpm").Value) :
+                        0,
+                        LatitudeDegrees = el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees") != null ?
+                        Convert.ToDouble((string)el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees").Value) :
+                        0.0,
+                        LongitudeDegrees = el.Element(ns1 + "Position").Element(ns1 + "LongitudeDegrees") != null ?
+                        Convert.ToDouble((string)el.Element(ns1 + "Position").Element(ns1 + "LongitudeDegrees").Value) :
+                        0.0,
+                    };
+
+                int c5 = trackpoint.Count();
+                trackpointCount += c5;
+                Trace.WriteLine("trackpoint.Count(): " + trackpoint.Count());
+                foreach (TrackPoint tp in trackpoint)
                 {
-                    Console.WriteLine("Declaration:" + textReader.Name.ToString());
-                    xd = xd + 1;
+                    Trace.WriteLine("tp.Time(): " + tp.Time);
+                    Trace.WriteLine("tp.HeartRateBpm(): " + tp.HeartRateBpm);
+                    Trace.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
+                    Trace.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
+
                 }
-                // if node type is a comment  
-                if (nType == XmlNodeType.Comment)
-                {
-                    Console.WriteLine("Comment:" + textReader.Name.ToString());
-                    cc = cc + 1;
-                }
-                // if node type us an attribute  
-                if (nType == XmlNodeType.Attribute)
-                {
-                    Console.WriteLine("Attribute:" + textReader.Name.ToString());
-                    ac = ac + 1;
-                }
-                // if node type is an element  
-                if (nType == XmlNodeType.Element)
-                {
-                    Console.WriteLine("Element:" + textReader.Name.ToString());
-                    el = el + 1;
-                }
-                // if node type is an entity\  
-                if (nType == XmlNodeType.Entity)
-                {
-                    Console.WriteLine("Entity:" + textReader.Name.ToString());
-                    et = et + 1;
-                }
-                // if node type is a Process Instruction  
-                if (nType == XmlNodeType.Entity)
-                {
-                    Console.WriteLine("Entity:" + textReader.Name.ToString());
-                    pi = pi + 1;
-                }
-                // if node type a document  
-                if (nType == XmlNodeType.DocumentType)
-                {
-                    Console.WriteLine("Document:" + textReader.Name.ToString());
-                    dc = dc + 1;
-                }
-                // if node type is white space  
-                if (nType == XmlNodeType.Whitespace)
-                {
-                    Console.WriteLine("WhiteSpace:" + textReader.Name.ToString());
-                    ws = ws + 1;
-                }
+
             }
-            // Write the summary  
-            Console.WriteLine("Total Comments:" + cc.ToString());
-            Console.WriteLine("Total Attributes:" + ac.ToString());
-            Console.WriteLine("Total Elements:" + el.ToString());
-            Console.WriteLine("Total Entity:" + et.ToString());
-            Console.WriteLine("Total Process Instructions:" + pi.ToString());
-            Console.WriteLine("Total Declaration:" + xd.ToString());
-            Console.WriteLine("Total DocumentType:" + dc.ToString());
-            Console.WriteLine("Total WhiteSpaces:" + ws.ToString());
+            Trace.WriteLine("Total trackpoints: " + trackpointCount++);
 
 
 
+            // IEnumerable<XElement> activities = from ae in root.Descendants(ns1 + "Activities")
+            //                                   select ae;
+            // foreach (var ae in activities)
+            //    Trace.WriteLine(ae);
 
             // Check data
 
