@@ -19,6 +19,7 @@ namespace SINTEF.AutoActive.UI
 #if DEBUG
             LiveReload.Init();
 #endif
+            // Load the plugins
 
             //MainPage = new NavigationPage(new WelcomePage());
             MainPage = new CustomNavigationPage(new PlayerPage());

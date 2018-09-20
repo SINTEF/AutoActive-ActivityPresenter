@@ -1,4 +1,7 @@
-﻿using SINTEF.AutoActive.FileSystem;
+﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.Plugins;
+using SINTEF.AutoActive.Plugins.Import;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -26,7 +29,16 @@ namespace SINTEF.AutoActive.UI.FileSystem
                 var file = await browser?.BrowseForImportFile();
                 if (file != null)
                 {
-                    Debug.WriteLine($"IMPORTING FILE!");
+                    // FIXME: This should probably be handled somewhere else?
+                    // FIXME: This should also handle a case where multiple importers are possible
+                    // TODO: Should probably be run on a background thread...
+
+                    // Find the proper import plugin to use
+                    var plugins = PluginService.GetAll<IImportPlugin>(file.Extension);
+
+                    var provider = await plugins[0].Import(file);
+
+                    provider?.Register();
                 }
             }
             catch (Exception ex)

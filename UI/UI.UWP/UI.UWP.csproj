@@ -177,6 +177,10 @@
       <Project>{236a2913-2abc-45c7-b0ed-ad68181b8ef7}</Project>
       <Name>Plugins.Archive</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\Plugins.Import\Plugins.Import.csproj">
+      <Project>{256349fe-af4b-4f6b-ba46-b3f2199df3fc}</Project>
+      <Name>Plugins.Import</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\Plugins\Plugins.csproj">
       <Project>{f330707b-66c7-404e-b00b-f297905a6d5f}</Project>
       <Name>Plugins</Name>

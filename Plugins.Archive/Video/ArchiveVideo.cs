@@ -14,7 +14,6 @@ using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using Xamarin.Forms;
 
-[assembly: ArchivePlugin(typeof(ArchiveVideoPlugin), "no.sintef.video")]
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
     public class ArchiveVideo : ArchiveStructure
@@ -374,6 +373,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     }
     */
 
+        
+    [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
         public ArchiveStructure CreateFromJSON(JObject json, Archive.Archive archive)

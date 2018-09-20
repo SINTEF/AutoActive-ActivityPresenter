@@ -33,6 +33,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         public double LongitudeDegrees { set; get; }
     }
 
+    [ImportPlugin(".tcx")]
+    public class GarminImportPlugin : IImportPlugin
+    {
+        public Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        {
+            throw new NotImplementedException();
+        }
+    }
 
     public class GarminImporter : IDataProvider
     {
