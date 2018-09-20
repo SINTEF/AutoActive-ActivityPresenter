@@ -10,7 +10,7 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Plugins.Registry;
+using SINTEF.AutoActive.Plugins;
 
 namespace SINTEF.AutoActive.Archive
 {
@@ -77,11 +77,11 @@ namespace SINTEF.AutoActive.Archive
             {
                 var type = meta.Property("type").ToObject<string>();
                 // Try to parse the object with the specified plugin
-                var plugin = PluginService.Get<IArchivePlugin>(type);
+                var plugin = PluginService.GetSingle<IArchivePlugin>(type);
                 var parsed = plugin?.CreateFromJSON(json as JObject, this);
                 if (parsed != null) return parsed;
                 // If not, try to parse it as a folder (the default)
-                plugin = PluginService.Get<IArchivePlugin>(ArchiveFolder.PluginType);
+                plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
                 parsed = plugin?.CreateFromJSON(json as JObject, this);
                 if (parsed != null) return parsed;
             }
@@ -141,7 +141,15 @@ namespace SINTEF.AutoActive.Archive
             {
                 this.archive = archive;
                 this.entry = entry;
+
+                Debug.WriteLine($"ZIPENTRY NAME: {entry.Name}");
             }
+
+            public string Name => throw new NotImplementedException();
+
+            public string Extension => throw new NotImplementedException();
+
+            public string Mime => throw new NotImplementedException();
 
             public async Task<Stream> GetReadStream()
             {

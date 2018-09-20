@@ -4,10 +4,8 @@ using System.Diagnostics;
 using System.Text;
 using Newtonsoft.Json.Linq;
 
-using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
 
-[assembly: ArchivePlugin(typeof(ArchiveFolderPlugin), "no.sintef.folder")]
 namespace SINTEF.AutoActive.Archive.Plugin
 {
     public class ArchiveFolder : ArchiveStructure
@@ -47,9 +45,10 @@ namespace SINTEF.AutoActive.Archive.Plugin
             throw new NotImplementedException();
         }
 
-        
+
     }
 
+    [ArchivePlugin("no.sintef.folder")]
     public class ArchiveFolderPlugin : IArchivePlugin
     {
         public ArchiveStructure CreateFromJSON(JObject json, Archive archive)

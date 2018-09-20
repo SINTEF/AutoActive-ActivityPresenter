@@ -48,7 +48,7 @@ namespace SINTEF.AutoActive.UI
                 return;
             }
 
-            if (plotCount > 3) return;
+            //if (plotCount > 3) return;
             // Show all the graphs
             
             var plot = new LinePlot

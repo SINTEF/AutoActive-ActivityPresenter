@@ -1,7 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Globalization;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,82 +16,74 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
     public class TrackPoint
     {
-        public String TimeString { set; get; }
-        public Int64 TimeEpoch { set; get; }
+        public string Time { set; get; }
         public double AltitudeMeters { get; set; }
         public double DistanceMeters { get; set; }
-        public double SpeedMS { get; set; }
         public int HeartRateBpm { get; set; }
+        public int Cadence { get; set; }
+        public string SensorState { get; set; }
+        //public List<Position> Positionx { get; set; }
         public double LatitudeDegrees { set; get; }
         public double LongitudeDegrees { set; get; }
     }
 
+    public class Position
+    {
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+    }
+
+    [ImportPlugin(".tcx")]
+    public class GarminImportPlugin : IImportPlugin
+    {
+        public Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     public class GarminImporter : IDataProvider
     {
-        public event DataStructureAddedToHandler DataStructureAddedTo;
-        public event DataStructureRemovedHandler DataStructureRemoved;
         public event DataPointAddedToHandler DataPointAddedTo;
         public event DataPointRemovedHandler DataPointRemoved;
+        public event DataStructureAddedToHandler DataStructureAddedTo;
+        public event DataStructureRemovedHandler DataStructureRemoved;
 
-
-        private String name;
-        private GarminTable gt;
-
-        private GarminImporter(String name)
+        public GarminImporter()
         {
-            this.name = name;
         }
 
-        private void ParseFile(Stream s)
+        /* Open an existing gamin file */
+        public async static void Open(IReadSeekStreamFactory file)
         {
+            XElement root = XElement.Load(await file.GetReadStream());
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
-            XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";
 
-            XElement root = XElement.Load(s);
-            IEnumerable<XElement> activity =
-                from el in root.Descendants(ns1 + "Activity")
+            IEnumerable<XElement> lap =
+                from el in root.Descendants(ns1 + "Lap")
                 select el;
 
-            int c2 = activity.Count();
-            Trace.WriteLine("activity.Count(): " + activity.Count());
+            int c3 = lap.Count();
+            Trace.WriteLine("lap.Count(): " + lap.Count());
 
-            foreach (XElement ae in activity)
+
+            int lapCount = 0;
+            int trackpointCount = 0;
+            foreach (XElement lapEl in lap)
             {
+                Trace.WriteLine("Lap num: " + lapCount++);
 
-                IEnumerable<XElement> aid =
-                    from el in ae.Elements(ns1 + "Id")
-                    select el;
-
-                string id = "No id";
-                if(aid.Count() > 0)
-                    id = (string)aid.First(); 
-
-                IEnumerable<XElement> lap =
-                    from el in ae.Descendants(ns1 + "Lap")
-                    select el;
-
-                int c3 = lap.Count();
-                Trace.WriteLine("lap.Count(): " + lap.Count());
-
-                IEnumerable<TrackPoint> trackpoints =
-                    from el in ae.Descendants(ns1 + "Trackpoint")
+                IEnumerable<TrackPoint> trackpoint =
+                    from el in lapEl.Descendants(ns1 + "Trackpoint")
                     select new TrackPoint
                     {
-                        TimeString = el.Element(ns1 + "Time") != null ?
+                        Time = el.Element(ns1 + "Time") != null ?
                         (string)el.Element(ns1 + "Time").Value :
                         "No time",
-                        AltitudeMeters = el.Element(ns1 + "AltitudeMeters") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "AltitudeMeters").Value) :
-                        0.0,
-                        DistanceMeters = el.Element(ns1 + "DistanceMeters") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "DistanceMeters").Value) :
-                        0.0,
+
                         HeartRateBpm = el.Element(ns1 + "HeartRateBpm") != null ?
-                        Convert.ToInt16((string)el.Element(ns1 + "HeartRateBpm").Value) :
+                        Convert.ToInt16((string) el.Element(ns1 + "HeartRateBpm").Value) :
                         0,
-                        SpeedMS = el.Descendants(ns3 + "Speed").First() != null ?
-                        Convert.ToDouble((string)el.Descendants(ns3 + "Speed").First().Value) :
-                        0.0,
                         LatitudeDegrees = el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees") != null ?
                         Convert.ToDouble((string)el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees").Value) :
                         0.0,
@@ -102,124 +92,88 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                         0.0,
                     };
 
-                int c5 = trackpoints.Count();
-                Trace.WriteLine("trackpoint.Count(): " + trackpoints.Count());
+                int c5 = trackpoint.Count();
+                trackpointCount += c5;
+                Trace.WriteLine("trackpoint.Count(): " + trackpoint.Count());
+                foreach (TrackPoint tp in trackpoint)
+                {
+                    Trace.WriteLine("tp.Time(): " + tp.Time);
+                    Trace.WriteLine("tp.HeartRateBpm(): " + tp.HeartRateBpm);
+                    Trace.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
+                    Trace.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
 
-                // foreach (TrackPoint tp in trackpoint)
-                // {
-                // Trace.WriteLine("tp.TimeString(): " + tp.TimeString);
-                // Trace.WriteLine("tp.AltitudeMeters(): " + tp.AltitudeMeters);
-                // Trace.WriteLine("tp.DistanceMeters(): " + tp.DistanceMeters);
-                // Trace.WriteLine("tp.HeartRateBpm(): " + tp.HeartRateBpm);
-                // Trace.WriteLine("tp.SpeedMS(): " + tp.SpeedMS);
-                // Trace.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
-                // Trace.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
-                // }
+                }
 
-                gt = new GarminTable(id);
-                gt.convertTrackpoints(trackpoints);
             }
+            Trace.WriteLine("Total trackpoints: " + trackpointCount++);
+
+
+
+            // IEnumerable<XElement> activities = from ae in root.Descendants(ns1 + "Activities")
+            //                                   select ae;
+            // foreach (var ae in activities)
+            //    Trace.WriteLine(ae);
+
+            // Check data
+
+            // TODO: Multiple indices
+            //var timeInd = Array.IndexOf<string>(columns, "Time");
+            //if (timeInd < 0) throw new ArgumentException("Table does not have a column named 'Time'");
+
+            // Create the time index
+            //var timeCol = new GarminTableIndex("Time", zipEntry, archive);
+
+            // Create the other columns
+            //for (var i = 0; i < columns.Length; i++)
+            //{
+            //    if (i != timeInd)
+            //    {
+            //        this.columns.Add(new GarminTableColumn(columns[i], zipEntry, archive, timeCol));
+            //    }
+            //}
+
         }
 
-        /* Open an existing gamin file */
-        public async static Task<GarminImporter> Open(IReadSeekStreamFactory file)
-        {
-            var gi = new GarminImporter("Imported Garmin");
-            gi.Register();
-            gi.ParseFile(await file.GetReadStream());
-
-            return gi; 
-        }
     }
 
     public class GarminTable : DataStructure
     {
-        public override String Name { get; set; }
+        public override string Name { get; set; }
 
         private readonly List<GarminTableColumn> columns = new List<GarminTableColumn>();
 
-        public GarminTable(String id)
-        {
-            Name = id;
-        }
-
         /* Open an existing gamin file */
-        public void convertTrackpoints(IEnumerable<TrackPoint> tpEnum)
+        internal GarminTable()
         {
-            var tpList = tpEnum.ToList();
-            var faultyEntries = new List<TrackPoint>();
+            // Import data
 
-            // Convert timeString to Epoch
-            CultureInfo enUS = new CultureInfo("en-US");
-            string[] dateFormatArr = { "yyyy-MM-ddTHH:mm:ss.fffK", "yyyy-MM-ddTHH:mm:ssK" };
-            foreach (TrackPoint entry in tpList)
-            {
+            // Check data
 
-                DateTime dt;
-                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS,
-                                 DateTimeStyles.None, out dt))
-                {
-                    var dto = new DateTimeOffset(dt);
-                    entry.TimeEpoch = dto.ToUnixTimeMilliseconds();
-                }
-                else
-                {
-                    faultyEntries.Add(entry);
-                }
-
-            }
-
-            // Find time duplicates
-            Int64 lastTime = 0;
-            for (int i = 0; i < tpList.Count(); i++)
-            {
-                var entry = tpList[i];
-                if (lastTime == entry.TimeEpoch)
-                    faultyEntries.Add(entry);
-                lastTime = entry.TimeEpoch;
-            }
-
-            // Remove faulty entries
-            foreach (TrackPoint entry in faultyEntries)
-                tpList.Remove(entry);
-
-            // Adjust time from EPOCH to start of activity
-            Int64 firstTime = tpList[0].TimeEpoch;
-            foreach (TrackPoint entry in tpList)
-                entry.TimeEpoch = entry.TimeEpoch - firstTime;
-
+            // Create index
 
             // Create the time index
-            var timeCol = new GarminTableIndex("Time", tpList, entry => (float)entry.TimeEpoch / 1000);
+            var timeCol = new GarminTableIndex("Time");
 
-
-            // tcxNames = { 'dist m','altitude m','latitude deg','longitude deg','HR bpm','speed m/s'};
-
-            this.columns.Add(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("DistanceMeters", tpList, entry => (float)entry.DistanceMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("SpeedMS", tpList, entry => (float)entry.SpeedMS, timeCol));
-            this.columns.Add(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm, timeCol));
-            this.columns.Add(new GarminTableColumn("LatitudeDegrees", tpList, entry => (float)entry.LatitudeDegrees, timeCol));
-            this.columns.Add(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("LongitudeDegrees", tpList, entry => (float)entry.LongitudeDegrees, timeCol));
+            // Create the other columns
+            for (var i = 0; i < 1; i++)
+            {
+                this.columns.Add(new GarminTableColumn("Name", timeCol));
+            }
 
         }
+
     }
 
-
-public class GarminTableColumn : IDataPoint
+    public class GarminTableColumn : IDataPoint
     {
         protected float[] data;
         GarminTableIndex index;
         SemaphoreSlim locker = new SemaphoreSlim(1, 1);
 
-        internal GarminTableColumn(string name, List<TrackPoint> tpList, Func<TrackPoint, float> fetchValue,  GarminTableIndex index)
+        internal GarminTableColumn(string name, GarminTableIndex index)
         {
             Name = name;
             this.index = index;
-            Array.Resize(ref data, tpList.Count);
-            for (int i = 0; i < tpList.Count; i++)
-                data[i] = fetchValue(tpList[i]);
         }
 
         public Span<float> GetData(int start, int end)
@@ -239,8 +193,8 @@ public class GarminTableColumn : IDataPoint
 
     public class GarminTableIndex : GarminTableColumn
     {
-        internal GarminTableIndex(string name, List<TrackPoint> tpList, Func<TrackPoint, float> fetchValue)
-            : base(name, tpList, fetchValue, null)
+        internal GarminTableIndex(string name )
+            : base(name, null)
         {
 
         }
@@ -313,6 +267,5 @@ public class GarminTableColumn : IDataPoint
             throw new NotImplementedException();
         }
     }
-
 
 }

@@ -5,6 +5,9 @@ namespace SINTEF.AutoActive.FileSystem
 {
     public interface IReadSeekStreamFactory
     {
+        string Name { get; }
+        string Extension { get; }
+        string Mime { get; }
         Task<Stream> GetReadStream();
     }
 

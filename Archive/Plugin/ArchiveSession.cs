@@ -5,9 +5,6 @@ using System.Text;
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
 
-using SINTEF.AutoActive.Archive.Plugin;
-
-[assembly: ArchivePlugin(typeof(ArchiveSessionPlugin), "no.sintef.session")]
 namespace SINTEF.AutoActive.Archive.Plugin
 {
     public class ArchiveSession : ArchiveFolder
@@ -35,6 +32,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
         }
     }
 
+    [ArchivePlugin("no.sintef.session")]
     public class ArchiveSessionPlugin : IArchivePlugin
     {
         public ArchiveStructure CreateFromJSON(JObject json, Archive archive)

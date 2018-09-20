@@ -1,10 +1,11 @@
 ﻿using System;
 using Newtonsoft.Json.Linq;
 
-using SINTEF.AutoActive.Plugins.Registry;
+using SINTEF.AutoActive.Plugins;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
+    [PluginType(AllowMultipleImplementations = false, UseSingletonInstance = true)]
     public interface IArchivePlugin
     {
         ArchiveStructure CreateFromJSON(JObject json, Archive archive);
@@ -12,8 +13,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
     public class ArchivePluginAttribute : PluginAttribute
     {
-        public ArchivePluginAttribute(Type implementorType, string name)
-            : base(typeof(IArchivePlugin), implementorType, name)
-        { }
+        public ArchivePluginAttribute(string type) : base(typeof(IArchivePlugin), type) { }
     }
 }

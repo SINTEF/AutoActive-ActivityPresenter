@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System.IO;
 using Windows.Storage;
 using System.Diagnostics;
+using SINTEF.AutoActive.Plugins.Import;
 
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.UWP.FileSystem
@@ -19,8 +20,15 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         internal ReadSeekStreamFactory(StorageFile file)
         {
             _file = file;
+            Name = file.DisplayName;
+            Extension = file.FileType;
+            Mime = file.ContentType;
             // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
         }
+
+        public string Name { get; private set; }
+        public string Extension { get; private set; }
+        public string Mime { get; private set; }
 
         public async Task<Stream> GetReadStream()
         {
@@ -58,9 +66,15 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         public async Task<IReadSeekStreamFactory> BrowseForImportFile()
         {
             var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".tcx");
+            // Find all extensions we support
+            foreach (var extension in ImportPlugins.SupportedExtensions)
+            {
+                // TODO: Perhaps do some checking here, it's a bit picky about the format
+                // FIXME: Also, I don't know how well this handles duplicates
+                picker.FileTypeFilter.Add(extension);
+            }
             var file = await picker.PickSingleFileAsync();
-            return new ReadWriteSeekStreamFactory(file);
+            return new ReadSeekStreamFactory(file);
         }
     }
 }

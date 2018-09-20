@@ -13,6 +13,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Databus\Databus.csproj" />
     <ProjectReference Include="..\FileSystem\FileSystem.csproj" />
+    <ProjectReference Include="..\Plugins\Plugins.csproj" />
   </ItemGroup>
 
 </Project>

@@ -14,7 +14,6 @@ using Parquet;
 using Parquet.Data;
 using System.Threading;
 
-[assembly: ArchivePlugin(typeof(ArchiveTablePlugin), "no.sintef.table")]
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 {
     public class ArchiveTable : ArchiveStructure
@@ -265,6 +264,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         }
     }
 
+    [ArchivePlugin("no.sintef.table")]
     public class ArchiveTablePlugin : IArchivePlugin
     {
         public ArchiveStructure CreateFromJSON(JObject json, Archive.Archive archive)
