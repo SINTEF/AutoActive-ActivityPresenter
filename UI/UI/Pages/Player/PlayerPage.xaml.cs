@@ -25,6 +25,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 		{
 			InitializeComponent ();
 
+            Playbar.ViewerContext = ViewerContext;
+            PlayerGrid.ViewerContext = ViewerContext;
+
             Splitter.DragStart += Splitter_DragStart;
             Splitter.Dragged += Splitter_Dragged;
 

@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var plot = new LinePlot
             {
                 Data = datapoint,
-                ViewerContext = MockData.MockData.Context,
+                ViewerContext = ViewerContext,
                 HeightRequest = 100,
             };
             Children.Add(plot);

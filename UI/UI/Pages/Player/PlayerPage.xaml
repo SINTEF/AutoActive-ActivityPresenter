@@ -25,7 +25,7 @@
             <!--<player:PlayerGridLayout Grid.Row="1" Grid.Column="0"/>-->
             <player:PlayerSplitterView x:Name="Splitter" Grid.Row="1" Grid.Column="1" />
             <player:PlayerTreeView x:Name="TreeView" Grid.Row="1" Grid.Column="2" />
-            <player:PlaybarView Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />
+            <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />
         </Grid>
     </ContentPage.Content>
 </ContentPage>

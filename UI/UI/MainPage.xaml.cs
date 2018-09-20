@@ -24,46 +24,46 @@ namespace SINTEF.AutoActive.UI
 
         private async void DataRegistry_DataPointAdded(IDataPoint datapoint)
         {
-            var content = Content as StackLayout;
+            //var content = Content as StackLayout;
 
-            if (datapoint is ArchiveVideoVideo)
-            {
-                var image = new ImageView
-                {
-                    Data = datapoint,
-                    ViewerContext = MockData.MockData.Context,
-                    HeightRequest = 500,
-                    WidthRequest = 50,
-                };
-                /*
-                // For now, just run it in the backgroun
-                var viewer = await datapoint.CreateViewerIn(MockData.MockData.Context) as IImageViewer;
-                await viewer.SetSize(20, 10);
+            //if (datapoint is ArchiveVideoVideo)
+            //{
+            //    var image = new ImageView
+            //    {
+            //        Data = datapoint,
+            //        ViewerContext = MockData.MockData.Context,
+            //        HeightRequest = 500,
+            //        WidthRequest = 50,
+            //    };
+            //    /*
+            //    // For now, just run it in the backgroun
+            //    var viewer = await datapoint.CreateViewerIn(MockData.MockData.Context) as IImageViewer;
+            //    await viewer.SetSize(20, 10);
 
-                viewer.GetCurrentData();
-                */
-                content?.Children.Add(image);
+            //    viewer.GetCurrentData();
+            //    */
+            //    content?.Children.Add(image);
                 
 
-                return;
-            }
+            //    return;
+            //}
 
-            //if (plotCount > 3) return;
-            // Show all the graphs
+            ////if (plotCount > 3) return;
+            //// Show all the graphs
             
-            var plot = new LinePlot
-            {
-                Data = datapoint,
-                ViewerContext = MockData.MockData.Context,
-                HeightRequest = 100,
-            };
-            content?.Children.Add(plot);
-            plotCount++;
+            //var plot = new LinePlot
+            //{
+            //    Data = datapoint,
+            //    ViewerContext = MockData.MockData.Context,
+            //    HeightRequest = 100,
+            //};
+            //content?.Children.Add(plot);
+            //plotCount++;
         }
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
-            MockData.MockData.Context.UpdateRange(e.NewValue, e.NewValue + 100);
+            //MockData.MockData.Context.UpdateRange(e.NewValue, e.NewValue + 100);
         }
     }
 }

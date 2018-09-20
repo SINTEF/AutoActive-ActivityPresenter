@@ -1,4 +1,5 @@
-﻿using System;
+﻿using SINTEF.AutoActive.Databus;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -14,9 +15,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 	{
         public static readonly GridLength DefaultHeight = 40;
 
+        public DataViewerContext ViewerContext { get; set; }
+
         public PlaybarView ()
 		{
 			InitializeComponent ();
 		}
-	}
+
+        private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            ViewerContext.UpdateRange(e.NewValue, e.NewValue + 100);
+        }
+    }
 }

@@ -23,10 +23,16 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
     {
         protected string _path;
 
+        public string Name { get; private set; }
+        public string Extension { get; private set; }
+        public string Mime { get; private set; }
+
+
         internal ReadSeekStreamFactory(string path)
         {
             _path = path;
             // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
+            // FIXME: Use path to set the name and extension
         }
 
         public Task<Stream> GetReadStream()
