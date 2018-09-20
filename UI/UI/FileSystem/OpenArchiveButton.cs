@@ -29,6 +29,8 @@ namespace SINTEF.AutoActive.UI.FileSystem
                 var file = await browser?.BrowseForArchive();
                 if (file != null)
                 {
+                    // new Plugins.Import.Garmin.GarminImporter("C:\\Users\\steffend\\SINTEF\\AutoActive Internt - Dokumenter\\Data\\2018-05-16 Gange løp\\activity_Trine.tcx");
+                    // Plugins.Import.Garmin.GarminImporter.Open(file);
                     await Archive.Archive.Open(file);
                 }
             }
