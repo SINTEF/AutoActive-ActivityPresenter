@@ -1,0 +1,39 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:fs="clr-namespace:SINTEF.AutoActive.UI.FileSystem"
+             x:Class="SINTEF.AutoActive.UI.Views.CustomNavigationBar">
+    <ContentView.Content>
+        <AbsoluteLayout>
+            <Button
+                Text="Back"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                AbsoluteLayout.LayoutBounds="0,0,80,40"
+            />
+
+            <fs:OpenArchiveButton 
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                AbsoluteLayout.LayoutBounds="0.1,0,80,40"
+            />
+
+            <fs:OpenImportButton 
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                AbsoluteLayout.LayoutBounds="0.2,0,80,40"
+            />
+
+            <Label
+                Text="Title"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                AbsoluteLayout.LayoutBounds="0.5,0,80,40"
+            />
+            <Button
+                x:Name="MenuButton"
+                Text="Menu"
+                AbsoluteLayout.LayoutFlags="PositionProportional"
+                AbsoluteLayout.LayoutBounds="1,0,80,40"
+                IsVisible="false"
+                Clicked="MenuButton_Clicked"
+            />
+        </AbsoluteLayout>
+    </ContentView.Content>
+</ContentView>

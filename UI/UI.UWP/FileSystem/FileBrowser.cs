@@ -55,9 +55,13 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             return new ReadWriteSeekStreamFactory(file);
         }
 
-        public Task<IReadSeekStreamFactory> BrowseForImportFile()
+        public async Task<IReadSeekStreamFactory> BrowseForImportFile()
         {
-            throw new NotImplementedException();
+            var picker = new FileOpenPicker();
+            // TODO: Add filters based on supported import files
+            picker.FileTypeFilter.Add("*");
+            var file = await picker.PickSingleFileAsync();
+            return new ReadSeekStreamFactory(file);
         }
     }
 }
