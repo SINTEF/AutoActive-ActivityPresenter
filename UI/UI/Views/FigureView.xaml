@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
+             x:Class="SINTEF.AutoActive.UI.Views.FigureView">
+    <ContentView.Content>
+        <AbsoluteLayout>
+            <sk:SKCanvasView x:Name="Canvas" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1" />
+        </AbsoluteLayout>
+    </ContentView.Content>
+</ContentView>

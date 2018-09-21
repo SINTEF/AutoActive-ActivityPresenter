@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI
 
         async void OnShowButtonClicked(Object sender, EventArgs args)
         {
-            await Navigation.PushAsync(new MainPage());
+            //await Navigation.PushAsync(new MainPage());
         }
 	}
 }

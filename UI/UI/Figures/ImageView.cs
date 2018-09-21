@@ -9,7 +9,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Xamarin.Forms;
 
-namespace SINTEF.AutoActive.UI
+namespace SINTEF.AutoActive.UI.Figures
 {
     public class ImageView : SKCanvasView
     {
