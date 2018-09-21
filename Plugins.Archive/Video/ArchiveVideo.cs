@@ -19,9 +19,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public class ArchiveVideo : ArchiveStructure
     {
         public override string Type => "no.sintef.video";
-
-        private ArchiveVideoVideo video;
-
+        
         internal ArchiveVideo(JObject json, Archive.Archive archive) : base(json)
         {
             var path = Meta["path"].ToObject<string>() ?? throw new ArgumentException("Video is missing 'path'");
@@ -30,10 +28,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
 
             // Create the video datapoint
-            video = new ArchiveVideoVideo(zipEntry, archive, path);
+            var video = new ArchiveVideoVideo(zipEntry, archive, path);
             video.Name = "Video";
+            AddDataPoint(video);
         }
 
+        /*
         protected override void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded)
         {
             dataPointAdded?.Invoke(video, this);
@@ -43,6 +43,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             throw new NotImplementedException();
         }
+        */
     }
 
     public class ArchiveVideoVideo : IDataPoint
@@ -377,9 +378,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
-        public ArchiveStructure CreateFromJSON(JObject json, Archive.Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
         {
-            return new ArchiveVideo(json, archive);
+            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive));
         }
     }
 }

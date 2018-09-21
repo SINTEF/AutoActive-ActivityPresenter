@@ -4,10 +4,12 @@ using System.Text;
 
 using System.Diagnostics;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Databus;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
-    public class ArchiveSession : ArchiveFolder
+    public class ArchiveSession : ArchiveFolder, IDataProvider
     {
         public override string Type => "no.sintef.session";
 
@@ -25,19 +27,21 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
         }
 
+        /*
         protected override void ToArchiveJSON(JObject meta, JObject user)
         {
             // FIXME: Implement this!
             base.ToArchiveJSON(meta, user);
         }
+        */
     }
 
     [ArchivePlugin("no.sintef.session")]
     public class ArchiveSessionPlugin : IArchivePlugin
     {
-        public ArchiveStructure CreateFromJSON(JObject json, Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive)
         {
-            return new ArchiveSession(json, archive);
+            return Task.FromResult<ArchiveStructure>(new ArchiveSession(json, archive));
         }
     }
 }

@@ -8,9 +8,14 @@ using SINTEF.AutoActive.Databus;
 
 namespace SINTEF.AutoActive.Archive
 {
-    public abstract class ArchiveStructure : DataStructure
+    public abstract class ArchiveStructure : BaseDataStructure
     {
-        public override string Name { get; set; }
+        //public override string Name { get; set; }
+        // TODO: How do we handle name changes of structures in archives?
+        internal void SetName(string name)
+        {
+            Name = name; 
+        }
 
         public abstract string Type { get; }
         protected JObject Meta { get; private set; }
@@ -36,8 +41,9 @@ namespace SINTEF.AutoActive.Archive
             return meta != null && user != null;
         }
 
-        protected internal abstract void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded);
+        //protected internal abstract void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded);
 
+            /*
         protected abstract void ToArchiveJSON(JObject meta, JObject user);
 
         protected JObject ToArchiveJSON()
@@ -51,5 +57,6 @@ namespace SINTEF.AutoActive.Archive
             json["user"] = user;
             return json;
         }
+        */
     }
 }

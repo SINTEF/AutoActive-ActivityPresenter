@@ -7,6 +7,7 @@ using Xamarin.Forms;
 using SINTEF.AutoActive.Archive;
 using SINTEF.AutoActive.FileSystem;
 using System.Diagnostics;
+using SINTEF.AutoActive.Databus;
 
 namespace SINTEF.AutoActive.UI.FileSystem
 {
@@ -29,9 +30,11 @@ namespace SINTEF.AutoActive.UI.FileSystem
                 var file = await browser?.BrowseForArchive();
                 if (file != null)
                 {
-                    // new Plugins.Import.Garmin.GarminImporter("C:\\Users\\steffend\\SINTEF\\AutoActive Internt - Dokumenter\\Data\\2018-05-16 Gange løp\\activity_Trine.tcx");
-                    // Plugins.Import.Garmin.GarminImporter.Open(file);
-                    await Archive.Archive.Open(file);
+                    var archive = await Archive.Archive.Open(file);
+                    foreach (var session in archive.Sessions)
+                    {
+                        session.Register();
+                    }
                 }
             }
             catch (Exception ex)

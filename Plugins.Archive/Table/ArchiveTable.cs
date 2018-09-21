@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     {
         public override string Type => "no.sintef.table";
 
-        private readonly List<ArchiveTableColumn> columns = new List<ArchiveTableColumn>();
+        //private readonly List<ArchiveTableColumn> columns = new List<ArchiveTableColumn>();
 
         internal ArchiveTable(JObject json, Archive.Archive archive) : base(json)
         {
@@ -47,11 +47,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 if (i != timeInd)
                 {
-                    this.columns.Add(new ArchiveTableColumn(columns[i], zipEntry, archive, timeCol));
+                    AddDataPoint(new ArchiveTableColumn(columns[i], zipEntry, archive, timeCol));
                 }
             }
         }
 
+        /*
         protected override void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded)
         {
             foreach (var column in columns)
@@ -64,6 +65,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         {
             throw new NotImplementedException();
         }
+        */
     }
 
     public class ArchiveTableColumn : IDataPoint
@@ -267,9 +269,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     [ArchivePlugin("no.sintef.table")]
     public class ArchiveTablePlugin : IArchivePlugin
     {
-        public ArchiveStructure CreateFromJSON(JObject json, Archive.Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
         {
-            return new ArchiveTable(json, archive);
+            return Task.FromResult<ArchiveStructure>(new ArchiveTable(json, archive));
         }
     }
 }

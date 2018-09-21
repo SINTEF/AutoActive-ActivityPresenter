@@ -28,16 +28,6 @@ namespace SINTEF.AutoActive.UI
 
         protected override void OnStart()
         {
-            DataRegistry.DataStructureAdded += (DataStructure datastructure) =>
-            {
-                Debug.WriteLine($"REGISTRY: Datastructure added - {datastructure.Name} - {datastructure.GetType()}");
-                if (datastructure is ArchiveTable) { } // FIXME: How do we make sure the dlls are loaded without being used in the UI??
-            };
-            DataRegistry.DataPointAdded += (IDataPoint datapoint) =>
-            {
-                Debug.WriteLine($"REGISTRY: Datapoint added - {datapoint.Name} - {datapoint.GetType()}");
-            };
-
             // Handle when your app starts
         }
 

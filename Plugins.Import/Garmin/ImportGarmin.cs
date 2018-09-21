@@ -31,29 +31,22 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
     [ImportPlugin(".tcx")]
     public class GarminImportPlugin : IImportPlugin
     {
-        public Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
-            return GarminImporter.Open(readerFactory);
+            var importer = new GarminImporter(readerFactory.Name);
+            importer.ParseFile(await readerFactory.GetReadStream());
+            return importer;
         }
     }
 
-    public class GarminImporter : IDataProvider
+    public class GarminImporter : BaseDataProvider
     {
-        public event DataStructureAddedToHandler DataStructureAddedTo;
-        public event DataStructureRemovedHandler DataStructureRemoved;
-        public event DataPointAddedToHandler DataPointAddedTo;
-        public event DataPointRemovedHandler DataPointRemoved;
-
-
-        private String name;
-        private GarminTable gt;
-
-        private GarminImporter(String name)
+        internal GarminImporter(string name)
         {
-            this.name = name;
+            Name = name;
         }
 
-        private void ParseFile(Stream s)
+        internal void ParseFile(Stream s)
         {
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";
@@ -64,7 +57,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 select el;
 
             int c2 = activity.Count();
-            Trace.WriteLine("activity.Count(): " + activity.Count());
+            Debug.WriteLine("activity.Count(): " + activity.Count());
 
             foreach (XElement ae in activity)
             {
@@ -82,7 +75,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                     select el;
 
                 int c3 = lap.Count();
-                Trace.WriteLine("lap.Count(): " + lap.Count());
+                Debug.WriteLine("lap.Count(): " + lap.Count());
 
                 IEnumerable<TrackPoint> trackpoints =
                     from el in ae.Descendants(ns1 + "Trackpoint")
@@ -112,48 +105,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                     };
 
                 int c5 = trackpoints.Count();
-                Trace.WriteLine("trackpoint.Count(): " + trackpoints.Count());
+                Debug.WriteLine("trackpoint.Count(): " + trackpoints.Count());
 
                 // foreach (TrackPoint tp in trackpoint)
                 // {
-                // Trace.WriteLine("tp.TimeString(): " + tp.TimeString);
-                // Trace.WriteLine("tp.AltitudeMeters(): " + tp.AltitudeMeters);
-                // Trace.WriteLine("tp.DistanceMeters(): " + tp.DistanceMeters);
-                // Trace.WriteLine("tp.HeartRateBpm(): " + tp.HeartRateBpm);
-                // Trace.WriteLine("tp.SpeedMS(): " + tp.SpeedMS);
-                // Trace.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
-                // Trace.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
+                // Debug.WriteLine("tp.TimeString(): " + tp.TimeString);
+                // Debug.WriteLine("tp.AltitudeMeters(): " + tp.AltitudeMeters);
+                // Debug.WriteLine("tp.DistanceMeters(): " + tp.DistanceMeters);
+                // Debug.WriteLine("tp.HeartRateBpm(): " + tp.HeartRateBpm);
+                // Debug.WriteLine("tp.SpeedMS(): " + tp.SpeedMS);
+                // Debug.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
+                // Debug.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
                 // }
-
-                gt = new GarminTable(id);
-                gt.convertTrackpoints(trackpoints);
+                
+                AddChild(new GarminTable(id, trackpoints));
             }
-        }
-
-        /* Open an existing gamin file */
-        public async static Task<IDataProvider> Open(IReadSeekStreamFactory file)
-        {
-            var gi = new GarminImporter("Imported Garmin");
-            gi.Register();
-            gi.ParseFile(await file.GetReadStream());
-
-            return gi;
         }
     }
 
-    public class GarminTable : DataStructure
+    public class GarminTable : BaseDataStructure
     {
-        public override String Name { get; set; }
-
-        private readonly List<GarminTableColumn> columns = new List<GarminTableColumn>();
-
-        public GarminTable(String id)
+        internal GarminTable(string id, IEnumerable<TrackPoint> tpEnum)
         {
             Name = id;
+            convertTrackpoints(tpEnum);
         }
 
         /* Open an existing gamin file */
-        public void convertTrackpoints(IEnumerable<TrackPoint> tpEnum)
+        private void convertTrackpoints(IEnumerable<TrackPoint> tpEnum)
         {
             var tpList = tpEnum.ToList();
             var faultyEntries = new List<TrackPoint>();
@@ -203,15 +182,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
 
             // tcxNames = { 'dist m','altitude m','latitude deg','longitude deg','HR bpm','speed m/s'};
-
-            this.columns.Add(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("DistanceMeters", tpList, entry => (float)entry.DistanceMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("SpeedMS", tpList, entry => (float)entry.SpeedMS, timeCol));
-            this.columns.Add(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm, timeCol));
-            this.columns.Add(new GarminTableColumn("LatitudeDegrees", tpList, entry => (float)entry.LatitudeDegrees, timeCol));
-            this.columns.Add(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            this.columns.Add(new GarminTableColumn("LongitudeDegrees", tpList, entry => (float)entry.LongitudeDegrees, timeCol));
-
+            AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
+            AddDataPoint(new GarminTableColumn("DistanceMeters", tpList, entry => (float)entry.DistanceMeters, timeCol));
+            AddDataPoint(new GarminTableColumn("SpeedMS", tpList, entry => (float)entry.SpeedMS, timeCol));
+            AddDataPoint(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm, timeCol));
+            AddDataPoint(new GarminTableColumn("LatitudeDegrees", tpList, entry => (float)entry.LatitudeDegrees, timeCol));
+            AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
+            AddDataPoint(new GarminTableColumn("LongitudeDegrees", tpList, entry => (float)entry.LongitudeDegrees, timeCol));
         }
     }
 

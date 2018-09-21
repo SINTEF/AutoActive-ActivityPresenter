@@ -4,20 +4,11 @@ using System.Text;
 
 namespace SINTEF.AutoActive.Databus
 {
-    public delegate void DataPointAddedHandler(IDataPoint datapoint);
-    public delegate void DataPointAddedToHandler(IDataPoint datapoint, DataStructure parent);
-    public delegate void DataPointRemovedHandler(IDataPoint datapoint);
-
-    public delegate void DataStructureAddedHandler(DataStructure datastructure);
-    public delegate void DataStructureAddedToHandler(DataStructure datastructure, DataStructure parent);
-    public delegate void DataStructureRemovedHandler(DataStructure datastructure);
-
-    public interface IDataProvider
+    public interface IDataProvider : IDataStructure
     {
-        event DataPointAddedToHandler DataPointAddedTo;
-        event DataPointRemovedHandler DataPointRemoved;
+        // An IDataProvider should also emit events from it's entire tree
 
-        event DataStructureAddedToHandler DataStructureAddedTo;
-        event DataStructureRemovedHandler DataStructureRemoved;
+        // TODO: It should not be added inside a datastructure as a child, that will cause strange behaviour of multiple events
+        // Perhaps we should make sure of that somehow?
     }
 }

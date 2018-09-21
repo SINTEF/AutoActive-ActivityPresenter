@@ -18,12 +18,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         static PlayerTreeView()
         {
-            DataRegistry.DataPointAdded += (datapoint) =>
+            DataRegistry.DataPointAdded += (sender, datapoint) =>
             {
                 dataPoints.Add(datapoint);
             };
 
-            DataRegistry.DataPointRemoved += (datapoint) =>
+            DataRegistry.DataPointRemoved += (sender, datapoint) =>
             {
                 dataPoints.Remove(datapoint);
             };
@@ -49,7 +49,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             ItemTapped += PlayerTreeView_ItemTapped;
         }
 
-        public event EventHandler<DataStructure> DataStructureTapped;
+        public event EventHandler<IDataStructure> DataStructureTapped;
         public event EventHandler<IDataPoint> DataPointTapped;
 
         private void PlayerTreeView_ItemTapped(object sender, ItemTappedEventArgs e)
@@ -58,7 +58,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 DataPointTapped?.Invoke(this, datapoint);
             }
-            else if (e.Item is DataStructure datastructure)
+            else if (e.Item is IDataStructure datastructure)
             {
                 DataStructureTapped?.Invoke(this, datastructure);
             }
