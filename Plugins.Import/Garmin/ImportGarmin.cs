@@ -26,6 +26,19 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         public int HeartRateBpm { get; set; }
         public double LatitudeDegrees { set; get; }
         public double LongitudeDegrees { set; get; }
+        public IEnumerable<Speed> SpeedList { get; set; }
+        public IEnumerable<Position> PositionList { get; set; }
+    }
+
+    public class Speed
+    {
+        public double SpeedMS { get; set; }
+    }
+
+    public class Position
+    {
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
     }
 
     [ImportPlugin(".tcx")]
@@ -77,6 +90,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 int c3 = lap.Count();
                 Debug.WriteLine("lap.Count(): " + lap.Count());
 
+                IEnumerable<XElement> tp =
+                    from el in ae.Descendants(ns1 + "Trackpoint")
+                    select el;
+                Debug.WriteLine("tp.Count(): " + tp.Count());
+
                 IEnumerable<TrackPoint> trackpoints =
                     from el in ae.Descendants(ns1 + "Trackpoint")
                     select new TrackPoint
@@ -93,19 +111,57 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                         HeartRateBpm = el.Element(ns1 + "HeartRateBpm") != null ?
                         Convert.ToInt16((string)el.Element(ns1 + "HeartRateBpm").Value) :
                         0,
-                        SpeedMS = el.Descendants(ns3 + "Speed").First() != null ?
-                        Convert.ToDouble((string)el.Descendants(ns3 + "Speed").First().Value) :
-                        0.0,
-                        LatitudeDegrees = el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "Position").Element(ns1 + "LatitudeDegrees").Value) :
-                        0.0,
-                        LongitudeDegrees = el.Element(ns1 + "Position").Element(ns1 + "LongitudeDegrees") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "Position").Element(ns1 + "LongitudeDegrees").Value) :
-                        0.0,
+                        SpeedList = 
+                            (from els in el.Descendants(ns3 + "Speed")
+                            select new Speed
+                            {
+                                SpeedMS = els != null ?
+                                Convert.ToDouble((string)els.Value ) :
+                                0.0,
+                            }),
+                        PositionList = 
+                            (from elp in el.Descendants(ns1 + "Position")
+                            select new Position
+                            {
+                                LatitudeDegrees = elp.Element(ns1 + "LatitudeDegrees") != null ?
+                                Convert.ToDouble((string)elp.Element(ns1 + "LatitudeDegrees").Value) :
+                                0.0,
+                                LongitudeDegrees = elp.Element(ns1 + "LongitudeDegrees") != null ?
+                                Convert.ToDouble((string)elp.Element(ns1 + "LongitudeDegrees").Value) :
+                                0.0,
+                            }),
                     };
 
                 int c5 = trackpoints.Count();
                 Debug.WriteLine("trackpoint.Count(): " + trackpoints.Count());
+
+                // The var trackpoints is an LYNQ object with late fetch
+                // Make a list of it to force fetch of data into a real list that we can change.
+                var trackpointList = trackpoints.ToList();
+
+                // The SpeedList and PositionList will only be populated if data found
+                // Loop through the list and copy the values to the main class for consistency
+                foreach (var entry in trackpointList)
+                {
+                    if(entry.PositionList.Count() > 0)
+                    {
+                        entry.LatitudeDegrees = entry.PositionList.First().LatitudeDegrees;
+                        entry.LongitudeDegrees = entry.PositionList.First().LongitudeDegrees;
+                    }
+                    else
+                    {
+                        entry.LatitudeDegrees = 0.0;
+                        entry.LongitudeDegrees = 0.0;
+                    }
+                    if (entry.SpeedList.Count() > 0)
+                    {
+                        entry.SpeedMS = entry.SpeedList.First().SpeedMS;
+                    }
+                    else
+                    {
+                        entry.SpeedMS = 0.0;
+                    }
+                }
 
                 // foreach (TrackPoint tp in trackpoint)
                 // {
@@ -117,24 +173,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 // Debug.WriteLine("tp.LatitudeDegrees(): " + tp.LatitudeDegrees);
                 // Debug.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
                 // }
-                
-                AddChild(new GarminTable(id, trackpoints));
+
+                AddChild(new GarminTable(id, trackpointList));
             }
         }
     }
 
     public class GarminTable : BaseDataStructure
     {
-        internal GarminTable(string id, IEnumerable<TrackPoint> tpEnum)
+        internal GarminTable(string id, List<TrackPoint> tpList)
         {
             Name = id;
-            convertTrackpoints(tpEnum);
+            convertTrackpoints(tpList);
         }
 
         /* Open an existing gamin file */
-        private void convertTrackpoints(IEnumerable<TrackPoint> tpEnum)
+        private void convertTrackpoints(List<TrackPoint> tpList)
         {
-            var tpList = tpEnum.ToList();
             var faultyEntries = new List<TrackPoint>();
 
             // Convert timeString to Epoch
@@ -185,7 +240,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
             AddDataPoint(new GarminTableColumn("DistanceMeters", tpList, entry => (float)entry.DistanceMeters, timeCol));
             AddDataPoint(new GarminTableColumn("SpeedMS", tpList, entry => (float)entry.SpeedMS, timeCol));
-            AddDataPoint(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm, timeCol));
+            AddDataPoint(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm/200, timeCol));
             AddDataPoint(new GarminTableColumn("LatitudeDegrees", tpList, entry => (float)entry.LatitudeDegrees, timeCol));
             AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
             AddDataPoint(new GarminTableColumn("LongitudeDegrees", tpList, entry => (float)entry.LongitudeDegrees, timeCol));
