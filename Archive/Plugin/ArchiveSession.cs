@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Diagnostics;
-using Newtonsoft.Json.Linq;
-using SINTEF.AutoActive.Databus;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {

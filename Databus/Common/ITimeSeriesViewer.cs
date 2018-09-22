@@ -1,13 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 using System.Runtime.CompilerServices;
-using System.Text;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Common
 {
-    public delegate void DataViewWasChangedHandler();
-    //public delegate void DataViewChanged<T>(Span<T> data);
+    public interface ITimeSeriesViewer : IDataViewer
+    {
+        SpanPair<bool> GetCurrentBools();
 
+        SpanPair<byte> GetCurrentBytes();
+        SpanPair<int> GetCurrentInts();
+        SpanPair<long> GetCurrentLongs();
+
+        SpanPair<float> GetCurrentFloats();
+        SpanPair<double> GetCurrentDoubles();
+
+        SpanPair<string> GetCurrentStrings();
+    }
+
+    /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
     public readonly ref struct SpanPair<T>
     {
         public SpanPair(Span<float> X, Span<T> Y)
@@ -55,15 +66,5 @@ namespace SINTEF.AutoActive.Databus
 
 
         }
-    }
-
-    public interface IDataViewer
-    {
-        event DataViewWasChangedHandler Changed;
-        //event DataViewChanged<T> Updated;
-        //Span<T> GetCurrent<T>();
-        SpanPair<float> GetCurrentFloat();
-
-        IDataPoint DataPoint { get; }
     }
 }

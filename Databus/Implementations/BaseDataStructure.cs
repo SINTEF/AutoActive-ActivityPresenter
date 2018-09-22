@@ -1,8 +1,7 @@
-﻿using System;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
-using System.Text;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Implementations
 {
     // Base class that implements the IDataStructure interface with lists of children and datapoints
     public abstract class BaseDataStructure : IDataStructure
@@ -31,7 +30,7 @@ namespace SINTEF.AutoActive.Databus
         }
 
         // Tree manipulation methods
-        protected virtual void AddChild(IDataStructure datastructure)
+        protected internal virtual void AddChild(IDataStructure datastructure)
         {
             if (Contains(datastructure)) return;
             children.Add(datastructure);
@@ -42,7 +41,7 @@ namespace SINTEF.AutoActive.Databus
             ChildAdded?.Invoke(sender, datastructure);
         }
 
-        protected virtual void RemoveChild(IDataStructure datastructure)
+        protected internal virtual void RemoveChild(IDataStructure datastructure)
         {
             if (children.Remove(datastructure)) OnChildRemoved(this, datastructure);
         }
@@ -51,7 +50,7 @@ namespace SINTEF.AutoActive.Databus
             ChildRemoved?.Invoke(sender, datastructure);
         }
 
-        protected virtual void AddDataPoint(IDataPoint datapoint)
+        protected internal virtual void AddDataPoint(IDataPoint datapoint)
         {
             if (Contains(datapoint)) return;
             datapoints.Add(datapoint);
@@ -62,7 +61,7 @@ namespace SINTEF.AutoActive.Databus
             DataPointAdded?.Invoke(sender, datapoint);
         }
 
-        protected virtual void RemoveDataPoint(IDataPoint datapoint)
+        protected internal virtual void RemoveDataPoint(IDataPoint datapoint)
         {
             if (datapoints.Remove(datapoint)) OnDataPointRemoved(this, datapoint);
         }

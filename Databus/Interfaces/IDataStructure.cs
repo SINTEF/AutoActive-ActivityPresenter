@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Interfaces
 {
     public delegate void DataPointAddedHandler(IDataStructure sender, IDataPoint datapoint);
     public delegate void DataPointRemovedHandler(IDataStructure sender, IDataPoint datapoint);

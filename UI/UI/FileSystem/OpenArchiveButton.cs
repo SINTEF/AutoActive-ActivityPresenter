@@ -8,6 +8,7 @@ using SINTEF.AutoActive.Archive;
 using SINTEF.AutoActive.FileSystem;
 using System.Diagnostics;
 using SINTEF.AutoActive.Databus;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.UI.FileSystem
 {
@@ -30,7 +31,8 @@ namespace SINTEF.AutoActive.UI.FileSystem
                 var file = await browser?.BrowseForArchive();
                 if (file != null)
                 {
-                    var archive = await Archive.Archive.Open(file);
+                    // Load Archive in the background
+                    var archive = await Task.Run(() => Archive.Archive.Open(file));
                     foreach (var session in archive.Sessions)
                     {
                         session.Register();

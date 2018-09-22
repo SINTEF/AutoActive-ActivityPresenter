@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;

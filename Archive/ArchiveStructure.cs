@@ -5,6 +5,7 @@ using System.Text;
 using Newtonsoft.Json.Linq;
 
 using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Implementations;
 
 namespace SINTEF.AutoActive.Archive
 {
@@ -23,22 +24,19 @@ namespace SINTEF.AutoActive.Archive
 
         protected ArchiveStructure(JObject json)
         {
-            if (TryGetUserMeta(json, out var meta, out var user))
-            {
-                Meta = meta;
-                User = user;
-            }
-            else
-            {
-                throw new ArgumentException("Object missing 'meta' or 'user' property.", nameof(json));
-            }
+            GetUserMeta(json, out var meta, out var user);
+            Meta = meta;
+            User = user;
         }
 
-        private static bool TryGetUserMeta(JObject json, out JObject meta, out JObject user)
+        public static void GetUserMeta(JObject json, out JObject meta, out JObject user)
         {
             meta = json?.Property("meta")?.Value as JObject;
             user = json?.Property("user")?.Value as JObject;
-            return meta != null && user != null;
+
+            if (meta == null || user == null) {
+                throw new ArgumentException("Object missing 'meta' or 'user' property.", nameof(json));
+            }
         }
 
         //protected internal abstract void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded);

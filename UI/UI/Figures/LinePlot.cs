@@ -8,6 +8,8 @@ using SINTEF.AutoActive.Databus;
 using System.Diagnostics;
 using SINTEF.AutoActive.UI.Views;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.Common;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
@@ -17,10 +19,74 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             // TODO: Check that this datapoint has a type that can be used
             var viewer = await datapoint.CreateViewerIn(context);
-            return new LinePlot(viewer, context);
+            return new LinePlot(viewer as ITimeSeriesViewer, context);
         }
 
-        protected LinePlot(IDataViewer viewer, DataViewerContext context) : base(viewer, context) { }
+        protected ITimeSeriesViewer Viewer { get; private set; }
+
+        protected LinePlot(ITimeSeriesViewer viewer, DataViewerContext context) : base(viewer, context)
+        {
+            Viewer = viewer;
+
+            if (Viewer.DataPoint.DataType == typeof(byte)) CreatePathFunction = CreateBytePath;
+            else if (Viewer.DataPoint.DataType == typeof(int)) CreatePathFunction = CreateIntPath;
+            else if (Viewer.DataPoint.DataType == typeof(long)) CreatePathFunction = CreateLongPath;
+            else if (Viewer.DataPoint.DataType == typeof(float)) CreatePathFunction = CreateFloatPath;
+            else if (Viewer.DataPoint.DataType == typeof(double)) CreatePathFunction = CreateDoublePath;
+            else CreatePathFunction = EmptyPath;
+        }
+
+        // Line drawing
+        delegate void CreatePath(SKPath plot);
+        CreatePath CreatePathFunction;
+
+        void EmptyPath(SKPath plot) { }
+        void CreateBytePath(SKPath plot)
+        {
+            var en = Viewer.GetCurrentBytes().GetEnumerator();
+            if (en.MoveNext())
+            {
+                plot.MoveTo(en.Current.x, en.Current.y);
+                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
+            }
+        }
+        void CreateIntPath(SKPath plot)
+        {
+            var en = Viewer.GetCurrentInts().GetEnumerator();
+            if (en.MoveNext())
+            {
+                plot.MoveTo(en.Current.x, en.Current.y);
+                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
+            }
+        }
+        void CreateLongPath(SKPath plot)
+        {
+            var en = Viewer.GetCurrentLongs().GetEnumerator();
+            if (en.MoveNext())
+            {
+                plot.MoveTo(en.Current.x, en.Current.y);
+                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
+            }
+        }
+        void CreateFloatPath(SKPath plot)
+        {
+            var en = Viewer.GetCurrentFloats().GetEnumerator();
+            if (en.MoveNext())
+            {
+                plot.MoveTo(en.Current.x, en.Current.y);
+                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
+            }
+        }
+        void CreateDoublePath(SKPath plot)
+        {
+            var en = Viewer.GetCurrentDoubles().GetEnumerator();
+            if (en.MoveNext())
+            {
+                plot.MoveTo(en.Current.x, (float)en.Current.y);
+                while (en.MoveNext()) plot.LineTo(en.Current.x, (float)en.Current.y);
+            }
+        }
+
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
@@ -28,134 +94,20 @@ namespace SINTEF.AutoActive.UI.Figures
 
             if (Viewer != null)
             {
+                var startX = (float)Context.RangeFrom;
+                var endX = (float)Context.RangeTo;
+
                 // Scale so that the whole canvas is x=[0,1] y=[-1,1]
-                canvas.Scale(info.Width, -info.Height / 2);
-                canvas.Translate(0, -1);
+                canvas.Scale(info.Width/(endX-startX), -info.Height / 2);
+                canvas.Translate(-startX, -1);
+
+                // Create path
+                SKPath plot = new SKPath();
+                CreatePathFunction(plot);
 
                 // Draw the data
-                SKPath plot = new SKPath();
-
-                var data = Viewer.GetCurrentFloat();
-                var en = data.GetEnumerator();
-
-                var count = 0;
-                var width = 0f;
-
-                if (en.MoveNext())
-                {
-                    // Move to first point
-                    var first = en.Current;
-                    plot.MoveTo(0, first.y);
-                    count = 1;
-
-                    // Draw the rest
-                    while (en.MoveNext())
-                    {
-                        var (x, y) = en.Current;
-                        plot.LineTo((x - first.x) / 100, y / 10);
-                        count++;
-                        width = x - first.x;
-                    }
-
-                }
-                //canvas.ResetMatrix();
-                //canvas.Scale(1, 1f/2);
-
                 canvas.DrawPath(plot, new SKPaint() { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 0.01f, StrokeJoin = SKStrokeJoin.Miter, IsAntialias = true });
             }
         }
-
-        /*
-        public static readonly BindableProperty DataProperty = BindableProperty.Create(
-            propertyName: "Data",
-            returnType: typeof(IDataPoint),
-            declaringType: typeof(LinePlot),
-            defaultValue: null
-        );
-
-        public static readonly BindableProperty ViewerContextProperty = BindableProperty.Create(
-            propertyName: "ViewerContext",
-            returnType: typeof(DataViewerContext),
-            declaringType: typeof(LinePlot),
-            defaultValue: null
-        );
-
-        public IDataPoint Data
-        {
-            get { return (IDataPoint)GetValue(DataProperty); }
-            set { SetValue(DataProperty, value); }
-        }
-
-        public DataViewerContext ViewerContext
-        {
-            get { return (DataViewerContext)GetValue(ViewerContextProperty); }
-            set { SetValue(ViewerContextProperty, value); }
-        }
-
-        private IDataViewer viewer;
-
-        protected async override void OnPropertyChanged([CallerMemberName] string propertyName = null)
-        {
-            base.OnPropertyChanged(propertyName);
-            if (propertyName == "Data" || propertyName == "ViewerContext")
-            {
-                if (Data != null && ViewerContext != null)
-                {
-                    viewer = await Data.CreateViewerIn(ViewerContext);
-                    viewer.Changed += () =>
-                    {
-                        InvalidateSurface();
-                    };
-                }
-            }
-
-        }
-
-        protected override void OnPaintSurface(SKPaintSurfaceEventArgs e)
-        {
-            base.OnPaintSurface(e);
-
-            var canvas = e.Surface.Canvas;
-            canvas.Clear(SKColors.CornflowerBlue);
-
-            if (viewer != null)
-            {
-                // Scale so that the whole canvas is x=[0,1] y=[-1,1]
-                canvas.Scale(e.Info.Width, -e.Info.Height / 2);
-                canvas.Translate(0, -1);
-
-                // Draw the data
-                SKPath plot = new SKPath();
-
-                var data = viewer.GetCurrentFloat();
-                var en = data.GetEnumerator();
-
-                var count = 0;
-                var width = 0f;
-                
-                if (en.MoveNext())
-                {
-                    // Move to first point
-                    var first = en.Current;
-                    plot.MoveTo(0, first.y);
-                    count = 1;
-
-                    // Draw the rest
-                    while (en.MoveNext())
-                    {
-                        var (x, y) = en.Current;
-                        plot.LineTo((x - first.x)/100, y/10);
-                        count++;
-                        width = x - first.x;
-                    }
-
-                }
-                //canvas.ResetMatrix();
-                //canvas.Scale(1, 1f/2);
-
-                canvas.DrawPath(plot, new SKPaint() { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 0.01f, StrokeJoin = SKStrokeJoin.Miter, IsAntialias = true });
-            }
-        }
-        */
     }
 }

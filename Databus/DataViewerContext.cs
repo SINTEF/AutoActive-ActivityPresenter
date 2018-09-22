@@ -1,6 +1,5 @@
-﻿using System;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus

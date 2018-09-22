@@ -1,19 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Implementations
 {
     // TODO: Should these methods perhaps be sealed?
     public abstract class BaseDataProvider : BaseDataStructure, IDataProvider
     {
         // DataPoints are not supported
-        protected override void AddDataPoint(IDataPoint datapoint)
+        protected internal override void AddDataPoint(IDataPoint datapoint)
         {
             throw new NotSupportedException("BaseDataProvider cannot contain datapoints");
         }
 
-        protected override void RemoveDataPoint(IDataPoint datapoint)
+        protected internal override void RemoveDataPoint(IDataPoint datapoint)
         {
             throw new NotSupportedException("BaseDataProvider cannot contain datapoints");
         }

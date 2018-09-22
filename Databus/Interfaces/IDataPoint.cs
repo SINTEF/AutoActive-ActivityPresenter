@@ -1,15 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Interfaces
 {
     public interface IDataPoint
     {
         // TODO: Define
 
-        Type Type { get; }
+        Type DataType { get; }
 
         string Name { get; set; }
 

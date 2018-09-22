@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -38,7 +39,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         /* -- Create suitable plots when datapoints are tapped -- */
 
-        private void TreeView_DataPointTapped(object sender, Databus.IDataPoint e)
+        private void TreeView_DataPointTapped(object sender, IDataPoint e)
         {
             PlayerGrid.AddPlotFor(e);
         }

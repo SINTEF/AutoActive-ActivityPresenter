@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using Parquet;
 using Parquet.Data;
 using System.Threading;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 {
@@ -20,34 +21,42 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     {
         public override string Type => "no.sintef.table";
 
-        //private readonly List<ArchiveTableColumn> columns = new List<ArchiveTableColumn>();
-
-        internal ArchiveTable(JObject json, Archive.Archive archive) : base(json)
+        internal ArchiveTable(JObject json, Archive.Archive archive, ArchiveTableInformation tableInformation) : base(json)
         {
-            var path = Meta["path"].ToObject<string>() ?? throw new ArgumentException("Table is missing 'path'");
-            var columns = Meta["columns"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'columns'");
-            var index = Meta["index"].ToObject<int[]>() ?? throw new ArgumentException("Table is missing 'index'");
-            // TODO: Add the rest of the metadata
+            var zipEntry = tableInformation.zipEntry;
+            // TODO: Multiple indices?
+            if (tableInformation.time == null) throw new ArgumentException("Table does not have a column named 'Time'");
+            var timeInfo = tableInformation.time;
+            var time = new TableIndex(timeInfo.Name, GenerateLoader<float>(archive, zipEntry, timeInfo));
 
-            // Find the file in the archive
-            var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
-
-            // Check the metadata
-            if (columns.Length != index.Length) throw new ArgumentException("'columns' and 'index' are not the same length");
-
-            // TODO: Multiple indices
-            var timeInd = Array.IndexOf<string>(columns, "Time");
-            if (timeInd < 0) throw new ArgumentException("Table does not have a column named 'Time'");
-
-            // Create the time index
-            var timeCol = new ArchiveTableIndex("Time", zipEntry, archive);
-
-            // Create the other columns
-            for (var i = 0; i < columns.Length; i++)
+            // Add all the other columns
+            foreach (var column in tableInformation.columns)
             {
-                if (i != timeInd)
+                switch (column.DataType)
                 {
-                    AddDataPoint(new ArchiveTableColumn(columns[i], zipEntry, archive, timeCol));
+                    case DataType.Boolean:
+                        this.AddColumn(column.Name, GenerateLoader<bool>(archive, zipEntry, column), time);
+                        break;
+
+                    case DataType.Byte:
+                        this.AddColumn(column.Name, GenerateLoader<byte>(archive, zipEntry, column), time);
+                        break;
+                    case DataType.Int32:
+                        this.AddColumn(column.Name, GenerateLoader<int>(archive, zipEntry, column), time);
+                        break;
+                    case DataType.Int64:
+                        this.AddColumn(column.Name, GenerateLoader<long>(archive, zipEntry, column), time);
+                        break;
+
+                    case DataType.Float:
+                        this.AddColumn(column.Name, GenerateLoader<float>(archive, zipEntry, column), time);
+                        break;
+                    case DataType.Double:
+                        this.AddColumn(column.Name, GenerateLoader<double>(archive, zipEntry, column), time);
+                        break;
+
+                    default:
+                        throw new InvalidOperationException($"Cannot read {column.DataType} columns");
                 }
             }
         }
@@ -66,8 +75,41 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             throw new NotImplementedException();
         }
         */
-    }
 
+        /* -- Loader generation -- */
+        private static async Task<T[]> LoadColumn<T>(Archive.Archive archive, ZipEntry zipEntry, DataField column)
+        {
+            // Open the table file
+            using (var stream = await archive.OpenFile(zipEntry))
+            using (var reader = new ParquetReader(stream))
+            {
+                // Find the datafield we want to use
+                var datafield = Array.Find(reader.Schema.GetDataFields(), (field) => field.Name == column.Name);
+                if (datafield == null) throw new ArgumentException($"Couldn't find column {column.Name} in table");
+
+                T[] data = null;
+
+                // Read the data pages
+                for (int page = 0; page < reader.RowGroupCount; page++)
+                {
+                    // TODO: Do this asynchronously?
+                    var pageReader = reader.OpenRowGroupReader(page);
+                    var dataColumn = pageReader.ReadColumn(datafield);
+                    var prevLength = data?.Length ?? 0;
+                    Array.Resize(ref data, prevLength + dataColumn.Data.Length);
+                    Array.Copy(dataColumn.Data, 0, data, prevLength, dataColumn.Data.Length);
+                }
+
+                return data;
+            }
+        }
+ 
+        private static Task<T[]> GenerateLoader<T>(Archive.Archive archive, ZipEntry zipEntry, DataField column)
+        {
+            return new Task<T[]>(() => LoadColumn<T>(archive, zipEntry, column).Result);
+        }
+    }
+    /*
     public class ArchiveTableColumn : IDataPoint
     {
         ZipEntry zipEntry;
@@ -265,13 +307,72 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             throw new NotImplementedException();
         }
     }
-
+    */
     [ArchivePlugin("no.sintef.table")]
     public class ArchiveTablePlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
+        private async Task<ArchiveTableInformation> ParseTableInformation(JObject json, Archive.Archive archive)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveTable(json, archive));
+            // Find the properties in the JSON
+            ArchiveStructure.GetUserMeta(json, out var meta, out var user);
+            var path = meta["path"].ToObject<string>() ?? throw new ArgumentException("Table is missing 'path'");
+            var columns = meta["columns"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'columns'");
+            var index = meta["index"].ToObject<int[]>() ?? throw new ArgumentException("Table is missing 'index'");
+
+            // Check the metadata
+            if (columns.Length != index.Length) throw new ArgumentException("'columns' and 'index' are not the same length");
+
+            // Find the file in the archive
+            var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
+
+            var tableInformation = new ArchiveTableInformation
+            {
+                zipEntry = zipEntry,
+                columns = new List<DataField>(),
+            };
+
+            // Open the table file
+            using (var stream = await archive.OpenFile(zipEntry))
+            using (var reader = new ParquetReader(stream))
+            {
+                var fields = reader.Schema.GetDataFields();
+
+                // Find all the column information
+                foreach (var column in columns)
+                {
+                    foreach (var field in fields)
+                    {
+                        if (field.Name == column)
+                        {
+                            if (column.Equals("time", StringComparison.OrdinalIgnoreCase))
+                            {
+                                tableInformation.time = field;
+                            }
+                            else
+                            {
+                                tableInformation.columns.Add(field);
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Return the collected info
+            return tableInformation;
         }
+
+        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
+        {
+            var information = await ParseTableInformation(json, archive);
+            return new ArchiveTable(json, archive, information);
+        }
+    }
+
+    /* -- Helper structs -- */
+    internal struct ArchiveTableInformation
+    {
+        public ZipEntry zipEntry;
+        public DataField time;
+        public List<DataField> columns;
     }
 }

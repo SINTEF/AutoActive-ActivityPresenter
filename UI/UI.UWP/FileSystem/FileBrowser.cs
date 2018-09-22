@@ -9,6 +9,7 @@ using System.IO;
 using Windows.Storage;
 using System.Diagnostics;
 using SINTEF.AutoActive.Plugins.Import;
+using System.Threading;
 
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.UWP.FileSystem

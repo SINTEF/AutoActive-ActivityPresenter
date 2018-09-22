@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -48,6 +49,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             ItemTapped += PlayerTreeView_ItemTapped;
         }
+
+        internal static ObservableCollection<IDataPoint> DataPoints => dataPoints;
 
         public event EventHandler<IDataStructure> DataStructureTapped;
         public event EventHandler<IDataPoint> DataPointTapped;

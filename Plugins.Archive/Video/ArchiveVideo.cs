@@ -1,17 +1,15 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SINTEF.AutoActive.Archive;
+using SINTEF.AutoActive.Archive.Plugin;
+using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MimeMapping;
 using Newtonsoft.Json.Linq;
-
-using SINTEF.AutoActive.Archive;
-using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
@@ -59,7 +57,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             this.path = path;
         }
 
-        public Type Type => throw new NotImplementedException();
+        public Type DataType => throw new NotImplementedException();
 
         public string Name { get; set; }
 
@@ -133,7 +131,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             throw new NotImplementedException();
         }
 
-        public ImageFrame GetImage()
+        public ImageFrame GetCurrentImage()
         {
             return new ImageFrame(currentFrame.Width, currentFrame.Height, currentFrame.Frame);
         }

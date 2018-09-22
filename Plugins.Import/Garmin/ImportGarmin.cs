@@ -12,6 +12,9 @@ using System.Xml.Linq;
 
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.Implementations;
+using SINTEF.AutoActive.Databus.Common;
 
 namespace SINTEF.AutoActive.Plugins.Import.Garmin
 {
@@ -213,7 +216,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             return data.AsSpan(start, end - start);
         }
 
-        public Type Type => throw new NotImplementedException();
+        public Type DataType => throw new NotImplementedException();
 
         public string Name { get; set; }
 

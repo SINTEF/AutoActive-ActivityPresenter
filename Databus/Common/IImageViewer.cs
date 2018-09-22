@@ -1,9 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 using System.Threading.Tasks;
 
-namespace SINTEF.AutoActive.Databus
+namespace SINTEF.AutoActive.Databus.Common
 {
     public readonly struct ImageFrame
     {
@@ -23,6 +22,6 @@ namespace SINTEF.AutoActive.Databus
     {
         Task SetSize(uint width, uint height);
 
-        ImageFrame GetImage();
+        ImageFrame GetCurrentImage();
     }
 }

@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
@@ -14,7 +15,7 @@ namespace SINTEF.AutoActive.UI.Views
 	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public abstract partial class FigureView : ContentView
 	{
-        protected IDataViewer Viewer { get; private set; }
+        private IDataViewer Viewer { get; set; }
         protected DataViewerContext Context { get; private set; }
 
 		protected FigureView(IDataViewer viewer, DataViewerContext context)
