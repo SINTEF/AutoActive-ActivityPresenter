@@ -96,6 +96,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected TableIndex index;
         protected int startIndex = -1;
         protected int endIndex = -1;
+        protected int length = -1;
 
         protected TableColumnViewer(TableIndex index, TableColumn column, DataViewerContext context)
         {
@@ -113,6 +114,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             {
                 startIndex = start;
                 endIndex = end;
+                length = endIndex - startIndex + 1;
                 Changed?.Invoke();
             }
         }

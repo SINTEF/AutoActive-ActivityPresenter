@@ -15,6 +15,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 
 namespace SINTEF.AutoActive.Plugins.Import.Garmin
 {
@@ -54,6 +55,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             return importer;
         }
     }
+
+    // TODO: Split each activity and lap into their own datastructures.
+    // Also, data should not be loaded until the viewer is created (see ArchiveTable)
 
     public class GarminImporter : BaseDataProvider
     {
@@ -236,127 +240,29 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
 
             // Create the time index
-            var timeCol = new GarminTableIndex("Time", tpList, entry => (float)entry.TimeEpoch / 1000);
+            var timeCol = new TableIndex("Time", GenerateLoader(tpList, entry => (float)entry.TimeEpoch / 1000));
 
-
-            // tcxNames = { 'dist m','altitude m','latitude deg','longitude deg','HR bpm','speed m/s'};
-            AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            AddDataPoint(new GarminTableColumn("DistanceMeters", tpList, entry => (float)entry.DistanceMeters, timeCol));
-            AddDataPoint(new GarminTableColumn("SpeedMS", tpList, entry => (float)entry.SpeedMS, timeCol));
-            AddDataPoint(new GarminTableColumn("HeartRateBpm", tpList, entry => (float)entry.HeartRateBpm/200, timeCol));
-            AddDataPoint(new GarminTableColumn("LatitudeDegrees", tpList, entry => (float)entry.LatitudeDegrees, timeCol));
-            AddDataPoint(new GarminTableColumn("AltitudeMeters", tpList, entry => (float)entry.AltitudeMeters, timeCol));
-            AddDataPoint(new GarminTableColumn("LongitudeDegrees", tpList, entry => (float)entry.LongitudeDegrees, timeCol));
-        }
-    }
-
-
-    public class GarminTableColumn : IDataPoint
-    {
-        protected float[] data;
-        GarminTableIndex index;
-        SemaphoreSlim locker = new SemaphoreSlim(1, 1);
-
-        internal GarminTableColumn(string name, List<TrackPoint> tpList, Func<TrackPoint, float> fetchValue, GarminTableIndex index)
-        {
-            Name = name;
-            this.index = index;
-            Array.Resize(ref data, tpList.Count);
-            for (int i = 0; i < tpList.Count; i++)
-                data[i] = fetchValue(tpList[i]);
+            // Add other columns
+            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => (float)entry.AltitudeMeters), timeCol);
+            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => (float)entry.DistanceMeters), timeCol);
+            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => (float)entry.SpeedMS), timeCol);
+            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => (float)entry.HeartRateBpm / 200), timeCol);
+            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => (float)entry.LatitudeDegrees), timeCol);
+            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => (float)entry.LongitudeDegrees), timeCol);
         }
 
-        public Span<float> GetData(int start, int end)
+        private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
         {
-            return data.AsSpan(start, end - start);
-        }
-
-        public Type DataType => throw new NotImplementedException();
-
-        public string Name { get; set; }
-
-        public async Task<IDataViewer> CreateViewerIn(DataViewerContext context)
-        {
-            return new GarminTableColumnViewer(index, this, context);
-        }
-    }
-
-    public class GarminTableIndex : GarminTableColumn
-    {
-        internal GarminTableIndex(string name, List<TrackPoint> tpList, Func<TrackPoint, float> fetchValue)
-            : base(name, tpList, fetchValue, null)
-        {
-
-        }
-
-        internal int findIndex(int current, double value)
-        {
-            // FIXME: This is far from perfect
-            if (current >= 0 && data[current] == value) return current;
-
-            // Do a binary search starting at the previous index
-            int first = 0;
-            int last = data.Length - 1;
-
-            if (current < 0) current = (first + last) / 2;
-
-            while (first < last)
+            return new Task<T[]>(() =>
             {
-                if (value < data[first]) return first;
-                if (value > data[last]) return last;
-
-                if (value > data[current]) first = current + 1;
-                else last = current - 1;
-                current = (last + first) / 2;
-
-            }
-            return current;
+                T[] data = new T[trackPoints.Count];
+                var i = 0;
+                foreach (var trackPoint in trackPoints)
+                {
+                    data[i++] = fetchValue(trackPoint);
+                }
+                return data;
+            });
         }
     }
-
-    public class GarminTableColumnViewer : IDataViewer
-    {
-        GarminTableIndex time;
-        GarminTableColumn column;
-        DataViewerContext context;
-        int startIndex = -1;
-        int endIndex = -1;
-
-        internal GarminTableColumnViewer(GarminTableIndex time, GarminTableColumn column, DataViewerContext context)
-        {
-            this.time = time;
-            this.column = column;
-            this.context = context;
-            context.RangeUpdated += Context_RangeUpdated;
-            Context_RangeUpdated(context.RangeFrom, context.RangeTo);
-        }
-
-        private void Context_RangeUpdated(double from, double to)
-        {
-            var start = time.findIndex(startIndex, from);
-            var end = time.findIndex(endIndex, to);
-            if (start != startIndex || end != endIndex)
-            {
-                startIndex = start;
-                endIndex = end;
-                Changed?.Invoke();
-            }
-        }
-
-        public IDataPoint DataPoint { get; }
-
-        public event DataViewWasChangedHandler Changed;
-
-        public SpanPair<float> GetCurrentFloat()
-        {
-            return new SpanPair<float>(time.GetData(startIndex, endIndex), column.GetData(startIndex, endIndex));
-        }
-
-        public Span<byte> GetCurrentData()
-        {
-            throw new NotImplementedException();
-        }
-    }
-
-
 }

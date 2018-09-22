@@ -38,7 +38,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         public override SpanPair<bool> GetCurrentBools()
         {
-            return new SpanPair<bool>(index.data.AsSpan(startIndex, endIndex), column.data.AsSpan(startIndex, endIndex));
+            return new SpanPair<bool>(index.data.AsSpan(startIndex, length), column.data.AsSpan(startIndex, length));
         }
     }
 }
