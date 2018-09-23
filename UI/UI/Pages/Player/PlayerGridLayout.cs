@@ -13,23 +13,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     //public class PlayerGridLayout : Layout<View>
     public class PlayerGridLayout : Layout<FigureView>
     {
-        private static readonly int GRID_COLUMNS = 12;
-        private static readonly int GRID_ROWS = 12;
+        private static readonly int GRID_COLUMNS = 4;
+        private static readonly int GRID_ROWS = 4;
 
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
         public DataViewerContext ViewerContext { get; set; }
-        
-        /*
-        protected override void LayoutChildren(double x, double y, double width, double height)
-        {
-            foreach (var child in Children)
-            {
-                child.Layout(new Rectangle(x, y, width, height));
-            }
-        }
-        */
 
         public async void AddPlotFor(IDataPoint datapoint)
         {

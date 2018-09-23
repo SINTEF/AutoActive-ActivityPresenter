@@ -25,6 +25,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         {
             return new BoolColumnViewer(index, this, context);
         }
+
+        protected override (double? min, double? max) GetDataMinMax()
+        {
+            return (0, 1);
+        }
     }
 
     public class BoolColumnViewer : TableColumnViewer

@@ -25,6 +25,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         {
             return new StringColumnViewer(index, this, context);
         }
+
+        protected override (double? min, double? max) GetDataMinMax()
+        {
+            return (null, null);
+        }
     }
 
     public class StringColumnViewer : TableColumnViewer

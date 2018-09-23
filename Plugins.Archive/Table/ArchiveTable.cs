@@ -27,7 +27,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             // TODO: Multiple indices?
             if (tableInformation.time == null) throw new ArgumentException("Table does not have a column named 'Time'");
             var timeInfo = tableInformation.time;
-            var time = new TableIndex(timeInfo.Name, GenerateLoader<float>(archive, zipEntry, timeInfo));
+            var time = new TableIndex(timeInfo.Name, GenerateLoader<double>(archive, zipEntry, timeInfo));
 
             // Add all the other columns
             foreach (var column in tableInformation.columns)

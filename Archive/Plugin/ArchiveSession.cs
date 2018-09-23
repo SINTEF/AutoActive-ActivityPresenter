@@ -23,6 +23,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
         }
 
+        // FIXME: Implement these
+        public event DataStructureAddedHandler DataStructureAddedToTree;
+        public event DataStructureRemovedHandler DataStructureRemovedFromTree;
+        public event DataPointAddedHandler DataPointAddedToTree;
+        public event DataPointRemovedHandler DataPointRemovedFromTree;
+
         /*
         protected override void ToArchiveJSON(JObject meta, JObject user)
         {

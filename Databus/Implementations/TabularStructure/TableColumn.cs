@@ -17,6 +17,12 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         public Type DataType { get; private set; }
         public string Name { get; set; }
 
+        internal virtual double HasDataFrom => index.HasDataFrom;
+        internal virtual double HasDataTo => index.HasDataTo;
+
+        internal double? MinValueHint { get; private set; }
+        internal double? MaxValueHint { get; private set; }
+
         internal TableColumn(Type type, string name, Task loader, TableIndex index)
         {
             DataType = type;
@@ -36,6 +42,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
                 // Get the actual implementation to check the loaded data
                 var dataLength = CheckLoaderResultLength();
                 if (index != null && index.data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
+                // Find the min and max values
+                var (min, max) = GetDataMinMax();
+                MinValueHint = min;
+                MaxValueHint = max;
             }
         }
 
@@ -81,6 +91,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         }
 
         protected abstract int CheckLoaderResultLength();
+        protected abstract (double? min, double? max) GetDataMinMax();
 
         protected virtual IDataViewer CreateBoolViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
         protected virtual IDataViewer CreateByteViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
@@ -101,7 +112,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected TableColumnViewer(TableIndex index, TableColumn column, DataViewerContext context)
         {
             this.index = index;
-            DataPoint = column;
+            Column = column;
             context.RangeUpdated += RangeUpdated;
             RangeUpdated(context.RangeFrom, context.RangeTo);
         }
@@ -119,9 +130,18 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             }
         }
 
-        public IDataPoint DataPoint { get; private set; }
+        public TableColumn Column { get; private set; }
+        public IDataPoint DataPoint => Column;
 
         public event DataViewWasChangedHandler Changed;
+
+        public double HasDataFrom => Column.HasDataFrom;
+        public double HasDataTo => Column.HasDataTo;
+
+        public double? MinValueHint => Column.MinValueHint;
+        public double? MaxValueHint => Column.MaxValueHint;
+
+        public event DataViewHasDataRangeChangedHandler HasDataRangeChanged; // Will never happen
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
         public virtual SpanPair<byte> GetCurrentBytes() { throw new NotSupportedException(); }

@@ -5,7 +5,7 @@
              x:Class="SINTEF.AutoActive.UI.Views.FigureView">
     <ContentView.Content>
         <AbsoluteLayout>
-            <sk:SKCanvasView x:Name="Canvas" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1" />
+            <sk:SKCanvasView x:Name="Canvas" x:FieldModifier="protected" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1" />
         </AbsoluteLayout>
     </ContentView.Content>
 </ContentView>

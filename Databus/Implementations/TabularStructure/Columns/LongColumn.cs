@@ -21,6 +21,19 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             return data.Length;
         }
 
+        protected override (double? min, double? max) GetDataMinMax()
+        {
+            if (data.Length == 0) return (null, null);
+            var min = data[0];
+            var max = data[0];
+            for (var i = 1; i < data.Length; i++)
+            {
+                if (data[i] < min) min = data[i];
+                if (data[i] > max) max = data[i];
+            }
+            return (min, max);
+        }
+
         protected override IDataViewer CreateLongViewer(TableIndex index, DataViewerContext context)
         {
             return new LongColumnViewer(index, this, context);

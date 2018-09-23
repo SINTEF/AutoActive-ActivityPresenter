@@ -49,6 +49,7 @@ namespace SINTEF.AutoActive.Databus
         }
 
         /* -- Public API -- */
+        public static IReadOnlyCollection<IDataProvider> Providers => dataproviders.AsReadOnly();
 
         // Global events for the whole registry
         public static event DataProviderAddedHandler ProviderAdded;

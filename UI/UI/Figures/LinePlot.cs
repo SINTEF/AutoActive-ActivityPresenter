@@ -13,13 +13,20 @@ using SINTEF.AutoActive.Databus.Common;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
-    public class LinePlot : FigureView
+    public abstract class LinePlot : FigureView
     {
         public static async Task<LinePlot> Create(IDataPoint datapoint, DataViewerContext context)
         {
             // TODO: Check that this datapoint has a type that can be used
-            var viewer = await datapoint.CreateViewerIn(context);
-            return new LinePlot(viewer as ITimeSeriesViewer, context);
+            var viewer = await context.GetViewerFor(datapoint) as ITimeSeriesViewer;
+
+            // Use the correct path drawing function
+            if (datapoint.DataType == typeof(byte)) return new ByteLinePlot(viewer, context);
+            else if (datapoint.DataType == typeof(int)) return new IntLinePlot(viewer, context);
+            else if (datapoint.DataType == typeof(long)) return new LongLinePlot(viewer, context);
+            else if (datapoint.DataType == typeof(float)) return new FloatLinePlot(viewer, context);
+            else if (datapoint.DataType == typeof(double)) return new DoubleLinePlot(viewer, context);
+            else return null;
         }
 
         protected ITimeSeriesViewer Viewer { get; private set; }
@@ -28,85 +35,82 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             Viewer = viewer;
 
-            if (Viewer.DataPoint.DataType == typeof(byte)) CreatePathFunction = CreateBytePath;
-            else if (Viewer.DataPoint.DataType == typeof(int)) CreatePathFunction = CreateIntPath;
-            else if (Viewer.DataPoint.DataType == typeof(long)) CreatePathFunction = CreateLongPath;
-            else if (Viewer.DataPoint.DataType == typeof(float)) CreatePathFunction = CreateFloatPath;
-            else if (Viewer.DataPoint.DataType == typeof(double)) CreatePathFunction = CreateDoublePath;
-            else CreatePathFunction = EmptyPath;
+            if (Viewer.MinValueHint.HasValue) minYValue = (float)Viewer.MinValueHint.Value;
+            if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
         }
 
-        // Line drawing
-        delegate void CreatePath(SKPath plot);
-        CreatePath CreatePathFunction;
+        // ---- Scaling ----
+        private float minYValue = -1;
+        private float maxYValue = 1;
 
-        void EmptyPath(SKPath plot) { }
-        void CreateBytePath(SKPath plot)
+        public float MinY
         {
-            var en = Viewer.GetCurrentBytes().GetEnumerator();
-            if (en.MoveNext())
+            get => minYValue;
+            set
             {
-                plot.MoveTo(en.Current.x, en.Current.y);
-                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
-            }
-        }
-        void CreateIntPath(SKPath plot)
-        {
-            var en = Viewer.GetCurrentInts().GetEnumerator();
-            if (en.MoveNext())
-            {
-                plot.MoveTo(en.Current.x, en.Current.y);
-                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
-            }
-        }
-        void CreateLongPath(SKPath plot)
-        {
-            var en = Viewer.GetCurrentLongs().GetEnumerator();
-            if (en.MoveNext())
-            {
-                plot.MoveTo(en.Current.x, en.Current.y);
-                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
-            }
-        }
-        void CreateFloatPath(SKPath plot)
-        {
-            var en = Viewer.GetCurrentFloats().GetEnumerator();
-            if (en.MoveNext())
-            {
-                plot.MoveTo(en.Current.x, en.Current.y);
-                while (en.MoveNext()) plot.LineTo(en.Current.x, en.Current.y);
-            }
-        }
-        void CreateDoublePath(SKPath plot)
-        {
-            var en = Viewer.GetCurrentDoubles().GetEnumerator();
-            if (en.MoveNext())
-            {
-                plot.MoveTo(en.Current.x, (float)en.Current.y);
-                while (en.MoveNext()) plot.LineTo(en.Current.x, (float)en.Current.y);
+                minYValue = value;
+                Canvas.InvalidateSurface();
             }
         }
 
+        public float MaxY
+        {
+            get => maxYValue;
+            set
+            {
+                maxYValue = value;
+                Canvas.InvalidateSurface();
+            }
+        }
+
+        // ---- Drawing ----
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected float ScaleValue(float v, float offset, float scale)
+        {
+            return (v - offset) * scale;
+        }
+
+        protected abstract void CreatePath(SKPath plot, float offsetX, float scaleX, float offsetY, float scaleY);
+
+        static readonly SKPaint FramePaint = new SKPaint {
+            Color = SKColors.LightSlateGray,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = false,
+        };
+        SKPaint LinePaint = new SKPaint {
+            Color = SKColors.OrangeRed,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 3,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = true,
+        };
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
-            canvas.Clear(SKColors.CornflowerBlue);
+            // Clear background and draw frame
+            canvas.Clear(SKColors.White);
+            canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
 
             if (Viewer != null)
             {
+                // To acheive a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
                 var startX = (float)Context.RangeFrom;
                 var endX = (float)Context.RangeTo;
+                var scaleX = info.Width / (endX - startX);
 
-                // Scale so that the whole canvas is x=[0,1] y=[-1,1]
-                canvas.Scale(info.Width/(endX-startX), -info.Height / 2);
-                canvas.Translate(-startX, -1);
+                var minY = minYValue;
+                var maxY = maxYValue;
+                var scaleY = info.Height / (maxY - minY);
 
                 // Create path
                 SKPath plot = new SKPath();
-                CreatePathFunction(plot);
+                CreatePath(plot, startX, scaleX, maxY, -scaleY);
 
                 // Draw the data
-                canvas.DrawPath(plot, new SKPaint() { Color = SKColors.White, Style = SKPaintStyle.Stroke, StrokeWidth = 0.01f, StrokeJoin = SKStrokeJoin.Miter, IsAntialias = true });
+                canvas.DrawPath(plot, LinePaint);
             }
         }
     }

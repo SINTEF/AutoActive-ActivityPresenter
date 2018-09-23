@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
-    public class TableIndex : FloatColumn
+    public class TableIndex : DoubleColumn
     {
-        public TableIndex(string name, Task<float[]> loader) : base(name, loader, null) { }
+        public TableIndex(string name, Task<double[]> loader) : base(name, loader, null) { }
 
         internal int FindIndex(int current, double value)
         {
@@ -30,5 +30,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             }
             return current;
         }
+
+        internal override double HasDataFrom => data[0];
+        internal override double HasDataTo => data[data.Length - 1];
     }
 }

@@ -25,9 +25,10 @@ namespace SINTEF.AutoActive.UI.Views
             Viewer = viewer;
             Context = context;
 
-            // Redraw canvas when data changes, or size of figure changes
+            // Redraw canvas when data changes, size of figure changes, or range updates
             viewer.Changed += Viewer_Changed;
             SizeChanged += FigureView_SizeChanged;
+            Context.RangeUpdated += Context_RangeUpdated;
             Canvas.PaintSurface += Canvas_PaintSurface;
 		}
 
@@ -37,6 +38,11 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         private void Viewer_Changed()
+        {
+            Canvas.InvalidateSurface();
+        }
+
+        private void Context_RangeUpdated(double from, double to)
         {
             Canvas.InvalidateSurface();
         }

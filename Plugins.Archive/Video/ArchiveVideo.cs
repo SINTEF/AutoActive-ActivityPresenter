@@ -126,10 +126,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public event DataViewWasChangedHandler Changed;
 
-        public SpanPair<float> GetCurrentFloat()
-        {
-            throw new NotImplementedException();
-        }
+        public double HasDataFrom => throw new NotImplementedException();
+        public double HasDataTo => throw new NotImplementedException();
+        public event DataViewHasDataRangeChangedHandler HasDataRangeChanged;
 
         public ImageFrame GetCurrentImage()
         {

@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         static readonly double OVERLAY_MODE_WIDTH = 0.9;
         static readonly double OVERLAY_MODE_SHADE_OPACITY = 0.5;
 
-        public DataViewerContext ViewerContext { get; } = new DataViewerContext(DataViewerRangeType.Time, 0, 10);
+        public DataViewerContext ViewerContext { get; } = new DataViewerContext(DataViewerRangeType.Time, 0, 100);
 
         public PlayerPage ()
 		{
@@ -34,14 +34,23 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             NavigationBar.MenuButtonClicked += NavigationBar_MenuButtonClicked;
 
-            TreeView.DataPointTapped += TreeView_DataPointTapped;
+            TreeView.DataPointTapped += TreeView_DataPointTapped1;
+            TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
         }
 
-        /* -- Create suitable plots when datapoints are tapped -- */
-
-        private void TreeView_DataPointTapped(object sender, IDataPoint e)
+        private void TreeView_DataPointTapped1(object sender, IDataPoint datapoint)
         {
-            PlayerGrid.AddPlotFor(e);
+            PlayerGrid.AddPlotFor(datapoint);
+        }
+
+        private void TreeView_UseInTimelineTapped(object sender, IDataPoint datapoint)
+        {
+            if (Playbar.PreviewDataPoint == null)
+            {
+                // Resize the row to accomodate the preview
+                RowPlaybar.Height = PlaybarView.DefaultHeight.Value + PlaybarView.DefaultPreviewHeight.Value;
+            }
+            Playbar.UseDataPointForTimelinePreview(datapoint);
         }
 
         /* -- Show or hide the tree based on window size -- */
@@ -62,9 +71,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (nextTreeViewState == TreeViewState.SplitMode)
             {
                 // Remove it from the overlay
-                MainViewShading.IsVisible = false;
+                OverlayShading.IsVisible = false;
                 TreeView.IsVisible = false;
-                MainViewLayout.Children.Remove(TreeView);
+                OverlayLayout.Children.Remove(TreeView);
                 // Move the tree into the grid
                 var grid = Content as Grid;
                 ColumnSplitter.Width = PlayerSplitterView.DefaultWidth;
@@ -83,18 +92,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     ColumnTree.Width = gridZeroLength;
                     grid.Children.Remove(TreeView);
                     // Show it in the overlay
-                    MainViewLayout.Children.Add(TreeView, new Rectangle(1, 1, OVERLAY_MODE_WIDTH, 1), AbsoluteLayoutFlags.All);
+                    OverlayLayout.Children.Add(TreeView, new Rectangle(1, 1, OVERLAY_MODE_WIDTH, 1), AbsoluteLayoutFlags.All);
 
                     // Show or hide the view
                     if (nextTreeViewState == TreeViewState.OverlayModeShown)
                     {
                         TreeView.IsVisible = true;
-                        MainViewShading.IsVisible = true;
+                        OverlayShading.IsVisible = true;
                     }
                     else
                     {
                         TreeView.IsVisible = false;
-                        MainViewShading.IsVisible = false;
+                        OverlayShading.IsVisible = false;
                     }
                 }
                 else
@@ -102,20 +111,20 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     // Animate the opening or closing of the overlay
                     if (nextTreeViewState == TreeViewState.OverlayModeShown)
                     {
-                        MainViewShading.Opacity = 0;
-                        MainViewShading.IsVisible = true;
+                        OverlayShading.Opacity = 0;
+                        OverlayShading.IsVisible = true;
                         // Animate the TreeView with a fixed position (so it doesn't scale)
                         AbsoluteLayout.SetLayoutFlags(TreeView, AbsoluteLayoutFlags.SizeProportional);
                         AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(0, 0, OVERLAY_MODE_WIDTH, 1));
                         TreeView.IsVisible = true;
                         var animation = new Animation(v =>
                         {
-                            MainViewShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
+                            OverlayShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
                             AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-v*TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
                         });
                         animation.Commit(this, "SlideTreeOverlayIn", rate: 10, length: 100, easing: Easing.SinIn, finished: (v, c) =>
                         {
-                            MainViewShading.Opacity = OVERLAY_MODE_SHADE_OPACITY;
+                            OverlayShading.Opacity = OVERLAY_MODE_SHADE_OPACITY;
                             AbsoluteLayout.SetLayoutFlags(TreeView, AbsoluteLayoutFlags.All);
                             AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(1, 0, OVERLAY_MODE_WIDTH, 1));
                         });
@@ -127,12 +136,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                         AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-OVERLAY_MODE_WIDTH*TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
                         var animation = new Animation(v =>
                         {
-                            MainViewShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
+                            OverlayShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
                             AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width - v * TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
                         }, start: 1, end: 0);
                         animation.Commit(this, "SlideTreeOverlayOut", rate: 10, length: 100, easing: Easing.SinOut, finished: (v, c) =>
                         {
-                            MainViewShading.IsVisible = false;
+                            OverlayShading.IsVisible = false;
                             TreeView.IsVisible = false;
                         });
                     }

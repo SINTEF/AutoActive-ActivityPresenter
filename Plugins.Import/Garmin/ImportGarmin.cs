@@ -240,7 +240,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
 
             // Create the time index
-            var timeCol = new TableIndex("Time", GenerateLoader(tpList, entry => (float)entry.TimeEpoch / 1000));
+            var timeCol = new TableIndex("Time", GenerateLoader(tpList, entry => (double)entry.TimeEpoch / 1000));
 
             // Add other columns
             this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => (float)entry.AltitudeMeters), timeCol);
