@@ -126,8 +126,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public event DataViewWasChangedHandler Changed;
 
-        public double HasDataFrom => throw new NotImplementedException();
-        public double HasDataTo => throw new NotImplementedException();
+        // FIXME: Implement these!
+        public double HasDataFrom => 0;
+        public double HasDataTo => 0;
         public event DataViewHasDataRangeChangedHandler HasDataRangeChanged;
 
         public ImageFrame GetCurrentImage()
