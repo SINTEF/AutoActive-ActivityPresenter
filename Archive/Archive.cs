@@ -10,17 +10,12 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Plugins.Registry;
+using SINTEF.AutoActive.Plugins;
 
 namespace SINTEF.AutoActive.Archive
 {
-    public class Archive : IDataProvider
+    public class Archive
     {
-        public event DataPointAddedToHandler DataPointAddedTo;
-        public event DataPointRemovedHandler DataPointRemoved;
-        public event DataStructureAddedToHandler DataStructureAddedTo;
-        public event DataStructureRemovedHandler DataStructureRemoved;
-
         ZipFile zipFile;
         IReadWriteSeekStreamFactory streamFactory;
         List<ArchiveSession> sessions;
@@ -33,7 +28,7 @@ namespace SINTEF.AutoActive.Archive
             sessions = new List<ArchiveSession>();
         }
 
-        private void ParseSessions()
+        private async Task ParseSessions()
         {
             // Find all sessions in the archive
             foreach (ZipEntry entry in zipFile)
@@ -41,12 +36,12 @@ namespace SINTEF.AutoActive.Archive
                 if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith("AUTOACTIVEMETA.json"))
                 {
                     // This is an AutoActive session description file
-                    ParseSessionFile(entry);
+                    await ParseSessionFile(entry);
                 }
             }
         }
 
-        private async void ParseSessionFile(ZipEntry entry)
+        private async Task ParseSessionFile(ZipEntry entry)
         {
             using (var stream = await zipFile.OpenReadSeekStream(entry, streamFactory))
             using (var streamReader = new StreamReader(stream))
@@ -60,11 +55,8 @@ namespace SINTEF.AutoActive.Archive
                 var session = ParseJSONElement(json) as ArchiveSession;
                 if (session != null)
                 {
-                    // If the root object was a session, add it to the list and registry
+                    // If the root object was a session, add it to the list
                     sessions.Add(session);
-                    DataStructureAddedTo?.Invoke(session, DataRegistry.RootStructure);
-                    // and register the contents
-                    session.RegisterContents(DataStructureAddedTo, DataPointAddedTo);
                 }
             }
         }
@@ -77,13 +69,19 @@ namespace SINTEF.AutoActive.Archive
             {
                 var type = meta.Property("type").ToObject<string>();
                 // Try to parse the object with the specified plugin
-                var plugin = PluginService.Get<IArchivePlugin>(type);
-                var parsed = plugin?.CreateFromJSON(json as JObject, this);
-                if (parsed != null) return parsed;
+                var plugin = PluginService.GetSingle<IArchivePlugin>(type);
+                if (plugin != null)
+                {
+                    var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                    if (parsed != null) return parsed;
+                }
                 // If not, try to parse it as a folder (the default)
-                plugin = PluginService.Get<IArchivePlugin>(ArchiveFolder.PluginType);
-                parsed = plugin?.CreateFromJSON(json as JObject, this);
-                if (parsed != null) return parsed;
+                plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
+                if (plugin != null)
+                {
+                    var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                    if (parsed != null) return parsed;
+                }
             }
 
             // Other handling for "native" JSON objects
@@ -111,10 +109,7 @@ namespace SINTEF.AutoActive.Archive
         {
             var zipFile = new ZipFile(await file.GetReadWriteStream());
             var archive = new Archive(zipFile, file);
-            // Register with the Databus to let others know about the data inside
-            archive.Register();
-            // Parse the Sessions in the archive
-            archive.ParseSessions();
+            await archive.ParseSessions();
             return archive;
         }
 
@@ -131,6 +126,9 @@ namespace SINTEF.AutoActive.Archive
             throw new NotImplementedException();
         }
 
+        /* ---- Public API ---- */
+        public IReadOnlyCollection<ArchiveSession> Sessions => sessions.AsReadOnly();
+
         /* ---- Helpers ---- */
         internal class ArchiveFileBoundFactory : IReadSeekStreamFactory
         {
@@ -141,7 +139,15 @@ namespace SINTEF.AutoActive.Archive
             {
                 this.archive = archive;
                 this.entry = entry;
+
+                Debug.WriteLine($"ZIPENTRY NAME: {entry.Name}");
             }
+
+            public string Name => throw new NotImplementedException();
+
+            public string Extension => throw new NotImplementedException();
+
+            public string Mime => throw new NotImplementedException();
 
             public async Task<Stream> GetReadStream()
             {

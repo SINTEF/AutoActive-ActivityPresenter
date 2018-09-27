@@ -68,7 +68,7 @@ namespace SINTEF.AutoActive.Archive
             {
                 var newPosition = value + start;
                 if (newPosition < start) throw new ArgumentException("Negative position is not allowed");
-                if (newPosition >= end) throw new InvalidOperationException("Cannot seek past end");
+                if (newPosition > end) throw new InvalidOperationException("Cannot seek past end");
                 stream.Position = newPosition;
             }
         }
@@ -111,7 +111,7 @@ namespace SINTEF.AutoActive.Archive
                     break;
             }
             if (newPosition < start) throw new ArgumentException("Negative position is not allowed");
-            if (newPosition >= end) throw new InvalidOperationException("Cannot seek past end");
+            if (newPosition > end) throw new InvalidOperationException("Cannot seek past end");
             return stream.Seek(newPosition, SeekOrigin.Begin) - start;
         }
 

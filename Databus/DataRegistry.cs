@@ -1,150 +1,80 @@
-﻿using System;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
-using System.Text;
 
 namespace SINTEF.AutoActive.Databus
 {
-    class RootDataStructure : DataStructure
-    {
-        internal RootDataStructure()
-        {
-
-        }
-
-        public override string Name { get => "Root"; set { } }
-    }
+    public delegate void DataProviderAddedHandler(IDataProvider dataprovider);
+    public delegate void DataProviderRemovedHandler(IDataProvider dataprovider);
 
     public static class DataRegistry
     {
-        private static readonly DataStructure root = new RootDataStructure();
+        private static readonly List<IDataProvider> dataproviders = new List<IDataProvider>();
         private static readonly List<IDataPoint> datapoints = new List<IDataPoint>();
 
-        public static DataStructure RootStructure
+        private static void OnDataPointAdded(IDataStructure datastructure, IDataPoint datapoint)
         {
-            get => root;
+            if (datapoints.Contains(datapoint)) return;
+            datapoints.Add(datapoint);
+            DataPointAdded?.Invoke(null, datapoint);
         }
 
-        public static IReadOnlyList<IDataPoint> DataPoints
+        private static void OnDataPointRemoved(IDataStructure datastructure, IDataPoint datapoint)
         {
-            get => datapoints.AsReadOnly();
+            if (!datapoints.Remove(datapoint)) return;
+            DataPointRemoved?.Invoke(null, datapoint);
         }
 
-        /* --- Global events --- */
-        public static event DataStructureAddedHandler DataStructureAdded;
-        public static event DataStructureRemovedHandler DataStructureRemoved;
+        private static void InvokeAddDataPointsOnAll(IDataStructure datastructure)
+        {
+            foreach (var child in datastructure.Children)
+            {
+                InvokeAddDataPointsOnAll(child);
+            }
+            foreach (var point in datastructure.DataPoints)
+            {
+                OnDataPointAdded(datastructure, point);
+            }
+        }
+
+        private static void InvokeRemoveDataPointsOnAll(IDataStructure datastructure)
+        {
+            foreach (var child in datastructure.Children)
+            {
+                InvokeRemoveDataPointsOnAll(child);
+            }
+            foreach (var point in datastructure.DataPoints)
+            {
+                OnDataPointRemoved(datastructure, point);
+            }
+        }
+
+        /* -- Public API -- */
+        public static IReadOnlyCollection<IDataProvider> Providers => dataproviders.AsReadOnly();
+
+        // Global events for the whole registry
+        public static event DataProviderAddedHandler ProviderAdded;
+        public static event DataProviderRemovedHandler ProviderRemoved;
         public static event DataPointAddedHandler DataPointAdded;
         public static event DataPointRemovedHandler DataPointRemoved;
 
-
-        /* --- Tree traversing helpers --- */
-        private static DataStructure SearchForDataStructure(DataStructure target, DataStructure parent)
+        // DataProvider extensions
+        public static void Register(this IDataProvider dataprovider)
         {
-            foreach (DataStructure structure in parent._children)
-            {
-                if (structure == target) return target;
-                var recursive = SearchForDataStructure(target, structure);
-                if (recursive != null) return recursive;
-            }
-            return null;
+            if (dataproviders.Contains(dataprovider)) return;
+            dataproviders.Add(dataprovider);
+            dataprovider.DataPointAdded += OnDataPointAdded;
+            dataprovider.DataPointRemoved += OnDataPointRemoved;
+            ProviderAdded?.Invoke(dataprovider);
+            InvokeAddDataPointsOnAll(dataprovider);
         }
 
-        private static DataStructure SearchForDataPoint(IDataPoint target, DataStructure parent)
+        public static void Unregister(this IDataProvider dataprovider)
         {
-            if (parent._datapoints.Contains(target)) return parent;
-            foreach (DataStructure structure in parent._children)
-            {
-                var recursive = SearchForDataPoint(target, structure);
-                if (recursive != null) return recursive;
-            }
-            return null;
+            if (!dataproviders.Remove(dataprovider)) return;
+            dataprovider.DataPointAdded -= OnDataPointAdded;
+            dataprovider.DataPointRemoved -= OnDataPointRemoved;
+            InvokeRemoveDataPointsOnAll(dataprovider);
+            ProviderRemoved?.Invoke(dataprovider);
         }
-        
-
-        /* --- DataProvider extension --- */
-        public static void Register(this IDataProvider provider)
-        {
-            provider.DataStructureAddedTo += (DataStructure datastructure, DataStructure parent) =>
-            {
-                var wasAdded = false;
-                lock (root)
-                {
-                    // Make sure the parent is in our tree
-                    if (parent == root || SearchForDataStructure(parent, root) != null)
-                    {
-                        parent._children.Add(datastructure);
-                        wasAdded = true;
-                    }
-                }
-                if (wasAdded)
-                {
-                    DataStructureAdded?.Invoke(datastructure);
-                    parent.InvokeDataStructureAdded(datastructure);
-                }
-            };
-
-            provider.DataPointAddedTo += (IDataPoint datapoint, DataStructure parent) =>
-            {
-                var wasAdded = false;
-                lock (root)
-                {
-                    // Make sure the parent is in our tree
-                    if (parent == root || SearchForDataStructure(parent, root) != null)
-                    {
-                        parent._datapoints.Add(datapoint);
-                        datapoints.Add(datapoint);
-                        wasAdded = true;
-                    }
-                }
-                if (wasAdded)
-                {
-                    DataPointAdded?.Invoke(datapoint);
-                    parent.InvokeDataPointAdded(datapoint);
-                }
-            };
-
-            provider.DataStructureRemoved += (DataStructure datastructure) =>
-            {
-                var wasRemoved = false;
-                DataStructure parent;
-                lock (root)
-                {
-                    // Find the parent in the tree
-                    parent = SearchForDataStructure(datastructure, root);
-                    if (parent != null)
-                    {
-                        parent._children.Remove(datastructure);
-                        wasRemoved = true;
-                    }
-                }
-                if (wasRemoved)
-                {
-                    DataStructureRemoved?.Invoke(datastructure);
-                    parent.InvokeDataStructureRemoved(datastructure);
-                }
-            };
-
-            provider.DataPointRemoved += (IDataPoint datapoint) =>
-            {
-                var wasRemoved = false;
-                DataStructure parent;
-                lock (root)
-                {
-                    // Find the parent in the tree
-                    parent = SearchForDataPoint(datapoint, root);
-                    if (parent != null)
-                    {
-                        parent._datapoints.Remove(datapoint);
-                        datapoints.Remove(datapoint);
-                        wasRemoved = true;
-                    }
-                }
-                if (wasRemoved)
-                {
-                    DataPointRemoved?.Invoke(datapoint);
-                    parent.InvokeDataPointRemoved(datapoint);
-                }
-            };
-        }
-
     }
 }

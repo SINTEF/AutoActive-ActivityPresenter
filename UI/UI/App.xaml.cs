@@ -5,6 +5,8 @@ using Xamarin.Forms.Xaml;
 
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
+using SINTEF.AutoActive.UI.Pages.Player;
+using SINTEF.AutoActive.UI.Pages;
 
 [assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace SINTEF.AutoActive.UI
@@ -17,22 +19,15 @@ namespace SINTEF.AutoActive.UI
 #if DEBUG
             LiveReload.Init();
 #endif
+            // Load the plugins
 
-            MainPage = new NavigationPage(new WelcomePage());
+            //MainPage = new NavigationPage(new WelcomePage());
+            MainPage = new CustomNavigationPage(new PlayerPage());
+            //MainPage = new PlayerPage();
         }
 
         protected override void OnStart()
         {
-            DataRegistry.DataStructureAdded += (DataStructure datastructure) =>
-            {
-                Debug.WriteLine($"REGISTRY: Datastructure added - {datastructure.Name} - {datastructure.GetType()}");
-                if (datastructure is ArchiveTable) { } // FIXME: How do we make sure the dlls are loaded without being used in the UI??
-            };
-            DataRegistry.DataPointAdded += (IDataPoint datapoint) =>
-            {
-                Debug.WriteLine($"REGISTRY: Datapoint added - {datapoint.Name} - {datapoint.GetType()}");
-            };
-
             // Handle when your app starts
         }
 

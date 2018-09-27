@@ -1,28 +1,23 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using SINTEF.AutoActive.Archive;
+using SINTEF.AutoActive.Archive.Plugin;
+using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Interfaces;
+using System;
 using System.Diagnostics;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MimeMapping;
 using Newtonsoft.Json.Linq;
-
-using SINTEF.AutoActive.Archive;
-using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using Xamarin.Forms;
 
-[assembly: ArchivePlugin(typeof(ArchiveVideoPlugin), "no.sintef.video")]
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
     public class ArchiveVideo : ArchiveStructure
     {
         public override string Type => "no.sintef.video";
-
-        private ArchiveVideoVideo video;
-
+        
         internal ArchiveVideo(JObject json, Archive.Archive archive) : base(json)
         {
             var path = Meta["path"].ToObject<string>() ?? throw new ArgumentException("Video is missing 'path'");
@@ -31,10 +26,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
 
             // Create the video datapoint
-            video = new ArchiveVideoVideo(zipEntry, archive, path);
+            var video = new ArchiveVideoVideo(zipEntry, archive, path);
             video.Name = "Video";
+            AddDataPoint(video);
         }
 
+        /*
         protected override void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded)
         {
             dataPointAdded?.Invoke(video, this);
@@ -44,6 +41,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             throw new NotImplementedException();
         }
+        */
     }
 
     public class ArchiveVideoVideo : IDataPoint
@@ -59,7 +57,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             this.path = path;
         }
 
-        public Type Type => throw new NotImplementedException();
+        public Type DataType => throw new NotImplementedException();
 
         public string Name { get; set; }
 
@@ -128,12 +126,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public event DataViewWasChangedHandler Changed;
 
-        public SpanPair<float> GetCurrentFloat()
-        {
-            throw new NotImplementedException();
-        }
+        public double HasDataFrom => throw new NotImplementedException();
+        public double HasDataTo => throw new NotImplementedException();
+        public event DataViewHasDataRangeChangedHandler HasDataRangeChanged;
 
-        public ImageFrame GetImage()
+        public ImageFrame GetCurrentImage()
         {
             return new ImageFrame(currentFrame.Width, currentFrame.Height, currentFrame.Frame);
         }
@@ -374,11 +371,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     }
     */
 
+        
+    [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
-        public ArchiveStructure CreateFromJSON(JObject json, Archive.Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
         {
-            return new ArchiveVideo(json, archive);
+            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive));
         }
     }
 }

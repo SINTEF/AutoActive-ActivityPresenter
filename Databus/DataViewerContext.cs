@@ -1,6 +1,6 @@
-﻿using System;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
-using System.Text;
+using System.Diagnostics;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus
@@ -11,6 +11,7 @@ namespace SINTEF.AutoActive.Databus
     }
 
     public delegate void DataViewerRangeUpdated(double from, double to);
+    public delegate void DataViewerDataRangeUpdated(double from, double to);
 
     public class DataViewerContext
     {
@@ -21,6 +22,7 @@ namespace SINTEF.AutoActive.Databus
             RangeTo = to;
         }
 
+        // ---- Range to show data from ----
         public DataViewerRangeType RangeType { get; private set; }
 
         public double RangeFrom { get; private set; }
@@ -38,6 +40,29 @@ namespace SINTEF.AutoActive.Databus
 
         public event DataViewerRangeUpdated RangeUpdated;
 
+        // ---- Range that we currently have data from -----
+        public double HasDataFrom { get; private set; } = 0;
+        public double HasDataTo { get; private set; } = 0;
+
+        public event DataViewerDataRangeUpdated DataRangeUpdated;
+
+        private void UpdateDataRangeIncrementally(double from, double to)
+        {
+            var wasUpdated = false;
+            if (from < HasDataFrom)
+            {
+                HasDataFrom = from;
+                wasUpdated = true;
+            }
+            if (to > HasDataTo)
+            {
+                HasDataTo = to;
+                wasUpdated = true;
+            }
+            if (wasUpdated) DataRangeUpdated?.Invoke(HasDataFrom, HasDataTo);
+        }
+
+         // ---- Data viewers ----
         private Dictionary<IDataPoint, IDataViewer> dataviewers = new Dictionary<IDataPoint, IDataViewer>();
 
         public async Task<IDataViewer> GetViewerFor(IDataPoint datapoint)
@@ -48,9 +73,14 @@ namespace SINTEF.AutoActive.Databus
                 // If not, create one
                 viewer = await datapoint.CreateViewerIn(this);
                 dataviewers[datapoint] = viewer;
+                // Also subscribe to the changes in available data
+                viewer.HasDataRangeChanged += UpdateDataRangeIncrementally;
+                UpdateDataRangeIncrementally(viewer.HasDataFrom, viewer.HasDataTo);
+                Debug.WriteLine($"NEW VIEWER DATA: {viewer.HasDataFrom} -> {viewer.HasDataTo}");
             }
             return viewer;
         }
 
+        // FIXME: Removal of viewers
     }
 }

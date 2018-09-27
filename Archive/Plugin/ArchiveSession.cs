@@ -1,16 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using System.Diagnostics;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+using System;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 
-using SINTEF.AutoActive.Archive.Plugin;
-
-[assembly: ArchivePlugin(typeof(ArchiveSessionPlugin), "no.sintef.session")]
 namespace SINTEF.AutoActive.Archive.Plugin
 {
-    public class ArchiveSession : ArchiveFolder
+    public class ArchiveSession : ArchiveFolder, IDataProvider
     {
         public override string Type => "no.sintef.session";
 
@@ -28,18 +23,27 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
         }
 
+        // FIXME: Implement these
+        public event DataStructureAddedHandler DataStructureAddedToTree;
+        public event DataStructureRemovedHandler DataStructureRemovedFromTree;
+        public event DataPointAddedHandler DataPointAddedToTree;
+        public event DataPointRemovedHandler DataPointRemovedFromTree;
+
+        /*
         protected override void ToArchiveJSON(JObject meta, JObject user)
         {
             // FIXME: Implement this!
             base.ToArchiveJSON(meta, user);
         }
+        */
     }
 
+    [ArchivePlugin("no.sintef.session")]
     public class ArchiveSessionPlugin : IArchivePlugin
     {
-        public ArchiveStructure CreateFromJSON(JObject json, Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive)
         {
-            return new ArchiveSession(json, archive);
+            return Task.FromResult<ArchiveStructure>(new ArchiveSession(json, archive));
         }
     }
 }

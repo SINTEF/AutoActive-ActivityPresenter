@@ -1,4 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using System;
@@ -9,7 +11,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using Xamarin.Forms;
 
-namespace SINTEF.AutoActive.UI
+namespace SINTEF.AutoActive.UI.Figures
 {
     public class ImageView : SKCanvasView
     {
@@ -76,7 +78,7 @@ namespace SINTEF.AutoActive.UI
 
             if (viewer != null)
             {
-                var frame = viewer.GetImage();
+                var frame = viewer.GetCurrentImage();
                 if (frame.Frame != null && frame.Frame.Array != null)
                 {
                     if (bitmap == null || bitmap.Width != frame.Width || bitmap.Height != frame.Height)
