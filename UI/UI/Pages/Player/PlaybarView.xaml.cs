@@ -19,10 +19,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public static readonly GridLength DefaultHeight = 40;
         public static readonly GridLength DefaultPreviewHeight = 100;
 
+
         public PlaybarView ()
 		{
 			InitializeComponent ();
-		}
+        }
 
         private DataViewerContext _viewerContext;
         public DataViewerContext ViewerContext
@@ -44,13 +45,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
+            LabelTimeFrom.Text = SecondsToTimeString(e.NewValue);
             ViewerContext.UpdateRange(e.NewValue, e.NewValue + 100);
         }
 
         private void ViewerContext_DataRangeUpdated(double from, double to)
         {
-            LabelTimeFrom.Text = from.ToString();
-            LabelTimeTo.Text = to.ToString();
+            LabelTimeFrom.Text = SecondsToTimeString(from);
+            LabelTimeTo.Text = SecondsToTimeString(to);
+            if (to <= TimeSlider.Minimum) TimeSlider.Maximum = from + 1;
+            else TimeSlider.Maximum = to;
             previewContext.UpdateRange(from, to);
         }
 
@@ -70,6 +74,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             ContentGrid.Children.Add(plot, 0, 3, 0, 1);
             if (previewView != null) ContentGrid.Children.Remove(previewView);
             previewView = plot;
+        }
+
+        private string SecondsToTimeString(double seconds)
+        {
+            TimeSpan time = TimeSpan.FromSeconds(seconds);
+            return time.ToString(@"hh\:mm\:ss");
         }
     }
 }
