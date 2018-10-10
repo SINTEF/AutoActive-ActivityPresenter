@@ -34,16 +34,19 @@ namespace SINTEF.AutoActive.UI.UWP.Video
     {
         MediaPlayer decoder;
         SoftwareBitmap destination;
+        CanvasDevice device;
         CanvasBitmap bitmap;
 
         readonly object locker = new object();
         bool isDecoding;
         readonly Queue<VideoDecoderAction> queue;
 
-        TaskCompletionSource<double> length;
+        TaskCompletionSource<long> length;
 
         internal VideoDecoder(IRandomAccessStream stream, string mime)
         {
+            Debug.WriteLine("CREATED DECODER!");
+
             var source = MediaSource.CreateFromStream(stream, mime);
             var item = new MediaPlaybackItem(source);
             decoder = new MediaPlayer
@@ -58,8 +61,9 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             isDecoding = true;
             queue = new Queue<VideoDecoderAction>();
 
-            length = new TaskCompletionSource<double>();
+            length = new TaskCompletionSource<long>();
 
+            device = new CanvasDevice();
             CreateBitmaps(1, 1);
         }
 
@@ -116,13 +120,13 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         {
             //Debug.WriteLine($"CreateBitmaps #{Thread.CurrentThread.ManagedThreadId}");
             destination = new SoftwareBitmap(BitmapPixelFormat.Rgba8, (int)width, (int)height, BitmapAlphaMode.Ignore);
-            bitmap = CanvasBitmap.CreateFromSoftwareBitmap(CanvasDevice.GetSharedDevice(), destination);
+            bitmap = CanvasBitmap.CreateFromSoftwareBitmap(device, destination);
         }
 
         VideoDecoderFrame CopyCurrentDecodedFrame(ArraySegment<byte> buffer)
         {
             //Debug.WriteLine($"CopyCurrentDecodedFrame #{Thread.CurrentThread.ManagedThreadId}");
-            var time = decoder.PlaybackSession.Position.TotalSeconds;
+            var time = (long)(decoder.PlaybackSession.Position.TotalSeconds*10e6);
             var width = (uint)destination.PixelWidth;
             var height = (uint)destination.PixelHeight;
             var slice = buffer.Array.AsBuffer(buffer.Offset, buffer.Count);
@@ -134,7 +138,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
         {
             Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
-            length.TrySetResult(decoder.PlaybackSession.NaturalDuration.TotalSeconds);
+            length.TrySetResult((long)(decoder.PlaybackSession.NaturalDuration.TotalSeconds*10e6));
 
             decoder.CopyFrameToVideoSurface(bitmap);
 
@@ -146,9 +150,9 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         }
 
         /* -- Public API -- */
-        public Task<double> GetLengthAsync()
+        public Task<long> GetLengthAsync()
         {
-            throw new NotImplementedException();
+            return length.Task;
         }
 
         public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
@@ -186,10 +190,10 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             return DecodeNextFrameAsync(buffer, CancellationToken.None);
         }
 
-        public Task<double> SeekToAsync(double time, CancellationToken cancellationToken)
+        public Task<long> SeekToAsync(long time, CancellationToken cancellationToken)
         {
             //Debug.WriteLine($"SeekToAsync {Thread.CurrentThread.ManagedThreadId}");
-            TaskCompletionSource<double> source = new TaskCompletionSource<double>();
+            TaskCompletionSource<long> source = new TaskCompletionSource<long>();
             EnqueueAndPossiblyRun(() =>
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -209,12 +213,13 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 }
 
                 // Then, when the next frame is available, we are done seeking
-                source.SetResult(decoder.PlaybackSession.Position.TotalSeconds);
+                var position = (long)(decoder.PlaybackSession.Position.TotalSeconds * 10e6);
+                source.SetResult(position);
                 return false;
             });
             return source.Task;
         }
-        public Task<double> SeekToAsync(double time)
+        public Task<long> SeekToAsync(long time)
         {
             return SeekToAsync(time, CancellationToken.None);
         }

@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,13 +21,19 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         static readonly double OVERLAY_MODE_WIDTH = 0.9;
         static readonly double OVERLAY_MODE_SHADE_OPACITY = 0.5;
 
-        public DataViewerContext ViewerContext { get; } = new DataViewerContext(DataViewerRangeType.Time, 0, 100);
+        public DataViewerContext ViewerContext { get; } = new TimeSynchronizedContext();
+
+        public PlaybarView Playbar { get; private set; }
 
         public PlayerPage ()
 		{
 			InitializeComponent ();
 
-            Playbar.ViewerContext = ViewerContext;
+            (ViewerContext as TimeSynchronizedContext)?.SetSynchronizedToWorldClock(false);
+
+            Playbar = new PlaybarView(ViewerContext);
+            PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
+            //Playbar.ViewerContext = ViewerContext;
             PlayerGrid.ViewerContext = ViewerContext;
 
             Splitter.DragStart += Splitter_DragStart;

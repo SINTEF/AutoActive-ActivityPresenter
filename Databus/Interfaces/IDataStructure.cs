@@ -10,13 +10,10 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
     public interface IDataStructure
     {
-        // TODO: Other standard metadata?
-
         string Name { get; }
 
         // Path
         // Icon
-        // Description
         // Other metadata
 
         IEnumerable<IDataStructure> Children { get; }

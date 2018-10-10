@@ -1,6 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
@@ -27,12 +28,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (datapoint is ArchiveVideoVideo)
             {
-                var video = await ImageView.Create(datapoint, ViewerContext);
+                var video = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 Children.Add(video);
             }
             else if (datapoint is TableColumn)
             {
-                var plot = await LinePlot.Create(datapoint, ViewerContext);
+                var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 Children.Add(plot);
             }
         }

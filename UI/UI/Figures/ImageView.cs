@@ -1,6 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
@@ -17,16 +18,16 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public class ImageView : FigureView
     {
-        public static async Task<ImageView> Create(IDataPoint datapoint, DataViewerContext context)
+        public static async Task<ImageView> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
             // TODO: Check that this datapoint has a type that can be used
-            var viewer = await context.GetViewerFor(datapoint) as IImageViewer;
+            var viewer = await context.GetDataViewerFor(datapoint) as IImageViewer;
             return new ImageView(viewer, context);
         }
 
         protected IImageViewer Viewer { get; private set; }
 
-        protected ImageView(IImageViewer viewer, DataViewerContext context) : base(viewer, context)
+        protected ImageView(IImageViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
             Viewer = viewer;
         }

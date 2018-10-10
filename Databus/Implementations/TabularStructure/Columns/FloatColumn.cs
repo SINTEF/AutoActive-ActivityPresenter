@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal float[] data;
         private Task<float[]> loader;
 
-        public FloatColumn(string name, Task<float[]> loader, TableIndex index) : base(typeof(float), name, loader, index)
+        public FloatColumn(string name, Task<float[]> loader, TableTimeIndex index) : base(typeof(float), name, loader, index)
         {
             this.loader = loader;
         }
@@ -34,9 +35,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             return (min, max);
         }
 
-        protected override IDataViewer CreateFloatViewer(TableIndex index, DataViewerContext context)
+        protected override IDataViewer CreateFloatViewer(TableTimeIndex index)
         {
-            return new FloatColumnViewer(index, this, context);
+            return new FloatColumnViewer(index, this);
         }
     }
 
@@ -44,7 +45,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         private FloatColumn column;
 
-        internal FloatColumnViewer(TableIndex index, FloatColumn column, DataViewerContext context) : base(index, column, context)
+        internal FloatColumnViewer(TableTimeIndex index, FloatColumn column) : base(index, column)
         {
             this.column = column;
         }

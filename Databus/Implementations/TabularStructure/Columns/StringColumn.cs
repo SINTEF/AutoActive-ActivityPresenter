@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal string[] data;
         private Task<string[]> loader;
 
-        public StringColumn(string name, Task<string[]> loader, TableIndex index) : base(typeof(string), name, loader, index)
+        public StringColumn(string name, Task<string[]> loader, TableTimeIndex index) : base(typeof(string), name, loader, index)
         {
             this.loader = loader;
         }
@@ -21,9 +22,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             return data.Length;
         }
 
-        protected override IDataViewer CreateStringViewer(TableIndex index, DataViewerContext context)
+        protected override IDataViewer CreateStringViewer(TableTimeIndex index)
         {
-            return new StringColumnViewer(index, this, context);
+            return new StringColumnViewer(index, this);
         }
 
         protected override (double? min, double? max) GetDataMinMax()
@@ -36,7 +37,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         private StringColumn column;
 
-        internal StringColumnViewer(TableIndex index, StringColumn column, DataViewerContext context) : base(index, column, context)
+        internal StringColumnViewer(TableTimeIndex index, StringColumn column) : base(index, column)
         {
             this.column = column;
         }

@@ -1,9 +1,11 @@
 ﻿using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,39 +21,36 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public static readonly GridLength DefaultHeight = 40;
         public static readonly GridLength DefaultPreviewHeight = 100;
 
-        public PlaybarView ()
+        public PlaybarView (DataViewerContext context)
 		{
 			InitializeComponent ();
+
+            ViewerContext = context;
+            context.AvailableTimeRangeChanged += ViewerContext_AvailableTimeRangeChanged;
+            ViewerContext_AvailableTimeRangeChanged(context, context.AvailableTimeFrom, context.AvailableTimeTo);
 		}
 
-        private DataViewerContext _viewerContext;
-        public DataViewerContext ViewerContext
-        {
-            get => _viewerContext;
-            set
-            {
-                if (_viewerContext != null) _viewerContext.DataRangeUpdated -= ViewerContext_DataRangeUpdated;
-                _viewerContext = value;
-                if (_viewerContext != null)
-                {
-                    _viewerContext.DataRangeUpdated += ViewerContext_DataRangeUpdated;
-                    ViewerContext_DataRangeUpdated(_viewerContext.HasDataFrom, _viewerContext.HasDataTo);
-                }
-            }
-        }
-
-        private readonly DataViewerContext previewContext = new DataViewerContext(DataViewerRangeType.Time, 0, 0);
+        public DataViewerContext ViewerContext { get; private set; }
+        private readonly TimeSynchronizedContext previewContext = new TimeSynchronizedContext();
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
-            ViewerContext.UpdateRange(e.NewValue, e.NewValue + 100);
+            var startPoint = (long)(e.NewValue / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+
+            if (ViewerContext is TimeSynchronizedContext timeContext)
+            {
+                Debug.WriteLine($"Playbar Slider startpoint: {startPoint}");
+                timeContext.SetSelectedTimeRange(startPoint, startPoint + 1000000*100); // 100s
+            }
+            // FIXME: Handle the other types of context
         }
 
-        private void ViewerContext_DataRangeUpdated(double from, double to)
+        private void ViewerContext_AvailableTimeRangeChanged(DataViewerContext sender, long from, long to)
         {
+            Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
             LabelTimeFrom.Text = from.ToString();
             LabelTimeTo.Text = to.ToString();
-            previewContext.UpdateRange(from, to);
+            previewContext.SetSelectedTimeRange(from, to);
         }
 
         /* --- Public API --- */

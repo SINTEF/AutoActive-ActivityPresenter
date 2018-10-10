@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal byte[] data;
         private Task<byte[]> loader;
 
-        public ByteColumn(string name, Task<byte[]> loader, TableIndex index) : base(typeof(byte), name, loader, index)
+        public ByteColumn(string name, Task<byte[]> loader, TableTimeIndex index) : base(typeof(byte), name, loader, index)
         {
             this.loader = loader;
         }
@@ -34,9 +35,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             return (min, max);
         }
 
-        protected override IDataViewer CreateByteViewer(TableIndex index, DataViewerContext context)
+        protected override IDataViewer CreateByteViewer(TableTimeIndex index)
         {
-            return new ByteColumnViewer(index, this, context);
+            return new ByteColumnViewer(index, this);
         }
     }
 
@@ -44,7 +45,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         private ByteColumn column;
 
-        internal ByteColumnViewer(TableIndex index, ByteColumn column, DataViewerContext context) : base(index, column, context)
+        internal ByteColumnViewer(TableTimeIndex index, ByteColumn column) : base(index, column)
         {
             this.column = column;
         }
