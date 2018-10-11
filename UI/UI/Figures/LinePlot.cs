@@ -39,6 +39,13 @@ namespace SINTEF.AutoActive.UI.Figures
             if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
         }
 
+        protected override void Viewer_Changed_Hook()
+        {
+            // TODO fix crude autoscaling
+            if (Viewer.MinValueHint.HasValue) minYValue = (float)Viewer.MinValueHint.Value;
+            if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
+        }
+
         // ---- Scaling ----
         private float minYValue = -1;
         private float maxYValue = 1;

@@ -49,13 +49,28 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             ViewerContext.UpdateRange(e.NewValue, e.NewValue + 100);
         }
 
+        //private double lastFrom = 0;
+        //private double? lastTo = 0 ;
+
         private void ViewerContext_DataRangeUpdated(double from, double to)
         {
-            LabelTimeFrom.Text = SecondsToTimeString(from);
-            LabelTimeTo.Text = SecondsToTimeString(to);
-            if (to <= TimeSlider.Minimum) TimeSlider.Maximum = from + 1;
-            else TimeSlider.Maximum = to;
-            previewContext.UpdateRange(from, to);
+            Device.BeginInvokeOnMainThread(() => 
+            {
+                LabelTimeFrom.Text = SecondsToTimeString(from);
+                LabelTimeTo.Text = SecondsToTimeString(to);
+
+                if (to <= TimeSlider.Minimum) TimeSlider.Maximum = from + 1;
+                else TimeSlider.Maximum = to;
+                previewContext.UpdateRange(from, to);
+
+                //if (lastTo < to)
+                //{
+                //    TimeSlider.Value = to - 100;
+                //}
+                //lastFrom = from;
+                //lastTo = to;
+
+            });
         }
 
         /* --- Public API --- */

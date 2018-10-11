@@ -3,6 +3,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -39,16 +40,25 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Viewer_Changed()
         {
+            //Debug.WriteLine("FigureView::Viewer_Changed ");
             Canvas.InvalidateSurface();
+            Viewer_Changed_Hook();
+        }
+
+        protected virtual void Viewer_Changed_Hook()
+        {
+            // Hook method to be overridden by sub classes if special handling needed
         }
 
         private void Context_RangeUpdated(double from, double to)
         {
+            //Debug.WriteLine("FigureView::Context_RangeUpdated " + from + " " + to );
             Canvas.InvalidateSurface();
         }
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
+            //Debug.WriteLine("FigureView::Canvas_PaintSurface ");
             RedrawCanvas(e.Surface.Canvas, e.Info);
         }
 

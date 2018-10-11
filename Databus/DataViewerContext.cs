@@ -35,6 +35,7 @@ namespace SINTEF.AutoActive.Databus
             if (from.HasValue) RangeFrom = from.Value;
             if (to.HasValue) RangeTo = to.Value;
 
+            //Debug.WriteLine("DataViewerContext::UpdateRange " + from + " " + to + " " + RangeFrom + " " + RangeTo);
             RangeUpdated?.Invoke(RangeFrom, RangeTo);
         }
 
@@ -48,6 +49,8 @@ namespace SINTEF.AutoActive.Databus
 
         private void UpdateDataRangeIncrementally(double from, double to)
         {
+            //Debug.WriteLine("UpdateDataRangeIncrementally " + from + " " + to);
+
             var wasUpdated = false;
             if (from < HasDataFrom)
             {
@@ -62,7 +65,7 @@ namespace SINTEF.AutoActive.Databus
             if (wasUpdated) DataRangeUpdated?.Invoke(HasDataFrom, HasDataTo);
         }
 
-         // ---- Data viewers ----
+        // ---- Data viewers ----
         private Dictionary<IDataPoint, IDataViewer> dataviewers = new Dictionary<IDataPoint, IDataViewer>();
 
         public async Task<IDataViewer> GetViewerFor(IDataPoint datapoint)

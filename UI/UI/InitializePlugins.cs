@@ -3,6 +3,7 @@ using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Garmin;
+using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -22,6 +23,7 @@ namespace SINTEF.AutoActive.UI
 
             // Import plugins
             typeof(GarminImportPlugin),
+            typeof(MqttImportPlugin),
         };
     }
 }
