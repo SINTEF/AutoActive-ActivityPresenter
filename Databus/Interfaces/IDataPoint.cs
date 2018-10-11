@@ -5,18 +5,14 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 {
     public interface IDataPoint
     {
-        // TODO: Define
-
         Type DataType { get; }
 
         string Name { get; set; }
 
-        // Type
-        // Name
-        // Path
+        ITimePoint Time { get; }
 
         // Other metadata?
 
-        Task<IDataViewer> CreateViewerIn(DataViewerContext context);
+        Task<IDataViewer> CreateViewer();
     }
 }

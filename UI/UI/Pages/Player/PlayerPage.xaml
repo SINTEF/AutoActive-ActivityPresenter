@@ -5,7 +5,7 @@
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
              x:Class="SINTEF.AutoActive.UI.Pages.Player.PlayerPage">
     <ContentPage.Content>
-        <Grid RowSpacing="0" ColumnSpacing="0">
+        <Grid x:Name="PageGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.RowDefinitions>
                 <RowDefinition Height="{Static views:CustomNavigationBar.DefaultHeight}" />
                 <RowDefinition x:Name="RowMain" Height="*" />
@@ -21,7 +21,7 @@
             <player:PlayerGridLayout x:Name="PlayerGrid" Grid.Row="1" Grid.Column="0" />
             <player:PlayerSplitterView x:Name="Splitter" Grid.Row="1" Grid.Column="1" />
             <player:PlayerTreeView x:Name="TreeView" Grid.Row="1" Grid.Column="2" />
-            <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />
+            <!--<player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />-->
 
             <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="1" Grid.RowSpan="2" Grid.Column="0">
                 <BoxView x:Name="OverlayShading" IsVisible="False" Color="Black" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1"/>

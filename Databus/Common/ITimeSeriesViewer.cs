@@ -24,25 +24,25 @@ namespace SINTEF.AutoActive.Databus.Common
     /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
     public readonly ref struct SpanPair<T>
     {
-        public SpanPair(Span<double> X, Span<T> Y)
+        public SpanPair(Span<long> X, Span<T> Y)
         {
             this.X = X;
             this.Y = Y;
         }
 
-        public readonly Span<double> X;
+        public readonly Span<long> X;
         public readonly Span<T> Y;
 
         public Enumerator GetEnumerator() => new Enumerator(X, Y);
 
         public ref struct Enumerator
         {
-            private readonly Span<double> _x;
+            private readonly Span<long> _x;
             private readonly Span<T> _y;
             private int _index;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(Span<double> x, Span<T> y)
+            internal Enumerator(Span<long> x, Span<T> y)
             {
                 _x = x;
                 _y = y;
@@ -61,7 +61,7 @@ namespace SINTEF.AutoActive.Databus.Common
                 return false;
             }
 
-            public (double x, T y) Current
+            public (long x, T y) Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get => (_x[_index], _y[_index]);

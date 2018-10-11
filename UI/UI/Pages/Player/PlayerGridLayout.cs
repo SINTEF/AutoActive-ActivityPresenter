@@ -1,5 +1,8 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
@@ -23,8 +26,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public async void AddPlotFor(IDataPoint datapoint)
         {
-            var plot = await LinePlot.Create(datapoint, ViewerContext);
-            Children.Add(plot);
+            if (datapoint is ArchiveVideoVideo)
+            {
+                var video = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                Children.Add(video);
+            }
+            else if (datapoint is TableColumn)
+            {
+                var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                Children.Add(plot);
+            }
         }
 
         /* -- Grid layout operations -- */

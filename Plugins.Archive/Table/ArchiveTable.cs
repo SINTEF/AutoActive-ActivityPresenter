@@ -24,10 +24,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         internal ArchiveTable(JObject json, Archive.Archive archive, ArchiveTableInformation tableInformation) : base(json)
         {
             var zipEntry = tableInformation.zipEntry;
-            // TODO: Multiple indices?
             if (tableInformation.time == null) throw new ArgumentException("Table does not have a column named 'Time'");
             var timeInfo = tableInformation.time;
-            var time = new TableIndex(timeInfo.Name, GenerateLoader<double>(archive, zipEntry, timeInfo));
+            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(archive, zipEntry, timeInfo), false);
+            // FIXME: Implement synchronization metadata
 
             // Add all the other columns
             foreach (var column in tableInformation.columns)

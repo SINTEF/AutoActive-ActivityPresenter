@@ -1,8 +1,10 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -10,20 +12,19 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
     public abstract class TableColumn : IDataPoint
     {
-        protected TableIndex index;
+        protected TableTimeIndex index;
 
         private Task loader;
 
         public Type DataType { get; private set; }
         public string Name { get; set; }
 
-        internal virtual double HasDataFrom => index.HasDataFrom;
-        internal virtual double HasDataTo => index.HasDataTo;
-
         internal double? MinValueHint { get; private set; }
         internal double? MaxValueHint { get; private set; }
 
-        internal TableColumn(Type type, string name, Task loader, TableIndex index)
+        public ITimePoint Time => index;
+
+        internal TableColumn(Type type, string name, Task loader, TableTimeIndex index)
         {
             DataType = type;
             Name = name;
@@ -60,31 +61,31 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             }
         }
 
-        public async Task<IDataViewer> CreateViewerIn(DataViewerContext context)
+        public async Task<IDataViewer> CreateViewer()
         {
             switch (this)
             {
                 case BoolColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateBoolViewer(index, context);
+                    return CreateBoolViewer(index);
                 case ByteColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateByteViewer(index, context);
+                    return CreateByteViewer(index);
                 case IntColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateIntViewer(index, context);
+                    return CreateIntViewer(index);
                 case LongColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateLongViewer(index, context);
+                    return CreateLongViewer(index);
                 case FloatColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateFloatViewer(index, context);
+                    return CreateFloatViewer(index);
                 case DoubleColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateDoubleViewer(index, context);
+                    return CreateDoubleViewer(index);
                 case StringColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateStringViewer(index, context);
+                    return CreateStringViewer(index);
                 default:
                     throw new NotSupportedException();
             }
@@ -93,55 +94,53 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected abstract int CheckLoaderResultLength();
         protected abstract (double? min, double? max) GetDataMinMax();
 
-        protected virtual IDataViewer CreateBoolViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateByteViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateIntViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateLongViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateFloatViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateDoubleViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateStringViewer(TableIndex index, DataViewerContext context) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateBoolViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateByteViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateIntViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateLongViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateFloatViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateDoubleViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateStringViewer(TableTimeIndex index) { throw new NotSupportedException(); }
     }
 
     public abstract class TableColumnViewer : ITimeSeriesViewer
     {
-        protected TableIndex index;
+        protected TableTimeIndex index;
         protected int startIndex = -1;
         protected int endIndex = -1;
         protected int length = -1;
 
-        protected TableColumnViewer(TableIndex index, TableColumn column, DataViewerContext context)
+        protected TableColumnViewer(TableTimeIndex index, TableColumn column)
         {
             this.index = index;
             Column = column;
-            context.RangeUpdated += RangeUpdated;
-            RangeUpdated(context.RangeFrom, context.RangeTo);
         }
 
-        private void RangeUpdated(double from, double to)
+        public void SetTimeRange(long from, long to)
         {
             var start = index.FindIndex(startIndex, from);
             var end = index.FindIndex(endIndex, to);
+            CurrentTimeRangeFrom = from;
+            CurrentTimeRangeTo = to;
             if (start != startIndex || end != endIndex)
             {
                 startIndex = start;
                 endIndex = end;
                 length = endIndex - startIndex + 1;
-                Changed?.Invoke();
+                Changed?.Invoke(this);
             }
         }
 
         public TableColumn Column { get; private set; }
         public IDataPoint DataPoint => Column;
 
-        public event DataViewWasChangedHandler Changed;
-
-        public double HasDataFrom => Column.HasDataFrom;
-        public double HasDataTo => Column.HasDataTo;
+        public event DataViewerWasChangedHandler Changed;
 
         public double? MinValueHint => Column.MinValueHint;
         public double? MaxValueHint => Column.MaxValueHint;
 
-        public event DataViewHasDataRangeChangedHandler HasDataRangeChanged; // Will never happen
+        public long CurrentTimeRangeFrom { get; private set; }
+        public long CurrentTimeRangeTo { get; private set; }
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
         public virtual SpanPair<byte> GetCurrentBytes() { throw new NotSupportedException(); }
@@ -150,5 +149,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         public virtual SpanPair<float> GetCurrentFloats() { throw new NotSupportedException(); }
         public virtual SpanPair<double> GetCurrentDoubles() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
+
     }
 }

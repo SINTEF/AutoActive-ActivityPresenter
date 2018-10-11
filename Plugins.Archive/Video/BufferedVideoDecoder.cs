@@ -40,7 +40,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             CreateDataBuffer(0, 0);
         }
 
-        bool TryFindFrameInBuffer(double time, out VideoDecoderFrame frame, out uint framesAfter, out double approxFramerate, out double lastBufferedFrameTime)
+        bool TryFindFrameInBuffer(long time, out VideoDecoderFrame frame, out uint framesAfter, out double approxFramerate, out long lastBufferedFrameTime)
         {
             lock (frameBuffer)
             {
@@ -93,7 +93,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                 }
                 else
                 {
-                    lastBufferedFrameTime = double.MinValue;
+                    lastBufferedFrameTime = long.MinValue;
                 }
 
                 return foundInBuffer;
@@ -143,7 +143,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         /* -- Public API -- */
 
-        public Task<double> GetLengthAsync()
+        public Task<long> GetLengthAsync()
         {
             return decoder.GetLengthAsync();
         }
@@ -154,7 +154,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             // Wait for loading to finish
             await bufferLock.WaitAsync();
             // Clear the buffer, and keep track of which frames we had
-            double? firstFrameTime = null;
+            long? firstFrameTime = null;
             lock (frameBuffer)
             {
                 var j = (frameBufferNextWritePosition + 1) % frameBufferLength;
@@ -177,7 +177,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             LoadMoreFrames();
         }
 
-        public async Task<VideoDecoderFrame> GetFrameAtAsync(double time, CancellationToken cancellationToken)
+        public async Task<VideoDecoderFrame> GetFrameAtAsync(long time, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             

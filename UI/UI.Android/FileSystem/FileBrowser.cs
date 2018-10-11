@@ -16,6 +16,8 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Droid.FileSystem;
 using Xamarin.Forms;
 
+using Debug = System.Diagnostics.Debug;
+
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.Droid.FileSystem
 {
@@ -32,7 +34,9 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         {
             _path = path;
             // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
-            // FIXME: Use path to set the name and extension
+
+            Name = Path.GetFileNameWithoutExtension(path);
+            Extension = Path.GetExtension(path);
         }
 
         public Task<Stream> GetReadStream()
@@ -59,7 +63,7 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         {
             try
             {
-                System.Diagnostics.Debug.WriteLine("OPENING READ/WRITE STREAM");
+                Debug.WriteLine("OPENING READ/WRITE STREAM");
                 var stream = new FileStream(_path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
                 if (!stream.CanRead) throw new IOException("Stream must readable");
                 if (!stream.CanWrite) throw new IOException("Stream must be writable");
@@ -85,11 +89,13 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             {
                 foreach (var sub in subFiles)
                 {
-                    System.Diagnostics.Debug.WriteLine(prepend + sub.Name);
+                    Debug.WriteLine(prepend + sub.Name);
                     ListRecursive(sub, prepend + "-");
                 }
             }
         }
+
+        // FIXME: How can we specify what kind of files we can open?
 
         public async Task<IReadWriteSeekStreamFactory> BrowseForArchive()
         {
@@ -106,14 +112,19 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             // Make sure we can open this file locally
             // FIXME: If not, we have to copy it somehwere
             var path = GetPath(context, uri);
+            Debug.WriteLine($"PATH TO OPEN: {path}");
 
-            // TODO: Should we check that the file is actually accessible?
-            return new ReadWriteSeekStreamFactory(path);
+            if (path != null && path.Length > 0)
+            {
+                // TODO: Should we check that the file is actually accessible?
+                return new ReadWriteSeekStreamFactory(path);
+            }
+            return null;
         }
 
-        public Task<IReadSeekStreamFactory> BrowseForImportFile()
+        public async Task<IReadSeekStreamFactory> BrowseForImportFile()
         {
-            throw new NotImplementedException();
+            return await BrowseForArchive();
         }
 
         /* --- Helpers --- */
@@ -122,6 +133,7 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             if (DocumentsContract.IsDocumentUri(context, uri))
             {
                 var documentId = DocumentsContract.GetDocumentId(uri);
+                Debug.WriteLine($"DOCUMENT URI: {uri} !! {documentId}");
                 var split = documentId.Split(new[] { ':' }, 2);
                 switch (uri.Authority)
                 {
@@ -133,8 +145,15 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
                         break;
                     case "com.android.providers.downloads.documents":
                         // Downloads folder
-                        var contentUri = ContentUris.WithAppendedId(Android.Net.Uri.Parse("content://downloads/public_downloads"), long.Parse(documentId));
-                        return GetDataColumn(context, contentUri, null, null);
+                        if (split[0] == "raw")
+                        {
+                            return split[1];
+                        }
+                        else
+                        {
+                            var contentUri = ContentUris.WithAppendedId(Android.Net.Uri.Parse("content://downloads/public_downloads"), long.Parse(documentId));
+                            return GetDataColumn(context, contentUri, null, null);
+                        }
                     case "com.android.providers.media.documents":
                         // Media document
                         var selection = "_id=?";
@@ -186,7 +205,7 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         {
             base.OnCreate(savedInstanceState);
 
-            System.Diagnostics.Debug.WriteLine($"Opening Picker");
+            Debug.WriteLine($"Opening Picker");
 
             Intent intent = new Intent(Intent.ActionOpenDocument);
             intent.AddCategory(Intent.CategoryOpenable);

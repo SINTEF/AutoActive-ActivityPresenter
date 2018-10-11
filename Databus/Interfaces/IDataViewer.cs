@@ -1,17 +1,18 @@
 ﻿
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
-    public delegate void DataViewWasChangedHandler();
-    public delegate void DataViewHasDataRangeChangedHandler(double from, double to);
+    public delegate void DataViewerWasChangedHandler(IDataViewer sender);
     
     public interface IDataViewer
     {
+        //ITimeViewer Time { get; }
         IDataPoint DataPoint { get; }
 
-        event DataViewWasChangedHandler Changed;
+        long CurrentTimeRangeFrom { get; }
+        long CurrentTimeRangeTo { get; }
 
-        double HasDataFrom { get; }
-        double HasDataTo { get; }
-        event DataViewHasDataRangeChangedHandler HasDataRangeChanged;
+        void SetTimeRange(long from, long to);
+
+        event DataViewerWasChangedHandler Changed;
     }
 }

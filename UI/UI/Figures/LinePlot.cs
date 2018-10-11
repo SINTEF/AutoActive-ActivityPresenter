@@ -10,15 +10,16 @@ using SINTEF.AutoActive.UI.Views;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.ViewerContext;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
     public abstract class LinePlot : FigureView
     {
-        public static async Task<LinePlot> Create(IDataPoint datapoint, DataViewerContext context)
+        public static async Task<LinePlot> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
             // TODO: Check that this datapoint has a type that can be used
-            var viewer = await context.GetViewerFor(datapoint) as ITimeSeriesViewer;
+            var viewer = await context.GetDataViewerFor(datapoint) as ITimeSeriesViewer;
 
             // Use the correct path drawing function
             if (datapoint.DataType == typeof(byte)) return new ByteLinePlot(viewer, context);
@@ -31,7 +32,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         protected ITimeSeriesViewer Viewer { get; private set; }
 
-        protected LinePlot(ITimeSeriesViewer viewer, DataViewerContext context) : base(viewer, context)
+        protected LinePlot(ITimeSeriesViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
             Viewer = viewer;
 
@@ -71,14 +72,19 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
         // ---- Drawing ----
-
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ScaleValue(float v, float offset, float scale)
+        protected float ScaleX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
-        protected abstract void CreatePath(SKPath plot, float offsetX, float scaleX, float offsetY, float scaleY);
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        protected float ScaleY(float v, float offset, float scale)
+        {
+            return (v - offset) * scale;
+        }
+
+        protected abstract void CreatePath(SKPath plot, long offsetX, float scaleX, float offsetY, float scaleY);
 
         static readonly SKPaint FramePaint = new SKPaint {
             Color = SKColors.LightSlateGray,
@@ -103,10 +109,11 @@ namespace SINTEF.AutoActive.UI.Figures
 
             if (Viewer != null)
             {
+                if (Viewer.CurrentTimeRangeFrom == Viewer.CurrentTimeRangeTo) return; // Avoid divide-by-zero
+
                 // To acheive a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
-                var startX = (float)Context.RangeFrom;
-                var endX = (float)Context.RangeTo;
-                var scaleX = info.Width / (endX - startX);
+                var startX = Viewer.CurrentTimeRangeFrom;
+                var scaleX = (float)info.Width / (Viewer.CurrentTimeRangeTo - Viewer.CurrentTimeRangeFrom);
 
                 var minY = minYValue;
                 var maxY = maxYValue;

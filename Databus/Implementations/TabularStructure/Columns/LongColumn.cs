@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal long[] data;
         private Task<long[]> loader;
 
-        public LongColumn(string name, Task<long[]> loader, TableIndex index) : base(typeof(long), name, loader, index)
+        public LongColumn(string name, Task<long[]> loader, TableTimeIndex index) : base(typeof(long), name, loader, index)
         {
             this.loader = loader;
         }
@@ -34,9 +35,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             return (min, max);
         }
 
-        protected override IDataViewer CreateLongViewer(TableIndex index, DataViewerContext context)
+        protected override IDataViewer CreateLongViewer(TableTimeIndex index)
         {
-            return new LongColumnViewer(index, this, context);
+            return new LongColumnViewer(index, this);
         }
     }
 
@@ -44,7 +45,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         private LongColumn column;
 
-        internal LongColumnViewer(TableIndex index, LongColumn column, DataViewerContext context) : base(index, column, context)
+        internal LongColumnViewer(TableTimeIndex index, LongColumn column) : base(index, column)
         {
             this.column = column;
         }

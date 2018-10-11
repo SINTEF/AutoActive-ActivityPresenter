@@ -22,12 +22,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
     public class TrackPoint
     {
-        public String TimeString { set; get; }
-        public Int64 TimeEpoch { set; get; }
+        public string TimeString { set; get; }
+        public long TimeWorldClock { set; get; }
         public double AltitudeMeters { get; set; }
         public double DistanceMeters { get; set; }
         public double SpeedMS { get; set; }
-        public int HeartRateBpm { get; set; }
+        public byte HeartRateBpm { get; set; }
         public double LatitudeDegrees { set; get; }
         public double LongitudeDegrees { set; get; }
         public IEnumerable<Speed> SpeedList { get; set; }
@@ -72,75 +72,41 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";
 
             XElement root = XElement.Load(s);
-            IEnumerable<XElement> activity =
-                from el in root.Descendants(ns1 + "Activity")
-                select el;
 
-            int c2 = activity.Count();
-            Debug.WriteLine("activity.Count(): " + activity.Count());
+            var activity = from el in root.Descendants(ns1 + "Activity") select el;
+            Debug.WriteLine($"activity.Count(): {activity.Count()}");
 
-            foreach (XElement ae in activity)
+            foreach (var ae in activity)
             {
 
-                IEnumerable<XElement> aid =
-                    from el in ae.Elements(ns1 + "Id")
-                    select el;
+                var aid = from el in ae.Elements(ns1 + "Id") select el;
 
-                string id = "No id";
-                if (aid.Count() > 0)
-                    id = (string)aid.First();
+                var id = aid.Count() > 0 ? (string)aid.First() : "No id";
 
-                IEnumerable<XElement> lap =
-                    from el in ae.Descendants(ns1 + "Lap")
-                    select el;
+                var lap = from el in ae.Descendants(ns1 + "Lap") select el;
+                Debug.WriteLine($"lap.Count(): {lap.Count()}");
 
-                int c3 = lap.Count();
-                Debug.WriteLine("lap.Count(): " + lap.Count());
+                var tp = from el in ae.Descendants(ns1 + "Trackpoint") select el;
+                Debug.WriteLine($"tp.Count(): {tp.Count()}");
 
-                IEnumerable<XElement> tp =
-                    from el in ae.Descendants(ns1 + "Trackpoint")
-                    select el;
-                Debug.WriteLine("tp.Count(): " + tp.Count());
+                var trackpoints = from el in ae.Descendants(ns1 + "Trackpoint")
+                                  select new TrackPoint
+                                  {
+                                      TimeString = el.Element(ns1 + "Time")?.Value ?? "No time",
+                                      AltitudeMeters = Convert.ToDouble(el.Element(ns1 + "AltitudeMeters")?.Value),
+                                      DistanceMeters = Convert.ToDouble(el.Element(ns1 + "DistanceMeters")?.Value),
+                                      HeartRateBpm = Convert.ToByte(el.Element(ns1 + "HeartRateBpm")?.Value),
+                                      SpeedList = from els in el.Descendants(ns3 + "Speed") select new Speed { SpeedMS = Convert.ToDouble(els.Value) },
+                                      PositionList = from elp in el.Descendants(ns1+"Position")
+                                                   select new Position
+                                                   {
+                                                        LatitudeDegrees = Convert.ToDouble(elp.Element(ns1 + "LongitudeDegrees")?.Value),
+                                                        LongitudeDegrees = Convert.ToDouble(elp.Element(ns1 + "LongitudeDegrees")?.Value),
+                                                   },
 
-                IEnumerable<TrackPoint> trackpoints =
-                    from el in ae.Descendants(ns1 + "Trackpoint")
-                    select new TrackPoint
-                    {
-                        TimeString = el.Element(ns1 + "Time") != null ?
-                        (string)el.Element(ns1 + "Time").Value :
-                        "No time",
-                        AltitudeMeters = el.Element(ns1 + "AltitudeMeters") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "AltitudeMeters").Value) :
-                        0.0,
-                        DistanceMeters = el.Element(ns1 + "DistanceMeters") != null ?
-                        Convert.ToDouble((string)el.Element(ns1 + "DistanceMeters").Value) :
-                        0.0,
-                        HeartRateBpm = el.Element(ns1 + "HeartRateBpm") != null ?
-                        Convert.ToInt16((string)el.Element(ns1 + "HeartRateBpm").Value) :
-                        0,
-                        SpeedList = 
-                            (from els in el.Descendants(ns3 + "Speed")
-                            select new Speed
-                            {
-                                SpeedMS = els != null ?
-                                Convert.ToDouble((string)els.Value ) :
-                                0.0,
-                            }),
-                        PositionList = 
-                            (from elp in el.Descendants(ns1 + "Position")
-                            select new Position
-                            {
-                                LatitudeDegrees = elp.Element(ns1 + "LatitudeDegrees") != null ?
-                                Convert.ToDouble((string)elp.Element(ns1 + "LatitudeDegrees").Value) :
-                                0.0,
-                                LongitudeDegrees = elp.Element(ns1 + "LongitudeDegrees") != null ?
-                                Convert.ToDouble((string)elp.Element(ns1 + "LongitudeDegrees").Value) :
-                                0.0,
-                            }),
-                    };
+                                  };
 
-                int c5 = trackpoints.Count();
-                Debug.WriteLine("trackpoint.Count(): " + trackpoints.Count());
+                Debug.WriteLine($"trackpoint.Count(): {trackpoints.Count()}");
 
                 // The var trackpoints is an LYNQ object with late fetch
                 // Make a list of it to force fetch of data into a real list that we can change.
@@ -205,12 +171,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             foreach (TrackPoint entry in tpList)
             {
 
-                DateTime dt;
-                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS,
-                                 DateTimeStyles.None, out dt))
+                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS, DateTimeStyles.None, out var dt))
                 {
-                    var dto = new DateTimeOffset(dt);
-                    entry.TimeEpoch = dto.ToUnixTimeMilliseconds();
+                    entry.TimeWorldClock = dt.Ticks / 10;
                 }
                 else
                 {
@@ -220,35 +183,30 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             }
 
             // Find time duplicates
-            Int64 lastTime = 0;
+            long lastTime = 0;
             for (int i = 0; i < tpList.Count(); i++)
             {
                 var entry = tpList[i];
-                if (lastTime == entry.TimeEpoch)
+                if (lastTime == entry.TimeWorldClock)
                     faultyEntries.Add(entry);
-                lastTime = entry.TimeEpoch;
+                lastTime = entry.TimeWorldClock;
             }
 
             // Remove faulty entries
             foreach (TrackPoint entry in faultyEntries)
                 tpList.Remove(entry);
 
-            // Adjust time from EPOCH to start of activity
-            Int64 firstTime = tpList[0].TimeEpoch;
-            foreach (TrackPoint entry in tpList)
-                entry.TimeEpoch = entry.TimeEpoch - firstTime;
-
 
             // Create the time index
-            var timeCol = new TableIndex("Time", GenerateLoader(tpList, entry => (double)entry.TimeEpoch / 1000));
+            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true);
 
             // Add other columns
-            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => (float)entry.AltitudeMeters), timeCol);
-            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => (float)entry.DistanceMeters), timeCol);
-            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => (float)entry.SpeedMS), timeCol);
-            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => (float)entry.HeartRateBpm / 200), timeCol);
-            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => (float)entry.LatitudeDegrees), timeCol);
-            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => (float)entry.LongitudeDegrees), timeCol);
+            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol);
+            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol);
+            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol);
+            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol);
+            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol);
+            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol);
         }
 
         private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)

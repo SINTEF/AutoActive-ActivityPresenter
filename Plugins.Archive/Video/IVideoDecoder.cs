@@ -12,12 +12,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public readonly struct VideoDecoderFrame
     {
         public bool Loaded { get; }
-        public double Time { get; }
+        public long Time { get; }
         public uint Width { get; }
         public uint Height { get; }
         public ArraySegment<byte> Frame { get; }
 
-        public VideoDecoderFrame(double time, uint width, uint height, ArraySegment<byte> frame)
+        public VideoDecoderFrame(long time, uint width, uint height, ArraySegment<byte> frame)
         {
             Loaded = true;
             Time = time;
@@ -29,10 +29,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
     public interface IVideoDecoder
     {
-        Task<double> GetLengthAsync();
+        Task<long> GetLengthAsync();
 
-        Task<double> SeekToAsync(double time, CancellationToken cancellationToken);
-        Task<double> SeekToAsync(double time);
+        Task<long> SeekToAsync(long time, CancellationToken cancellationToken);
+        Task<long> SeekToAsync(long time);
 
         Task<(uint width, uint height)> SetSizeAsync(uint width, uint height, CancellationToken cancellationToken);
         Task<(uint width, uint height)> SetSizeAsync(uint width, uint height);
