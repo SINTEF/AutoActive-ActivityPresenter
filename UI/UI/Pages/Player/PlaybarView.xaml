@@ -28,7 +28,7 @@
             <Label x:Name="LabelTimeFrom" Text="0" VerticalTextAlignment="Center" FontSize="Micro"
                    Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
             />
-            <Slider x:Name="TimeSlider" Minimum="0" Maximum="5000" ValueChanged="Slider_ValueChanged"
+            <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
                     Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="10"
             />
             <Label x:Name="LabelTimeTo" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
