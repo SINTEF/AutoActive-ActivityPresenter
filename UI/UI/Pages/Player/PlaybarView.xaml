@@ -5,23 +5,34 @@
     <ContentView.Content>
         <Grid x:Name="ContentGrid">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="100" />
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="100" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="*" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
 
-            <Label x:Name="LabelTimeFrom" Text="0"
-                   Grid.Row="1" Grid.Column="0"
+            <Label x:Name="LabelTimeFrom" Text="0" VerticalTextAlignment="Center" FontSize="Micro"
+                   Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
             />
-            <Slider Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
-                    Grid.Row="1" Grid.Column="1"
+            <Slider x:Name="TimeSlider" Minimum="0" Maximum="5000" ValueChanged="Slider_ValueChanged"
+                    Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="10"
             />
-            <Label x:Name="LabelTimeTo" Text="0"
-                   Grid.Row="1" Grid.Column="2"
+            <Label x:Name="LabelTimeTo" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
+                   Grid.Row="1" Grid.Column="12" Grid.ColumnSpan="2"
             />
         </Grid>
     </ContentView.Content>

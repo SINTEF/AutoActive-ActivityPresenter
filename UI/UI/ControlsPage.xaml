@@ -1,0 +1,87 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SINTEF.AutoActive.UI.ControlsPage">
+    <ContentPage.Content>
+        <StackLayout Margin="10, 10, 10, 10">
+            <Label Text="Welcome to Xamarin.Forms!"
+                VerticalOptions="CenterAndExpand" 
+                HorizontalOptions="CenterAndExpand" />
+            <Grid ColumnSpacing="0" RowSpacing="0" x:Name="AllControls">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                
+                <Button x:Name="PlayButton" Text=">"
+                        Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"/>
+                <Button x:Name="PauseButton" Text="||"
+                        Grid.Column="2" Grid.ColumnSpan="2" Grid.Row="0"/>
+                <Label Text="Speed" VerticalTextAlignment="Center"
+                       Grid.Column="9" Grid.ColumnSpan="2" Grid.Row="0" />
+                <Picker x:Name="SpeedPicker"
+                        Grid.Column="11" Grid.ColumnSpan="2" Grid.Row="0"/>
+                <Label Text="x" VerticalTextAlignment="Center"
+                       Grid.Column="13" Grid.ColumnSpan="1" Grid.Row="0" />
+
+                <Label Text="Range (seconds)" VerticalTextAlignment="Center"
+                       Grid.Column="0" Grid.ColumnSpan="14" Grid.Row="1" />
+                
+                <Slider x:Name="RangeSlider" BindingContext="{x:Reference Name=PlayBar}" Minimum="{Binding Path=Minimum}" Maximum="{Binding Path=Maximum}"
+                        Grid.Column="0" Grid.ColumnSpan="12" Grid.Row="2" />
+                <Label BindingContext="{x:Reference Name=RangeSlider}" Text="{Binding Path=Value}" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
+                       Grid.Column="12" Grid.ColumnSpan="2" Grid.Row="2" />
+
+                <Label Text="Position" VerticalTextAlignment="Center"
+                       Grid.Column="0" Grid.ColumnSpan="14" Grid.Row="3" />
+
+            </Grid>
+            
+            <Grid ColumnSpacing="0" RowSpacing="0" x:Name="PlayBarControls">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*" />
+                </Grid.RowDefinitions>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label x:Name="PlayBarStartTime" BindingContext="{x:Reference Name=PlayBar}" Text="{Binding Path=Minimum}" VerticalTextAlignment="Center" FontSize="Micro"
+                       Grid.Column="0" Grid.ColumnSpan="2" Grid.Row="0"/>
+                <Slider x:Name="PlayBar" ValueChanged="OnPlayBarSlide"
+                        Grid.Column="2" Grid.ColumnSpan="10" Grid.Row="0"/>
+                <Label x:Name="PlayBarStopTime" BindingContext="{x:Reference Name=PlayBar}" Text="{Binding Path=Maximum}" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
+                       Grid.Column="12" Grid.ColumnSpan="2" Grid.Row="0" />
+            </Grid>
+        </StackLayout>
+    </ContentPage.Content>
+</ContentPage>
