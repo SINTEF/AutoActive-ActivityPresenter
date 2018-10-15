@@ -33,10 +33,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
 
         public void UpdateDataRange(double from, double to)
         {
-            foreach (var viewer in viewers)
-            {
-                viewer.UpdatedData(from, to);
-            }
+            //foreach (var viewer in viewers)
+            //{
+            //    viewer.UpdatedData(from, to);
+            //}
         }
 
         public async Task<IDataViewer> CreateViewer()
@@ -68,7 +68,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 default:
                     throw new NotSupportedException();
             }
-            viewers.Add(newViewer);
+            //viewers.Add(newViewer);
             return newViewer;
         }
 
