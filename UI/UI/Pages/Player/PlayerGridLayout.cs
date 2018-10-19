@@ -3,6 +3,7 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
+using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
@@ -35,6 +36,15 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 Children.Add(plot);
+            }
+            else if (datapoint is TableColumnDyn)
+            {
+                var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                Children.Add(plot);
+            }
+            else
+            {
+                throw new NotSupportedException();
             }
         }
 

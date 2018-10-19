@@ -14,6 +14,8 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         long Start { get; }
         long End { get; }
 
-        event TimeViewerWasChangedHandler Changed;
+        event TimeViewerWasChangedHandler TimeChanged;
+
+        void UpdatedTimeIndex();
     }
 }

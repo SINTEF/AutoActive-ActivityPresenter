@@ -3,6 +3,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Plugins.Import.Mqtt.Columns;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -31,12 +32,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             this.index = index;
         }
 
-        public void UpdateDataRange(double from, double to)
+        public void UpdatedData()
         {
-            //foreach (var viewer in viewers)
-            //{
-            //    viewer.UpdatedData(from, to);
-            //}
+            index.UpdatedTimeIndex();
+            foreach (var viewer in dynDataViewers)
+            {
+                viewer.UpdatedData();
+            }
         }
 
         public async Task<IDataViewer> CreateViewer()
@@ -68,7 +70,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 default:
                     throw new NotSupportedException();
             }
-            //viewers.Add(newViewer);
+            dynDataViewers.Add(newViewer);
             return newViewer;
         }
 
@@ -83,7 +85,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         protected virtual TableColumnDynViewer CreateStringDynViewer(TableTimeIndexDyn index) { throw new NotSupportedException(); }
     }
 
-    public abstract class TableColumnDynViewer : ITimeSeriesViewer
+    public abstract class TableColumnDynViewer : ITimeSeriesViewer, IDynDataViewer
     {
         protected TableTimeIndexDyn index;
         protected int startIndex = -1;
@@ -92,8 +94,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         //protected double lastTo = 0;
         protected int length = -1;
 
-        public delegate void DataChangedHandler();
-        event DataChangedHandler DataChanged;
+        //public delegate void DataChangedHandler();
+        //event DataChangedHandler DataChanged;
 
         protected TableColumnDynViewer(TableTimeIndexDyn index, TableColumnDyn column)
         {
@@ -115,7 +117,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 startIndex = start;
                 endIndex = end;
                 length = endIndex - startIndex + 1;
-                //Debug.WriteLine("TableColumnDynViewer::RangeUpdated   Changed " + this.Column.Name);
+                Debug.WriteLine("TableColumnDynViewer::SetTimeRange   Changed " + this.Column.Name);
                 Changed?.Invoke(this);
             }
         }
@@ -133,7 +135,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 startIndex = start;
                 endIndex = end;
                 length = endIndex - startIndex + 1;
-                //Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
+                Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
                 Changed?.Invoke(this);
             }
         }

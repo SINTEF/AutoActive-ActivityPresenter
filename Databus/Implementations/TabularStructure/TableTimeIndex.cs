@@ -55,12 +55,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             time = index;
         }
 
+        public void UpdatedTimeIndex() { }
+
         public ITimePoint TimePoint => time;
 
         public long Start => time.data[0];
         public long End => time.data[time.data.Length - 1];
 
         // Will never happen, so no point in implementing it
-        event TimeViewerWasChangedHandler ITimeViewer.Changed { add { } remove { } }
+        event TimeViewerWasChangedHandler ITimeViewer.TimeChanged { add { } remove { } }
     }
 }

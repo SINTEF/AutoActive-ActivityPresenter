@@ -118,16 +118,18 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private async void LoadTime()
         {
             End = await decoder.GetLengthAsync();
-            Changed?.Invoke(this, Start, End);
+            TimeChanged?.Invoke(this, Start, End);
             Debug.WriteLine($"Change invoked {Start}->{End}");
         }
+
+        public void UpdatedTimeIndex() { }
 
         public ITimePoint TimePoint => time;
 
         public long Start { get; private set; } = 0;
         public long End { get; private set; } = 0;
 
-        public event TimeViewerWasChangedHandler Changed;
+        public event TimeViewerWasChangedHandler TimeChanged;
     }
 
     public class ArchiveVideoVideoViewer : IImageViewer

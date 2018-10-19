@@ -76,8 +76,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             internal string name;
             internal TableTimeIndexDyn timeCol;
             internal DoubleColumnDyn dataCol;
-            internal double minTime = 0;
-            internal double maxTime = 0;
             public MqttColumn(string name, MqttTable mt)
             {
                 this.name = name;
@@ -92,9 +90,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 Debug.WriteLine($"RxValue name: {rx.name} time: {rx.time} val: {rx.val}");
                 timeCol.AddData(rx.time);
                 dataCol.AddData(rx.val);
-                if (minTime > rx.time) minTime = rx.time;
-                if (maxTime < rx.time) maxTime = rx.time;
-                dataCol.UpdateDataRange(minTime, maxTime);
+                dataCol.UpdatedData();
             }
         }
 
@@ -139,7 +135,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 this.AddDataPoint(dataCol2);
 
 
-                int count = 0;
+                long count = 0;
                 // timeCol1.AddData((double)count++);
                 // dataCol1.AddData((double)1);
                 // timeCol2.AddData((double)count/2);
@@ -152,13 +148,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 while (runListener)
                 {
                     Debug.WriteLine("Tick " + count++);
-                    timeCol1.AddData(count);
+                    timeCol1.AddData(count*1000000);
                     dataCol1.AddData((double)Math.Sin((double)count / 10));
-                    dataCol1.UpdateDataRange(0, count);
+                    dataCol1.UpdatedData();
 
-                    timeCol2.AddData(count / 2);
+                    timeCol2.AddData(count * 1000000 / 2);
                     dataCol2.AddData((double)Math.Sin((double)count / 10));
-                    dataCol2.UpdateDataRange(0, count / 2);
+                    dataCol2.UpdatedData();
                     Thread.Sleep(1000);
                 }
             });

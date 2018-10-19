@@ -6,6 +6,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
 {
     interface IDynDataViewer
     {
-        void DataUpdated();
+        void UpdatedData();
     }
 }

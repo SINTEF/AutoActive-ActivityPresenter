@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Plugins.Import.Mqtt.Columns;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -9,6 +10,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
 {
     public class TableTimeIndexDyn : LongColumnDyn, ITimePoint
     {
+        internal readonly List<ITimeViewer> dynTimeIndexViewers = new List<ITimeViewer>();
 
         public TableTimeIndexDyn(string name, bool isWorldClockSynchronized) : base(name, null)
         {
@@ -34,12 +36,21 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             return current;
         }
 
+        public void UpdatedTimeIndex()
+        {
+            foreach (var viewer in dynTimeIndexViewers)
+            {
+                viewer.UpdatedTimeIndex();
+            }
+        }
+
+
         async Task<ITimeViewer> ITimePoint.CreateViewer()
         {
             // Ensure that the data is loaded
             // await CreateViewer();
             var tv = new TableTimeIndexDynViewer(this);
-            dynDataViewers.Add(tv);
+            dynTimeIndexViewers.Add(tv);
             return tv;
         }
 
@@ -66,11 +77,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public long Start => time.data[0];
         public long End => time.data[time.length - 1];
         // Will never happen, so no point in implementing it
-        event TimeViewerWasChangedHandler ITimeViewer.Changed { add { } remove { } }
+        //event TimeViewerWasChangedHandler ITimeViewer.TimeChanged { add { } remove { } }
+        public event TimeViewerWasChangedHandler TimeChanged;
 
-        void IDynDataViewer.DataUpdated()
+        public void UpdatedTimeIndex()
         {
-            // TODO
+            Debug.WriteLine("TableTimeIndexDynViewer::UpdatedTimeIndex   Changed " + this.Column.Name);
+            TimeChanged?.Invoke(this, time.MinValueHintLong, time.MaxValueHintLong);
         }
 
     }

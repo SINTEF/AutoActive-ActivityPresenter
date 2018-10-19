@@ -86,7 +86,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             var newDataviewer = await datapoint.CreateViewer();
             var newTimeviewer = await datapoint.Time.CreateViewer();
             viewers.Add(newTimeviewer, new List<IDataViewer> { newDataviewer });
-            newTimeviewer.Changed += OnTimeViewerAvailableChanged;
+            newTimeviewer.TimeChanged += OnTimeViewerAvailableChanged;
             OnTimeViewerAvailableChanged(newTimeviewer, newTimeviewer.Start, newTimeviewer.End);
 
             return newDataviewer;

@@ -10,6 +10,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
         internal long[] data;
         internal int length = 0;
 
+        internal long MinValueHintLong { get; set; }
+        internal long MaxValueHintLong { get; set; }
+
         public LongColumnDyn(string name, TableTimeIndexDyn index) : base(typeof(long), name, index)
         {
             data = new long[100];
@@ -20,13 +23,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
         {
             if (length == 0)
             {
+                MinValueHintLong = val;
                 MinValueHint = val;
+                MaxValueHintLong = val;
                 MaxValueHint = val;
             }
             else
             {
-                if (val < MinValueHint) MinValueHint = val;
-                if (val > MaxValueHint) MaxValueHint = val;
+                if (val < MinValueHintLong)
+                {
+                    MinValueHintLong = val;
+                    MinValueHint = val;
+                }
+                if (val > MaxValueHintLong)
+                {
+                    MaxValueHintLong = val;
+                    MaxValueHint = val;
+                }
             }
 
             if (length >= data.Length)
