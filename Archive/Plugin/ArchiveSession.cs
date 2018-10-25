@@ -15,8 +15,8 @@ namespace SINTEF.AutoActive.Archive.Plugin
         internal ArchiveSession(JObject json, Archive archive) : base(json, archive)
         {
             var id = Meta["id"].ToObject<Guid?>();
-            var name = User["Name"].ToObject<string>();
-            var created = User["Created"].ToObject<DateTimeOffset?>();
+            var name = User["name"].ToObject<string>();
+            var created = User["created"].ToObject<DateTimeOffset?>();
             
             Id = id ?? throw new ArgumentException("Session is missing 'id'");
             Name = name ?? throw new ArgumentException("Session is missing 'name'");

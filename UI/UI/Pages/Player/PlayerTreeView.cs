@@ -234,6 +234,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private readonly Dictionary<IDataPoint, DataItem> pointItems = new Dictionary<IDataPoint, DataItem>();
         protected List<DataItem> ChildItems { get; private set; } = new List<DataItem>();
 
+        // FIXME: Update the following four methods to handle if the DataStructure IsExpanded
         private void ChildAdded(IDataStructure sender, IDataStructure datastructure)
         {
             if (structureItems.ContainsKey(datastructure)) return;

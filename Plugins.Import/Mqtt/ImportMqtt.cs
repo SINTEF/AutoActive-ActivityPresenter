@@ -40,20 +40,26 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             Debug.WriteLine("Starting MqttImporter ");
 
 
-            AddChild(new MqttTable("MqttDummy"));
+            AddChild(new MqttStr("MqttDummy"));
         }
     }
 
-    internal class MqttValue
+    internal class MqttJsonTable
     {
         public string name { get; set; }
-        public long time { get; set; }
-        public double val { get; set; }
+        public long[] time { get; set; }
+        public MqttJsonColumn[] columns { get; set; }
     }
 
-    public class MqttTable : BaseDataStructure
+    public class MqttJsonColumn
     {
-        internal MqttTable(string id)
+        public string name { get; set; }
+        public double[] val { get; set; }
+    }
+
+    public class MqttStr : BaseDataStructure
+    {
+        internal MqttStr(string id)
         {
             Name = id;
 
@@ -61,7 +67,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             MakeMqttListener();
         }
 
-        ~MqttTable()
+        ~MqttStr()
         {
             if (mqttListener != null) mqttListener.Abort();
         }
@@ -69,28 +75,53 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         private Thread mqttListener = null;
         private bool runListener = true;
 
-        private Dictionary<string, MqttColumn> mqttDict = new Dictionary<string, MqttColumn>();
+        private Dictionary<string, MqttTable> mqttDict = new Dictionary<string, MqttTable>();
 
-        internal class MqttColumn
+        internal class MqttTable : BaseDataStructure
         {
-            internal string name;
+            internal bool isValid {get;}
             internal TableTimeIndexDyn timeCol;
-            internal DoubleColumnDyn dataCol;
-            public MqttColumn(string name, MqttTable mt)
+            internal DoubleColumnDyn[] dataColArr;
+            public MqttTable(Dictionary<string, object> rx)
             {
-                this.name = name;
-                Debug.WriteLine($"MqttColumn name: {name} ");
-                timeCol = new TableTimeIndexDyn(name + "Time", false);
-                dataCol = new DoubleColumnDyn(name, timeCol);
-                mt.AddDataPoint(dataCol);
+                isValid = false;
+                if (rx.ContainsKey("metadata"))
+                {
+                    var metadata_o = rx["metadata"];
+                    var metadata = rx["metadata"] as Dictionary<string, object>;
+                    if (metadata != null)
+                    {
+                        Name = metadata["name"] as string;
+                        var colNames = metadata["col_names"];
+                        var colTypes = metadata["col_types"];
+                        //Debug.WriteLine($"MqttColumn name: {name} ");
+                        //timeCol = new TableTimeIndexDyn(name + "Time", false);
+                        //dataColArr = new DoubleColumnDyn[jsonTab.columns.Length];
+                        //for (int col = 0; col < jsonTab.columns.Length; col++)
+                        //{
+                        //dataColArr[col] = new DoubleColumnDyn(jsonTab.columns[col].name, timeCol);
+                        //mt.AddDataPoint(dataColArr[col]);
+                        //}
+                    }
+                }
             }
 
-            public void RxValue(MqttValue rx)
+            public void RxValue(MqttJsonTable jsonTab)
             {
-                Debug.WriteLine($"RxValue name: {rx.name} time: {rx.time} val: {rx.val}");
-                timeCol.AddData(rx.time);
-                dataCol.AddData(rx.val);
-                dataCol.UpdatedData();
+                //Debug.WriteLine($"RxValue name: {rx.name} time: {rx.time} val: {rx.val}");
+                for (int i = 0; i < jsonTab.time.Length; i++)
+                {
+                    timeCol.AddData(jsonTab.time[i]);
+                    for (int col = 0; col < dataColArr.Length; col++)
+                    {
+                        dataColArr[col] = new DoubleColumnDyn(jsonTab.columns[col].name, timeCol);
+                        dataColArr[col].AddData(jsonTab.columns[col].val[i]);
+                    }
+                }
+                for (int col = 0; col < dataColArr.Length; col++)
+                {
+                    dataColArr[col].UpdatedData();
+                }
             }
         }
 
@@ -98,16 +129,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         {
             string payloadStr = Encoding.UTF8.GetString(msg.Payload);
             Debug.WriteLine($"Message received in topic: {msg.Topic} msg: {payloadStr}");
-            var rx = JsonConvert.DeserializeObject<MqttValue>(payloadStr);
-            Debug.WriteLine($"Json Message received name: {rx.name} time: {rx.time} val: {rx.val}");
+            //var rx = JsonConvert.DeserializeObject<MqttJsonTable>(payloadStr);
+            // Debug.WriteLine($"Json Message received name: {rx.name} time: {rx.time.Length} val: {rx.columns.Length}");
+            var rxDecode = JsonConvert.DeserializeObject<Dictionary<string, object>>(payloadStr);
+            if (rxDecode.ContainsKey("uuid"))
+            {
+                string uuid = rxDecode["uuid"] as string;
+                if (uuid != null)
+                {
 
-            if (!mqttDict.ContainsKey(rx.name))
-                mqttDict.Add(rx.name, new MqttColumn(rx.name, this));
-
-            mqttDict[rx.name].RxValue(rx);
+                    Debug.WriteLine($"Json Message received uuid: {uuid}");
+                    if (!mqttDict.ContainsKey(uuid))
+                    {
+                        var newTable = new MqttTable(rxDecode);
+                        if (newTable.isValid)
+                        {
+                            mqttDict.Add(uuid, newTable);
+                            //newTable.RxValue(rxDecode);
+                        }
+                    }
+                    else
+                    {
+                        //mqttDict[uuid].RxValue(rxDecode);
+                    }
+                }
+            }
         }
 
-        /* Open an existing gamin file */
+        /* Start the listener */
         private void MakeMqttListener()
         {
 

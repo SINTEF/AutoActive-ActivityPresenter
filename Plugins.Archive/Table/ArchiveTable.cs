@@ -316,11 +316,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             // Find the properties in the JSON
             ArchiveStructure.GetUserMeta(json, out var meta, out var user);
             var path = meta["path"].ToObject<string>() ?? throw new ArgumentException("Table is missing 'path'");
-            var columns = meta["columns"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'columns'");
-            var index = meta["index"].ToObject<int[]>() ?? throw new ArgumentException("Table is missing 'index'");
+            //var columns = meta["columns"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'columns'");
+            //var index = meta["index"].ToObject<int[]>() ?? throw new ArgumentException("Table is missing 'index'");
 
             // Check the metadata
-            if (columns.Length != index.Length) throw new ArgumentException("'columns' and 'index' are not the same length");
+            //if (columns.Length != index.Length) throw new ArgumentException("'columns' and 'index' are not the same length");
 
             // Find the file in the archive
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
@@ -338,6 +338,18 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 var fields = reader.Schema.GetDataFields();
 
                 // Find all the column information
+                foreach (var field in fields)
+                {
+                    if (field.Name.Equals("time", StringComparison.OrdinalIgnoreCase))
+                    {
+                        tableInformation.time = field;
+                    }
+                    else
+                    {
+                        tableInformation.columns.Add(field);
+                    }
+                }
+                /*
                 foreach (var column in columns)
                 {
                     foreach (var field in fields)
@@ -354,7 +366,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                             }
                         }
                     }
-                }
+                }*/
             }
 
             // Return the collected info

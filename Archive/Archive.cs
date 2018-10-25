@@ -33,7 +33,7 @@ namespace SINTEF.AutoActive.Archive
             // Find all sessions in the archive
             foreach (ZipEntry entry in zipFile)
             {
-                if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith("AUTOACTIVEMETA.json"))
+                if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith("AUTOACTIVE_SESSION.json"))
                 {
                     // This is an AutoActive session description file
                     await ParseSessionFile(entry);

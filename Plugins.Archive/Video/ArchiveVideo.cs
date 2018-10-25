@@ -172,9 +172,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         async void UpdateCurrentFrame(long time)
         {
-
-
-            time = time / 24; // FIXME : Remove when we get a propert slider
             CancellationToken token;
             lock (locker)
             {

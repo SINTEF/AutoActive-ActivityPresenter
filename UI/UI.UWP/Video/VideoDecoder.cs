@@ -125,8 +125,10 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         VideoDecoderFrame CopyCurrentDecodedFrame(ArraySegment<byte> buffer)
         {
+            // FIXME: Verify that this timing is correct!
             //Debug.WriteLine($"CopyCurrentDecodedFrame #{Thread.CurrentThread.ManagedThreadId}");
-            var time = (long)(decoder.PlaybackSession.Position.TotalSeconds*10e6);
+            var time = (long)decoder.PlaybackSession.Position.TotalMilliseconds * 1000;
+            Debug.WriteLine($"Video frame decoded time: {time}");
             var width = (uint)destination.PixelWidth;
             var height = (uint)destination.PixelHeight;
             var slice = buffer.Array.AsBuffer(buffer.Offset, buffer.Count);
@@ -137,6 +139,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
         {
+            // FIXME: Verify that this timing is correct!
             Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
             length.TrySetResult((long)(decoder.PlaybackSession.NaturalDuration.TotalSeconds*10e6));
 
