@@ -196,7 +196,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 // dataCol2.AddData((double)-1);
                 while (runListener)
                 {
-                    Debug.WriteLine("Tick " + count++);
+                    //Debug.WriteLine("Tick " + count);
+                    count++;
                     timeCol1.AddData(count*1000000);
                     dataCol1.AddData((double)Math.Sin((double)count / 10));
                     dataCol1.UpdatedData();

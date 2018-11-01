@@ -135,7 +135,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 startIndex = start;
                 endIndex = end;
                 length = endIndex - startIndex + 1;
-                Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
+                //Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
                 Changed?.Invoke(this);
             }
         }

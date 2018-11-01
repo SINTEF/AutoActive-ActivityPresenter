@@ -53,7 +53,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             Device.BeginInvokeOnMainThread(() => 
             {
-            Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
+            //Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
             LabelTimeFrom.Text = from.ToString();
             LabelTimeTo.Text = to.ToString();
             previewContext.SetSelectedTimeRange(from, to);
