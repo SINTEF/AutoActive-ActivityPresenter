@@ -34,12 +34,64 @@ namespace SINTEF.AutoActive.UI.Views
             SizeChanged += FigureView_SizeChanged;
             Context.SelectedTimeRangeChanged += Context_SelectedTimeRangeChanged;
             Canvas.PaintSurface += Canvas_PaintSurface;
+            
         }
 
         private void FigureView_SizeChanged(object sender, EventArgs e)
         {
+            Debug.WriteLine("FigureView::FigureView_SizeChanged ");
             Canvas.InvalidateSurface();
         }
+
+        public void Viewer_Tapped(object sender, EventArgs e)
+        {
+            Debug.WriteLine("FigureView::Viewer_tapped");
+        }
+
+        public void Viewer_Panned(object sender, PanUpdatedEventArgs e)
+        {
+            string debugText = "FigureView::Viewer_Panned ";
+            switch (e.StatusType)
+            {
+                case GestureStatus.Started:
+                    debugText += "STARTED";
+                    break;
+                case GestureStatus.Running:
+                    debugText += "RUNNING";
+                    break;
+                case GestureStatus.Completed:
+                    debugText += "COMPLETED";
+                    break;
+                case GestureStatus.Canceled:
+                    debugText += "CANCELED";
+                    break;
+            }
+            Debug.WriteLine(debugText);
+            Debug.WriteLine($"X:{e.TotalX} Y:{e.TotalY}");
+
+        }
+
+        //public void Viewer_Swiped(object sender, SwipedEventArgs e)
+        //{
+        //string debugText = "FigureView::Viewer_Swiped ";
+        //    switch (e.Direction)
+        //    {
+        //        case SwipeDirection.Left:
+        //debugText += "LEFT";
+        //            break;
+        //        case SwipeDirection.Right:
+        //debugText += "RUNNING";
+        //            break;
+        //        case SwipeDirection.Up:
+        //debugText += "UP";
+        //            break;
+        //        case SwipeDirection.Down:
+        //debugText += "DOWN";
+        //            break;
+        //}
+        //Debug.WriteLine(debugText);
+        //
+        //    }
 
         private void Viewer_Changed(IDataViewer sender)
         {

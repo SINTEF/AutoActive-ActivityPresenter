@@ -27,29 +27,54 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public async void AddPlotFor(IDataPoint datapoint)
         {
+            FigureView newView;
             if (datapoint is ArchiveVideoVideo)
             {
-                var video = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
-                Children.Add(video);
+                //var video = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                //Children.Add(video);
+                newView = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
             }
             else if (datapoint is TableColumn)
             {
-                var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
-                Children.Add(plot);
+                //var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                //Children.Add(plot);
+                newView = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
             }
             else if (datapoint is TableColumnDyn)
             {
-                var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
-                Children.Add(plot);
+                //var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                //Children.Add(plot);
+                newView = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
             }
             else
             {
                 throw new NotSupportedException();
             }
+
+            {
+                var tgr = new TapGestureRecognizer();
+                tgr.NumberOfTapsRequired = 1;
+                tgr.Tapped += newView.Viewer_Tapped;
+                newView.GestureRecognizers.Add(tgr);
+            }
+            {
+                var pagr = new PanGestureRecognizer();
+                pagr.PanUpdated += newView.Viewer_Panned;
+                newView.GestureRecognizers.Add(pagr);
+            }
+
+            Children.Add(newView);
+
         }
 
-        /* -- Grid layout operations -- */
-        protected override SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
+    private void UseInTimelineClicked(object sender, EventArgs e)
+    {
+        var dataPointItem = BindingContext as DataPointItem;
+        dataPointItem?.OnUseInTimelineTapped();
+    }
+
+    /* -- Grid layout operations -- */
+    protected override SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
         {
             Debug.WriteLine("GRID: OnMeasure");
             // We want to use the full size available
