@@ -1,39 +1,38 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SINTEF.AutoActive.UI.Pages.Player.PlaybarView">
     <ContentView.Content>
-        <Grid x:Name="ContentGrid">
+        <Grid RowSpacing="0" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="Auto"/>
             </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition x:Name="RowDataPreview" Height="0" />
-                <RowDefinition Height="*" />
-            </Grid.RowDefinitions>
-
-            <Label x:Name="LabelTimeFrom" Text="0" VerticalTextAlignment="Center" FontSize="Micro"
-                   Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
+            <Label x:Name="LabelTimeFrom" Text="00:00:00" VerticalTextAlignment="Center" FontSize="Micro"
+                   Grid.Row="0" Grid.Column="0" MinimumWidthRequest="50"
             />
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
-                    Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="10"
+                    Grid.Row="0" Grid.Column="1"
             />
-            <Label x:Name="LabelTimeTo" Text="0" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
-                   Grid.Row="1" Grid.Column="12" Grid.ColumnSpan="2"
+            <Label x:Name="LabelTimeTo" Text="00:00:00" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
+                   Grid.Row="0" Grid.Column="2"  MinimumWidthRequest="50"
             />
+            <Button x:Name="PlayButton" Text=">" Grid.Column="3" Clicked="PlayButton_Clicked"/>
+            <Picker x:Name="PlaybackSpeedPicker" Grid.Column="4" SelectedIndexChanged="PlaybackSpeed_SelectedIndexChanged">
+                <Picker.Items>
+                    <x:String>1x</x:String>
+                    <x:String>2x</x:String>
+                    <x:String>4x</x:String>
+                    <x:String>8x</x:String>
+                    <x:String>16x</x:String>
+                    <x:String>32x</x:String>
+                    <x:String>64x</x:String>
+                </Picker.Items>
+                <Picker.SelectedIndex>0</Picker.SelectedIndex>
+            </Picker>
         </Grid>
     </ContentView.Content>
 </ContentView>

@@ -9,41 +9,115 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
-	public partial class PlaybarView : ContentView
-	{
+    [XamlCompilation(XamlCompilationOptions.Compile)]
+    public partial class PlaybarView : ContentView
+    {
         public static readonly GridLength DefaultHeight = 40;
         public static readonly GridLength DefaultPreviewHeight = 100;
 
+        private Task _playTask;
+
+        public uint PlayUpdateRate = 40;
+
+        public long WindowSize = 1000000 * 100; // 100s
+
+        private bool _playTaskRunning;
+
+        private long PlayDelayUs {
+            get {
+                return 1000000L / PlayUpdateRate;
+            }
+        }
+        private int PlayDelayMs
+        {
+            get
+            {
+                return (int)(PlayDelayUs / 1000);
+            }
+        }
+
+        public PlaybarView()
+        {
+            InitializeComponent();
+        }
+
         public PlaybarView (DataViewerContext context)
-		{
-			InitializeComponent ();
+        {
+            InitializeComponent ();
 
             ViewerContext = context;
             context.AvailableTimeRangeChanged += ViewerContext_AvailableTimeRangeChanged;
             ViewerContext_AvailableTimeRangeChanged(context, context.AvailableTimeFrom, context.AvailableTimeTo);
-		}
+
+            _playTask = new Task(() =>
+            {
+                while (true)
+                {
+                    Thread.Sleep(PlayDelayMs);
+                    if (!_playTaskRunning)
+                    {
+                        continue;
+                    }
+                    Device.BeginInvokeOnMainThread(() =>
+                    {
+                        //(long)(e.NewValue / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+
+                        if (ViewerContext is TimeSynchronizedContext timeContext)
+                        {
+                            var newStart = timeContext.SelectedTimeFrom + PlayDelayUs * PlaybackSpeed;
+                            TimeSlider.Value = TimeToSliderValue(newStart);
+                            timeContext.SetSelectedTimeRange(
+                                newStart,
+                                timeContext.SelectedTimeTo + PlayDelayUs * PlaybackSpeed);
+                        }
+                        //InvalidateLayout();
+                    });
+                    Thread.Sleep(PlayDelayMs);
+                }
+            });
+            _playTaskRunning = false;
+            _playTask.Start();
+        }
 
         public DataViewerContext ViewerContext { get; private set; }
         private readonly TimeSynchronizedContext previewContext = new TimeSynchronizedContext();
 
-        private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
+        private long SliderValueToTime(double value)
         {
-            var startPoint = (long)(e.NewValue / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+            return (long)(value / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+        }
 
+        private double TimeToSliderValue(long time)
+        {
+            return 10000 * (time - ViewerContext.AvailableTimeFrom) / (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom);
+        }
+
+        private void SetSliderTime(long time)
+        {
             if (ViewerContext is TimeSynchronizedContext timeContext)
             {
-                Debug.WriteLine($"Playbar Slider startpoint: {startPoint}");
-                timeContext.SetSelectedTimeRange(startPoint, startPoint + 1000000*100); // 100s
+                Debug.WriteLine($"Playbar Slider startpoint: {time}");
+                timeContext.SetSelectedTimeRange(time, time + WindowSize);
+            }
+        }
+
+        private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            if (sender == TimeSlider)
+            {
+                SetSliderTime(SliderValueToTime(e.NewValue));
             }
             // FIXME: Handle the other types of context
         }
+
+
 
         //private double lastFrom = 0;
         //private double? lastTo = 0 ;
@@ -51,13 +125,17 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private void ViewerContext_AvailableTimeRangeChanged(DataViewerContext sender, long from, long to)
 
         {
-            Device.BeginInvokeOnMainThread(() => 
+            Device.BeginInvokeOnMainThread(() =>
             {
-            //Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
-            LabelTimeFrom.Text = from.ToString();
-            LabelTimeTo.Text = to.ToString();
-            previewContext.SetSelectedTimeRange(from, to);
-
+                Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
+                LabelTimeFrom.Text = Utils.FormatTime(from);
+                LabelTimeTo.Text = Utils.FormatTime(to);
+                previewContext.SetSelectedTimeRange(from, to);
+                if(ViewerContext.SelectedTimeTo == 0)
+                {
+                    SetSliderTime(SliderValueToTime(0));
+                    InvalidateLayout();
+                }
 
                 //if (lastTo < to)
                 //{
@@ -71,11 +149,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         /* --- Public API --- */
         public IDataPoint PreviewDataPoint { get; private set; }
+        public long PlaybackSpeed { get; private set; } = 1;
+
         private FigureView previewView;
 
         public async void UseDataPointForTimelinePreview(IDataPoint datapoint)
         {
-            if (PreviewDataPoint == null)
+            /*if (PreviewDataPoint == null)
             {
                 RowDataPreview.Height = DefaultPreviewHeight;
             }
@@ -84,7 +164,29 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var plot = await LinePlot.Create(datapoint, previewContext);
             ContentGrid.Children.Add(plot, 0, 3, 0, 1);
             if (previewView != null) ContentGrid.Children.Remove(previewView);
-            previewView = plot;
+            previewView = plot;*/
+        }
+
+        private void PlayButton_Clicked(object sender, EventArgs e)
+        {
+            if (PlayButton.Text == ">")
+            {
+                _playTaskRunning = true;
+                PlayButton.Text = "II";
+            } else
+            {
+                _playTaskRunning = false;
+                PlayButton.Text = ">";
+            }
+        }
+
+        private void PlaybackSpeed_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (PlaybackSpeedPicker == null)
+                return;
+            var playbackText = PlaybackSpeedPicker.SelectedItem as string;
+            var trimChars = new char[] { 'x', ' ' };
+            PlaybackSpeed = long.Parse(playbackText.TrimEnd(trimChars));
         }
     }
 }

@@ -43,6 +43,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             }
             return false;
         }
+        public long SelectedTimeFrom{ get; }
+        public long SelectedTimeTo { get; }
     }
 
     public delegate void DataViewerContextSelectedRangeChangedHandler(SingleSetDataViewerContext sender, long from, long to);
@@ -122,7 +124,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             //    timeviewer.Changed += OnTimeViewerAvailableChanged;
             //    OnTimeViewerAvailableChanged(timeviewer, timeviewer.Start, timeviewer.End);
             //}
-            
+
             //return viewer;
         }
 
@@ -160,12 +162,12 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
                 min = max = 0;
                 return;
             }
-            
+
             // Calculate the min max of current timeviewers
             minViewer = maxViewer = null;
             min = long.MaxValue;
             max = long.MinValue;
-            
+
             foreach (var timeDataviewers in viewers)
             {
                 var timeviewer = timeDataviewers.Key;
