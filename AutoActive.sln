@@ -27,6 +27,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Import", "Plugins.I
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugins.Visualization", "Plugins.Visualization\Plugins.Visualization.csproj", "{7EE0D2BB-FD28-4AC2-8493-61587F57413C}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "HelperTests\Tests.csproj", "{87FFECB3-4D1A-42AF-A4C7-99817F55001D}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
