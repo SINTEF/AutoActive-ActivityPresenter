@@ -20,6 +20,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private static readonly int GRID_COLUMNS = 4;
         private static readonly int GRID_ROWS = 4;
 
+        private static readonly int BIG_GRID_COLUMNS = 2;
+        private static readonly int BIG_GRID_ROWS = 1;
+
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
@@ -89,10 +92,36 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             Debug.WriteLine("GRID: LayoutChildren");
             // Leave spacing equal to one free cell
-            var cellWidth = width / (GRID_COLUMNS + 1);
-            var cellHeight = height / (GRID_ROWS + 1);
-            var cellSpacingX = cellWidth / (GRID_COLUMNS + 1);
-            var cellSpacingY = cellHeight / (GRID_ROWS + 1);
+
+            var cellSpacingX = 10;
+            var cellSpacingY = cellSpacingX;
+
+            var smallCellWidth = (width - cellSpacingX * (GRID_COLUMNS + 1)) / GRID_COLUMNS;
+            var smallCellHeight = (height - cellSpacingY * (GRID_ROWS + 1)) / GRID_ROWS;
+
+            var bigCellWidth = smallCellWidth * 2 + cellSpacingX;
+            var bigCellHeight = smallCellHeight * 2 + cellSpacingY;
+
+            double cellWidth;
+            double cellHeight;
+            int nColumns;
+            int nRows;
+
+            if (BIG_GRID_COLUMNS > 0)
+            {
+                nColumns = BIG_GRID_COLUMNS;
+                nRows = BIG_GRID_ROWS;
+                cellWidth = bigCellWidth;
+                cellHeight = bigCellHeight;
+            }
+            else
+            {
+                nColumns = GRID_COLUMNS;
+                nRows = GRID_ROWS;
+                cellWidth = smallCellWidth;
+                cellHeight = smallCellHeight;
+            }
+
 
             // Layout all the children
             int i = 0, j = 0;
@@ -103,12 +132,20 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 figure.Layout(new Rectangle(cx, cy, cellWidth, cellHeight));
                 cx += cellWidth + cellSpacingX;
-                if (++i == GRID_COLUMNS)
+                if (++i == nColumns)
                 {
                     j++;
                     i = 0;
                     cx = x + cellSpacingX;
                     cy += cellHeight + cellSpacingY;
+
+                    if (j == nRows)
+                    {
+                        nColumns = GRID_COLUMNS;
+                        nRows = GRID_ROWS;
+                        cellHeight = smallCellHeight;
+                        cellWidth = smallCellWidth;
+                    }
                 }
             }
         }
