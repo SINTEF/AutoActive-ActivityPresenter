@@ -43,9 +43,11 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         TaskCompletionSource<long> length;
 
+        public bool DEBUG_OUTPUT = false;
+
         internal VideoDecoder(IRandomAccessStream stream, string mime)
         {
-            Debug.WriteLine("CREATED DECODER!");
+            if (DEBUG_OUTPUT) Debug.WriteLine("CREATED DECODER!");
 
             var source = MediaSource.CreateFromStream(stream, mime);
             var item = new MediaPlaybackItem(source);
@@ -125,10 +127,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         VideoDecoderFrame CopyCurrentDecodedFrame(ArraySegment<byte> buffer)
         {
-            // FIXME: Verify that this timing is correct!
-            //Debug.WriteLine($"CopyCurrentDecodedFrame #{Thread.CurrentThread.ManagedThreadId}");
             var time = (long)decoder.PlaybackSession.Position.TotalMilliseconds * 1000;
-            Debug.WriteLine($"Video frame decoded time: {time}");
             var width = (uint)destination.PixelWidth;
             var height = (uint)destination.PixelHeight;
             var slice = buffer.Array.AsBuffer(buffer.Offset, buffer.Count);
@@ -139,9 +138,8 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
         {
-            // FIXME: Verify that this timing is correct!
-            Debug.WriteLine($"VideoFrameAvailable time:{decoder.PlaybackSession.Position.TotalSeconds} #{Thread.CurrentThread.ManagedThreadId}");
-            length.TrySetResult((long)(decoder.PlaybackSession.NaturalDuration.TotalSeconds*10e6));
+            // TODO(sigurdal): Is this supposed to be 1e6 instead of 10e6?
+            length.TrySetResult((long)(decoder.PlaybackSession.NaturalDuration.TotalSeconds*1e6));
 
             decoder.CopyFrameToVideoSurface(bitmap);
 
@@ -160,7 +158,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
         {
-            //Debug.WriteLine($"DecodeNextFrameAsync #{Thread.CurrentThread.ManagedThreadId}");
+            if (DEBUG_OUTPUT) Debug.WriteLine($"DecodeNextFrameAsync #{Thread.CurrentThread.ManagedThreadId}");
             TaskCompletionSource<VideoDecoderFrame> source = new TaskCompletionSource<VideoDecoderFrame>();
             EnqueueAndPossiblyRun(() =>
             {
@@ -172,19 +170,19 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
                 if (buffer.Count >= destination.PixelHeight*destination.PixelWidth*4)
                 {
-                    Debug.WriteLine($"VIDEO FRAME COPIED");
+                    if (DEBUG_OUTPUT) Debug.WriteLine($"VIDEO FRAME COPIED");
                     // If there is room in the assigned buffer, return the current decoded frame to the caller
                     source.SetResult(CopyCurrentDecodedFrame(buffer));
                     return true;
                 }
                 else
                 {
-                    Debug.WriteLine($"VIDEO FRAME SKIPPED");
+                    if (DEBUG_OUTPUT) Debug.WriteLine($"VIDEO FRAME SKIPPED");
                     // If not, return a not decoded frame, and leave the current data for later
                     source.SetResult(new VideoDecoderFrame());
                     return false;
                 }
-                
+
             });
             return source.Task;
         }
@@ -205,7 +203,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 }
 
                 // First, tell the decoder to seek
-                decoder.PlaybackSession.Position = TimeSpan.FromSeconds(time);
+                decoder.PlaybackSession.Position = TimeSpan.FromMilliseconds(time/1000);
                 return false;
             }, () =>
             {
@@ -216,7 +214,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 }
 
                 // Then, when the next frame is available, we are done seeking
-                var position = (long)(decoder.PlaybackSession.Position.TotalSeconds * 10e6);
+                var position = (long)(decoder.PlaybackSession.Position.TotalSeconds * 1e6);
                 source.SetResult(position);
                 return false;
             });
@@ -263,7 +261,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             return new VideoDecoder(new FactoryRandomAccessStream(stream.AsRandomAccessStream(), file), mime);
         }
     }
-    
+
 
     /* --- IRandomAccessStream helper --- */
     internal class FactoryRandomAccessStream : IRandomAccessStream

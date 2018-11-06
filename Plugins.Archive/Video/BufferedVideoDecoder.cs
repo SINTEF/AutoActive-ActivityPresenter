@@ -23,6 +23,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         byte[] dataBuffer;
         uint dataBufferFrameStride;
+        readonly bool DEBUG_OUTPUT = false;
 
         public BufferedVideoDecoder(IVideoDecoder decoder)
         {
@@ -112,7 +113,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         void CreateDataBuffer(uint width, uint height)
         {
             dataBufferFrameStride = width * height * 4;
-            Debug.WriteLine($"CREATING DATA BUFFER SIZE: {width}x{height} - {dataBufferFrameStride * frameBufferLength}");
+            if (DEBUG_OUTPUT) Debug.WriteLine($"CREATING DATA BUFFER SIZE: {width}x{height} - {dataBufferFrameStride * frameBufferLength}");
             dataBuffer = new byte[dataBufferFrameStride*frameBufferLength];
         }
 
@@ -120,9 +121,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             try
             {
-                Int32 timeoutMs = 3000;
+                Int32 timeoutMs = 5000;
                 // Wait for the lock to do some work
                 await bufferLock.WaitAsync();
+                if (DEBUG_OUTPUT) Debug.WriteLine("A - Locked");
 
                 isDecodingFrames = true;
 
@@ -134,7 +136,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                     if (await Task.WhenAny(task, Task.Delay(timeoutMs)) != task)
                     {
                         //TODO: We likely need to reinstanciate the decoder if this happens
-                        break;
+                        continue;
                     }
                     var frame = await task;
                     lock (frameBuffer)
@@ -149,6 +151,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             finally
             {
                 // We are done, release the lock
+                if (DEBUG_OUTPUT) Debug.WriteLine("A - Unlock");
                 bufferLock.Release();
             }
         }
@@ -167,6 +170,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             await bufferLock.WaitAsync();
             try
             {
+                if (DEBUG_OUTPUT) Debug.WriteLine("B - Locked");
                 // Clear the buffer, and keep track of which frames we had
                 long? firstFrameTime = null;
                 lock (frameBuffer)
@@ -189,6 +193,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             }
             finally
             {
+                if (DEBUG_OUTPUT) Debug.WriteLine("B - Unlock");
                 bufferLock.Release();
             }
             // Then let's load some more frames
@@ -197,7 +202,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<VideoDecoderFrame> GetFrameAtAsync(long time, CancellationToken cancellationToken)
         {
-            cancellationToken.ThrowIfCancellationRequested();
+            //cancellationToken.ThrowIfCancellationRequested();
 
             if (TryFindFrameInBuffer(time, out var frame, out var after, out var framerate, out var last))
             {
@@ -205,7 +210,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                 if (after < minFramesAfter && !isDecodingFrames)
                 {
                     // Start loading some more frames
-                    Debug.WriteLine($"BUFFEREDVIDEODECODER - 1");
+                    //Debug.WriteLine($"BUFFEREDVIDEODECODER - 1");
                     LoadMoreFrames();
                 }
                 // Return the frame
@@ -213,23 +218,25 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             }
             else
             {
-                Debug.WriteLine($"BUFFEREDVIDEODECODER - NOT FOUND {time},{after},{framerate},{last}");
+                //Debug.WriteLine($"BUFFEREDVIDEODECODER - NOT FOUND {time},{after},{framerate},{last}");
                 // We need to load this frame somehow
                 var needToDecode = (time - last) / framerate;
-                if (needToDecode >= 0 && needToDecode < 2*batchFramesToRead)
+                if (needToDecode >= 0 && needToDecode < 2 * batchFramesToRead)
                 {
                     // We can just continue to load more frames sequentially, it shouldn't be too long until we get it
                     if (!isDecodingFrames)
                     {
                         // We are currently not loading, so we need to trigger it
-                        Debug.WriteLine($"BUFFEREDVIDEODECODER - 2 - {needToDecode}");
+                        if (DEBUG_OUTPUT) Debug.WriteLine($"BUFFEREDVIDEODECODER - 2 - {needToDecode}");
                         await LoadMoreFrames();
                     }
                     else
                     {
                         // Wait for the loading to finish
                         await bufferLock.WaitAsync(cancellationToken);
+                        if (DEBUG_OUTPUT) Debug.WriteLine($"C - Locked ({bufferLock.CurrentCount})");
                         bufferLock.Release();
+                        if (DEBUG_OUTPUT) Debug.WriteLine("C - Unlocked");
                     }
                     // Then re-run ourself to finish the work
                     return await GetFrameAtAsync(time, cancellationToken);
@@ -240,6 +247,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                     // Wait for anything to finish
                     var seeked = time;
                     await bufferLock.WaitAsync(cancellationToken);
+                    if (DEBUG_OUTPUT) Debug.WriteLine($"D - Locked ({bufferLock.CurrentCount})");
                     if (!cancellationToken.IsCancellationRequested)
                     {
                         // Clear the buffer
@@ -252,9 +260,23 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
                         // Load some more frames
                         bufferLock.Release();
-                        Debug.WriteLine($"BUFFEREDVIDEODECODER - 3");
+                        if (DEBUG_OUTPUT) Debug.WriteLine("D - Unlocked 1");
+                        if (DEBUG_OUTPUT) Debug.WriteLine($"BUFFEREDVIDEODECODER - 3");
                         await LoadMoreFrames();
-                        
+                    }
+                    else
+                    {
+                        if (DEBUG_OUTPUT) Debug.WriteLine($"BUFFEREDVIDEODECODER - X");
+                        //TODO: this is likely a race condition
+                        if (bufferLock.CurrentCount == 0)
+                        {
+                            bufferLock.Release();
+                            if (DEBUG_OUTPUT) Debug.WriteLine("D - Unlocked 2");
+                        }
+                        else
+                        {
+                            if (DEBUG_OUTPUT) Debug.WriteLine($"BUFFEREDVIDEODECODER - Y");
+                        }
                     }
                     // Then re-run ourself to finish the work, but with the resulting seeked time as the new time
                     // When we seek, we might not have a frame exactly where we asked for, and we can only find the time for the next one
