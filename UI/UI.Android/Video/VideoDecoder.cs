@@ -105,6 +105,21 @@ namespace SINTEF.AutoActive.UI.Droid.Video
         {
             return SetSizeAsync(width, height, CancellationToken.None);
         }
+
+        Task<long> IVideoDecoder.GetLengthAsync()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<long> SeekToAsync(long time, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<long> SeekToAsync(long time)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public class VideoDecoderFactory : IVideoDecoderFactory
