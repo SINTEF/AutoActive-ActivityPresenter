@@ -60,7 +60,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 while (true)
                 {
-                    Thread.Sleep(PlayDelayMs);
+                    //Thread.Sleep(PlayDelayMs);
                     if (!_playTaskRunning)
                     {
                         continue;
@@ -74,6 +74,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                             var offset = (long)(PlayDelayUs * PlaybackSpeed);
                             var newStart = timeContext.SelectedTimeFrom + offset;
                             TimeSlider.Value = TimeToSliderValue(newStart);
+
+                            //Debug.WriteLine($"Playbar tick: {newStart/1e6}");
+
                             timeContext.SetSelectedTimeRange(
                                 newStart,
                                 timeContext.SelectedTimeTo + offset);
