@@ -71,11 +71,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
                         if (ViewerContext is TimeSynchronizedContext timeContext)
                         {
-                            var newStart = timeContext.SelectedTimeFrom + PlayDelayUs * PlaybackSpeed;
+                            var offset = (long)(PlayDelayUs * PlaybackSpeed);
+                            var newStart = timeContext.SelectedTimeFrom + offset;
                             TimeSlider.Value = TimeToSliderValue(newStart);
                             timeContext.SetSelectedTimeRange(
                                 newStart,
-                                timeContext.SelectedTimeTo + PlayDelayUs * PlaybackSpeed);
+                                timeContext.SelectedTimeTo + offset);
                         }
                         //InvalidateLayout();
                     });
@@ -149,7 +150,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         /* --- Public API --- */
         public IDataPoint PreviewDataPoint { get; private set; }
-        public long PlaybackSpeed { get; private set; } = 1;
+        public double PlaybackSpeed { get; private set; } = 1;
 
         private FigureView previewView;
 
@@ -186,7 +187,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 return;
             var playbackText = PlaybackSpeedPicker.SelectedItem as string;
             var trimChars = new char[] { 'x', ' ' };
-            PlaybackSpeed = long.Parse(playbackText.TrimEnd(trimChars));
+            PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
         }
     }
 }

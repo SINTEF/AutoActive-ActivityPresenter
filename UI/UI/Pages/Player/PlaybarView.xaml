@@ -23,15 +23,13 @@
             <Button x:Name="PlayButton" Text=">" Grid.Column="3" Clicked="PlayButton_Clicked"/>
             <Picker x:Name="PlaybackSpeedPicker" Grid.Column="4" SelectedIndexChanged="PlaybackSpeed_SelectedIndexChanged">
                 <Picker.Items>
+                    <x:String>0.1x</x:String>
+                    <x:String>0.25x</x:String>
+                    <x:String>0.5x</x:String>
                     <x:String>1x</x:String>
                     <x:String>2x</x:String>
-                    <x:String>4x</x:String>
-                    <x:String>8x</x:String>
-                    <x:String>16x</x:String>
-                    <x:String>32x</x:String>
-                    <x:String>64x</x:String>
                 </Picker.Items>
-                <Picker.SelectedIndex>0</Picker.SelectedIndex>
+                <Picker.SelectedIndex>3</Picker.SelectedIndex>
             </Picker>
         </Grid>
     </ContentView.Content>
