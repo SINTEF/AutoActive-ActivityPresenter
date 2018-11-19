@@ -14,7 +14,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         protected override void CreatePath(SKPath plot, long offsetX, float scaleX, float offsetY, float scaleY)
         {
-            var en = Viewer.GetCurrentDoubles().GetEnumerator();
+            var en = Viewer.GetCurrentDoubles().GetEnumerator(MaxItems);
             if (en.MoveNext())
             {
                 plot.MoveTo(ScaleX(en.Current.x, offsetX, scaleX), ScaleY((float)en.Current.y, offsetY, scaleY));
