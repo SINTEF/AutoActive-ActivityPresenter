@@ -1,6 +1,7 @@
 using System;
 using Xunit;
 using SINTEF.AutoActive.UI;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Tests
 {

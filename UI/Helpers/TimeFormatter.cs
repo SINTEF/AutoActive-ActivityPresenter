@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SINTEF.AutoActive.UI
+﻿namespace SINTEF.AutoActive.UI.Helpers
 {
     public static class Utils
     {

@@ -21,13 +21,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins", "Plugins\Plugins.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Archive", "Plugins.Archive\Plugins.Archive.csproj", "{236A2913-2ABC-45C7-B0ED-AD68181B8EF7}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Helpers", "UI.Helpers\UI.Helpers.csproj", "{277C3564-0353-4A6F-9AE1-886DBBB84DE5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Helpers", "UI\Helpers\UI.Helpers.csproj", "{277C3564-0353-4A6F-9AE1-886DBBB84DE5}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Import", "Plugins.Import\Plugins.Import.csproj", "{256349FE-AF4B-4F6B-BA46-B3F2199DF3FC}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Visualization", "Plugins.Visualization\Plugins.Visualization.csproj", "{7EE0D2BB-FD28-4AC2-8493-61587F57413C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests", "HelperTests\Tests.csproj", "{87FFECB3-4D1A-42AF-A4C7-99817F55001D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Tests", "UI\Tests\UI.Tests.csproj", "{87FFECB3-4D1A-42AF-A4C7-99817F55001D}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

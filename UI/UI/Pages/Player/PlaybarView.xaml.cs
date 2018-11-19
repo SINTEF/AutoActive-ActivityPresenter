@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
-
+using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
