@@ -47,7 +47,11 @@ namespace SINTEF.AutoActive.Databus.Common
             {
                 _x = x;
                 _y = y;
-                _decimator = maxItems > 0 ? _x.Length / (maxItems + 1) + 1 : 1;
+                _decimator = maxItems > 0 ? _x.Length / maxItems : 1;
+                if (_decimator < 1)
+                {
+                    _decimator = 1;
+                }
                 _index = -_decimator;
             }
 
