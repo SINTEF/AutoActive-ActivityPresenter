@@ -33,32 +33,46 @@ namespace SINTEF.AutoActive.Databus.Common
         public readonly Span<long> X;
         public readonly Span<T> Y;
 
-        public Enumerator GetEnumerator() => new Enumerator(X, Y);
+        public Enumerator GetEnumerator(int maxItems) => new Enumerator(X, Y, maxItems);
 
         public ref struct Enumerator
         {
             private readonly Span<long> _x;
             private readonly Span<T> _y;
             private int _index;
+            private readonly int _decimator;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(Span<long> x, Span<T> y)
+            internal Enumerator(Span<long> x, Span<T> y, int maxItems)
             {
                 _x = x;
                 _y = y;
-                _index = -1;
+                _decimator = maxItems > 0 ? _x.Length / maxItems : 1;
+                if (_decimator < 1)
+                {
+                    _decimator = 1;
+                }
+                _index = -_decimator;
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
             public bool MoveNext()
             {
-                int index = _index + 1;
-                if (index < _x.Length && index < _y.Length)
+                var index = _index + _decimator;
+
+                if (index >= _x.Length || index >= _y.Length)
                 {
-                    _index = index;
-                    return true;
+                    // Always keep the last element (to fill the plot)
+                    if (_index != _x.Length - 1)
+                    {
+                        _index = _x.Length - 1;
+                        return true;
+                    }
+                    return false;
                 }
-                return false;
+
+                _index = index;
+                return true;
             }
 
             public (long x, T y) Current

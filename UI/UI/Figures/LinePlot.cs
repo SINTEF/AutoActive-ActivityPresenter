@@ -47,6 +47,8 @@ namespace SINTEF.AutoActive.UI.Figures
             if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
         }
 
+        public int MaxItems { get; } = 1000;
+
         // ---- Scaling ----
         private float minYValue = -1;
         private float maxYValue = 1;
