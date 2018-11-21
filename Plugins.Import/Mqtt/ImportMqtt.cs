@@ -198,14 +198,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 {
                     //Debug.WriteLine("Tick " + count);
                     count++;
-                    timeCol1.AddData(count*1000000);
-                    dataCol1.AddData((double)Math.Sin((double)count / 10));
+                    timeCol1.AddData(count*1000000/20);
+                    dataCol1.AddData((double)Math.Sin((double)count / 50));
                     dataCol1.UpdatedData();
 
-                    timeCol2.AddData(count * 1000000 / 2);
-                    dataCol2.AddData((double)Math.Sin((double)count / 10));
+                    timeCol2.AddData(count * 1000000/20);
+                    dataCol2.AddData((double)Math.Sin((double)count/ 25));
                     dataCol2.UpdatedData();
-                    Thread.Sleep(1000);
+                    Thread.Sleep(50);
                 }
             });
             mqttListener.IsBackground = true;
