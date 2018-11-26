@@ -116,14 +116,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             Device.BeginInvokeOnMainThread(() =>
             {
+                _lastFrom = from;
+                _lastTo = to;
+
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
                 LabelTimeFrom.Text = Utils.FormatTime(from);
                 LabelTimeTo.Text = Utils.FormatTime(to);
-                previewContext.SetSelectedTimeRange(from, to);
+                previewContext?.SetSelectedTimeRange(from, to);
+
+                // Check if this is the first time data is added to the screen
                 if(ViewerContext.SelectedTimeTo == 0)
                 {
                     SetSliderTime(SliderValueToTime(0));
-                    InvalidateLayout();
                 }
 
                 //if (lastTo < to)
@@ -144,16 +148,20 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public async void UseDataPointForTimelinePreview(IDataPoint datapoint)
         {
-            /*if (PreviewDataPoint == null)
+            if (PreviewDataPoint == null)
             {
                 RowDataPreview.Height = DefaultPreviewHeight;
             }
             PreviewDataPoint = datapoint;
 
-            var plot = await LinePlot.Create(datapoint, previewContext);
-            ContentGrid.Children.Add(plot, 0, 3, 0, 1);
-            if (previewView != null) ContentGrid.Children.Remove(previewView);
-            previewView = plot;*/
+            if (previewView != null)
+            {
+                ContentGrid.Children.Remove(previewView);
+            }
+
+            previewView = await LinePlot.Create(datapoint, previewContext);
+            ContentGrid.Children.Add(previewView, 1, 0);
+            previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
         }
 
         private void PlayButton_Clicked(object sender, EventArgs e)
@@ -174,7 +182,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (PlaybackSpeedPicker == null)
                 return;
             var playbackText = PlaybackSpeedPicker.SelectedItem as string;
-            var trimChars = new char[] { 'x', ' ' };
+            var trimChars = new[] { 'x', ' ' };
             PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
         }
     }
