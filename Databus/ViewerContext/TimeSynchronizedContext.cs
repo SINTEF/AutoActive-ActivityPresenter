@@ -60,7 +60,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public void SetSelectedTimeRange(long? from, long? to)
         {
             var newFrom = from ?? SelectedTimeFrom;
-            var newTo = to ?? SelectedTimeFrom;
+            var newTo = to ?? SelectedTimeTo;
             InternalSetSelectedTimeRange(newFrom, newTo);
         }
 
