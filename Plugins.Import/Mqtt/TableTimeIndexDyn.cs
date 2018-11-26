@@ -83,7 +83,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public void UpdatedTimeIndex()
         {
             //Debug.WriteLine("TableTimeIndexDynViewer::UpdatedTimeIndex   Changed " + this.Column.Name);
-            TimeChanged?.Invoke(this, time.MinValueHintLong, time.MaxValueHintLong);
+            //TimeChanged?.Invoke(this, time.MinValueHintLong, time.MaxValueHintLong);
         }
 
     }
