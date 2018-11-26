@@ -31,23 +31,24 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public async void AddPlotFor(IDataPoint datapoint)
         {
             FigureView newView;
+            var timeContext = ViewerContext as TimeSynchronizedContext;
             if (datapoint is ArchiveVideoVideo)
             {
                 //var video = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 //Children.Add(video);
-                newView = await ImageView.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                newView = await ImageView.Create(datapoint, timeContext);
             }
             else if (datapoint is TableColumn)
             {
                 //var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 //Children.Add(plot);
-                newView = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                newView = await LinePlot.Create(datapoint, timeContext);
             }
             else if (datapoint is TableColumnDyn)
             {
                 //var plot = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
                 //Children.Add(plot);
-                newView = await LinePlot.Create(datapoint, ViewerContext as TimeSynchronizedContext);
+                newView = await LinePlot.Create(datapoint, timeContext);
             }
             else
             {
@@ -67,7 +68,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(newView);
-
         }
 
     private void UseInTimelineClicked(object sender, EventArgs e)
