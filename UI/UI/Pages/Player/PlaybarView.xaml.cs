@@ -22,26 +22,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public static readonly GridLength DefaultHeight = 40;
         public static readonly GridLength DefaultPreviewHeight = 100;
 
-        private Task _playTask;
+        public uint PlayUpdateRate = 30;
 
-        public uint PlayUpdateRate = 40;
-
-        public long WindowSize = 1000000 * 100; // 100s
+        public long WindowSize = 1000000 * 30; // 30s
 
         private bool _playTaskRunning;
 
-        private long PlayDelayUs {
-            get {
-                return 1000000L / PlayUpdateRate;
-            }
-        }
-        private int PlayDelayMs
-        {
-            get
-            {
-                return (int)(PlayDelayUs / 1000);
-            }
-        }
+        private long PlayDelayUs => 1000000L / PlayUpdateRate;
+
+        private int PlayDelayMs => (int)(PlayDelayUs / 1000);
+
+        private long? _lastFrom;
+        private long? _lastTo;
 
         public PlaybarView()
         {
@@ -56,7 +48,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             context.AvailableTimeRangeChanged += ViewerContext_AvailableTimeRangeChanged;
             ViewerContext_AvailableTimeRangeChanged(context, context.AvailableTimeFrom, context.AvailableTimeTo);
 
-            _playTask = new Task(() =>
+            var playTask = new Task(() =>
             {
                 while (true)
                 {
@@ -67,27 +59,21 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     }
                     Device.BeginInvokeOnMainThread(() =>
                     {
-                        //(long)(e.NewValue / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+                        if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
 
-                        if (ViewerContext is TimeSynchronizedContext timeContext)
-                        {
-                            var offset = (long)(PlayDelayUs * PlaybackSpeed);
-                            var newStart = timeContext.SelectedTimeFrom + offset;
-                            TimeSlider.Value = TimeToSliderValue(newStart);
+                        var offset = (long)(PlayDelayUs * PlaybackSpeed);
+                        var newStart = timeContext.SelectedTimeFrom + offset;
+                        TimeSlider.Value = TimeToSliderValue(newStart);
 
-                            //Debug.WriteLine($"Playbar tick: {newStart/1e6}");
-
-                            timeContext.SetSelectedTimeRange(
-                                newStart,
-                                timeContext.SelectedTimeTo + offset);
-                        }
-                        //InvalidateLayout();
+                        timeContext.SetSelectedTimeRange(
+                            newStart,
+                            timeContext.SelectedTimeTo + offset);
                     });
 
                 }
             });
             _playTaskRunning = false;
-            _playTask.Start();
+            playTask.Start();
         }
 
         public DataViewerContext ViewerContext { get; private set; }
