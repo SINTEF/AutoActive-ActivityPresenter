@@ -81,21 +81,26 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private long SliderValueToTime(double value)
         {
-            return (long)(value / 10000 * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
+            return (long)(value / TimeSlider.Maximum * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
         }
 
         private double TimeToSliderValue(long time)
         {
-            return 10000 * (time - ViewerContext.AvailableTimeFrom) / (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom);
+            var divider = (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom);
+            if (divider == 0)
+            {
+                return 0;
+            }
+            var value = TimeSlider.Maximum * (time - ViewerContext.AvailableTimeFrom) ;
+            return  value / divider;
         }
 
         private void SetSliderTime(long time)
         {
-            if (ViewerContext is TimeSynchronizedContext timeContext)
-            {
-                Debug.WriteLine($"Playbar Slider startpoint: {time}");
-                timeContext.SetSelectedTimeRange(time, time + WindowSize);
-            }
+            if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
+
+            Debug.WriteLine($"Playbar Slider startpoint: {time}");
+            timeContext.SetSelectedTimeRange(time, time + WindowSize);
         }
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
@@ -107,13 +112,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             // FIXME: Handle the other types of context
         }
 
-
-
-        //private double lastFrom = 0;
-        //private double? lastTo = 0 ;
-
         private void ViewerContext_AvailableTimeRangeChanged(DataViewerContext sender, long from, long to)
-
         {
             Device.BeginInvokeOnMainThread(() =>
             {
