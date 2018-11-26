@@ -60,7 +60,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 while (true)
                 {
-                    //Thread.Sleep(PlayDelayMs);
+                    Thread.Sleep(PlayDelayMs);
                     if (!_playTaskRunning)
                     {
                         continue;
@@ -83,7 +83,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                         }
                         //InvalidateLayout();
                     });
-                    Thread.Sleep(PlayDelayMs);
+
                 }
             });
             _playTaskRunning = false;
