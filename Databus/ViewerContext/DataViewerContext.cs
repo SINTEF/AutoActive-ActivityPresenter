@@ -133,10 +133,14 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         // --- Selected time range ---
         public long SelectedTimeFrom { get; private set; } = 0;
         public long SelectedTimeTo { get; private set; } = 0;
+        private int _lastViewers = -1;
+
+
         public event DataViewerContextSelectedRangeChangedHandler SelectedTimeRangeChanged;
         protected void InternalSetSelectedTimeRange(long from, long to)
         {
-            if (SelectedTimeFrom != from || SelectedTimeTo != to)
+            var nViewers = viewers.Count;
+            if (SelectedTimeFrom != from || SelectedTimeTo != to || _lastViewers != nViewers)
             {
                 SelectedTimeFrom = from;
                 SelectedTimeTo = to;
@@ -150,6 +154,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
                 }
 
                 SelectedTimeRangeChanged?.Invoke(this, from, to);
+                _lastViewers = nViewers;
             }
         }
 
