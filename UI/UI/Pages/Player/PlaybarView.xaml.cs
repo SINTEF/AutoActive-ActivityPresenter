@@ -122,7 +122,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _lastTo = to;
 
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
-                TimeFrom.Text = Utils.FormatTime(from);
+                LabelTimeFrom.Text = Utils.FormatTime(from);
                 LabelTimeTo.Text = Utils.FormatTime(to);
                 _previewContext?.SetSelectedTimeRange(from, to);
 
@@ -177,9 +177,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
         }
 
-        private void TimeFrom_OnClicked(object sender, EventArgs e)
+        private void ButtonUpExpand_OnClicked(object sender, EventArgs e)
         {
             WindowSliderSelector.IsVisible ^= true;
+            ButtonUpExpand.Text = WindowSliderSelector.IsVisible ? "v" : "^";
             WindowSlider.Value = WindowSize / 1000000d;
         }
 
