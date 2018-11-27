@@ -13,19 +13,20 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
+                <RowDefinition x:Name="RowPlaybarSettings" Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Label x:Name="LabelTimeFrom" Text="00:00:00" VerticalTextAlignment="Center" FontSize="Micro"
-                   Grid.Row="1" Grid.Column="0" MinimumWidthRequest="50"
+            <Button x:Name="TimeFrom" Text="00:00:00" FontSize="Micro"
+                   Grid.Row="2" Grid.Column="0" MinimumWidthRequest="50" Clicked="TimeFrom_OnClicked"
             />
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
-                    Grid.Row="1" Grid.Column="1"
+                    Grid.Row="2" Grid.Column="1"  VerticalOptions="Center"
             />
             <Label x:Name="LabelTimeTo" Text="00:00:00" VerticalTextAlignment="Center" HorizontalTextAlignment="End" FontSize="Micro"
-                   Grid.Row="1" Grid.Column="2"  MinimumWidthRequest="50"
+                   Grid.Row="2" Grid.Column="2"  MinimumWidthRequest="50"
             />
-            <Button x:Name="PlayButton" Text=">" Grid.Row="1" Grid.Column="3" Clicked="PlayButton_Clicked"/>
-            <Picker x:Name="PlaybackSpeedPicker" Grid.Row="1" Grid.Column="4" SelectedIndexChanged="PlaybackSpeed_SelectedIndexChanged">
+            <Button x:Name="PlayButton" Text=">" Grid.Row="2" Grid.Column="3" Clicked="PlayButton_Clicked"/>
+            <Picker x:Name="PlaybackSpeedPicker" Grid.Row="2" Grid.Column="4" SelectedIndexChanged="PlaybackSpeed_SelectedIndexChanged">
                 <Picker.Items>
                     <x:String>0.1x</x:String>
                     <x:String>0.25x</x:String>
@@ -35,6 +36,17 @@
                 </Picker.Items>
                 <Picker.SelectedIndex>3</Picker.SelectedIndex>
             </Picker>
+            <Grid x:Name="WindowSliderSelector"  Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="5" IsVisible="False">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0"  Text="Window length [s]" VerticalTextAlignment="Center"/>
+                <Slider Grid.Column="1" x:Name="WindowSlider" Maximum="1000" Value="10"
+                        Minimum="1" ValueChanged="WindowSlider_OnValueChanged"/>
+                <Label Grid.Column="2"  x:Name="WindowLengthLabel"/>
+            </Grid>
         </Grid>
     </ContentView.Content>
 </ContentView>

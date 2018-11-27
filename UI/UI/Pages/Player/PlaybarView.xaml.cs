@@ -19,7 +19,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PlaybarView : ContentView
     {
-        public static readonly GridLength DefaultHeight = 40;
         public static readonly GridLength DefaultPreviewHeight = 100;
 
         public uint PlayUpdateRate = 30;
@@ -74,6 +73,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             });
             _playTaskRunning = false;
             playTask.Start();
+
+            WindowSlider.Value = WindowSize / 1000000d;
         }
 
         public DataViewerContext ViewerContext { get; private set; }
@@ -120,7 +121,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _lastTo = to;
 
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
-                LabelTimeFrom.Text = Utils.FormatTime(from);
+                TimeFrom.Text = Utils.FormatTime(from);
                 LabelTimeTo.Text = Utils.FormatTime(to);
                 previewContext?.SetSelectedTimeRange(from, to);
 
@@ -184,6 +185,20 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var playbackText = PlaybackSpeedPicker.SelectedItem as string;
             var trimChars = new[] { 'x', ' ' };
             PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
+        }
+
+
+        private void TimeFrom_OnClicked(object sender, EventArgs e)
+        {
+            WindowSliderSelector.IsVisible ^= true;
+            WindowSlider.Value = WindowSize / 1000000d;
+        }
+
+        private void WindowSlider_OnValueChanged(object sender, ValueChangedEventArgs e)
+        {
+            WindowLengthLabel.Text = $"{e.NewValue} s";
+            WindowSize = (long)(e.NewValue * 1000000);
+            SetSliderTime(SliderValueToTime(TimeSlider.Value));
         }
     }
 }

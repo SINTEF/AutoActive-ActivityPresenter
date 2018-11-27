@@ -52,11 +52,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void TreeView_UseInTimelineTapped(object sender, IDataPoint datapoint)
         {
-            if (Playbar.PreviewDataPoint == null)
-            {
-                // Resize the row to accomodate the preview
-                RowPlaybar.Height = PlaybarView.DefaultHeight.Value + PlaybarView.DefaultPreviewHeight.Value;
-            }
             Playbar.UseDataPointForTimelinePreview(datapoint);
         }
 

@@ -9,7 +9,7 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="{Static views:CustomNavigationBar.DefaultHeight}" />
                 <RowDefinition x:Name="RowMain" Height="*" />
-                <RowDefinition x:Name="RowPlaybar" Height="{Static player:PlaybarView.DefaultHeight}" />
+                <RowDefinition x:Name="RowPlaybar" Height="Auto" />
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
