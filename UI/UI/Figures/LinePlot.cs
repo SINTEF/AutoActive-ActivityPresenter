@@ -30,7 +30,7 @@ namespace SINTEF.AutoActive.UI.Figures
             else return null;
         }
 
-        protected ITimeSeriesViewer Viewer { get; private set; }
+        protected ITimeSeriesViewer Viewer { get; }
 
         protected LinePlot(ITimeSeriesViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
@@ -42,6 +42,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
         protected override void Viewer_Changed_Hook()
         {
+            if (Viewer == null)
+                return;
             // TODO fix crude autoscaling
             if (Viewer.MinValueHint.HasValue) minYValue = (float)Viewer.MinValueHint.Value;
             if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
@@ -109,25 +111,24 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.Clear(SKColors.White);
             canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
 
-            if (Viewer != null)
-            {
-                if (Viewer.CurrentTimeRangeFrom == Viewer.CurrentTimeRangeTo) return; // Avoid divide-by-zero
+            if (Viewer == null) return;
 
-                // To acheive a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
-                var startX = Viewer.CurrentTimeRangeFrom;
-                var scaleX = (float)info.Width / (Viewer.CurrentTimeRangeTo - Viewer.CurrentTimeRangeFrom);
+            if (Viewer.CurrentTimeRangeFrom == Viewer.CurrentTimeRangeTo) return; // Avoid divide-by-zero
 
-                var minY = minYValue;
-                var maxY = maxYValue;
-                var scaleY = info.Height / (maxY - minY);
+            // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
+            var startX = Viewer.CurrentTimeRangeFrom;
+            var scaleX = (float)info.Width / (Viewer.CurrentTimeRangeTo - Viewer.CurrentTimeRangeFrom);
 
-                // Create path
-                SKPath plot = new SKPath();
-                CreatePath(plot, startX, scaleX, maxY, -scaleY);
+            var minY = minYValue;
+            var maxY = maxYValue;
+            var scaleY = info.Height / (maxY - minY);
 
-                // Draw the data
-                canvas.DrawPath(plot, LinePaint);
-            }
+            // Create path
+            SKPath plot = new SKPath();
+            CreatePath(plot, startX, scaleX, maxY, -scaleY);
+
+            // Draw the data
+            canvas.DrawPath(plot, LinePaint);
         }
     }
 }
