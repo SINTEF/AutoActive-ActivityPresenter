@@ -16,9 +16,10 @@
                 <RowDefinition x:Name="RowPlaybarSettings" Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Label x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
+            <Button x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
                    Grid.Row="2" Grid.Column="0" MinimumWidthRequest="50"
-                   VerticalTextAlignment="End" HorizontalTextAlignment="End"
+                    VerticalOptions="End" HorizontalOptions="EndAndExpand"
+                    Clicked="LabelTimeFrom_OnClicked"
             />
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
                     Grid.Row="2" Grid.Column="1"  VerticalOptions="Center"

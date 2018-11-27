@@ -35,6 +35,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private long? _lastFrom;
         private long? _lastTo;
 
+        private bool _fromTimeIsCurrent = true;
+
         private readonly TimeSynchronizedContext _previewContext = new TimeSynchronizedContext();
         private FigureView _previewView;
 
@@ -101,7 +103,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
 
-            LabelTimeFrom.Text = Utils.FormatTime(time);
+            if (_fromTimeIsCurrent)
+            {
+                LabelTimeFrom.Text = Utils.FormatTime(time);
+            }
             timeContext.SetSelectedTimeRange(time, time + WindowSize);
         }
 
@@ -122,7 +127,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _lastTo = to;
 
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
-                LabelTimeFrom.Text = Utils.FormatTime(from);
+                if (!_fromTimeIsCurrent)
+                {
+                    LabelTimeFrom.Text = Utils.FormatTime(from);
+                }
+
                 LabelTimeTo.Text = Utils.FormatTime(to);
                 _previewContext?.SetSelectedTimeRange(from, to);
 
@@ -189,6 +198,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             WindowLengthLabel.Text = $"{e.NewValue} s";
             WindowSize = (long)(e.NewValue * 1000000);
             SetSliderTime(SliderValueToTime(TimeSlider.Value));
+        }
+
+        private void LabelTimeFrom_OnClicked(object sender, EventArgs e)
+        {
+            _fromTimeIsCurrent ^= true;
+            if (ViewerContext is TimeSynchronizedContext context)
+            {
+                LabelTimeFrom.Text =
+                    Utils.FormatTime(!_fromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
+            }
         }
     }
 }
