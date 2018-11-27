@@ -101,7 +101,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
 
-            Debug.WriteLine($"Playbar Slider startpoint: {time}");
+            LabelTimeFrom.Text = Utils.FormatTime(time);
             timeContext.SetSelectedTimeRange(time, time + WindowSize);
         }
 
