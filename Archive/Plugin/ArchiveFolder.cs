@@ -22,6 +22,15 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 AddChild(datastruct);
             }
         }
+
+        public static ArchiveFolder Create(Archive archive)
+        {
+            var meta = new JObject();
+            var user = new JObject();
+            var json = new JObject {["meta"] = meta, ["user"] = user};
+
+            return new ArchiveFolder(json, archive);
+        }
     }
 
     [ArchivePlugin("no.sintef.folder")]

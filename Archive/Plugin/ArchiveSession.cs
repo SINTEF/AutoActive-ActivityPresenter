@@ -23,6 +23,15 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
         }
 
+        public static ArchiveSession Create(Archive archive, string name)
+        {
+            var meta = new JObject {["id"] = Guid.NewGuid()};
+            var user = new JObject {["name"] = name, ["created"] = DateTimeOffset.Now};
+            var json = new JObject {["meta"] = meta, ["user"] = user};
+
+            return new ArchiveSession(json, archive);
+        }
+
         // FIXME: Implement these
         public event DataStructureAddedHandler DataStructureAddedToTree;
         public event DataStructureRemovedHandler DataStructureRemovedFromTree;

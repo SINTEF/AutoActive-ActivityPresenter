@@ -30,7 +30,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
         }
 
         // Tree manipulation methods
-        protected internal virtual void AddChild(IDataStructure datastructure)
+        public virtual void AddChild(IDataStructure datastructure)
         {
             if (Contains(datastructure)) return;
             children.Add(datastructure);

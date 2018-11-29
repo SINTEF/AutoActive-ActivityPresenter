@@ -116,14 +116,43 @@ namespace SINTEF.AutoActive.Archive
 
 
         /* ---------- Create a new archive from scratch ---------- */
-        private Archive()
+        private Archive(ZipFile zipFile)
         {
-            // TODO: Implement
+            _zipFile = zipFile;
         }
 
-        public static Archive Create()
+        public static Archive Create(string fileName)
         {
-            throw new NotImplementedException();
+            return new Archive(ZipFile.Create(fileName));
+        }
+
+        public void AddSession(ArchiveSession session)
+        {
+            _sessions.Add(session);
+        }
+
+        public void WriteFile()
+        {
+            WriteFile(_zipFile);
+        }
+
+        public void WriteFile(string fileName)
+        {
+            WriteFile(ZipFile.Create(fileName));
+        }
+
+        public void WriteFile(ZipFile zipFile)
+        {
+            //TODO: Implement
+            foreach (var session in Sessions)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        public void Close()
+        {
+            _zipFile.Close();
         }
 
         /* ---- Public API ---- */
