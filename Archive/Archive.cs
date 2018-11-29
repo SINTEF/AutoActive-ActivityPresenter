@@ -7,7 +7,6 @@ using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Plugins;
@@ -16,22 +15,21 @@ namespace SINTEF.AutoActive.Archive
 {
     public class Archive
     {
-        ZipFile zipFile;
-        IReadWriteSeekStreamFactory streamFactory;
-        List<ArchiveSession> sessions;
+        readonly ZipFile _zipFile;
+        readonly IReadWriteSeekStreamFactory _streamFactory;
+        readonly List<ArchiveSession> _sessions = new List<ArchiveSession>();
 
         /* ---------- Open an existing archive ---------- */
         private Archive(ZipFile file, IReadWriteSeekStreamFactory factory)
         {
-            zipFile = file;
-            streamFactory = factory;
-            sessions = new List<ArchiveSession>();
+            _zipFile = file;
+            _streamFactory = factory;
         }
 
         private async Task ParseSessions()
         {
             // Find all sessions in the archive
-            foreach (ZipEntry entry in zipFile)
+            foreach (ZipEntry entry in _zipFile)
             {
                 if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith("AUTOACTIVE_SESSION.json"))
                 {
@@ -43,7 +41,7 @@ namespace SINTEF.AutoActive.Archive
 
         private async Task ParseSessionFile(ZipEntry entry)
         {
-            using (var stream = await zipFile.OpenReadSeekStream(entry, streamFactory))
+            using (var stream = await _zipFile.OpenReadSeekStream(entry, _streamFactory))
             using (var streamReader = new StreamReader(stream))
 
             using (var jsonReader = new JsonTextReader(streamReader))
@@ -56,7 +54,7 @@ namespace SINTEF.AutoActive.Archive
                 if (session != null)
                 {
                     // If the root object was a session, add it to the list
-                    sessions.Add(session);
+                    _sessions.Add(session);
                 }
             }
         }
@@ -65,23 +63,25 @@ namespace SINTEF.AutoActive.Archive
         {
             // Check if this element is a datastructure
             var meta = (json as JObject)?.Property("meta")?.Value as JObject;
-            if (meta?.Property("type") != null)
+            if (meta?.Property("type") == null)
             {
-                var type = meta.Property("type").ToObject<string>();
-                // Try to parse the object with the specified plugin
-                var plugin = PluginService.GetSingle<IArchivePlugin>(type);
-                if (plugin != null)
-                {
-                    var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
-                    if (parsed != null) return parsed;
-                }
-                // If not, try to parse it as a folder (the default)
-                plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
-                if (plugin != null)
-                {
-                    var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
-                    if (parsed != null) return parsed;
-                }
+                return json;
+            }
+
+            var type = meta.Property("type").ToObject<string>();
+            // Try to parse the object with the specified plugin
+            var plugin = PluginService.GetSingle<IArchivePlugin>(type);
+            if (plugin != null)
+            {
+                var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                if (parsed != null) return parsed;
+            }
+            // If not, try to parse it as a folder (the default)
+            plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
+            if (plugin != null)
+            {
+                var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                if (parsed != null) return parsed;
             }
 
             // Other handling for "native" JSON objects
@@ -91,12 +91,12 @@ namespace SINTEF.AutoActive.Archive
 
         public ZipEntry FindFile(string path)
         {
-            return zipFile.GetEntry(path);
+            return _zipFile.GetEntry(path);
         }
 
         public async Task<Stream> OpenFile(ZipEntry entry)
         {
-            return await zipFile.OpenReadSeekStream(entry, streamFactory);
+            return await _zipFile.OpenReadSeekStream(entry, _streamFactory);
         }
 
         public IReadSeekStreamFactory OpenFileFactory(ZipEntry entry)
@@ -105,7 +105,7 @@ namespace SINTEF.AutoActive.Archive
         }
 
 
-        public async static Task<Archive> Open(IReadWriteSeekStreamFactory file)
+        public static async Task<Archive> Open(IReadWriteSeekStreamFactory file)
         {
             var zipFile = new ZipFile(await file.GetReadWriteStream());
             var archive = new Archive(zipFile, file);
@@ -127,18 +127,18 @@ namespace SINTEF.AutoActive.Archive
         }
 
         /* ---- Public API ---- */
-        public IReadOnlyCollection<ArchiveSession> Sessions => sessions.AsReadOnly();
+        public IReadOnlyCollection<ArchiveSession> Sessions => _sessions.AsReadOnly();
 
         /* ---- Helpers ---- */
         internal class ArchiveFileBoundFactory : IReadSeekStreamFactory
         {
-            Archive archive;
-            ZipEntry entry;
+            private readonly Archive _archive;
+            private readonly ZipEntry _entry;
 
             internal ArchiveFileBoundFactory(Archive archive, ZipEntry entry)
             {
-                this.archive = archive;
-                this.entry = entry;
+                _archive = archive;
+                _entry = entry;
 
                 Debug.WriteLine($"ZIPENTRY NAME: {entry.Name}");
             }
@@ -151,7 +151,7 @@ namespace SINTEF.AutoActive.Archive
 
             public async Task<Stream> GetReadStream()
             {
-                return await archive.OpenFile(entry);
+                return await _archive.OpenFile(_entry);
             }
         }
     }

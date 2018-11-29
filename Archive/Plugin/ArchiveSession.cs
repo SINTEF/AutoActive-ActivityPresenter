@@ -9,8 +9,8 @@ namespace SINTEF.AutoActive.Archive.Plugin
     {
         public override string Type => "no.sintef.session";
 
-        public Guid Id { get; private set; }
-        public DateTimeOffset Created { get; private set; }
+        public Guid Id { get; }
+        public DateTimeOffset Created { get; }
 
         internal ArchiveSession(JObject json, Archive archive) : base(json, archive)
         {

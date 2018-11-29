@@ -19,8 +19,8 @@ namespace SINTEF.AutoActive.Archive
         }
 
         public abstract string Type { get; }
-        protected JObject Meta { get; private set; }
-        protected JObject User { get; private set; }
+        protected JObject Meta { get; }
+        protected JObject User { get; }
 
         protected ArchiveStructure(JObject json)
         {

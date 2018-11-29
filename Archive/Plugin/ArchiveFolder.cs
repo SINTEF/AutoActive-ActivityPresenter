@@ -1,11 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-
-using SINTEF.AutoActive.Databus;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
@@ -21,22 +16,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
             foreach (var property in User.Properties())
             {
                 var content = archive.ParseJSONElement(property.Value);
-                var datastruct = content as ArchiveStructure;
-                if (datastruct != null)
-                {
-                    datastruct.SetName(property.Name);
-                    AddChild(datastruct);
-                }
+                if (!(content is ArchiveStructure datastruct)) continue;
+
+                datastruct.SetName(property.Name);
+                AddChild(datastruct);
             }
         }
-
-        /*
-        protected override void ToArchiveJSON(JObject meta, JObject user)
-        {
-            throw new NotImplementedException();
-        }
-        */
-
     }
 
     [ArchivePlugin("no.sintef.folder")]
