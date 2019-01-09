@@ -15,9 +15,9 @@ namespace SINTEF.AutoActive.Archive
 {
     public class Archive
     {
-        readonly ZipFile _zipFile;
-        readonly IReadWriteSeekStreamFactory _streamFactory;
-        readonly List<ArchiveSession> _sessions = new List<ArchiveSession>();
+        private readonly ZipFile _zipFile;
+        private readonly IReadWriteSeekStreamFactory _streamFactory;
+        private readonly List<ArchiveSession> _sessions = new List<ArchiveSession>();
 
         /* ---------- Open an existing archive ---------- */
         private Archive(ZipFile file, IReadWriteSeekStreamFactory factory)
@@ -31,7 +31,7 @@ namespace SINTEF.AutoActive.Archive
             // Find all sessions in the archive
             foreach (ZipEntry entry in _zipFile)
             {
-                if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith("AUTOACTIVE_SESSION.json"))
+                if (entry.IsFile && entry.CompressionMethod == CompressionMethod.Stored && entry.Name.EndsWith(ArchiveSession.SessionFileName))
                 {
                     // This is an AutoActive session description file
                     await ParseSessionFile(entry);
@@ -50,8 +50,7 @@ namespace SINTEF.AutoActive.Archive
                 var json = (JToken)serializer.Deserialize(jsonReader);
 
                 // Load the contents of the file
-                var session = ParseJSONElement(json) as ArchiveSession;
-                if (session != null)
+                if (ParseJSONElement(json) is ArchiveSession session)
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
@@ -138,15 +137,16 @@ namespace SINTEF.AutoActive.Archive
 
         public void WriteFile(string fileName)
         {
-            WriteFile(ZipFile.Create(fileName));
+            var zip = ZipFile.Create(fileName);
+            WriteFile(zip);
+            zip.Close();
         }
 
         public void WriteFile(ZipFile zipFile)
         {
-            //TODO: Implement
             foreach (var session in Sessions)
             {
-                throw new NotImplementedException();
+                session.WriteFile(zipFile);
             }
         }
 
