@@ -72,8 +72,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 _zipFile.Add(new StreamSource(ms), $"{_id}/{ArchiveSession.SessionFileName}", CompressionMethod.Stored);
                 _zipFile.CommitUpdate();
             }
-
-            Debug.WriteLine(JsonConvert.SerializeObject(meta, Formatting.Indented));
         }
 
         public void StoreFile(Stream data, string name)

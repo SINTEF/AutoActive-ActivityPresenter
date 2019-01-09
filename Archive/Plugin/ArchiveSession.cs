@@ -62,8 +62,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
                         Debug.WriteLine($"Could not save {child.Name} (save failed)");
                         continue;
                     }
-
-                    Debug.WriteLine($"Saved {child.Name}");
                 }
                 catch (NotImplementedException)
                 {
