@@ -290,8 +290,8 @@ namespace SINTEF.AutoActive.Archive.Tests
                 {
                     var tableInformation = new ArchiveTableInformation()
                     {
-                        columns = new List<DataField>(parquetReader.Schema.GetDataFields()),
-                        time = timeColumn.Field
+                        Columns = new List<DataField>(parquetReader.Schema.GetDataFields()),
+                        Time = timeColumn.Field
                     };
                     var table = new ArchiveTable(json, parquetReader, tableInformation, "testData");
                     
