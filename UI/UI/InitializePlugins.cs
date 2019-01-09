@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.UI
             typeof(ArchiveFolderPlugin),
             typeof(ArchiveSessionPlugin),
             typeof(ArchiveTablePlugin),
-            typeof(ArchiveVideoPlugin), // FIXME: Uncomment when implemented
+            typeof(ArchiveVideoPlugin),
 
             // Import plugins
             typeof(GarminImportPlugin),

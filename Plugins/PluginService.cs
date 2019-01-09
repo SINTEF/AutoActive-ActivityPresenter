@@ -2,8 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.Plugins
 {
@@ -15,12 +13,9 @@ namespace SINTEF.AutoActive.Plugins
 
         static PluginService()
         {
-            var initializer = DependencyService.Get<IPluginInitializer>();
-            if (initializer == null)
-            {
-                Debug.WriteLine("No plugin-initializer found, no plugins will be loaded!", "Error");
-            }
-            else
+            var initializers = DependencyHandler.GetAllInstances<IPluginInitializer>();
+
+            foreach (var initializer in initializers)
             {
                 // Map out all provided plugins
                 foreach (var plugin in initializer.Plugins)
@@ -29,8 +24,11 @@ namespace SINTEF.AutoActive.Plugins
                     var pluginAttributes = plugin.GetCustomAttributes(typeof(PluginAttribute), true);
                     if (pluginAttributes.Length < 1)
                     {
-                        Debug.WriteLine($"Provided type {plugin.Name} has no Plugin attributes. This type will not be used!", "Error");
+                        Debug.WriteLine(
+                            $"Provided type {plugin.Name} has no Plugin attributes. This type will not be used!",
+                            "Error");
                     }
+
                     foreach (var pluginAttribute in pluginAttributes)
                     {
                         RegisterPlugin(plugin, pluginAttribute as PluginAttribute);
@@ -39,7 +37,7 @@ namespace SINTEF.AutoActive.Plugins
             }
         }
 
-        static PluginTypeAttribute GetOrRegisterPluginType(Type pluginTarget)
+        private static PluginTypeAttribute GetOrRegisterPluginType(Type pluginTarget)
         {
             if (pluginTargetTypes.TryGetValue(pluginTarget, out var pluginTypeAttribute))
             {
@@ -61,7 +59,7 @@ namespace SINTEF.AutoActive.Plugins
             }
         }
 
-        static void RegisterPlugin(Type plugin, PluginAttribute pluginAttribute)
+        private static void RegisterPlugin(Type plugin, PluginAttribute pluginAttribute)
         {
             // Check that it implements the proper interface
             if (!pluginAttribute.Target.IsAssignableFrom(plugin))
@@ -73,7 +71,7 @@ namespace SINTEF.AutoActive.Plugins
             Register(plugin, pluginAttribute.Target, pluginAttribute.Kind);
         }
 
-        static void Register(Type plugin, Type pluginTarget, string kind, object implementor = null)
+        private static void Register(Type plugin, Type pluginTarget, string kind, object implementor = null)
         {
             // If the implementor is not provided, we need to be able to construct one ourself
             if (plugin.GetConstructor(Type.EmptyTypes) == null)

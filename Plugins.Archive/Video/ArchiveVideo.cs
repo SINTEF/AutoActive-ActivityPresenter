@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MimeMapping;
 using Newtonsoft.Json.Linq;
-using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
@@ -63,7 +62,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<IDataViewer> CreateViewer()
         {
-            var factory = DependencyService.Get<IVideoDecoderFactory>();
+            var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
             if (factory != null)
             {
                 var mime = MimeUtility.GetMimeMapping(path);
@@ -92,7 +91,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<ITimeViewer> CreateViewer()
         {
-            var factory = DependencyService.Get<IVideoDecoderFactory>();
+            var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
             if (factory != null)
             {
                 var mime = MimeUtility.GetMimeMapping(path);
