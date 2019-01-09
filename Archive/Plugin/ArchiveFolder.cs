@@ -43,6 +43,8 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
+            writer.CreateDirectory(Name);
+
             if (!writer.JsonCreated)
             {
                 return true;
@@ -61,8 +63,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
             }
 
             meta["type"] = Type;
-
-            writer.CreateDirectory(Name);
             return true;
         }
     }
