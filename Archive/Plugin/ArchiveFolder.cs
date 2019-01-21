@@ -1,10 +1,11 @@
 ﻿using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Databus.Interfaces;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
-    public class ArchiveFolder : ArchiveStructure
+    public class ArchiveFolder : ArchiveStructure, ISaveable
     {
         public static string PluginType = "no.sintef.folder";
 
@@ -21,6 +22,48 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 datastruct.SetName(property.Name);
                 AddChild(datastruct);
             }
+        }
+
+        public static ArchiveFolder Create(Archive archive, string name)
+        {
+
+            var json = new JObject
+            {
+                ["meta"] = new JObject
+                {
+                    ["type"] = PluginType
+                },
+                ["user"] = new JObject()
+            };
+
+            return new ArchiveFolder(json, archive) { IsSaved = false, Name = name};
+        }
+
+        public bool IsSaved { get; protected set; }
+
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+            writer.CreateDirectory(Name);
+
+            if (!writer.JsonCreated)
+            {
+                return true;
+            }
+
+            if (!root.TryGetValue("user", out var user))
+            {
+                user = new JObject();
+                root["user"] = user;
+            }
+
+            if (!root.TryGetValue("meta", out var meta))
+            {
+                meta = new JObject();
+                root["meta"] = meta;
+            }
+
+            meta["type"] = Type;
+            return true;
         }
     }
 

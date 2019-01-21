@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Databus.Implementations
 {
@@ -30,7 +31,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
         }
 
         // Tree manipulation methods
-        protected internal virtual void AddChild(IDataStructure datastructure)
+        public virtual void AddChild(IDataStructure datastructure)
         {
             if (Contains(datastructure)) return;
             children.Add(datastructure);

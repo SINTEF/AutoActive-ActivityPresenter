@@ -1,10 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
 using Newtonsoft.Json.Linq;
-
-using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Implementations;
 
 namespace SINTEF.AutoActive.Archive
@@ -15,12 +10,13 @@ namespace SINTEF.AutoActive.Archive
         // TODO: How do we handle name changes of structures in archives?
         internal void SetName(string name)
         {
-            Name = name; 
+            Name = name;
         }
 
         public abstract string Type { get; }
         protected JObject Meta { get; }
         protected JObject User { get; }
+
 
         protected ArchiveStructure(JObject json)
         {
@@ -39,22 +35,15 @@ namespace SINTEF.AutoActive.Archive
             }
         }
 
-        //protected internal abstract void RegisterContents(DataStructureAddedToHandler dataStructureAdded, DataPointAddedToHandler dataPointAdded);
-
-            /*
-        protected abstract void ToArchiveJSON(JObject meta, JObject user);
-
-        protected JObject ToArchiveJSON()
+        public JObject ToArchiveJson()
         {
             var json = new JObject();
-            var meta = new JObject();
-            var user = new JObject();
-            ToArchiveJSON(meta, user);
+            var meta = Meta;
+            var user = User;
             meta["type"] = Type;
             json["meta"] = meta;
             json["user"] = user;
             return json;
         }
-        */
     }
 }
