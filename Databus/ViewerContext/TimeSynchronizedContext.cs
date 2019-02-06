@@ -1,16 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 
 namespace SINTEF.AutoActive.Databus.ViewerContext
 {
     public class TimeSynchronizedContext : SingleSetDataViewerContext
     {
-        ITimeViewer currentMinViewer = null;
-        ITimeViewer currentMaxViewer = null;
+        private ITimeViewer _currentMinViewer;
+        private ITimeViewer _currentMaxViewer;
 
         protected override void OnTimeViewerAvailableChanged(ITimeViewer sender, long start, long end)
         {
@@ -22,31 +18,31 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             var needToRecalculate = false;
 
             // Handle minimum available time
-            if (currentMinViewer == null || changedStart < AvailableTimeFrom)
+            if (_currentMinViewer == null || changedStart < AvailableTimeFrom)
             {
-                currentMinViewer = sender;
+                _currentMinViewer = sender;
                 newFrom = changedStart;
             }
-            else if (currentMinViewer == sender && changedStart > AvailableTimeFrom)
+            else if (_currentMinViewer == sender && changedStart > AvailableTimeFrom)
             {
                 // We were defining the minimum, but our time range was reduced, so we need to recalculate
                 needToRecalculate = true;
             }
 
             // Handle maximum available time
-            if (currentMaxViewer == null || changedEnd > AvailableTimeTo)
+            if (_currentMaxViewer == null || changedEnd > AvailableTimeTo)
             {
-                currentMaxViewer = sender;
+                _currentMaxViewer = sender;
                 newTo = changedEnd;
             }
-            else if (currentMaxViewer == sender && changedEnd < AvailableTimeTo)
+            else if (_currentMaxViewer == sender && changedEnd < AvailableTimeTo)
             {
                 // We were defining the maximum, but our time range was reduced, so we need to recalculate
                 needToRecalculate = true;
             }
 
             if (needToRecalculate)
-                GetAvailableTimeMinMax(IsSynchronizedToWorldClock, out currentMinViewer, out newFrom, out currentMaxViewer, out newTo);
+                GetAvailableTimeMinMax(IsSynchronizedToWorldClock, out _currentMinViewer, out newFrom, out _currentMaxViewer, out newTo);
 
             InternalSetAvailableTimeRange(newFrom, newTo);
         }
@@ -69,7 +65,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             if (InternalSetSynchronizedToWorldClock(value))
             {
                 // Synchronization changed, we should re-calculate available time range
-                GetAvailableTimeMinMax(value, out currentMinViewer, out var from, out currentMaxViewer, out var to);
+                GetAvailableTimeMinMax(value, out _currentMinViewer, out var from, out _currentMaxViewer, out var to);
                 InternalSetAvailableTimeRange(from, to);
             }
         }

@@ -1,11 +1,11 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using ICSharpCode.SharpZipLib.Zip;
-using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {

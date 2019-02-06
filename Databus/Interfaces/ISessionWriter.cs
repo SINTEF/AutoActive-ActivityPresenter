@@ -8,8 +8,8 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         string RootName { get; }
         bool JsonCreated { get; }
 
-        void StoreMeta(JObject root);
-        void StoreFile(Stream data, string name);
+        string StoreMeta(JObject root);
+        string StoreFile(Stream data, string name);
         void CreateDirectory(string name);
 
         void PushPathName(string childName);

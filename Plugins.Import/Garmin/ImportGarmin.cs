@@ -157,11 +157,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         internal GarminTable(string id, List<TrackPoint> tpList)
         {
             Name = id;
-            convertTrackpoints(tpList);
+            ConvertTrackpoints(tpList);
         }
 
         /* Open an existing gamin file */
-        private void convertTrackpoints(List<TrackPoint> tpList)
+        private void ConvertTrackpoints(List<TrackPoint> tpList)
         {
             var faultyEntries = new List<TrackPoint>();
 

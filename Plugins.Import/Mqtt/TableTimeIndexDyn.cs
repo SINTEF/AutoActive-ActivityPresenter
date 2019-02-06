@@ -1,9 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Plugins.Import.Mqtt.Columns;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Plugins.Import.Mqtt
@@ -22,8 +19,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             // FIXME: This is far from perfect
             if (current >= 0 && data[current] == value) return current;
             // Do a binary search starting at the previous index
-            int first = 0;
-            int last = length - 1;
+            var first = 0;
+            var last = length - 1;
             if (current < 0) current = (first + last) / 2;
             while (first < last)
             {

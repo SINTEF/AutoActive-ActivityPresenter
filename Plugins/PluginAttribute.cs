@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 
 namespace SINTEF.AutoActive.Plugins
 {
@@ -10,16 +9,9 @@ namespace SINTEF.AutoActive.Plugins
         {
             Target = targetType;
             Kind = kind;
-            /*
-            if (!Target.IsAssignableFrom(Implementor))
-            {
-                Debug.WriteLine($"Implementor {implementorType.Name} doesn't implement {targetType.Name}. The plugin will not be available!")
-                Debug.WriteLine("ERROR! Supplied plugin doesn't satisfy interface");
-            }
-            */
         }
 
-        internal Type Target { get; private set; }
-        internal string Kind { get; private set; }
+        internal Type Target { get; }
+        internal string Kind { get; }
     }
 }

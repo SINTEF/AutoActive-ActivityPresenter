@@ -17,8 +17,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             if (current >= 0 && data[current] == value) return current;
 
             // Do a binary search starting at the previous index
-            int first = 0;
-            int last = data.Length - 1;
+            var first = 0;
+            var last = data.Length - 1;
 
             if (current < 0) current = (first + last) / 2;
 
@@ -48,19 +48,19 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
     public class TableTimeIndexViewer : LongColumnViewer, ITimeViewer
     {
-        private TableTimeIndex time;
+        private readonly TableTimeIndex _time;
 
         internal TableTimeIndexViewer(TableTimeIndex index) : base(null, index)
         {
-            time = index;
+            _time = index;
         }
 
         public void UpdatedTimeIndex() { }
 
-        public ITimePoint TimePoint => time;
+        public ITimePoint TimePoint => _time;
 
-        public long Start => time.data[0];
-        public long End => time.data[time.data.Length - 1];
+        public long Start => _time.data[0];
+        public long End => _time.data[_time.data.Length - 1];
 
         // Will never happen, so no point in implementing it
         event TimeViewerWasChangedHandler ITimeViewer.TimeChanged { add { } remove { } }

@@ -1,8 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.ViewerContext
@@ -19,13 +16,11 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public event DataViewerContextWorldClockChangedHandler SynchronizedToWorldClockChanged;
         protected bool InternalSetSynchronizedToWorldClock(bool value)
         {
-            if (value != IsSynchronizedToWorldClock)
-            {
-                IsSynchronizedToWorldClock = value;
-                SynchronizedToWorldClockChanged?.Invoke(this, value);
-                return true;
-            }
-            return false;
+            if (value == IsSynchronizedToWorldClock) return false;
+
+            IsSynchronizedToWorldClock = value;
+            SynchronizedToWorldClockChanged?.Invoke(this, value);
+            return true;
         }
 
         // --- Available time range ---
@@ -43,7 +38,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             }
             return false;
         }
-        public long SelectedTimeFrom{ get; }
+        public long SelectedTimeFrom { get; }
         public long SelectedTimeTo { get; }
     }
 

@@ -1,5 +1,4 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 
@@ -7,11 +6,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
 {
     public class ArchiveFolder : ArchiveStructure, ISaveable
     {
+
         public static string PluginType = "no.sintef.folder";
 
-        public override string Type => PluginType;
+        public override string Type { get; } = PluginType;
 
-        internal ArchiveFolder(JObject json, Archive archive) : base(json)
+        public ArchiveFolder(JObject json, Archive archive) : base(json)
         {
             // Find all the contents of the folder
             foreach (var property in User.Properties())
@@ -26,7 +26,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public static ArchiveFolder Create(Archive archive, string name)
         {
-
             var json = new JObject
             {
                 ["meta"] = new JObject

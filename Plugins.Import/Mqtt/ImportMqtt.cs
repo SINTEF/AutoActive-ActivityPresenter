@@ -14,9 +14,6 @@ using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Plugins.Import.Mqtt
 {
-    class ImportMqtt
-    {
-    }
     [ImportPlugin(".mqtt")]
     public class MqttImportPlugin : IImportPlugin
     {

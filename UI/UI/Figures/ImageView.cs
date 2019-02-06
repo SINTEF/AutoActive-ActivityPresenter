@@ -1,18 +1,12 @@
-﻿using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Common;
+﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views;
 using SkiaSharp;
-using SkiaSharp.Views.Forms;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
-using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
@@ -25,14 +19,14 @@ namespace SINTEF.AutoActive.UI.Figures
             return new ImageView(viewer, context);
         }
 
-        protected IImageViewer Viewer { get; private set; }
+        protected IImageViewer Viewer { get; }
 
         protected ImageView(IImageViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
             Viewer = viewer;
         }
 
-        protected async override void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        protected override async void OnPropertyChanged([CallerMemberName] string propertyName = null)
         {
             if (propertyName == "Width" || propertyName == "Height")
             {

@@ -17,7 +17,6 @@ namespace SINTEF.AutoActive.Archive
         protected JObject Meta { get; }
         protected JObject User { get; }
 
-
         protected ArchiveStructure(JObject json)
         {
             GetUserMeta(json, out var meta, out var user);

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-
+using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -195,5 +195,5 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 ColumnTree.Width = treeViewWidth = new GridLength(newWidth);
             }
         }
-    }
+	}
 }
