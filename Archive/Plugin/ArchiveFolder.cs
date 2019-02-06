@@ -22,6 +22,13 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 datastruct.SetName(property.Name);
                 AddChild(datastruct);
             }
+
+            //TODO: Verify that this works
+            var type = Meta.Property("type");
+            if (type != null)
+            {
+                Type = type.ToObject<string>();
+            }
         }
 
         public static ArchiveFolder Create(Archive archive, string name)
