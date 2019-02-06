@@ -4,7 +4,7 @@
 	<uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 	<uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 	<application android:label="AutoActive">
-		<provider android:name="no.sintef.autoactive.ArchivesProvider" android:authorities="no.sintef.autoactive.archives" android:exported="true" android:grantUriPermissions="true" android:permission="android.permission.MANAGE_DOCUMENTS" android:enabled="true">
+		<provider android:name="no.sintef.autoactive.SessionsProvider" android:authorities="no.sintef.autoactive.sessions" android:exported="true" android:grantUriPermissions="true" android:permission="android.permission.MANAGE_DOCUMENTS" android:enabled="true">
 			<intent-filter>
 				<action android:name="android.content.action.DOCUMENTS_PROVIDER" />
 			</intent-filter>

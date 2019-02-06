@@ -29,6 +29,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Pages\StorageSelector.xaml.cs">
+      <DependentUpon>StorageSelector.xaml</DependentUpon>
+    </Compile>
     <Compile Update="Views\CustomNavigationBar.xaml.cs">
       <DependentUpon>CustomNavigationBar.xaml</DependentUpon>
     </Compile>
@@ -38,10 +41,16 @@
     <EmbeddedResource Update="ArchivePage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
+    <EmbeddedResource Update="Pages\StorageSelector.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
     <EmbeddedResource Update="Pages\Player\PlaybarView.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Pages\Player\PlayerPage.xaml">
+      <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
+    </EmbeddedResource>
+    <EmbeddedResource Update="Pages\Synchronization\SynchronizationPage.xaml">
       <Generator>MSBuild:UpdateDesignTimeXaml</Generator>
     </EmbeddedResource>
     <EmbeddedResource Update="Views\CustomNavigationBar.xaml">

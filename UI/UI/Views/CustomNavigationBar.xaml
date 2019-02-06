@@ -1,39 +1,52 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:fs="clr-namespace:SINTEF.AutoActive.UI.FileSystem"
              x:Class="SINTEF.AutoActive.UI.Views.CustomNavigationBar">
     <ContentView.Content>
-        <AbsoluteLayout>
+        <Grid>
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
             <Button
-                Text="Back"
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                AbsoluteLayout.LayoutBounds="0,0,80,40"
+                Grid.Column="0"
+                Text="&lt;-"
             />
 
-            <fs:OpenArchiveButton 
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                AbsoluteLayout.LayoutBounds="0.1,0,80,40"
+            <Button
+                Grid.Column="1"
+                x:Name="OpenArchiveButton"
+                Text="Open"
+                Clicked="OpenArchiveButton_OnClicked"
             />
 
-            <fs:OpenImportButton 
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                AbsoluteLayout.LayoutBounds="0.2,0,80,40"
+            <Button
+                Grid.Column="2"
+                x:Name="OpenImportButton"
+                Text="Import file"
+                Clicked="OpenImportButton_OnClicked"
             />
 
-            <Label
-                Text="Title"
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                AbsoluteLayout.LayoutBounds="0.5,0,80,40"
+            <Button
+                Grid.Column="3"
+                x:Name="SaveArchiveButton"
+                Text="Save"
+                Clicked="SaveArchiveButton_OnClicked"
             />
             <Button
+                Grid.Column="4"
                 x:Name="MenuButton"
                 Text="Menu"
-                AbsoluteLayout.LayoutFlags="PositionProportional"
-                AbsoluteLayout.LayoutBounds="1,0,80,40"
                 IsVisible="false"
                 Clicked="MenuButton_Clicked"
             />
-        </AbsoluteLayout>
+            <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
+        </Grid>
     </ContentView.Content>
 </ContentView>

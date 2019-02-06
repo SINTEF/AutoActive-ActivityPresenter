@@ -1,6 +1,5 @@
 ﻿using SINTEF.AutoActive.Archive;
 using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
@@ -13,21 +12,26 @@ using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
-    public class ArchiveVideo : ArchiveStructure
+    public class ArchiveVideo : ArchiveStructure, ISaveable
     {
+        private readonly ZipEntry _zipEntry;
+        private readonly Archive.Archive _archive;
         public override string Type => "no.sintef.video";
 
         internal ArchiveVideo(JObject json, Archive.Archive archive) : base(json)
         {
             var path = Meta["path"].ToObject<string>() ?? throw new ArgumentException("Video is missing 'path'");
 
+            _archive = archive;
+
             // Find the file in the archive
-            var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
+            _zipEntry = _archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
 
             // Create the video datapoint
-            var video = new ArchiveVideoVideo(zipEntry, archive, path);
+            var video = new ArchiveVideoVideo(_zipEntry, _archive, path);
             video.Name = "Video";
             AddDataPoint(video);
+            IsSaved = true;
         }
 
         public bool IsSaved { get; }
@@ -65,33 +69,33 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
     public class ArchiveVideoVideo : IDataPoint
     {
-        ZipEntry zipEntry;
-        Archive.Archive archive;
-        string path;
-        ArchiveVideoTime time;
+        private readonly ZipEntry _zipEntry;
+        private readonly Archive.Archive _archive;
+        private readonly string _path;
+        private readonly ArchiveVideoTime _time;
 
 
         internal ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path)
         {
-            this.zipEntry = zipEntry;
-            this.archive = archive;
-            this.path = path;
-            time = new ArchiveVideoTime(zipEntry, archive, path);
+            _zipEntry = zipEntry;
+            _archive = archive;
+            _path = path;
+            _time = new ArchiveVideoTime(zipEntry, archive, path);
         }
 
         public Type DataType => throw new NotImplementedException();
 
         public string Name { get; set; }
 
-        public ITimePoint Time => time;
+        public ITimePoint Time => _time;
 
         public async Task<IDataViewer> CreateViewer()
         {
             var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
             if (factory != null)
             {
-                var mime = MimeUtility.GetMimeMapping(path);
-                var decoder = await factory.CreateVideoDecoder(archive.OpenFileFactory(zipEntry), mime);
+                var mime = MimeUtility.GetMimeMapping(_path);
+                var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
                 Debug.WriteLine("Decoder created!");
                 return new ArchiveVideoVideoViewer(this, decoder);
             }
@@ -101,15 +105,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
     public class ArchiveVideoTime : ITimePoint
     {
-        ZipEntry zipEntry;
-        Archive.Archive archive;
-        string path;
+        private readonly ZipEntry _zipEntry;
+        private readonly Archive.Archive _archive;
+        private readonly string _path;
 
         internal ArchiveVideoTime(ZipEntry zipEntry, Archive.Archive archive, string path)
         {
-            this.zipEntry = zipEntry;
-            this.archive = archive;
-            this.path = path;
+            _zipEntry = zipEntry;
+            _archive = archive;
+            _path = path;
         }
 
         public bool IsSynchronizedToWorldClock => false; // FIXME: How do we store the sync?
@@ -117,38 +121,37 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public async Task<ITimeViewer> CreateViewer()
         {
             var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
-            if (factory != null)
-            {
-                var mime = MimeUtility.GetMimeMapping(path);
-                var decoder = await factory.CreateVideoDecoder(archive.OpenFileFactory(zipEntry), mime);
-                return new ArchiveVideoTimeViewer(this, decoder);
-            }
-            throw new NotImplementedException();
+
+            if (factory == null) throw new NotImplementedException();
+
+            var mime = MimeUtility.GetMimeMapping(_path);
+            var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
+            return new ArchiveVideoTimeViewer(this, decoder);
         }
     }
 
     public class ArchiveVideoTimeViewer : ITimeViewer
     {
-        ArchiveVideoTime time;
-        IVideoDecoder decoder;
+        private readonly ArchiveVideoTime _time;
+        private readonly IVideoDecoder _decoder;
 
         internal ArchiveVideoTimeViewer(ArchiveVideoTime time, IVideoDecoder decoder)
         {
-            this.time = time;
-            this.decoder = decoder;
+            _time = time;
+            _decoder = decoder;
             LoadTime();
         }
 
         private async void LoadTime()
         {
-            End = await decoder.GetLengthAsync();
+            End = await _decoder.GetLengthAsync();
             TimeChanged?.Invoke(this, Start, End);
             Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
         public void UpdatedTimeIndex() { }
 
-        public ITimePoint TimePoint => time;
+        public ITimePoint TimePoint => _time;
 
         public long Start { get; private set; } = 0;
         public long End { get; private set; } = 0;
@@ -158,35 +161,35 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
     public class ArchiveVideoVideoViewer : IImageViewer
     {
-        ArchiveVideoVideo video;
-        BufferedVideoDecoder decoder;
+        private readonly ArchiveVideoVideo _video;
+        private readonly BufferedVideoDecoder _decoder;
 
-        VideoDecoderFrame currentFrame;
+        private VideoDecoderFrame _currentFrame;
 
-        readonly object locker = new object();
-        CancellationTokenSource cancellation;
+        readonly object _locker = new object();
+        private CancellationTokenSource _cancellation;
 
         public event DataViewerWasChangedHandler Changed;
 
-        public IDataPoint DataPoint => video;
+        public IDataPoint DataPoint => _video;
 
         public long CurrentTimeRangeFrom { get; private set; }
         public long CurrentTimeRangeTo { get; private set; }
 
         internal ArchiveVideoVideoViewer(ArchiveVideoVideo video, IVideoDecoder decoder)
         {
-            this.video = video;
-            this.decoder = new BufferedVideoDecoder(decoder);
+            _video = video;
+            _decoder = new BufferedVideoDecoder(decoder);
         }
 
         public Task SetSize(uint width, uint height)
         {
-            return decoder.SetSizeAsync(width, height);
+            return _decoder.SetSizeAsync(width, height);
         }
 
         public ImageFrame GetCurrentImage()
         {
-            return new ImageFrame(currentFrame.Width, currentFrame.Height, currentFrame.Frame);
+            return new ImageFrame(_currentFrame.Width, _currentFrame.Height, _currentFrame.Frame);
         }
 
         public void SetTimeRange(long from, long to)
@@ -194,23 +197,18 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             UpdateCurrentFrame(from);
         }
 
-        async void UpdateCurrentFrame(long time)
+        private async void UpdateCurrentFrame(long time)
         {
-            CancellationToken token;
-            lock (locker)
+            lock (_locker)
             {
                 // Stop any previous frame grabbing
-                if (cancellation != null)
-                {
-                    cancellation.Cancel();
-                }
-                cancellation = new CancellationTokenSource();
-                token = cancellation.Token;
+                _cancellation?.Cancel();
+                _cancellation = new CancellationTokenSource();
             }
             try
             {
-                var frame = await decoder.GetFrameAtAsync(time, cancellation.Token);
-                currentFrame = frame;
+                var frame = await _decoder.GetFrameAtAsync(time, _cancellation.Token);
+                _currentFrame = frame;
                 Changed?.Invoke(this);
             }
             catch (OperationCanceledException) { }

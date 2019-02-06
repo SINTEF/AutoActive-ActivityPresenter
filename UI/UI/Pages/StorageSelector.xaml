@@ -1,0 +1,43 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="SINTEF.AutoActive.UI.Pages.StorageSelector"
+             x:Name="This">
+    <ContentPage.BindingContext>
+        <x:Reference Name="This" />
+    </ContentPage.BindingContext>
+    <ContentPage.Content>
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"></RowDefinition>
+                <RowDefinition Height="*"></RowDefinition>
+                <RowDefinition Height="Auto"></RowDefinition>
+            </Grid.RowDefinitions>
+            <Grid Grid.Row="0">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <Label Grid.Column="0" Grid.Row="0">Sessions</Label>
+                <Picker Grid.Column="1" Grid.Row="0" ItemsSource="{Binding Sessions}" ItemDisplayBinding="{Binding Name}" />
+
+                <Label Grid.Column="0" Grid.Row="1">Data</Label>
+                <Picker Grid.Column="1" Grid.Row="1" ItemsSource="{Binding DataPoints}" ItemDisplayBinding="{Binding Name}" />
+            </Grid>
+            <Grid Grid.Row="2">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="3*" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+                <Button Grid.Column="0" Text="Save" Clicked="Save_OnClicked"/>
+                <Button Grid.Column="2" Text="Cancel" Clicked="Cancel_OnClicked"/>
+            </Grid>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
