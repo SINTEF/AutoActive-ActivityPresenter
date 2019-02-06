@@ -38,6 +38,11 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return new ArchiveSession(json, archive) { IsSaved = false };
         }
 
+        public override int GetHashCode()
+        {
+            return Id.GetHashCode();
+        }
+
         // FIXME: Implement these
         public event DataStructureAddedHandler DataStructureAddedToTree;
         public event DataStructureRemovedHandler DataStructureRemovedFromTree;

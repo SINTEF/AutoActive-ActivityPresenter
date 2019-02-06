@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Xamarin.Forms;
 using Windows.Storage.Pickers;
 
@@ -7,20 +8,19 @@ using SINTEF.AutoActive.UI.UWP.FileSystem;
 using System.Threading.Tasks;
 using System.IO;
 using Windows.Storage;
-using System.Diagnostics;
 using SINTEF.AutoActive.Plugins.Import;
-using System.Threading;
 
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.UWP.FileSystem
 {
     class ReadSeekStreamFactory : IReadSeekStreamFactory
     {
-        protected StorageFile _file;
+        protected StorageFile File;
+        protected List<Stream> Streams = new List<Stream>();
 
         internal ReadSeekStreamFactory(StorageFile file)
         {
-            _file = file;
+            File = file;
             Name = file.DisplayName;
             Extension = file.FileType;
             Mime = file.ContentType;
@@ -33,10 +33,28 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
 
         public async Task<Stream> GetReadStream()
         {
-            var stream = await _file.OpenStreamForReadAsync();
-            if (!stream.CanRead) throw new IOException("Stream must readable");
-            if (!stream.CanSeek) throw new IOException("Stream must be seekable");
-            return stream;
+            Stream stream = null;
+            try
+            {
+                stream = await File.OpenStreamForReadAsync();
+                if (!stream.CanRead) throw new IOException("Stream must readable");
+                if (!stream.CanSeek) throw new IOException("Stream must be seekable");
+                Streams.Add(stream);
+                return stream;
+            }
+            catch (Exception ex)
+            {
+                stream?.Close();
+                throw;
+            }
+        }
+
+        public void Close()
+        {
+            foreach (var stream in Streams)
+            {
+                stream.Close();
+            }
         }
     }
 
@@ -46,22 +64,34 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
 
         public async Task<Stream> GetReadWriteStream()
         {
-            var stream = await _file.OpenStreamForWriteAsync();
-            if (!stream.CanRead) throw new IOException("Stream must readable");
-            if (!stream.CanWrite) throw new IOException("Stream must be writable");
-            if (!stream.CanSeek) throw new IOException("Stream must be seekable");
-            return stream;
+            Stream stream = null;
+            try
+            {
+                stream = await File.OpenStreamForWriteAsync();
+                if (!stream.CanRead) throw new IOException("Stream must readable");
+                if (!stream.CanWrite) throw new IOException("Stream must be writable");
+                if (!stream.CanSeek) throw new IOException("Stream must be seekable");
+                Streams.Add(stream);
+                return stream;
+            }
+            catch (Exception)
+            {
+                stream?.Close();
+                throw;
+            }
         }
     }
 
     public class FileBrowser : IFileBrowser
     {
+        private const string Extension = ".aaz";
+
         public async Task<IReadWriteSeekStreamFactory> BrowseForArchive()
         {
             var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(".aaz");
+            picker.FileTypeFilter.Add(Extension);
             var file = await picker.PickSingleFileAsync();
-            return new ReadWriteSeekStreamFactory(file);
+            return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
 
         public async Task<IReadSeekStreamFactory> BrowseForImportFile()
@@ -75,7 +105,18 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
                 picker.FileTypeFilter.Add(extension);
             }
             var file = await picker.PickSingleFileAsync();
-            return new ReadSeekStreamFactory(file);
+            return file == null ? null : new ReadWriteSeekStreamFactory(file);
+        }
+
+        public async Task<IReadWriteSeekStreamFactory> BrowseForSave()
+        {
+            var picker = new FileSavePicker();
+
+            picker.FileTypeChoices.Add("AutoActive archive", new List<string> { Extension });
+            picker.SuggestedFileName = DateTime.Now.ToString("yyyy-MM-dd--HH-mm");
+
+            var file = await picker.PickSaveFileAsync();
+            return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
     }
 }

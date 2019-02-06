@@ -71,6 +71,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             var timeInfo = tableInformation.Time;
             var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(reader, timeInfo), false);
 
+            // TODO(sigurdal): Handle nullable data? column.HasNulls
             foreach (var column in tableInformation.Columns)
             {
                 switch (column.DataType)
@@ -162,6 +163,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 return true;
             }
 
+            var tableName = "data.parquet";
+            string tablePath;
+
             using (var ms = new MemoryStream())
             {
                 using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
@@ -170,7 +174,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 }
 
                 ms.Position = 0;
-                writer.StoreFile(ms, "data.parquet");
+                tablePath = writer.StoreFile(ms, tableName);
             }
 
             if (!root.TryGetValue("user", out var user))
@@ -185,7 +189,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 root["meta"] = meta;
             }
             root["meta"]["type"] = Type;
-            root["meta"]["path"] = $"{writer.RootName}/data.parquet";
+            root["meta"]["path"] = tablePath;
 
             return true;
         }

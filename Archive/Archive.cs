@@ -125,6 +125,11 @@ namespace SINTEF.AutoActive.Archive
             return new Archive(ZipFile.Create(fileName));
         }
 
+        public static Archive Create(Stream outStream)
+        {
+            return new Archive(ZipFile.Create(outStream));
+        }
+
         public void AddSession(ArchiveSession session)
         {
             _sessions.Add(session);
@@ -152,7 +157,7 @@ namespace SINTEF.AutoActive.Archive
 
         public void Close()
         {
-            _zipFile.Close();
+            _zipFile?.Close();
         }
 
         /* ---- Public API ---- */
@@ -181,6 +186,11 @@ namespace SINTEF.AutoActive.Archive
             public async Task<Stream> GetReadStream()
             {
                 return await _archive.OpenFile(_entry);
+            }
+
+            public void Close()
+            {
+                _archive.Close();
             }
         }
     }

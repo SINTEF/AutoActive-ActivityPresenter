@@ -30,12 +30,37 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             AddDataPoint(video);
         }
 
-        /*
-        protected override void ToArchiveJSON(JObject meta, JObject user)
+        public bool IsSaved { get; }
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
+            if (IsSaved)
+            {
+                using (var stream = await _archive.OpenFile(_zipEntry))
+                {
+                    writer.StoreFile(stream, _zipEntry.Name);
+                }
+
+                return true;
+            }
+
+            System.IO.Stream videoStream = null;
+            var path = writer.StoreFile(videoStream, _zipEntry.Name);
+
+            root["video"] = new JObject
+            {
+                ["meta"] = new JObject
+                {
+                    ["path"] = path,
+                    ["type"] = Type
+                },
+                ["user"] = new JObject
+                {
+
+                }
+            };
+
             throw new NotImplementedException();
         }
-        */
     }
 
     public class ArchiveVideoVideo : IDataPoint

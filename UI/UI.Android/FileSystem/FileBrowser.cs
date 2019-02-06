@@ -1,17 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Android.App;
 using Android.Content;
 using Android.OS;
-using Android.OS.Storage;
 using Android.Provider;
 using Android.Runtime;
-using Android.Views;
-using Android.Widget;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Droid.FileSystem;
 using Xamarin.Forms;
@@ -23,7 +18,8 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
 {
     class ReadSeekStreamFactory : IReadSeekStreamFactory
     {
-        protected string _path;
+        protected string Path;
+        protected List<Stream> Streams = new List<Stream>();
 
         public string Name { get; private set; }
         public string Extension { get; private set; }
@@ -32,25 +28,36 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
 
         internal ReadSeekStreamFactory(string path)
         {
-            _path = path;
+            Path = path;
             // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
 
-            Name = Path.GetFileNameWithoutExtension(path);
-            Extension = Path.GetExtension(path);
+            Name = System.IO.Path.GetFileNameWithoutExtension(path);
+            Extension = System.IO.Path.GetExtension(path);
         }
 
         public Task<Stream> GetReadStream()
         {
+            Stream stream = null;
             try
             {
-                var stream = new FileStream(_path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                stream = new FileStream(Path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 if (!stream.CanRead) throw new IOException("Stream must readable");
                 if (!stream.CanSeek) throw new IOException("Stream must be seekable");
+                Streams.Add(stream);
                 return Task.FromResult((Stream)stream);
             }
             catch (Exception ex)
             {
+                stream?.Close();
                 return Task.FromException<Stream>(ex);
+            }
+        }
+
+        public void Close()
+        {
+            foreach (var fileStream in Streams)
+            {
+                fileStream.Close();
             }
         }
     }
@@ -61,17 +68,20 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
 
         public Task<Stream> GetReadWriteStream()
         {
+            FileStream stream = null;
             try
             {
                 Debug.WriteLine("OPENING READ/WRITE STREAM");
-                var stream = new FileStream(_path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
+                stream = new FileStream(Path, FileMode.Open, FileAccess.ReadWrite, FileShare.Read);
                 if (!stream.CanRead) throw new IOException("Stream must readable");
                 if (!stream.CanWrite) throw new IOException("Stream must be writable");
                 if (!stream.CanSeek) throw new IOException("Stream must be seekable");
+                Streams.Add(stream);
                 return Task.FromResult((Stream)stream);
             }
             catch (Exception ex)
             {
+                stream?.Close();
                 return Task.FromException<Stream>(ex);
             }
         }
@@ -102,8 +112,9 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             uriSource = new TaskCompletionSource<Android.Net.Uri>();
 
             var context = Android.App.Application.Context;
-            Intent pickerIntent = new Intent(context, typeof(FileBrowserActivity));
+            var pickerIntent = new Intent(context, typeof(FileBrowserActivity));
             //pickerIntent.SetFlags(ActivityFlags.NewTask);
+            pickerIntent.Extras.PutBoolean("for_saving", false);
             context.StartActivity(pickerIntent);
 
             // Wait for the URI to be picked
@@ -114,17 +125,33 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             var path = GetPath(context, uri);
             Debug.WriteLine($"PATH TO OPEN: {path}");
 
-            if (path != null && path.Length > 0)
-            {
-                // TODO: Should we check that the file is actually accessible?
-                return new ReadWriteSeekStreamFactory(path);
-            }
-            return null;
+            return !string.IsNullOrEmpty(path) ? new ReadWriteSeekStreamFactory(path) : null;
         }
 
         public async Task<IReadSeekStreamFactory> BrowseForImportFile()
         {
             return await BrowseForArchive();
+        }
+
+        public async Task<IReadWriteSeekStreamFactory> BrowseForSave()
+        {
+            uriSource = new TaskCompletionSource<Android.Net.Uri>();
+
+            var context = Android.App.Application.Context;
+            var pickerIntent = new Intent(context, typeof(FileBrowserActivity));
+            //pickerIntent.SetFlags(ActivityFlags.NewTask);
+            pickerIntent.Extras.PutBoolean("for_saving", true);
+            context.StartActivity(pickerIntent);
+
+            // Wait for the URI to be picked
+            var uri = await uriSource.Task;
+
+            // Make sure we can open this file locally
+            // FIXME: If not, we have to copy it somehwere
+            var path = GetPath(context, uri);
+            Debug.WriteLine($"PATH TO OPEN: {path}");
+
+            return !string.IsNullOrEmpty(path) ? new ReadWriteSeekStreamFactory(path) : null;
         }
 
         /* --- Helpers --- */
@@ -197,7 +224,7 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
     }
 
     [Activity]
-    class FileBrowserActivity : Activity
+    internal class FileBrowserActivity : Activity
     {
         static readonly int READ_INTENT_CODE = 8008;
 
@@ -205,11 +232,15 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         {
             base.OnCreate(savedInstanceState);
 
-            Debug.WriteLine($"Opening Picker");
+            Debug.WriteLine("Opening Picker");
 
-            Intent intent = new Intent(Intent.ActionOpenDocument);
-            intent.AddCategory(Intent.CategoryOpenable);
+            var intent = new Intent(Intent.ActionOpenDocument);
+
             intent.SetType("*/*");
+
+            intent.AddCategory(intent.Extras.GetBoolean("for_saving")
+                ? Intent.CategoryBrowsable
+                : Intent.CategoryOpenable);
             StartActivityForResult(intent, READ_INTENT_CODE);
         }
 

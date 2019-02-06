@@ -56,8 +56,10 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public string RootName { get; private set; }
 
-        public void StoreMeta(JObject meta)
+        public string StoreMeta(JObject meta)
         {
+            var path = $"{_id}/{ArchiveSession.SessionFileName}";
+
             using (var ms = new MemoryStream())
             using (var writer = new StreamWriter(ms))
             using (var jsonWriter = new JsonTextWriter(writer))
@@ -69,16 +71,20 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 ms.Position = 0;
 
                 _zipFile.BeginUpdate();
-                _zipFile.Add(new StreamSource(ms), $"{_id}/{ArchiveSession.SessionFileName}", CompressionMethod.Stored);
+                _zipFile.Add(new StreamSource(ms), path, CompressionMethod.Stored);
                 _zipFile.CommitUpdate();
             }
+
+            return path;
         }
 
-        public void StoreFile(Stream data, string name)
+        public string StoreFile(Stream data, string name)
         {
+            var path = $"{RootName}/{name}";
             _zipFile.BeginUpdate();
-            _zipFile.Add(new StreamSource(data), $"{RootName}/{name}", CompressionMethod.Stored);
+            _zipFile.Add(new StreamSource(data), path, CompressionMethod.Stored);
             _zipFile.CommitUpdate();
+            return path;
         }
 
         public void CreateDirectory(string name)
