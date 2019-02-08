@@ -1,14 +1,6 @@
-﻿using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -21,33 +13,30 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         static readonly double OVERLAY_MODE_WIDTH = 0.9;
         static readonly double OVERLAY_MODE_SHADE_OPACITY = 0.5;
 
-        public DataViewerContext ViewerContext { get; } = new TimeSynchronizedContext();
+        public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
-        public PlaybarView Playbar { get; private set; }
 
         public PlayerPage ()
 		{
 			InitializeComponent ();
 
-            (ViewerContext as TimeSynchronizedContext)?.SetSynchronizedToWorldClock(false);
+            ViewerContext?.SetSynchronizedToWorldClock(false);
 
-            Playbar = new PlaybarView(ViewerContext);
-            PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
-            //Playbar.ViewerContext = ViewerContext;
-            PlayerGrid.ViewerContext = ViewerContext;
+            //PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
+            Playbar.ViewerContext = ViewerContext;
 
             Splitter.DragStart += Splitter_DragStart;
             Splitter.Dragged += Splitter_Dragged;
 
             NavigationBar.MenuButtonClicked += NavigationBar_MenuButtonClicked;
 
-            TreeView.DataPointTapped += TreeView_DataPointTapped1;
+            TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
         }
 
-        private void TreeView_DataPointTapped1(object sender, IDataPoint datapoint)
+        private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
-            PlayerGrid.AddPlotFor(datapoint);
+            PlayerGrid.AddPlotFor(datapoint, ViewerContext);
         }
 
         private void TreeView_UseInTimelineTapped(object sender, IDataPoint datapoint)
@@ -56,15 +45,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         /* -- Show or hide the tree based on window size -- */
-        static readonly GridLength gridZeroLength = new GridLength(0, GridUnitType.Absolute);
-        enum TreeViewState { SplitMode, OverlayModeHidden, OverlayModeShown }
-        TreeViewState treeViewState = TreeViewState.SplitMode;
-        
-        void UpdateTreeView(TreeViewState nextTreeViewState)
+	    private static readonly GridLength GridZeroLength = new GridLength(0, GridUnitType.Absolute);
+
+	    private enum TreeViewState { SplitMode, OverlayModeHidden, OverlayModeShown }
+	    private TreeViewState _treeViewState = TreeViewState.SplitMode;
+
+	    private void UpdateTreeView(TreeViewState nextTreeViewState)
         {
-            if (nextTreeViewState == treeViewState) return;
-            var prevTreeViewState = treeViewState;
-            treeViewState = nextTreeViewState;
+            if (nextTreeViewState == _treeViewState) return;
+            var prevTreeViewState = _treeViewState;
+            _treeViewState = nextTreeViewState;
 
             // Hide or show the menu button
             NavigationBar.MenuButtonShown = nextTreeViewState != TreeViewState.SplitMode;
@@ -79,8 +69,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 // Move the tree into the grid
                 var grid = Content as Grid;
                 ColumnSplitter.Width = PlayerSplitterView.DefaultWidth;
-                ColumnTree.Width = treeViewWidth;
-                grid.Children.Add(TreeView, 2, 1);
+                ColumnTree.Width = _treeViewWidth;
+                grid?.Children.Add(TreeView, 2, 1);
                 TreeView.IsVisible = true;
             }
             else if (nextTreeViewState == TreeViewState.OverlayModeShown || nextTreeViewState == TreeViewState.OverlayModeHidden)
@@ -90,8 +80,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 {
                     // Remove it from the split
                     var grid = Content as Grid;
-                    ColumnSplitter.Width = gridZeroLength;
-                    ColumnTree.Width = gridZeroLength;
+                    ColumnSplitter.Width = GridZeroLength;
+                    ColumnTree.Width = GridZeroLength;
                     grid.Children.Remove(TreeView);
                     // Show it in the overlay
                     OverlayLayout.Children.Add(TreeView, new Rectangle(1, 1, OVERLAY_MODE_WIDTH, 1), AbsoluteLayoutFlags.All);
@@ -156,11 +146,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             base.OnSizeAllocated(width, height);
             var shouldShowSplit = width >= SPLIT_VIEW_WIDTH_MIN;
-            if (shouldShowSplit && treeViewState != TreeViewState.SplitMode)
+            if (shouldShowSplit && _treeViewState != TreeViewState.SplitMode)
             {
                 UpdateTreeView(TreeViewState.SplitMode);
             }
-            else if (!shouldShowSplit && treeViewState == TreeViewState.SplitMode)
+            else if (!shouldShowSplit && _treeViewState == TreeViewState.SplitMode)
             {
                 UpdateTreeView(TreeViewState.OverlayModeHidden);
             }
@@ -168,31 +158,31 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void NavigationBar_MenuButtonClicked(object sender, EventArgs e)
         {
-            if (treeViewState == TreeViewState.OverlayModeHidden)
+            if (_treeViewState == TreeViewState.OverlayModeHidden)
             {
                 UpdateTreeView(TreeViewState.OverlayModeShown);
             }
-            else if (treeViewState == TreeViewState.OverlayModeShown)
+            else if (_treeViewState == TreeViewState.OverlayModeShown)
             {
                 UpdateTreeView(TreeViewState.OverlayModeHidden);
             }
         }
 
         /* -- Resizing the tree view -- */
-        GridLength treeViewWidth = PlayerTreeView.DefaultWidth;
-        GridLength splitterStartDragWidth;
+        GridLength _treeViewWidth = PlayerTreeView.DefaultWidth;
+        GridLength _splitterStartDragWidth;
 
         private void Splitter_DragStart()
         {
-            splitterStartDragWidth = ColumnTree.Width;
+            _splitterStartDragWidth = ColumnTree.Width;
         }
 
         private void Splitter_Dragged(double x, double y)
         {
-            var newWidth = splitterStartDragWidth.Value - x;
+            var newWidth = _splitterStartDragWidth.Value - x;
             if (newWidth >= 0 && newWidth + ColumnSplitter.Width.Value <= Width)
             {
-                ColumnTree.Width = treeViewWidth = new GridLength(newWidth);
+                ColumnTree.Width = _treeViewWidth = new GridLength(newWidth);
             }
         }
 	}

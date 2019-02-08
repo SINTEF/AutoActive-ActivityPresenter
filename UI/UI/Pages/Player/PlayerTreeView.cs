@@ -4,9 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
-
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -45,23 +42,30 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataItemTemplateSelector : DataTemplateSelector
     {
-        DataTemplate providerTemplate = new DataTemplate(typeof(DataProviderCell));
-        DataTemplate structureTemplate = new DataTemplate(typeof(DataStructureCell));
-        DataTemplate pointTemplate = new DataTemplate(typeof(DataPointCell));
-        DataTemplate emptyTemplate = new DataTemplate(typeof(TextCell));
+        private readonly DataTemplate _providerTemplate = new DataTemplate(typeof(DataProviderCell));
+        private readonly DataTemplate _structureTemplate = new DataTemplate(typeof(DataStructureCell));
+        private readonly DataTemplate _pointTemplate = new DataTemplate(typeof(DataPointCell));
+        private readonly DataTemplate _emptyTemplate = new DataTemplate(typeof(TextCell));
 
         protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
         {
-            if (item is DataProviderItem) return providerTemplate;
-            if (item is DataStructureItem) return structureTemplate;
-            if (item is DataPointItem) return pointTemplate;
-            return emptyTemplate;
+            switch (item)
+            {
+                case DataProviderItem _:
+                    return _providerTemplate;
+                case DataStructureItem _:
+                    return _structureTemplate;
+                case DataPointItem _:
+                    return _pointTemplate;
+                default:
+                    return _emptyTemplate;
+            }
         }
     }
 
     internal abstract class DataItemCell : TextCell
     {
-        public DataItemCell()
+        protected DataItemCell()
         {
             this.SetBinding(TextProperty, "Text");
 
@@ -203,17 +207,17 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureItem : DataItem
     {
-        internal DataStructureItem(IDataStructure datastructure, DataRegistryTree tree) : base(tree)
+        internal DataStructureItem(IDataStructure dataStructure, DataRegistryTree tree) : base(tree)
         {
-            DataStructure = datastructure;
+            DataStructure = dataStructure;
 
-            datastructure.ChildAdded += ChildAdded;
-            datastructure.ChildRemoved += ChildRemoved;
-            datastructure.DataPointAdded += DataPointAdded;
-            datastructure.DataPointRemoved += DataPointRemoved;
+            dataStructure.ChildAdded += ChildAdded;
+            dataStructure.ChildRemoved += ChildRemoved;
+            dataStructure.DataPointAdded += DataPointAdded;
+            dataStructure.DataPointRemoved += DataPointRemoved;
 
-            foreach (var child in datastructure.Children) ChildAdded(datastructure, child);
-            foreach (var point in datastructure.DataPoints) DataPointAdded(datastructure, point);
+            foreach (var child in dataStructure.Children) ChildAdded(dataStructure, child);
+            foreach (var point in dataStructure.DataPoints) DataPointAdded(dataStructure, point);
         }
 
         public IDataStructure DataStructure { get; private set; }
@@ -225,7 +229,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public override void OnTapped()
         {
-            Debug.WriteLine($"DataStructureItem tapped");
+            Debug.WriteLine("DataStructureItem tapped");
             ToggleExpanded();
         }
 
@@ -255,6 +259,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private void DataPointAdded(IDataStructure sender, IDataPoint datapoint)
         {
             if (pointItems.ContainsKey(datapoint)) return;
+
             var item = new DataPointItem(datapoint, Tree);
             ChildItems.Add(item);
             pointItems.Add(datapoint, item);
@@ -289,34 +294,31 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         internal void HideChildItems()
         {
-            if (IsExpanded)
+            if (!IsExpanded) return;
+
+            foreach (var child in ChildItems)
             {
-                foreach (var child in ChildItems)
+                Tree.Remove(child);
+                if (child is DataStructureItem structureItem)
                 {
-                    Tree.Remove(child);
-                    if (child is DataStructureItem structureItem)
-                    {
-                        structureItem.IsShown = true;
-                        structureItem.HideChildItems();
-                    }
+                    structureItem.IsShown = true;
+                    structureItem.HideChildItems();
                 }
             }
         }
 
         private void ShowChildItems(ref int index)
         {
-            if (IsExpanded)
+            if (!IsExpanded) return;
+
+            foreach (var child in ChildItems)
             {
-                foreach (var child in ChildItems)
-                {
-                    index++;
-                    Tree.Insert(index, child);
-                    if (child is DataStructureItem structureItem)
-                    {
-                        structureItem.IsShown = true;
-                        structureItem.ShowChildItems(ref index);
-                    }
-                }
+                index++;
+                Tree.Insert(index, child);
+                if (!(child is DataStructureItem structureItem)) continue;
+
+                structureItem.IsShown = true;
+                structureItem.ShowChildItems(ref index);
             }
         }
     }

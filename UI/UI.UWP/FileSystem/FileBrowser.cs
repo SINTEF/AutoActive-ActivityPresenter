@@ -1,14 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Xamarin.Forms;
-using Windows.Storage.Pickers;
-
-using SINTEF.AutoActive.FileSystem;
-using SINTEF.AutoActive.UI.UWP.FileSystem;
-using System.Threading.Tasks;
-using System.IO;
-using Windows.Storage;
+﻿using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins.Import;
+using SINTEF.AutoActive.UI.UWP.FileSystem;
+using System;
+using System.Collections.Generic;
+using System.IO;
+using System.Threading.Tasks;
+using Windows.Storage;
+using Windows.Storage.Pickers;
+using Xamarin.Forms;
 
 [assembly: Dependency(typeof(FileBrowser))]
 namespace SINTEF.AutoActive.UI.UWP.FileSystem
@@ -27,9 +26,9 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             // TODO: Should we open a reader/writer to ensure no-one changes the file while we are potentially doing other stuff?
         }
 
-        public string Name { get; private set; }
-        public string Extension { get; private set; }
-        public string Mime { get; private set; }
+        public string Name { get; }
+        public string Extension { get; }
+        public string Mime { get; }
 
         public async Task<Stream> GetReadStream()
         {
@@ -42,7 +41,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
                 Streams.Add(stream);
                 return stream;
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 stream?.Close();
                 throw;
@@ -58,7 +57,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         }
     }
 
-    class ReadWriteSeekStreamFactory : ReadSeekStreamFactory, IReadWriteSeekStreamFactory
+    internal class ReadWriteSeekStreamFactory : ReadSeekStreamFactory, IReadWriteSeekStreamFactory
     {
         internal ReadWriteSeekStreamFactory(StorageFile file) : base(file) { }
 

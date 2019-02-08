@@ -38,8 +38,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             }
             return false;
         }
-        public long SelectedTimeFrom { get; }
-        public long SelectedTimeTo { get; }
+        public long SelectedTimeFrom { get; protected set; }
+        public long SelectedTimeTo { get; protected set; }
     }
 
     public delegate void DataViewerContextSelectedRangeChangedHandler(SingleSetDataViewerContext sender, long from, long to);
@@ -62,21 +62,20 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             foreach (var timeDataViewers in viewers)
             {
                 var timeviewer = timeDataViewers.Key;
-                if (timeviewer.TimePoint == datapoint.Time)
+                if (timeviewer.TimePoint != datapoint.Time) continue;
+
+                // We already have a time viewer for this datapoint, check if we also have a dataviewer
+                foreach (var dataviewer in timeDataViewers.Value)
                 {
-                    // We already have a time viewer for this datapoint, check if we also have a dataviewer
-                    foreach (var dataviewer in timeDataViewers.Value)
+                    if (dataviewer.DataPoint == datapoint)
                     {
-                        if (dataviewer.DataPoint == datapoint)
-                        {
-                            return dataviewer;
-                        }
+                        return dataviewer;
                     }
-                    // If not, create one
-                    var newViewer = await datapoint.CreateViewer();
-                    timeDataViewers.Value.Add(newViewer);
-                    SetTimeRangeForViewer(timeviewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
                 }
+                // If not, create one
+                var newViewer = await datapoint.CreateViewer();
+                timeDataViewers.Value.Add(newViewer);
+                SetTimeRangeForViewer(timeviewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
             }
 
             // If we don't have a timeviewer, we need to create both
@@ -126,8 +125,6 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         protected abstract void OnTimeViewerAvailableChanged(ITimeViewer sender, long start, long end);
 
         // --- Selected time range ---
-        public long SelectedTimeFrom { get; private set; } = 0;
-        public long SelectedTimeTo { get; private set; } = 0;
         private int _lastViewers = -1;
 
 
