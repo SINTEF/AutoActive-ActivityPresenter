@@ -1,13 +1,9 @@
-﻿using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Threading;
 using SINTEF.AutoActive.UI.Helpers;
@@ -20,7 +16,27 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     public partial class PlaybarView : ContentView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
-        public DataViewerContext ViewerContext { get; }
+
+        private DataViewerContext _viewerContext;
+        public DataViewerContext ViewerContext
+        {
+            get { return _viewerContext; }
+            set
+            {
+                if (_viewerContext != null)
+                {
+                    _viewerContext.AvailableTimeRangeChanged -= ViewerContext_AvailableTimeRangeChanged;
+                }
+
+                _viewerContext = value;
+
+                if (_viewerContext == null) return;
+
+                _viewerContext.AvailableTimeRangeChanged += ViewerContext_AvailableTimeRangeChanged;
+                ViewerContext_AvailableTimeRangeChanged(_viewerContext, _viewerContext.AvailableTimeFrom, _viewerContext.AvailableTimeTo);
+            }
+        }
+
         public IDataPoint PreviewDataPoint { get; private set; }
 
         public double PlaybackSpeed { get; private set; } = 1;
@@ -43,18 +59,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlaybarView()
         {
             InitializeComponent();
-        }
-
-        public PlaybarView (DataViewerContext context)
-        {
-            InitializeComponent ();
-
-            ViewerContext = context;
-            context.AvailableTimeRangeChanged += ViewerContext_AvailableTimeRangeChanged;
-            ViewerContext_AvailableTimeRangeChanged(context, context.AvailableTimeFrom, context.AvailableTimeTo);
-
+        
             var playTask = new Task(PlayButtonLoop);
-            _playTaskRunning = false;
             playTask.Start();
 
             WindowSlider.Value = WindowSize / 1000000d;
@@ -62,6 +68,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void PlayButtonLoop()
         {
+            _playTaskRunning = false;
+
             while (true)
             {
                 Thread.Sleep(PlayDelayMs);
@@ -85,6 +93,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private long SliderValueToTime(double value)
         {
+            if (ViewerContext == null || TimeSlider == null) return 0;
             return (long)(value / TimeSlider.Maximum * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
         }
 

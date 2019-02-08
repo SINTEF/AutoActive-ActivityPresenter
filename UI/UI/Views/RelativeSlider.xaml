@@ -1,0 +1,28 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
+             x:Class="SINTEF.AutoActive.UI.Views.RelativeSlider">
+    <ContentView.Content>
+        <StackLayout>
+            <views:DeltaSlider x:Name="Slider" Value="0" Minimum="-10" Maximum="10" UpdateRate="50"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition  Width="*" />
+                    <ColumnDefinition  Width="*"/>
+                    <ColumnDefinition  Width="*" />
+                </Grid.ColumnDefinitions>
+                <Label Grid.Column="0" BindingContext="{x:Reference Slider}" Text="{Binding Minimum, StringFormat='{}{0:F1}'}" HorizontalOptions="Start" />
+                <Grid Grid.Column="1" HorizontalOptions="Center">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+                    <Entry Grid.Column="0" BindingContext="{x:Reference Slider}" HorizontalTextAlignment="End" Text="{Binding Offset}" VerticalOptions="Center" />
+                    <Label Grid.Column="1" Text="s" HorizontalOptions="Start" VerticalOptions="Center" />
+                </Grid>
+                <Label Grid.Column="2" BindingContext="{x:Reference Slider}" Text="{Binding Maximum, StringFormat='{}{0:F1}'}" HorizontalOptions="End"/>
+            </Grid>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>

@@ -1,14 +1,13 @@
-﻿using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SkiaSharp;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
+using SINTEF.AutoActive.Plugins.Import.Mqtt;
+using SINTEF.AutoActive.UI.Figures;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -118,5 +117,25 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         protected abstract void RedrawCanvas(SKCanvas canvas, SKImageInfo info);
+
+
+	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
+	    {
+	        FigureView view;
+	        switch (datapoint)
+	        {
+	            case ArchiveVideoVideo _:
+	                view = await ImageView.Create(datapoint, context);
+	                break;
+	            case TableColumn _:
+	            case TableColumnDyn _:
+	                view = await LinePlot.Create(datapoint, context);
+	                break;
+	            default:
+	                throw new NotSupportedException();
+	        }
+
+	        return view;
+	    }
     }
 }
