@@ -14,6 +14,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         protected override void OnElementChanged(ElementChangedEventArgs<Slider> e)
         {
             base.OnElementChanged(e);
+            if (e.NewElement == null) return;
+
             _slider = e.NewElement as DeltaSlider;
             if (_slider == null) throw new ArgumentException();
 
