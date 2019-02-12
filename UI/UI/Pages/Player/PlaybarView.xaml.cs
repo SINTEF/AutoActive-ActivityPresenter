@@ -114,7 +114,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             if (_fromTimeIsCurrent)
             {
-                LabelTimeFrom.Text = Utils.FormatTime(time);
+                LabelTimeFrom.Text = TimeFormatter.FormatTime(time);
             }
             timeContext.SetSelectedTimeRange(time, time + WindowSize);
         }
@@ -138,10 +138,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
                 if (!_fromTimeIsCurrent)
                 {
-                    LabelTimeFrom.Text = Utils.FormatTime(from);
+                    LabelTimeFrom.Text = TimeFormatter.FormatTime(from);
                 }
 
-                LabelTimeTo.Text = Utils.FormatTime(to);
+                LabelTimeTo.Text = TimeFormatter.FormatTime(to);
                 _previewContext?.SetSelectedTimeRange(from, to);
 
                 // Check if this is the first time data is added to the screen
@@ -215,7 +215,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (ViewerContext is TimeSynchronizedContext context)
             {
                 LabelTimeFrom.Text =
-                    Utils.FormatTime(!_fromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
+                    TimeFormatter.FormatTime(!_fromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
             }
         }
     }

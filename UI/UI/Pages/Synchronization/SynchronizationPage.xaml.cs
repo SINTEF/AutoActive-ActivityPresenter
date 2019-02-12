@@ -69,7 +69,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 var layout = new StackLayout();
                 layout.Children.Add(figure);
                 var slider = new RelativeSlider();
-                slider.OffsetChanged += (s, a) => context.Offset = Utils.TimeFromSeconds(a.NewValue);
+                slider.OffsetChanged += (s, a) => context.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
                 layout.Children.Add(slider);
                 var frame = new Frame
                 {

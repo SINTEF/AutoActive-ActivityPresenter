@@ -1,6 +1,6 @@
 ﻿namespace SINTEF.AutoActive.UI.Helpers
 {
-    public static class Utils
+    public static class TimeFormatter
     {
         public const long MicrosPerSecond = 1000000L;
         public static string FormatTime(long time, long offset = 0)
@@ -25,6 +25,10 @@
         public static long TimeFromSeconds(double time)
         {
             return (long) (MicrosPerSecond * time);
+        }
+        public static double SecondsFromTime(long time)
+        {
+            return ((double) time) / MicrosPerSecond;
         }
     }
 }
