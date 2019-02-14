@@ -8,11 +8,9 @@ using System.Threading.Tasks;
 using System.Threading;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PlaybarView : ContentView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;

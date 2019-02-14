@@ -1,10 +1,8 @@
 ﻿using System;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class RelativeSlider : ContentView
 	{
 		public RelativeSlider ()

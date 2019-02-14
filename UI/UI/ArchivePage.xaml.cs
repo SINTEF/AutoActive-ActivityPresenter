@@ -11,7 +11,6 @@ using SINTEF.AutoActive.Archive;
 
 namespace SINTEF.AutoActive.UI
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class ArchivePage : ContentPage
 	{
         private DummyArchive _archive;
@@ -29,10 +28,5 @@ namespace SINTEF.AutoActive.UI
 
             fileList.ItemsSource = Ar.Files;
 		}
-
-        async void OnShowButtonClicked(Object sender, EventArgs args)
-        {
-            //await Navigation.PushAsync(new MainPage());
-        }
 	}
 }

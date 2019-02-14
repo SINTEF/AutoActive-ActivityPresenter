@@ -12,7 +12,6 @@ using SINTEF.AutoActive.Archive;
 
 namespace SINTEF.AutoActive.UI
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class WelcomePage : ContentPage
 	{
         ObservableCollection<DummyArchive> arList = new ObservableCollection<DummyArchive>();

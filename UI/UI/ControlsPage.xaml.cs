@@ -10,7 +10,6 @@ using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class ControlsPage : ContentPage
 	{
         ObservableCollection<string> speeds = new ObservableCollection<string>();

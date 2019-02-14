@@ -1,15 +1,14 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages.Synchronization
 {
-    [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class SynchronizationPage : ContentPage
     {
         public TimeSynchronizedContext MasterContext = new TimeSynchronizedContext();

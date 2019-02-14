@@ -8,7 +8,7 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages;
 
-[assembly: XamlCompilation(XamlCompilationOptions.Compile)]
+//[assembly: XamlCompilation(XamlCompilationOptions.Compile)]
 namespace SINTEF.AutoActive.UI
 {
     public partial class App : Application

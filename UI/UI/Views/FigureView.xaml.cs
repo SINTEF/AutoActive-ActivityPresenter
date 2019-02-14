@@ -9,11 +9,9 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public abstract partial class FigureView : ContentView
 	{
         private IDataViewer Viewer { get; set; }

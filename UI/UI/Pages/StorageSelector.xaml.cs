@@ -3,11 +3,9 @@ using System.Collections.Generic;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus.Interfaces;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class StorageSelector : ContentPage
 	{
 	    public IList<ArchiveSession> Sessions { get; }

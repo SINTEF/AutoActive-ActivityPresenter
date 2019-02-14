@@ -26,7 +26,7 @@
             <Button Text="Show it!"
                     VerticalOptions="CenterAndExpand"
                     HorizontalOptions="CenterAndExpand"
-                    Clicked="OnShowButtonClicked"/>
+                    />
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

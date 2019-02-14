@@ -11,11 +11,9 @@ using SINTEF.AutoActive.Plugins.Import;
 using SINTEF.AutoActive.UI.Pages;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class CustomNavigationBar : ContentView
 	{
         public static readonly GridLength DefaultHeight = 40;

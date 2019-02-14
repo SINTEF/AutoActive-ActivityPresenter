@@ -6,7 +6,6 @@ using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	[XamlCompilation(XamlCompilationOptions.Compile)]
 	public partial class PlayerPage : ContentPage
 	{
         static readonly double SPLIT_VIEW_WIDTH_MIN = 1000;
