@@ -41,8 +41,5 @@ namespace SINTEF.AutoActive.UI.FileSystem
             */
         }
 
-        public static SessionDirectory All { get; }
-
-        public static ReadOnlySessionDirectory RecentlyOpened { get; }
     }
 }
