@@ -31,9 +31,6 @@ namespace SINTEF.AutoActive.UI.UWP
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
-
-            // FIXME: Remove, this is only used for testing
-            var allSessions = SessionDatabase.All;
         }
 
         /// <summary>
