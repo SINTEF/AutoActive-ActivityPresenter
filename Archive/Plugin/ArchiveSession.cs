@@ -29,7 +29,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             IsSaved = true;
         }
 
-        public static ArchiveSession Create(Archive archive, string name)
+        public new static ArchiveSession Create(Archive archive, string name)
         {
             var meta = new JObject {["id"] = Guid.NewGuid()};
             var user = new JObject {["name"] = name, ["created"] = DateTimeOffset.Now};
