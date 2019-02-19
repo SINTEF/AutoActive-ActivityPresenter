@@ -45,22 +45,21 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         async Task<ITimeViewer> ITimePoint.CreateViewer()
         {
             // Ensure that the data is loaded
-            // await CreateViewer();
             var tv = new TableTimeIndexDynViewer(this);
             dynTimeIndexViewers.Add(tv);
             return tv;
         }
 
-        // public Task<ITimeViewer> CreateViewer()
-        // {
-        //    throw new NotImplementedException();
-        // }
+        public void TransformTime(long offset, double scale)
+        {
+            for (var i = 0; i < data.Length; i++)
+            {
+                data[i] = (long)(data[i] * scale + offset);
+            }
+        }
 
 
         public bool IsSynchronizedToWorldClock { get; private set; }
-
-        //internal override long HasDataFrom => data[0];
-        //internal override long HasDataTo => data[length - 1];
     }
 
     public class TableTimeIndexDynViewer : LongColumnDynViewer, ITimeViewer, IDynDataViewer

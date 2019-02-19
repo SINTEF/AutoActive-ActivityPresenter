@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Diagnostics;
 using System.Threading;
 using Xamarin.Forms;
 
@@ -51,7 +50,7 @@ namespace SINTEF.AutoActive.UI.Views
                 Thread.Sleep(_updateDelay);
                 if (!_manipulating) continue;
                 var s = Math.Sign(Value);
-                var v = Math.Abs(Value) / 2;
+                var v = Math.Abs(Value) / 60;
                 Offset += s * Math.Exp(v) / UpdateRate;
             }
         }

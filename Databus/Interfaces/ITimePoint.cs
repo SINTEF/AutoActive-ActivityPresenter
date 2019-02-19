@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
@@ -11,5 +8,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
         // TODO: If it is constant or changing?
         Task<ITimeViewer> CreateViewer();
+
+        void TransformTime(long offset, double scale);
     }
 }

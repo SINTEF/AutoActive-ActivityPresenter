@@ -108,6 +108,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
         private readonly string _path;
+        public long Offset;
+        public double Scale;
 
         internal ArchiveVideoTime(ZipEntry zipEntry, Archive.Archive archive, string path)
         {
@@ -127,6 +129,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             var mime = MimeUtility.GetMimeMapping(_path);
             var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
             return new ArchiveVideoTimeViewer(this, decoder);
+        }
+
+        public void TransformTime(long offset, double scale)
+        {
+            // TODO: Trigger TimeViewers' TimeChanged
+            Offset = offset;
+            Scale = scale;
         }
     }
 

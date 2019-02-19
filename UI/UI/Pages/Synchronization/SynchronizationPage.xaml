@@ -2,23 +2,22 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
-             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.SynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
-                <ColumnDefinition x:Name="ColumnTree" Width="{Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <player:PlayerTreeView x:Name="TreeView" Grid.Row="0" Grid.Column="1" />
-            <Grid x:Name="SyncGrid" VerticalOptions="FillAndExpand" Grid.Row="0" Grid.Column="0">
+            <Grid Grid.Column="0" Grid.Row="0" x:Name="SyncGrid" VerticalOptions="FillAndExpand">
                 <Grid.RowDefinitions>
                     <RowDefinition Height="2*"/>
                     <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
                     <RowDefinition Height="Auto"/>
                 </Grid.RowDefinitions>
                 <Grid.ColumnDefinitions>
@@ -27,36 +26,14 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
-
-                <!--
-                <Frame x:Name="MasterFrame"  BorderColor="Black" Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" Margin="5" BackgroundColor="LightSalmon" Padding="5">
-                    <StackLayout>
-                        <Label Text="Master" HorizontalOptions="Start" VerticalOptions="Start"/>
-                        <Label Text="Panel 1" 
-                               HorizontalOptions="Center"
-                               VerticalOptions="CenterAndExpand" 
-                        />
-                    </StackLayout>
-                </Frame>-->
-                
-                <Frame BorderColor="Black" Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Margin="5" HorizontalOptions="Fill" BackgroundColor="LightBlue">
-                    <StackLayout>
-                        <Label Text="Panel 3" 
-                               HorizontalOptions="Center"
-                               VerticalOptions="CenterAndExpand"/>
-                        <views:RelativeSlider />
-                    </StackLayout>
-                </Frame>
-                <Frame BorderColor="Black" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="2" Margin="5" HorizontalOptions="Fill" BackgroundColor="LightBlue">
-                    <StackLayout>
-                        <Label Text="Panel 4" 
-                               HorizontalOptions="Center"
-                               VerticalOptions="CenterAndExpand"/>
-                        <views:RelativeSlider />
-                    </StackLayout>
-                </Frame>
-                <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.ColumnSpan="4" Grid.Column="0"/>
             </Grid>
+            <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
+
+            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar"/>
+            <StackLayout Grid.Column="1" Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft">
+                <Button Text="Save" Clicked ="Save_OnClicked"/>
+                <Button Text="Cancel" Clicked="Cancel_OnClicked"/>
+            </StackLayout>
         </Grid>
     </ContentPage.Content>
 </ContentPage>
