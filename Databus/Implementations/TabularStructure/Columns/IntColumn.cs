@@ -52,7 +52,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         public override SpanPair<int> GetCurrentInts()
         {
-            return new SpanPair<int>(index.data.AsSpan(startIndex, length), column.data.AsSpan(startIndex, length));
+            return new SpanPair<int>(Index.Data.AsSpan(StartIndex, Length), column.data.AsSpan(StartIndex, Length));
         }
     }
 }

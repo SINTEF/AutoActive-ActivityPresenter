@@ -23,11 +23,11 @@ namespace SINTEF.AutoActive.UI.Figures
 
             // Use the correct path drawing function
             if (datapoint.DataType == typeof(byte)) return new ByteLinePlot(viewer, context);
-            else if (datapoint.DataType == typeof(int)) return new IntLinePlot(viewer, context);
-            else if (datapoint.DataType == typeof(long)) return new LongLinePlot(viewer, context);
-            else if (datapoint.DataType == typeof(float)) return new FloatLinePlot(viewer, context);
-            else if (datapoint.DataType == typeof(double)) return new DoubleLinePlot(viewer, context);
-            else return null;
+            if (datapoint.DataType == typeof(int)) return new IntLinePlot(viewer, context);
+            if (datapoint.DataType == typeof(long)) return new LongLinePlot(viewer, context);
+            if (datapoint.DataType == typeof(float)) return new FloatLinePlot(viewer, context);
+            if (datapoint.DataType == typeof(double)) return new DoubleLinePlot(viewer, context);
+            return null;
         }
 
         protected ITimeSeriesViewer Viewer { get; }
@@ -36,8 +36,8 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             Viewer = viewer;
 
-            if (Viewer.MinValueHint.HasValue) minYValue = (float)Viewer.MinValueHint.Value;
-            if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
+            if (Viewer.MinValueHint.HasValue) _minYValue = (float)Viewer.MinValueHint.Value;
+            if (Viewer.MaxValueHint.HasValue) _maxYValue = (float)Viewer.MaxValueHint.Value;
         }
 
         protected override void Viewer_Changed_Hook()
@@ -45,45 +45,45 @@ namespace SINTEF.AutoActive.UI.Figures
             if (Viewer == null)
                 return;
             // TODO fix crude autoscaling
-            if (Viewer.MinValueHint.HasValue) minYValue = (float)Viewer.MinValueHint.Value;
-            if (Viewer.MaxValueHint.HasValue) maxYValue = (float)Viewer.MaxValueHint.Value;
+            if (Viewer.MinValueHint.HasValue) _minYValue = (float)Viewer.MinValueHint.Value;
+            if (Viewer.MaxValueHint.HasValue) _maxYValue = (float)Viewer.MaxValueHint.Value;
         }
 
         public int MaxItems { get; } = 1000;
 
         // ---- Scaling ----
-        private float minYValue = -1;
-        private float maxYValue = 1;
+        private float _minYValue = -1;
+        private float _maxYValue = 1;
 
         public float MinY
         {
-            get => minYValue;
+            get => _minYValue;
             set
             {
-                minYValue = value;
+                _minYValue = value;
                 Canvas.InvalidateSurface();
             }
         }
 
         public float MaxY
         {
-            get => maxYValue;
+            get => _maxYValue;
             set
             {
-                maxYValue = value;
+                _maxYValue = value;
                 Canvas.InvalidateSurface();
             }
         }
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ScaleX(long v, long offset, float scale)
+        protected new float ScaleX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected float ScaleY(float v, float offset, float scale)
+        protected new float ScaleY(float v, float offset, float scale)
         {
             return (v - offset) * scale;
         }
@@ -119,8 +119,8 @@ namespace SINTEF.AutoActive.UI.Figures
             var startX = Viewer.CurrentTimeRangeFrom;
             var scaleX = (float)info.Width / (Viewer.CurrentTimeRangeTo - Viewer.CurrentTimeRangeFrom);
 
-            var minY = minYValue;
-            var maxY = maxYValue;
+            var minY = _minYValue;
+            var maxY = _maxYValue;
             var scaleY = info.Height / (maxY - minY);
 
             // Create path

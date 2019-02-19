@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace SINTEF.AutoActive.Databus.ViewerContext
+﻿namespace SINTEF.AutoActive.Databus.ViewerContext
 {
     public class SynchronizationContext : TimeSynchronizedContext
     {
@@ -43,6 +39,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
         public SynchronizationContext(TimeSynchronizedContext masterContext)
         {
+            SetSynchronizedToWorldClock(true);
             masterContext.SelectedTimeRangeChanged +=
                 (sender, from, to) =>
                 {

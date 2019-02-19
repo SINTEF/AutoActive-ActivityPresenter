@@ -1,11 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
@@ -42,7 +38,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
                 await loader;
                 // Get the actual implementation to check the loaded data
                 var dataLength = CheckLoaderResultLength();
-                if (index != null && index.data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
+                if (index != null && index.Data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
                 // Find the min and max values
                 var (min, max) = GetDataMinMax();
                 MinValueHint = min;
@@ -105,28 +101,28 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
     public abstract class TableColumnViewer : ITimeSeriesViewer
     {
-        protected TableTimeIndex index;
-        protected int startIndex = -1;
-        protected int endIndex = -1;
-        protected int length = -1;
+        protected TableTimeIndex Index;
+        protected int StartIndex = -1;
+        protected int EndIndex = -1;
+        protected int Length = -1;
 
         protected TableColumnViewer(TableTimeIndex index, TableColumn column)
         {
-            this.index = index;
+            Index = index;
             Column = column;
         }
 
         public void SetTimeRange(long from, long to)
         {
-            var start = index.FindIndex(startIndex, from);
-            var end = index.FindIndex(endIndex, to);
+            var start = Index.FindIndex(StartIndex, from);
+            var end = Index.FindIndex(EndIndex, to);
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
-            if (start != startIndex || end != endIndex)
+            if (start != StartIndex || end != EndIndex)
             {
-                startIndex = start;
-                endIndex = end;
-                length = endIndex - startIndex + 1;
+                StartIndex = start;
+                EndIndex = end;
+                Length = EndIndex - StartIndex + 1;
                 Changed?.Invoke(this);
             }
         }

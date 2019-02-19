@@ -62,7 +62,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
         public void SetSynchronizedToWorldClock(bool value)
         {
-            if (!InternalSetSynchronizedToWorldClock(value)) return;
+            IsSynchronizedToWorldClock = value;
 
             // Synchronization changed, we should re-calculate available time range
             GetAvailableTimeMinMax(value, out _currentMinViewer, out var from, out _currentMaxViewer, out var to);

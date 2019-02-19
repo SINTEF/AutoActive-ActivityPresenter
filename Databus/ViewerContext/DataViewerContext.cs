@@ -12,16 +12,18 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
     public abstract class DataViewerContext
     {
         // --- Clock mode ---
-        public bool IsSynchronizedToWorldClock { get; private set; }
-        public event DataViewerContextWorldClockChangedHandler SynchronizedToWorldClockChanged;
-        protected bool InternalSetSynchronizedToWorldClock(bool value)
+        private bool _isSynchronizedToWorldClock;
+        protected bool IsSynchronizedToWorldClock
         {
-            if (value == IsSynchronizedToWorldClock) return false;
-
-            IsSynchronizedToWorldClock = value;
-            SynchronizedToWorldClockChanged?.Invoke(this, value);
-            return true;
+            get => _isSynchronizedToWorldClock;
+            set
+            {
+                _isSynchronizedToWorldClock = value;
+                SynchronizedToWorldClockChanged?.Invoke(this, value);
+            }
         }
+
+        public event DataViewerContextWorldClockChangedHandler SynchronizedToWorldClockChanged;
 
         // --- Available time range ---
         public long AvailableTimeFrom { get; private set; }
@@ -48,8 +50,6 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
     {
         // ---- Data viewers ----
         private readonly Dictionary<ITimeViewer, List<IDataViewer>> viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
-        //private readonly ISet<ITimeViewer> timeviewers = new HashSet<ITimeViewer>();
-        //private readonly ISet<IDataViewer> dataviewers = new HashSet<IDataViewer>();
 
         private void SetTimeRangeForViewer(ITimeViewer timeviewer, IDataViewer dataviewer, long from, long to)
         {
@@ -86,40 +86,6 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             OnTimeViewerAvailableChanged(newTimeviewer, newTimeviewer.Start, newTimeviewer.End);
 
             return newDataviewer;
-
-            //// Check if we already have a viewer for this datapoint
-            //foreach (var existingViewer in dataviewers)
-            //{
-            //    if (existingViewer.DataPoint == datapoint)
-            //        return existingViewer;
-            //}
-
-            //// If not, we need to create a new one
-            //var viewer = await datapoint.CreateViewer();
-            //viewer.SetTimeRange(SelectedTimeFrom, SelectedTimeTo);
-            //dataviewers.Add(viewer);
-
-            //// Check if we have a timeviewer for the datapoints time
-            //var timeViewerFound = false;
-            //foreach (var existingViewer in timeviewers)
-            //{
-            //    if (existingViewer.TimePoint == datapoint.Time)
-            //    {
-            //        timeViewerFound = true;
-            //        break;
-            //    }
-            //}
-
-            //// If not, we need to create on of those as well
-            //if (!timeViewerFound)
-            //{
-            //    var timeviewer = await viewer.DataPoint.Time.CreateViewer();
-            //    timeviewers.Add(timeviewer);
-            //    timeviewer.Changed += OnTimeViewerAvailableChanged;
-            //    OnTimeViewerAvailableChanged(timeviewer, timeviewer.Start, timeviewer.End);
-            //}
-
-            //return viewer;
         }
 
         protected abstract void OnTimeViewerAvailableChanged(ITimeViewer sender, long start, long end);
