@@ -47,17 +47,18 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public bool IsSaved { get; protected set; }
 
-        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             writer.CreateDirectory(Name);
 
             if (!writer.JsonCreated)
             {
-                return true;
+                return Task.FromResult(true);
             }
 
             if (!root.TryGetValue("user", out var user))
             {
+
                 user = new JObject();
                 root["user"] = user;
             }
@@ -69,7 +70,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             }
 
             meta["type"] = Type;
-            return true;
+            return Task.FromResult(true);
         }
     }
 
