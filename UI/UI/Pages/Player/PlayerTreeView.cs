@@ -37,7 +37,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             UseInTimelineTapped?.Invoke(this, datapoint);
         }
-
+        public readonly Dictionary<object, uint> TreeLevel = new Dictionary<object, uint>();
     }
 
     internal class DataItemTemplateSelector : DataTemplateSelector
@@ -47,15 +47,36 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private readonly DataTemplate _pointTemplate = new DataTemplate(typeof(DataPointCell));
         private readonly DataTemplate _emptyTemplate = new DataTemplate(typeof(TextCell));
 
-        protected override DataTemplate OnSelectTemplate(object item, BindableObject container)
+        protected override DataTemplate OnSelectTemplate(object obj, BindableObject container)
         {
-            switch (item)
+            if (!(container is PlayerTreeView treeView))
             {
-                case DataProviderItem _:
+                throw new ArgumentException("Container not TreeView");
+            }
+
+            var treeLevel = treeView.TreeLevel;
+
+            if (!treeLevel.TryGetValue(obj, out var level))
+            {
+                level = 0;
+            }
+
+            switch (obj)
+            {
+                case DataProviderItem item:
+                    foreach (var it in item.ChildItems)
+                    {
+                        treeLevel[it] = level + 1;
+                    }
+
                     return _providerTemplate;
-                case DataStructureItem _:
+                case DataStructureItem item:
+                    foreach (var it in item.ChildItems)
+                    {
+                        treeLevel[it] = level + 1;
+                    }
                     return _structureTemplate;
-                case DataPointItem _:
+                case DataPointItem item:
                     return _pointTemplate;
                 default:
                     return _emptyTemplate;
@@ -63,16 +84,40 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
-    internal abstract class DataItemCell : TextCell
+    public abstract class DataItemCell : ViewCell
     {
+        public static readonly BindableProperty TextProperty = BindableProperty.Create(nameof(Text), typeof(string), typeof(DataItemCell));
+        private readonly Label _label = new Label();
+        private readonly Frame _frame;
+        private uint _indentationLevel;
+
+
         protected DataItemCell()
         {
             this.SetBinding(TextProperty, "Text");
-
             var infoAction = new MenuItem { Text = "Info" };
             infoAction.Clicked += InfoClicked;
             ContextActions.Add(infoAction);
+
+            _frame = new Frame
+            {
+                BorderColor = Color.Black, Content = _label, HorizontalOptions = LayoutOptions.Start
+            };
+            _frame.Padding = new Thickness(10);
+
+            _label.BindingContext = this;
+            _label.SetBinding(Label.TextProperty, "Text");
+
+            View = _frame;
         }
+
+        public string Text
+        {
+            get => (string)GetValue(TextProperty);
+            set => SetValue(TextProperty, value);
+        }
+
+        public string Detail { get; set; }
 
         private void InfoClicked(object sender, EventArgs e)
         {
@@ -83,6 +128,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             var dataItem = BindingContext as DataItem;
             dataItem?.OnTapped();
+        }
+
+        protected override void OnParentSet()
+        {
+            base.OnParentSet();
+            if (!(BindingContext is DataItem dataItem)) return;
+            if (!(Parent is PlayerTreeView treeView)) return;
+
+            treeView.TreeLevel.TryGetValue(dataItem, out _indentationLevel);
+
+            //FIXME: Maybe this can not be changed here?
+            //_frame.Padding = new Thickness(_indentationLevel * 20, 0, 0, 0);
         }
     }
 
@@ -134,7 +191,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     /* ---- Classes for building the tree view ---- */
     internal class DataRegistryTree : ObservableCollection<DataItem>
     {
-        private readonly Dictionary<IDataProvider, DataProviderItem> providerItems = new Dictionary<IDataProvider, DataProviderItem>();
+        private readonly Dictionary<IDataProvider, DataProviderItem> _providerItems = new Dictionary<IDataProvider, DataProviderItem>();
 
         internal DataRegistryTree()
         {
@@ -143,26 +200,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             DataRegistry.ProviderAdded += ProviderAdded;
             DataRegistry.ProviderRemoved += ProviderRemoved;
             // Add current items
-            foreach (var dataprovider in DataRegistry.Providers)
-                ProviderAdded(dataprovider);
+            foreach (var dataProvider in DataRegistry.Providers)
+                ProviderAdded(dataProvider);
         }
 
-        private void ProviderAdded(IDataProvider dataprovider)
+        private void ProviderAdded(IDataProvider dataProvider)
         {
-            if (providerItems.ContainsKey(dataprovider)) return;
-            var item = new DataProviderItem(dataprovider, this);
+            if (_providerItems.ContainsKey(dataProvider)) return;
+            var item = new DataProviderItem(dataProvider, this);
             Add(item);
-            providerItems.Add(dataprovider, item);
+            _providerItems.Add(dataProvider, item);
         }
 
-        private void ProviderRemoved(IDataProvider dataprovider)
+        private void ProviderRemoved(IDataProvider dataProvider)
         {
-            if (providerItems.TryGetValue(dataprovider, out var item))
-            {
-                Remove(item);
-                item.HideChildItems();
-                providerItems.Remove(dataprovider);
-            }
+            if (!_providerItems.TryGetValue(dataProvider, out var item)) return;
+
+            Remove(item);
+            item.HideChildItems();
+            _providerItems.Remove(dataProvider);
         }
 
         // Events for the view to listen to
@@ -196,9 +252,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderItem : DataStructureItem
     {
-        internal DataProviderItem(IDataProvider dataprovider, DataRegistryTree tree) : base(dataprovider, tree)
+        internal DataProviderItem(IDataProvider dataProvider, DataRegistryTree tree) : base(dataProvider, tree)
         {
-            DataProvider = dataprovider;
+            DataProvider = dataProvider;
             IsShown = true;
         }
 
@@ -234,44 +290,42 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         // --- Keep track of the children and datapoints ---
-        private readonly Dictionary<IDataStructure, DataItem> structureItems = new Dictionary<IDataStructure, DataItem>();
-        private readonly Dictionary<IDataPoint, DataItem> pointItems = new Dictionary<IDataPoint, DataItem>();
-        protected List<DataItem> ChildItems { get; private set; } = new List<DataItem>();
+        private readonly Dictionary<IDataStructure, DataItem> _structureItems = new Dictionary<IDataStructure, DataItem>();
+        private readonly Dictionary<IDataPoint, DataItem> _pointItems = new Dictionary<IDataPoint, DataItem>();
+        public List<DataItem> ChildItems { get; private set; } = new List<DataItem>();
 
         // FIXME: Update the following four methods to handle if the DataStructure IsExpanded
-        private void ChildAdded(IDataStructure sender, IDataStructure datastructure)
+        private void ChildAdded(IDataStructure sender, IDataStructure dataStructure)
         {
-            if (structureItems.ContainsKey(datastructure)) return;
-            var item = new DataStructureItem(datastructure, Tree);
+            if (_structureItems.ContainsKey(dataStructure)) return;
+            var item = new DataStructureItem(dataStructure, Tree);
             ChildItems.Add(item);
-            structureItems.Add(datastructure, item);
+            _structureItems.Add(dataStructure, item);
         }
 
-        private void ChildRemoved(IDataStructure sender, IDataStructure datastructure)
+        private void ChildRemoved(IDataStructure sender, IDataStructure dataStructure)
         {
-            if (structureItems.TryGetValue(DataStructure, out var item))
-            {
-                structureItems.Remove(datastructure);
-                ChildItems.Remove(item);
-            }
+            if (!_structureItems.TryGetValue(DataStructure, out var item)) return;
+
+            _structureItems.Remove(dataStructure);
+            ChildItems.Remove(item);
         }
 
         private void DataPointAdded(IDataStructure sender, IDataPoint datapoint)
         {
-            if (pointItems.ContainsKey(datapoint)) return;
+            if (_pointItems.ContainsKey(datapoint)) return;
 
             var item = new DataPointItem(datapoint, Tree);
             ChildItems.Add(item);
-            pointItems.Add(datapoint, item);
+            _pointItems.Add(datapoint, item);
         }
 
         private void DataPointRemoved(IDataStructure sender, IDataPoint datapoint)
         {
-            if (pointItems.TryGetValue(datapoint, out var item))
-            {
-                pointItems.Remove(datapoint);
-                ChildItems.Remove(item);
-            }
+            if (!_pointItems.TryGetValue(datapoint, out var item)) return;
+
+            _pointItems.Remove(datapoint);
+            ChildItems.Remove(item);
         }
 
         // --- Toggle expanded ---
@@ -299,11 +353,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             foreach (var child in ChildItems)
             {
                 Tree.Remove(child);
-                if (child is DataStructureItem structureItem)
-                {
-                    structureItem.IsShown = true;
-                    structureItem.HideChildItems();
-                }
+                if (!(child is DataStructureItem structureItem)) continue;
+
+                structureItem.IsShown = true;
+                structureItem.HideChildItems();
             }
         }
 

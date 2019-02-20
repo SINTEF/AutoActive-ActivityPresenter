@@ -24,7 +24,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         public SynchronizationPage()
         {
             InitializeComponent();
-            
+
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
             Playbar.ViewerContext = _masterContext;
@@ -47,7 +47,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 Content = masterLayout,
                 BorderColor = Color.Black,
                 Margin = 5,
-                HorizontalOptions = LayoutOptions.Fill,
+                HorizontalOptions = LayoutOptions.FillAndExpand,
+                VerticalOptions = LayoutOptions.FillAndExpand,
                 BackgroundColor = Color.LightSalmon
             };
             PlaceControl(frame, _index);
@@ -77,19 +78,19 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 context = new Tuple<SynchronizationContext, List<RelativeSlider>>(new SynchronizationContext(_masterContext), new List<RelativeSlider>());
                 _dataContextDictionary[e.Time] = context;
             }
-            
+
             var figure = await FigureView.GetView(e, context.Item1);
             figure.HorizontalOptions = LayoutOptions.FillAndExpand;
             figure.VerticalOptions = LayoutOptions.FillAndExpand;
-            
+
             var layout = new StackLayout();
             layout.Children.Add(figure);
             var slider = new RelativeSlider();
             context.Item2.Add(slider);
             slider.OffsetChanged += (s, a) => context.Item1.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
             var offset = TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.Item1.AvailableTimeFrom);
-            
-            if(Math.Abs(offset) > OffsetBeforeZeroing)
+
+            if (Math.Abs(offset) > OffsetBeforeZeroing)
                 slider.Offset = -offset;
 
             layout.Children.Add(slider);
@@ -105,7 +106,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             PlaceControl(frame, _index);
             _index++;
             SyncGrid.Children.Add(frame);
-            
+
         }
 
         private static void PlaceControl(BindableObject obj, int index)
