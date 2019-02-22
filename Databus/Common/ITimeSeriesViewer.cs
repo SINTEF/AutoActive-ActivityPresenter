@@ -1,6 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Runtime.CompilerServices;
+using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.Databus.Common
 {
@@ -24,10 +25,10 @@ namespace SINTEF.AutoActive.Databus.Common
     /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
     public readonly ref struct SpanPair<T>
     {
-        public SpanPair(Span<long> X, Span<T> Y)
+        public SpanPair(Span<long> x, Span<T> y)
         {
-            this.X = X;
-            this.Y = Y;
+            X = x;
+            Y = y;
         }
 
         public readonly Span<long> X;

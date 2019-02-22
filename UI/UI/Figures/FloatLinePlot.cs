@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Common;
+﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SkiaSharp;
 

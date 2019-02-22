@@ -7,14 +7,15 @@
     <ContentPage.Content>
         <Grid x:Name="PageGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="{Static views:CustomNavigationBar.DefaultHeight}" />
+                <RowDefinition Height="{x:Static views:CustomNavigationBar.DefaultHeight}" />
                 <RowDefinition x:Name="RowMain" Height="*" />
                 <RowDefinition x:Name="RowPlaybar" Height="Auto" />
+                <RowDefinition x:Name="Dis" Height="0"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition x:Name="ColumnSplitter" Width="{Static player:PlayerSplitterView.DefaultWidth}" />
-                <ColumnDefinition x:Name="ColumnTree" Width="{Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnSplitter" Width="{x:Static player:PlayerSplitterView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <!-- Content -->
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" />
@@ -22,8 +23,8 @@
             <player:PlayerSplitterView x:Name="Splitter" Grid.Row="1" Grid.Column="1" />
             <player:PlayerTreeView x:Name="TreeView" Grid.Row="1" Grid.Column="2" />
             <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />
-
-            <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="1" Grid.RowSpan="2" Grid.Column="0">
+            
+            <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="3" Grid.RowSpan="1" Grid.Column="0">
                 <BoxView x:Name="OverlayShading" IsVisible="False" Color="Black" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1"/>
             </AbsoluteLayout>
         </Grid>

@@ -114,8 +114,12 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public void SetTimeRange(long from, long to)
         {
-            var start = Index.FindIndex(StartIndex, from);
-            var end = Index.FindIndex(EndIndex, to);
+            var plotWindow = GetPlotWindow(from, to);
+            var startTime = plotWindow.Item1;
+            var endTime = plotWindow.Item2;
+
+            var start = Index.FindIndex(StartIndex, startTime);
+            var end = Index.FindIndex(EndIndex, endTime);
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
             if (start != StartIndex || end != EndIndex)
@@ -137,6 +141,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public long CurrentTimeRangeFrom { get; private set; }
         public long CurrentTimeRangeTo { get; private set; }
+
+        public static Tuple<long,long> GetPlotWindow(long from, long to)
+        {
+            var diff = (to - from);
+            var startTime = from - diff * 1 / 3;
+            var endTime = startTime + diff;
+            return new Tuple<long, long>(startTime, endTime);
+        }
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
         public virtual SpanPair<byte> GetCurrentBytes() { throw new NotSupportedException(); }
