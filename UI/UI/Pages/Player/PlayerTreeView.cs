@@ -86,11 +86,19 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     public abstract class DataItemCell : ViewCell
     {
-        public static readonly BindableProperty TextProperty = BindableProperty.Create(nameof(Text), typeof(string), typeof(DataItemCell));
+        public readonly BindableProperty TextProperty = BindableProperty.Create(nameof(Text), typeof(string),
+            typeof(DataItemCell),
+            propertyChanged: (boundObject, _, value) =>
+            {
+                if (!(boundObject is DataItemCell cell))
+                    return;
+
+                var text = value as string;
+                cell._label.Text = text;
+            });
         private readonly Label _label = new Label();
         private readonly Frame _frame;
         private uint _indentationLevel;
-
 
         protected DataItemCell()
         {
@@ -105,8 +113,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             };
             _frame.Padding = new Thickness(10);
 
-            _label.BindingContext = this;
-            _label.SetBinding(Label.TextProperty, "Text");
 
             View = _frame;
         }
