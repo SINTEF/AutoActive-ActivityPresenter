@@ -8,9 +8,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
     public abstract class TableColumn : IDataPoint
     {
-        protected TableTimeIndex index;
+        protected TableTimeIndex Index;
 
-        private Task loader;
+        private readonly Task _loader;
 
         public Type DataType { get; private set; }
         public string Name { get; set; }
@@ -18,27 +18,27 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         internal double? MinValueHint { get; private set; }
         internal double? MaxValueHint { get; private set; }
 
-        public ITimePoint Time => index;
+        public ITimePoint Time => Index;
 
         internal TableColumn(Type type, string name, Task loader, TableTimeIndex index)
         {
             DataType = type;
             Name = name;
-            this.index = index;
-            this.loader = loader;
+            Index = index;
+            _loader = loader;
         }
 
         // FIXME: Thread safety of the loading functions!!
         private async Task EnsureSelfIsLoaded()
         {
-            if (!loader.IsCompleted)
+            if (!_loader.IsCompleted)
             {
                 // Make sure the loading is done
-                loader.Start();
-                await loader;
-                // Get the actual implementation to check the loaded data
+                _loader.Start();
+                await _loader;
+                // Get the actual implementation to check the loaded Data
                 var dataLength = CheckLoaderResultLength();
-                if (index != null && index.Data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
+                if (Index != null && Index.Data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
                 // Find the min and max values
                 var (min, max) = GetDataMinMax();
                 MinValueHint = min;
@@ -48,11 +48,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         private async Task EnsureIndexAndDataIsLoaded()
         {
-            if (!loader.IsCompleted)
+            if (!_loader.IsCompleted)
             {
-                // Load the index data
-                await index.EnsureSelfIsLoaded();
-                // Load our own data
+                // Load the index Data
+                await Index.EnsureSelfIsLoaded();
+                // Load our own Data
                 await EnsureSelfIsLoaded();
             }
         }
@@ -63,27 +63,28 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             {
                 case BoolColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateBoolViewer(index);
+                    return CreateBoolViewer(Index);
                 case ByteColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateByteViewer(index);
+                    return CreateByteViewer(Index);
                 case IntColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateIntViewer(index);
+                    return CreateIntViewer(Index);
                 case LongColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateLongViewer(index);
+                    return CreateLongViewer(Index);
                 case FloatColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateFloatViewer(index);
+                    return CreateFloatViewer(Index);
                 case DoubleColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateDoubleViewer(index);
+                    return CreateDoubleViewer(Index);
                 case StringColumn c:
                     await EnsureIndexAndDataIsLoaded();
-                    return CreateStringViewer(index);
+                    return CreateStringViewer(Index);
                 default:
-                    throw new NotSupportedException();
+                    await EnsureIndexAndDataIsLoaded();
+                    return CreateGenericViewer(Index);
             }
         }
 
@@ -97,6 +98,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected virtual IDataViewer CreateFloatViewer(TableTimeIndex index) { throw new NotSupportedException(); }
         protected virtual IDataViewer CreateDoubleViewer(TableTimeIndex index) { throw new NotSupportedException(); }
         protected virtual IDataViewer CreateStringViewer(TableTimeIndex index) { throw new NotSupportedException(); }
+        protected virtual IDataViewer CreateGenericViewer(TableTimeIndex index) { throw new NotSupportedException(); }
     }
 
     public abstract class TableColumnViewer : ITimeSeriesViewer
@@ -158,5 +160,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         public virtual SpanPair<double> GetCurrentDoubles() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
 
+        public virtual SpanPair<T> GetCurrentData<T>() where T : IConvertible { throw new NotSupportedException(); }
     }
 }

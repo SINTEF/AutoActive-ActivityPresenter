@@ -16,4 +16,10 @@
     <ProjectReference Include="..\Archive\Archive.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="Xamarin.Forms.Core">
+      <HintPath>C:\Users\sigurdm\.nuget\packages\xamarin.forms\3.1.0.697729\lib\uap10.0\Xamarin.Forms.Core.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+
 </Project>

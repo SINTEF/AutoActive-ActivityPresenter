@@ -38,29 +38,28 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
-        private SKBitmap bitmap;
+        private SKBitmap _bitmap;
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             var frame = Viewer.GetCurrentImage();
-            if (frame.Frame != null && frame.Frame.Array != null)
+            if (frame.Frame == null || frame.Frame.Array == null) return;
+
+            if (_bitmap == null || _bitmap.Width != frame.Width || _bitmap.Height != frame.Height)
             {
-                if (bitmap == null || bitmap.Width != frame.Width || bitmap.Height != frame.Height)
-                {
-                    // Create a bitmap with the size of the canvas
-                    bitmap = new SKBitmap((int)frame.Width, (int)frame.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
-                }
-
-                // Cannot copy more pixels than in the image or the size of the canvas
-                var toCopy = Math.Min(frame.Frame.Count, bitmap.Width * bitmap.Height * 4);
-                Marshal.Copy(frame.Frame.Array, frame.Frame.Offset, bitmap.GetPixels(), toCopy);
-
-                // Calculate the offset to put the image in the center of the canvas
-                var offsetX = (Width - frame.Width) / 2;
-                var offsetY = (Height - frame.Height) / 2;
-
-                // Draw the image onto the canvas
-                canvas.DrawBitmap(bitmap, (float)offsetX, (float)offsetY);
+                // Create a bitmap with the size of the canvas
+                _bitmap = new SKBitmap((int)frame.Width, (int)frame.Height, SKColorType.Rgba8888, SKAlphaType.Opaque);
             }
+
+            // Cannot copy more pixels than in the image or the size of the canvas
+            var toCopy = Math.Min(frame.Frame.Count, _bitmap.Width * _bitmap.Height * 4);
+            Marshal.Copy(frame.Frame.Array, frame.Frame.Offset, _bitmap.GetPixels(), toCopy);
+
+            // Calculate the offset to put the image in the center of the canvas
+            var offsetX = (Width - frame.Width) / 2;
+            var offsetY = (Height - frame.Height) / 2;
+
+            // Draw the image onto the canvas
+            canvas.DrawBitmap(_bitmap, (float)offsetX, (float)offsetY);
         }
     }
 }

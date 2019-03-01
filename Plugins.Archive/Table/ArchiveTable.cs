@@ -101,6 +101,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 
             foreach (var column in tableInformation.Columns)
             {
+                if (column.HasNulls)
+                {
+                    throw new NotImplementedException("Nullable columns are not yet implemented.");
+                }
+
                 switch (column.DataType)
                 {
                     case DataType.Boolean:
@@ -128,9 +133,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             }
         }
 
-        private static async Task<T[]> LoadColumn<T>(RememberingParquetReader reader, DataField column)
+        private static Task<T[]> LoadColumn<T>(RememberingParquetReader reader, DataField column)
         {
-            return reader.LoadColumn<T>(column);
+            return Task.FromResult(reader.LoadColumn<T>(column));
         }
 
         private static Task<T[]> GenerateLoader<T>(RememberingParquetReader reader, DataField column)

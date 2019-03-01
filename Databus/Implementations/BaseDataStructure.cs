@@ -9,7 +9,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
         private readonly List<IDataStructure> children = new List<IDataStructure>();
         private readonly List<IDataPoint> datapoints = new List<IDataPoint>();
 
-        // Recursive searches to try to prevent creating loops in the tree of data
+        // Recursive searches to try to prevent creating loops in the tree of Data
         private bool Contains(IDataStructure datastructure)
         {
             foreach (var child in children)

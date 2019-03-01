@@ -159,6 +159,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public virtual SpanPair<float> GetCurrentFloats() { throw new NotSupportedException(); }
         public virtual SpanPair<double> GetCurrentDoubles() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
+        public virtual SpanPair<T> GetCurrentData<T>() where T : IConvertible { throw new NotImplementedException(); }
     }
 
 

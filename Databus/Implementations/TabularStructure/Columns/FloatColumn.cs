@@ -8,29 +8,29 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 {
     public class FloatColumn : TableColumn
     {
-        internal float[] data;
-        private Task<float[]> loader;
+        internal float[] Data;
+        private readonly Task<float[]> _loader;
 
         public FloatColumn(string name, Task<float[]> loader, TableTimeIndex index) : base(typeof(float), name, loader, index)
         {
-            this.loader = loader;
+            _loader = loader;
         }
 
         protected override int CheckLoaderResultLength()
         {
-            data = loader.Result;
-            return data.Length;
+            Data = _loader.Result;
+            return Data.Length;
         }
 
         protected override (double? min, double? max) GetDataMinMax()
         {
-            if (data.Length == 0) return (null, null);
-            var min = data[0];
-            var max = data[0];
-            for (var i = 1; i < data.Length; i++)
+            if (Data.Length == 0) return (null, null);
+            var min = Data[0];
+            var max = Data[0];
+            for (var i = 1; i < Data.Length; i++)
             {
-                if (data[i] < min) min = data[i];
-                if (data[i] > max) max = data[i];
+                if (Data[i] < min) min = Data[i];
+                if (Data[i] > max) max = Data[i];
             }
             return (min, max);
         }
@@ -52,7 +52,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         public override SpanPair<float> GetCurrentFloats()
         {
-            return new SpanPair<float>(Index.Data.AsSpan(StartIndex, Length), column.data.AsSpan(StartIndex, Length));
+            return new SpanPair<float>(Index.Data.AsSpan(StartIndex, Length), column.Data.AsSpan(StartIndex, Length));
         }
     }
 }

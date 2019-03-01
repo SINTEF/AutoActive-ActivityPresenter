@@ -1,6 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using System.Threading.Tasks;
 
@@ -8,29 +7,29 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 {
     public class DoubleColumn : TableColumn
     {
-        internal double[] data;
-        private Task<double[]> loader;
+        internal double[] Data;
+        private readonly Task<double[]> _loader;
 
         public DoubleColumn(string name, Task<double[]> loader, TableTimeIndex index) : base(typeof(double), name, loader, index)
         {
-            this.loader = loader;
+            _loader = loader;
         }
 
         protected override int CheckLoaderResultLength()
         {
-            data = loader.Result;
-            return data.Length;
+            Data = _loader.Result;
+            return Data.Length;
         }
 
         protected override (double? min, double? max) GetDataMinMax()
         {
-            if (data.Length == 0) return (null, null);
-            var min = data[0];
-            var max = data[0];
-            for (var i = 1; i < data.Length; i++)
+            if (Data.Length == 0) return (null, null);
+            var min = Data[0];
+            var max = Data[0];
+            for (var i = 1; i < Data.Length; i++)
             {
-                if (data[i] < min) min = data[i];
-                if (data[i] > max) max = data[i];
+                if (Data[i] < min) min = Data[i];
+                if (Data[i] > max) max = Data[i];
             }
             return (min, max);
         }
@@ -43,16 +42,16 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
     public class DoubleColumnViewer : TableColumnViewer
     {
-        private DoubleColumn column;
+        private readonly DoubleColumn _column;
 
         internal DoubleColumnViewer(TableTimeIndex index, DoubleColumn column) : base(index, column)
         {
-            this.column = column;
+            _column = column;
         }
 
         public override SpanPair<double> GetCurrentDoubles()
         {
-            return new SpanPair<double>(Index.Data.AsSpan(StartIndex, Length), column.data.AsSpan(StartIndex, Length));
+            return new SpanPair<double>(Index.Data.AsSpan(StartIndex, Length), _column.Data.AsSpan(StartIndex, Length));
         }
     }
 }

@@ -1,13 +1,10 @@
 ﻿using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
-using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -24,14 +21,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
-
         public async void AddPlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             var view = await FigureView.GetView(datapoint, timeContext);
-
             {
-                var tgr = new TapGestureRecognizer();
-                tgr.NumberOfTapsRequired = 1;
+                var tgr = new TapGestureRecognizer {NumberOfTapsRequired = 1};
                 tgr.Tapped += view.Viewer_Tapped;
                 view.GestureRecognizers.Add(tgr);
             }
@@ -42,6 +36,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(view);
+        }
+
+        private void Cgr_Clicked(object sender, EventArgs e)
+        {
+            Debug.WriteLine("Clicked!");
         }
 
         private void UseInTimelineClicked(object sender, EventArgs e)
@@ -132,6 +131,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             Debug.WriteLine("GRID: OnChildMeasureInvalidated");
             // When a child's size changes
+        }
+
+        public void RemoveChild(FigureView figureView)
+        {
+            Children.Remove(figureView);
         }
     }
 }

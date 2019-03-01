@@ -1,106 +1,127 @@
-﻿using System.Linq;
-using SkiaSharp;
-using System.Runtime.CompilerServices;
-using SINTEF.AutoActive.UI.Views;
-using System.Threading.Tasks;
+﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
+using SINTEF.AutoActive.UI.Views;
+using SkiaSharp;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
-    public abstract class LinePlot : FigureView
+    public class LinePlot : FigureView
     {
+        private readonly List<LineConfiguration> _lines = new List<LineConfiguration>();
+
+        private readonly TimeSynchronizedContext _context;
+
         public static async Task<LinePlot> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
-            // TODO: Check that this datapoint has a type that can be used
-            var viewer = await context.GetDataViewerFor(datapoint) as ITimeSeriesViewer;
+            var linePlot = new LinePlot(null, context);
 
-            // Use the correct path drawing function
-            if (datapoint.DataType == typeof(byte)) return new ByteLinePlot(viewer, context) {Legend = datapoint.Name};
-            if (datapoint.DataType == typeof(int)) return new IntLinePlot(viewer, context) {Legend = datapoint.Name};
-            if (datapoint.DataType == typeof(long)) return new LongLinePlot(viewer, context) {Legend = datapoint.Name};
-            if (datapoint.DataType == typeof(float)) return new FloatLinePlot(viewer, context) {Legend = datapoint.Name};
-            if (datapoint.DataType == typeof(double)) return new DoubleLinePlot(viewer, context) {Legend = datapoint.Name};
-            return null;
+            var lineDrawer = await linePlot.CreateLineDrawer(datapoint);
+            linePlot.AddLine(lineDrawer, datapoint.Name);
+            return linePlot;
         }
+
+        private float? _minYValue;
+        private float? _maxYValue;
+
+        public async void AddLine(IDataPoint datapoint)
+        {
+            AddLine(await CreateLineDrawer(datapoint), datapoint.Name);
+        }
+        public void AddLine(ILineDrawer lineDrawer, string legend)
+        {
+            lineDrawer.Parent = this;
+
+            
+            _lines.Add(new LineConfiguration()
+            {
+                Drawer = lineDrawer,
+                LinePaint = LinePaintProvider.GetNextPaint()
+            });
+            
+            _minYValue = _lines.Max(line => line.Drawer.MinY);
+            _maxYValue = _lines.Max(line => line.Drawer.MaxY);
+
+            var yDelta = _maxYValue.Value - _minYValue.Value;
+            foreach (var line in _lines)
+            {
+                line.YDelta = yDelta;
+                line.OffsetY = _maxYValue.Value;
+            }
+        }
+
+        public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
+
+        public async Task<ILineDrawer> CreateLineDrawer(IDataPoint dataPoint)
+        {
+            var viewer = await _context.GetDataViewerFor(dataPoint) as ITimeSeriesViewer;
+
+            if (!dataPoint.GetType().IsGenericType || viewer == null) return null;
+
+            var args = new object[] {viewer};
+
+            var genericConstructor = typeof(LineDrawer<>).MakeGenericType(dataPoint.DataType)
+                .GetConstructor(args.Select(a => a.GetType()).ToArray());
+
+            if (genericConstructor == null)
+            {
+                Debug.WriteLine(
+                    "Could not find LineDrawer constructor. Make sure it is public and that the specified arguments are correct.");
+            }
+
+            var lineDrawer = (ILineDrawer) genericConstructor?.Invoke(args);
+            if (lineDrawer != null)
+            {
+                lineDrawer.Legend = dataPoint.Name;
+            }
+            return lineDrawer;
+        }
+
+
+        protected void CreatePath<T>(SKPath plot, SpanPair<T> data, long offsetX, float scaleX, float offsetY, float scaleY) where T : IConvertible
+        {
+            var en = data.GetEnumerator(MaxPlotPoints);
+            if (!en.MoveNext()) return;
+
+            plot.MoveTo(ScaleX(en.Current.x, offsetX, scaleX), ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+            while (en.MoveNext())
+            {
+                plot.LineTo(ScaleX(en.Current.x, offsetX, scaleX), ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+            }
+        }
+
+        //TODO: remove this
+        protected virtual void CreatePath(SKPath plot, long offsetX, float scaleX, float offsetY, float scaleY) { }
 
         protected ITimeSeriesViewer Viewer { get; }
 
         protected LinePlot(ITimeSeriesViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
-            Viewer = viewer;
-
-            if (Viewer.MinValueHint.HasValue) _minYValue = (float)Viewer.MinValueHint.Value;
-            if (Viewer.MaxValueHint.HasValue) _maxYValue = (float)Viewer.MaxValueHint.Value;
+            _context = context;
         }
-
-        protected override void Viewer_Changed_Hook()
-        {
-            if (Viewer == null)
-                return;
-            // TODO fix crude autoscaling
-            if (Viewer.MinValueHint.HasValue) _minYValue = (float)Viewer.MinValueHint.Value;
-            if (Viewer.MaxValueHint.HasValue) _maxYValue = (float)Viewer.MaxValueHint.Value;
-        }
-
-        public int MaxItems { get; } = 1000;
-        public string Legend;
-
-        // ---- Scaling ----
-        private float _minYValue = -1;
-        private float _maxYValue = 1;
-
-        public float MinY
-        {
-            get => _minYValue;
-            set
-            {
-                _minYValue = value;
-                Canvas.InvalidateSurface();
-            }
-        }
-
-        public float MaxY
-        {
-            get => _maxYValue;
-            set
-            {
-                _maxYValue = value;
-                Canvas.InvalidateSurface();
-            }
-        }
+        
+        public static int MaxPlotPoints { get; } = 1000;
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected new float ScaleX(long v, long offset, float scale)
+        public new static float ScaleX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        protected new float ScaleY(float v, float offset, float scale)
+        public new static float ScaleY(float v, float offset, float scale)
         {
             return (v - offset) * scale;
         }
-
-        protected abstract void CreatePath(SKPath plot, long offsetX, float scaleX, float offsetY, float scaleY);
-
-        private static readonly SKPaint FramePaint = new SKPaint {
-            Color = SKColors.LightSlateGray,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1,
-            StrokeJoin = SKStrokeJoin.Miter,
-            IsAntialias = false,
-        };
-
-        private readonly SKPaint _linePaint = new SKPaint {
-            Color = SKColors.OrangeRed,
-            Style = SKPaintStyle.Stroke,
-            StrokeWidth = 3,
-            StrokeJoin = SKStrokeJoin.Miter,
-            IsAntialias = true,
-        };
 
         private readonly SKPaint _zeroLinePaint = new SKPaint
         {
@@ -119,14 +140,6 @@ namespace SINTEF.AutoActive.UI.Figures
             StrokeWidth = 1,
             StrokeJoin = SKStrokeJoin.Miter,
             IsAntialias = true
-        };
-
-        private readonly SKPaint _textPaint = new SKPaint
-        {
-            Color = SKColors.Black,
-            Style = SKPaintStyle.Fill,
-            IsAntialias = true,
-            SubpixelText = true,
         };
 
         private readonly SKPaint _legendFill = new SKPaint
@@ -151,7 +164,7 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             // Create path
             var plot = new SKPath();
-            CreatePath(plot, lineConfig.OffsetX, lineConfig.ScaleX, lineConfig.OffsetY, lineConfig.ScaleY);
+            lineConfig.Drawer.CreatePath(plot, lineConfig);
 
             // Draw the data
             canvas.DrawPath(plot, lineConfig.LinePaint);
@@ -162,44 +175,51 @@ namespace SINTEF.AutoActive.UI.Figures
             // Clear background and draw frame
             canvas.Clear(SKColors.White);
             canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
+
+            ITimeSeriesViewer firstViewer;
+
+            //TODO: choose first x and last x instead?
+            var xDiff = 0L;
+            var firstStartTime = long.MaxValue;
+            foreach (var line in _lines)
+            {
+                firstViewer = line.Drawer.Viewer;
+                // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
+                xDiff = firstViewer.CurrentTimeRangeTo - firstViewer.CurrentTimeRangeFrom;
+                if (xDiff == 0) continue;
+
+                firstStartTime = firstViewer.CurrentTimeRangeFrom;
+                break;
+            }
             
-            if (Viewer == null) return;
+            if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
-            if (Viewer.CurrentTimeRangeFrom == Viewer.CurrentTimeRangeTo) return; // Avoid divide-by-zero
-
-            // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
-            var xDiff = Viewer.CurrentTimeRangeTo - Viewer.CurrentTimeRangeFrom;
-            var currentXTime = Viewer.CurrentTimeRangeFrom;
+            var currentXTime = firstStartTime;
             var startX = currentXTime - xDiff/3;
             var scaleX = (float)info.Width / xDiff;
-
-            var minY = _minYValue;
-            var maxY = _maxYValue;
-            var scaleY = -info.Height / (maxY - minY);
+            
+            foreach (var line in _lines)
+            {
+                line.OffsetX = startX;
+                line.ScaleX = scaleX;
+                line.ScaleY = -info.Height / (line.YDelta);
+            }
 
             // Draw current-y axis
             var zeroX = ScaleX(currentXTime, startX, scaleX);
             canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
 
             // Draw zero-x axis
-            var zeroY = ScaleY(0, maxY, scaleY);
+            var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
 
-            var lineConfig = new LineConfiguration
-            {
-                LinePaint = _linePaint,
-                OffsetX =  startX,
-                OffsetY = maxY,
-                ScaleX = scaleX,
-                ScaleY = scaleY,
-                Legend = Legend
-            };
-
-            DrawLine(canvas, lineConfig);
-            DrawLegends(canvas, info, new [] { lineConfig });
+            foreach(var lineConfig in _lines) {
+                DrawLine(canvas, lineConfig);
+            }
+            DrawLegends(canvas, info, _lines);
         }
 
-        private void DrawLegends(SKCanvas canvas, SKImageInfo info, LineConfiguration[] configs)
+        private void DrawLegends(SKCanvas canvas, SKImageInfo info, IReadOnlyCollection<LineConfiguration> configs)
         {
             var frameStartX = info.Width - 1;
             var frameStartY = 1;
@@ -210,15 +230,15 @@ namespace SINTEF.AutoActive.UI.Figures
             const int legendMargin = 5;
             const int multipleLegendSpacing = 5;
 
-            var textHeight = _textPaint.FontMetrics.CapHeight;
+            var textHeight = TextPaint.FontMetrics.CapHeight;
 
-            var nLegends = configs.Count(config => config.Legend != null);
+            var nLegends = configs.Count(config => config.Drawer.Legend != null);
             if (nLegends == 0)
             {
                 return;
             }
 
-            var maxTextWidth = configs.Max(config => _textPaint.MeasureText(config.Legend));
+            var maxTextWidth = configs.Max(config => TextPaint.MeasureText(config.Drawer.Legend));
 
             var legendTextStartX = frameStartX - (legendMargin + legendPadding + maxTextWidth);
 
@@ -241,29 +261,90 @@ namespace SINTEF.AutoActive.UI.Figures
             var legendIx = 0;
             foreach (var config in configs)
             {
-                if (config.Legend == null)
+                if (config.Drawer.Legend == null)
                     continue;
 
-                var text = config.Legend;
+                var text = config.Drawer.Legend;
 
                 var yPos = legendTextStartY + legendYDelta * legendIx;
 
                 var legendLineY = yPos - textHeight / 2;
                 
-                canvas.DrawText(text, legendTextStartX, yPos, _textPaint);
+                canvas.DrawText(text, legendTextStartX, yPos, TextPaint);
                 canvas.DrawLine(legendLineX0, legendLineY, legendLineX1, legendLineY, config.LinePaint);
                 legendIx++;
             }
         }
+
+        public void InvalidateSurface()
+        {
+            Canvas.InvalidateSurface();
+        }
+
+        protected const string AddLineText = "Add Line";
+        protected const string RemoveLineText = "Remove Line";
+
+        protected override string[] GetExtraMenuParameters()
+        {
+            return _lines.Count == 1 ? new[] {AddLineText} : new[] {AddLineText, RemoveLineText};
+        }
+
+        private List<IDataPoint> GetAllDataPoints(IEnumerable<IDataStructure> dataStructures)
+        {
+            var dataPoints = new List<IDataPoint>();
+            var stack = new Stack<IDataStructure>(dataStructures);
+            while (stack.Any())
+            {
+                var el = stack.Pop();
+                dataPoints.AddRange(el.DataPoints);
+                foreach (var child in el.Children)
+                {
+                    stack.Push(child);
+                }
+            }
+
+            return dataPoints;
+        }
+
+
+        protected override async void OnHandleMenuResult(Page page, string action)
+        {
+            switch (action)
+            {
+                case AddLineText:
+                    var dataPoints = GetAllDataPoints(Databus.DataRegistry.Providers);
+
+                    var newLineName = await page.DisplayActionSheet("Add Line", CancelText, null,
+                        dataPoints.Select(child => child.Name).ToArray());
+                    if (newLineName == CancelText)
+                        return;
+                    var dataPoint = dataPoints.First(dp => dp.Name == newLineName);
+                    AddLine(dataPoint);
+                    return;
+                case RemoveLineText:
+                    var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
+                        _lines.Select(line => line.Drawer.Legend).ToArray());
+                    if (lineToRemoveAction == CancelText)
+                        return;
+                    _lines.RemoveAll(line => line.Drawer.Legend == lineToRemoveAction);
+                    return;
+                default:
+                    break;
+            }
+            base.OnHandleMenuResult(page, action);
+        }
     }
 
-    public struct LineConfiguration
+    public class LineConfiguration
     {
-        public long OffsetX;
-        public float ScaleX;
-        public float OffsetY;
-        public float ScaleY;
-        public SKPaint LinePaint;
-        public string Legend;
+        public ILineDrawer Drawer { get; set; }
+
+        public long OffsetX { get; set; }
+        public float ScaleX { get; set; }
+        public float YDelta { get; set; }
+
+        public float OffsetY { get; set; }
+        public float ScaleY { get; set; }
+        public SKPaint LinePaint { get; set; }
     }
 }
