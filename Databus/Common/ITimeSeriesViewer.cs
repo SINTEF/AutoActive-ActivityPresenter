@@ -1,7 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Runtime.CompilerServices;
-using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.Databus.Common
 {
