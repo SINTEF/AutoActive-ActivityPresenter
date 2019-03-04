@@ -308,8 +308,20 @@ namespace SINTEF.AutoActive.UI.Figures
                         _lines.Select(line => line.Drawer.Legend).ToArray());
                     if (lineToRemoveAction == CancelText)
                         return;
+
+                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction);
+                    foreach (var line in toRemove)
+                    {
+                        _context.Remove(line.Drawer.Viewer);
+                    }
                     _lines.RemoveAll(line => line.Drawer.Legend == lineToRemoveAction);
                     return;
+                case RemoveText:
+                    foreach (var line in _lines)
+                    {
+                        _context.Remove(line.Drawer.Viewer);
+                    }
+                    break;
                 default:
                     break;
             }
