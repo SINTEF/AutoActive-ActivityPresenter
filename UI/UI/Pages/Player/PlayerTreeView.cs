@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             ItemTemplate = new DataItemTemplateSelector();
 
-            var registryTree = new DataRegistryTree();
+            var registryTree = new DataRegistryTree(this);
             registryTree.DataPointTapped += OnDataPointTapped;
             registryTree.UseInTimelineTapped += OnUseInTimelineTapped;
 
@@ -61,6 +61,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 level = 0;
             }
 
+            {
+                if (obj is DataItem item)
+                {
+                    item.Indentation = level;
+                }
+            }
             switch (obj)
             {
                 case DataProviderItem item:
@@ -96,24 +102,38 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 var text = value as string;
                 cell._label.Text = text;
             });
+        public readonly BindableProperty UIntProperty = BindableProperty.Create(nameof(Indentation), typeof(uint), typeof(DataItemCell),
+            propertyChanged: (boundObject, _, value) =>
+            {
+                if (!(boundObject is DataItemCell cell))
+                    return;
+                var indent = value as uint?;
+                if (!indent.HasValue) return;
+                cell._frame.Margin = new Thickness(10 * indent.Value, 0, 0, 0);
+            });
         private readonly Label _label = new Label();
         private readonly Frame _frame;
-        private uint _indentationLevel;
 
         protected DataItemCell()
         {
             this.SetBinding(TextProperty, "Text");
+            this.SetBinding(UIntProperty, "Indentation");
             var infoAction = new MenuItem { Text = "Info" };
             infoAction.Clicked += InfoClicked;
             ContextActions.Add(infoAction);
 
+            var layout = new StackLayout
+            {
+                Orientation = StackOrientation.Horizontal
+            };
             _frame = new Frame
             {
-                BorderColor = Color.Black, Content = _label, HorizontalOptions = LayoutOptions.Start
+                BorderColor = Color.Black, Content = layout, HorizontalOptions = LayoutOptions.Start,
+                Padding = 5, Margin = 0
             };
-            _frame.Padding = new Thickness(10);
 
-
+            // TODO: Add checkbox
+            layout.Children.Add(_label);
             View = _frame;
         }
 
@@ -121,6 +141,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             get => (string)GetValue(TextProperty);
             set => SetValue(TextProperty, value);
+        }
+        public uint Indentation
+        {
+            get => (uint)GetValue(UIntProperty);
+            set => SetValue(UIntProperty, value);
         }
 
         public string Detail { get; set; }
@@ -134,18 +159,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             var dataItem = BindingContext as DataItem;
             dataItem?.OnTapped();
-        }
-
-        protected override void OnParentSet()
-        {
-            base.OnParentSet();
-            if (!(BindingContext is DataItem dataItem)) return;
-            if (!(Parent is PlayerTreeView treeView)) return;
-
-            treeView.TreeLevel.TryGetValue(dataItem, out _indentationLevel);
-
-            //FIXME: Maybe this can not be changed here?
-            //_frame.Padding = new Thickness(_indentationLevel * 20, 0, 0, 0);
         }
     }
 
@@ -199,8 +212,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     {
         private readonly Dictionary<IDataProvider, DataProviderItem> _providerItems = new Dictionary<IDataProvider, DataProviderItem>();
 
-        internal DataRegistryTree()
+        private readonly PlayerTreeView _view;
+        public Dictionary<object, uint> TreeLevel => _view.TreeLevel;
+
+        internal DataRegistryTree(PlayerTreeView view)
         {
+            _view = view;
             // The top level always show all available dataproviders
             // Listen for changes
             DataRegistry.ProviderAdded += ProviderAdded;
@@ -252,6 +269,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         protected DataRegistryTree Tree { get; private set; }
 
         public abstract string Text { get; }
+        public uint Indentation { get; set; }
 
         public abstract void OnTapped();
     }
