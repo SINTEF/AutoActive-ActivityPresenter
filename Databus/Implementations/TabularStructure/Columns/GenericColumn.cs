@@ -41,7 +41,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         }
     }
 
-    internal class GenericColumnViewer<T> : TableColumnViewer where T : IConvertible
+    public class GenericColumnViewer<T> : TableColumnViewer where T : IConvertible
     {
         private readonly GenericColumn<T> _column;
         public GenericColumnViewer(TableTimeIndex index, GenericColumn<T> column) : base(index, column)

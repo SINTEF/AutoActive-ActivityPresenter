@@ -61,24 +61,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         {
             switch (this)
             {
-                case BoolColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateBoolViewer(Index);
-                case ByteColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateByteViewer(Index);
-                case IntColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateIntViewer(Index);
-                case LongColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateLongViewer(Index);
-                case FloatColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateFloatViewer(Index);
-                case DoubleColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateDoubleViewer(Index);
                 case StringColumn c:
                     await EnsureIndexAndDataIsLoaded();
                     return CreateStringViewer(Index);
@@ -91,12 +73,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected abstract int CheckLoaderResultLength();
         protected abstract (double? min, double? max) GetDataMinMax();
 
-        protected virtual IDataViewer CreateBoolViewer(TableTimeIndex index) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateByteViewer(TableTimeIndex index) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateIntViewer(TableTimeIndex index) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateLongViewer(TableTimeIndex index) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateFloatViewer(TableTimeIndex index) { throw new NotSupportedException(); }
-        protected virtual IDataViewer CreateDoubleViewer(TableTimeIndex index) { throw new NotSupportedException(); }
         protected virtual IDataViewer CreateStringViewer(TableTimeIndex index) { throw new NotSupportedException(); }
         protected virtual IDataViewer CreateGenericViewer(TableTimeIndex index) { throw new NotSupportedException(); }
     }
@@ -153,13 +129,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         }
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
-        public virtual SpanPair<byte> GetCurrentBytes() { throw new NotSupportedException(); }
-        public virtual SpanPair<int> GetCurrentInts() { throw new NotSupportedException(); }
-        public virtual SpanPair<long> GetCurrentLongs() { throw new NotSupportedException(); }
-        public virtual SpanPair<float> GetCurrentFloats() { throw new NotSupportedException(); }
-        public virtual SpanPair<double> GetCurrentDoubles() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
-
         public virtual SpanPair<T> GetCurrentData<T>() where T : IConvertible { throw new NotSupportedException(); }
     }
 }

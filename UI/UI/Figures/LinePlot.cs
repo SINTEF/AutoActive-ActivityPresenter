@@ -85,24 +85,6 @@ namespace SINTEF.AutoActive.UI.Figures
             return lineDrawer;
         }
 
-
-        protected void CreatePath<T>(SKPath plot, SpanPair<T> data, long offsetX, float scaleX, float offsetY, float scaleY) where T : IConvertible
-        {
-            var en = data.GetEnumerator(MaxPlotPoints);
-            if (!en.MoveNext()) return;
-
-            plot.MoveTo(ScaleX(en.Current.x, offsetX, scaleX), ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
-            while (en.MoveNext())
-            {
-                plot.LineTo(ScaleX(en.Current.x, offsetX, scaleX), ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
-            }
-        }
-
-        //TODO: remove this
-        protected virtual void CreatePath(SKPath plot, long offsetX, float scaleX, float offsetY, float scaleY) { }
-
-        protected ITimeSeriesViewer Viewer { get; }
-
         protected LinePlot(ITimeSeriesViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
             _context = context;

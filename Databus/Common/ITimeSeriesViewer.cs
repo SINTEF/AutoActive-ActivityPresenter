@@ -11,13 +11,6 @@ namespace SINTEF.AutoActive.Databus.Common
 
         SpanPair<bool> GetCurrentBools();
 
-        SpanPair<byte> GetCurrentBytes();
-        SpanPair<int> GetCurrentInts();
-        SpanPair<long> GetCurrentLongs();
-
-        SpanPair<float> GetCurrentFloats();
-        SpanPair<double> GetCurrentDoubles();
-
         SpanPair<string> GetCurrentStrings();
 
         SpanPair<T> GetCurrentData<T>() where T : IConvertible;

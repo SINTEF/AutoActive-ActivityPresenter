@@ -338,7 +338,7 @@ namespace SINTEF.AutoActive.Archive.Tests
                         Assert.IsAssignableFrom<ITimeSeriesViewer>(dataViewer);
                         var timeViewer = (ITimeSeriesViewer) dataViewer;
 
-                        var data = timeViewer.GetCurrentDoubles();
+                        var data = timeViewer.GetCurrentData<double>();
                         Assert.Equal("cool_numbers", dataViewer.DataPoint.Name);
 
                         Assert.Equal(timeData, data.X.ToArray());
