@@ -53,8 +53,6 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         {
             archivesRoot = Context.FilesDir;
 
-            var allsessions = SessionDatabase.All;
-
             System.Diagnostics.Debug.WriteLine($"CREATING DOCUMENT PROVIDER - {archivesRoot.Path}");
             return true;
         }

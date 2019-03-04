@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
-    public class TableTimeIndex : LongColumn, ITimePoint
+    public class TableTimeIndex : GenericColumn<long>, ITimePoint
     {
         private List<TableTimeIndexViewer> _viewers = new List<TableTimeIndexViewer>();
         public TableTimeIndex(string name, Task<long[]> loader, bool isWorldClockSynchronized) : base(name, loader, null)
@@ -63,7 +63,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
     }
 
-    public class TableTimeIndexViewer : LongColumnViewer, ITimeViewer
+    public class TableTimeIndexViewer : GenericColumnViewer<long>, ITimeViewer
     {
         private readonly TableTimeIndex _time;
 

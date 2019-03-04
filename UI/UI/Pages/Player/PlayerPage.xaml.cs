@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 		{
 			InitializeComponent ();
 
-            ViewerContext?.SetSynchronizedToWorldClock(false);
+            ViewerContext?.SetSynchronizedToWorldClock(true);
 
             //PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
             Playbar.ViewerContext = ViewerContext;

@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.ViewerContext
@@ -31,14 +32,12 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public event DataViewerContextAvailableTimeRangeChangedHandler AvailableTimeRangeChanged;
         protected bool InternalSetAvailableTimeRange(long from, long to)
         {
-            if (AvailableTimeFrom != from || AvailableTimeTo != to)
-            {
-                AvailableTimeFrom = from;
-                AvailableTimeTo = to;
-                AvailableTimeRangeChanged?.Invoke(this, from, to);
-                return true;
-            }
-            return false;
+            if (AvailableTimeFrom == from && AvailableTimeTo == to) return false;
+
+            AvailableTimeFrom = from;
+            AvailableTimeTo = to;
+            AvailableTimeRangeChanged?.Invoke(this, from, to);
+            return true;
         }
         public long SelectedTimeFrom { get; protected set; }
         public long SelectedTimeTo { get; protected set; }
@@ -48,8 +47,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
     public abstract class SingleSetDataViewerContext : DataViewerContext
     {
-        // ---- Data viewers ----
-        private readonly Dictionary<ITimeViewer, List<IDataViewer>> viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
+        // ---- Data _viewers ----
+        private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
 
         private void SetTimeRangeForViewer(ITimeViewer timeviewer, IDataViewer dataviewer, long from, long to)
         {
@@ -59,7 +58,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
         protected async Task<IDataViewer> InternalGetOrAddViewerFor(IDataPoint datapoint)
         {
-            foreach (var timeDataViewers in viewers)
+            foreach (var timeDataViewers in _viewers)
             {
                 var timeviewer = timeDataViewers.Key;
                 if (timeviewer.TimePoint != datapoint.Time) continue;
@@ -81,7 +80,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             // If we don't have a timeviewer, we need to create both
             var newDataviewer = await datapoint.CreateViewer();
             var newTimeviewer = await datapoint.Time.CreateViewer();
-            viewers.Add(newTimeviewer, new List<IDataViewer> { newDataviewer });
+            _viewers.Add(newTimeviewer, new List<IDataViewer> { newDataviewer });
             newTimeviewer.TimeChanged += OnTimeViewerAvailableChanged;
             OnTimeViewerAvailableChanged(newTimeviewer, newTimeviewer.Start, newTimeviewer.End);
 
@@ -97,14 +96,14 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public event DataViewerContextSelectedRangeChangedHandler SelectedTimeRangeChanged;
         protected void InternalSetSelectedTimeRange(long from, long to)
         {
-            var nViewers = viewers.Count;
+            var nViewers = _viewers.Count;
             if (SelectedTimeFrom != from || SelectedTimeTo != to || _lastViewers != nViewers)
             {
                 SelectedTimeFrom = from;
                 SelectedTimeTo = to;
 
                 // TODO: Maybe we should set the mapping instead of doing this every time
-                foreach (var timeDataViewers in viewers)
+                foreach (var timeDataViewers in _viewers)
                 {
                     var timeviewer = timeDataViewers.Key;
                     foreach (var dataviewer in timeDataViewers.Value)
@@ -116,10 +115,10 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             }
         }
 
-        // --- Available time range based on current time viewers ---
+        // --- Available time range based on current time _viewers ---
         protected void GetAvailableTimeMinMax(bool useWorldClock, out ITimeViewer minViewer, out long min, out ITimeViewer maxViewer, out long max)
         {
-            if (viewers.Count == 0)
+            if (_viewers.Count == 0)
             {
                 minViewer = maxViewer = null;
                 min = max = 0;
@@ -131,50 +130,48 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             min = long.MaxValue;
             max = long.MinValue;
 
-            foreach (var timeDataviewers in viewers)
+            foreach (var timeDataViewers in _viewers)
             {
-                var timeviewer = timeDataviewers.Key;
-                var start = useWorldClock ? timeviewer.Start : 0;
-                var end = useWorldClock ? timeviewer.End : timeviewer.End - timeviewer.Start;
+                var timeViewer = timeDataViewers.Key;
+                var start = useWorldClock ? timeViewer.Start : 0;
+                var end = useWorldClock ? timeViewer.End : timeViewer.End - timeViewer.Start;
                 if (start < min)
                 {
                     min = start;
-                    minViewer = timeviewer;
+                    minViewer = timeViewer;
                 }
                 if (end > max)
                 {
                     max = end;
-                    maxViewer = timeviewer;
+                    maxViewer = timeViewer;
+                }
+            }
+        }
+
+        private void UpdateSetAvailableTimeRange()
+        {
+            GetAvailableTimeMinMax(IsSynchronizedToWorldClock, out var minViewer, out var min, out var maxViewer, out var max);
+            InternalSetAvailableTimeRange(min, max);
+        }
+
+        public void Remove(IDataViewer dataViewer)
+        {
+            var toRemove = new List<ITimeViewer>();
+            foreach (var item in _viewers)
+            {
+                item.Value.Remove(dataViewer);
+                if (!item.Value.Any())
+                {
+                    toRemove.Add(item.Key);
                 }
             }
 
-            //if (timeviewers.Count == 0)
-            //{
-            //    minViewer = maxViewer = null;
-            //    min = max = 0;
-            //    return;
-            //}
+            foreach (var viewer in toRemove)
+            {
+                _viewers.Remove(viewer);
+            }
 
-            //// Calculate the min max of current timeviewers
-            //minViewer = maxViewer = null;
-            //min = long.MaxValue;
-            //max = long.MinValue;
-
-            //foreach (var timeviewer in timeviewers)
-            //{
-            //    var start = useWorldClock ? timeviewer.Start : 0;
-            //    var end = useWorldClock ? timeviewer.End : timeviewer.End - timeviewer.Start;
-            //    if (start < min)
-            //    {
-            //        min = start;
-            //        minViewer = timeviewer;
-            //    }
-            //    if (end > max)
-            //    {
-            //        max = end;
-            //        maxViewer = timeviewer;
-            //    }
-            //}
+            UpdateSetAvailableTimeRange();
         }
     }
 }

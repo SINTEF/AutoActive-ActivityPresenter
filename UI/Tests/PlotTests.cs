@@ -16,7 +16,7 @@ namespace Tests
             Assert.Equal(timeArray.Length, dataArray.Length);
 
             var time = new TableTimeIndex("time", new Task<long[]>(() => timeArray), true);
-            var data = new DoubleColumn("acc_x", new Task<double[]>(() => dataArray), time);
+            var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time);
 
             var tsc = new TimeSynchronizedContext();
             var dataViewerTask = tsc.GetDataViewerFor(data);
@@ -29,7 +29,7 @@ namespace Tests
             Assert.Equal(timeArray.Last() - startTime, tsc.AvailableTimeTo);
             tsc.SetSelectedTimeRange(tsc.AvailableTimeFrom, tsc.AvailableTimeTo);
 
-            var dataView = viewer.GetCurrentDoubles();
+            var dataView = viewer.GetCurrentData<double>();
 
             var en = dataView.GetEnumerator(maxNum);
 
