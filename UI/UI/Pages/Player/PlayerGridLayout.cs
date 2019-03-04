@@ -38,11 +38,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             Children.Add(view);
         }
 
-        private void Cgr_Clicked(object sender, EventArgs e)
-        {
-            Debug.WriteLine("Clicked!");
-        }
-
         private void UseInTimelineClicked(object sender, EventArgs e)
         {
             var dataPointItem = BindingContext as DataPointItem;

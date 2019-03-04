@@ -8,7 +8,6 @@ namespace SINTEF.AutoActive.Databus.Interfaces
     public delegate void DataStructureAddedHandler(IDataStructure sender, IDataStructure datastructure);
     public delegate void DataStructureRemovedHandler(IDataStructure sender, IDataStructure datastructure);
 
-
     public interface IDataStructure
     {
         string Name { get; }

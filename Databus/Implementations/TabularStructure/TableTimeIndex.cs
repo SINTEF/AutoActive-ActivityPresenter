@@ -39,7 +39,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         async Task<ITimeViewer> ITimePoint.CreateViewer()
         {
-            // Ensure that the Data is loaded
+            // Ensure that the data is loaded
             await CreateViewer();
             var viewer = new TableTimeIndexViewer(this);
             _viewers.Add(viewer);

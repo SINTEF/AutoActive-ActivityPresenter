@@ -16,7 +16,7 @@ namespace SINTEF.AutoActive.Databus.Common
         SpanPair<T> GetCurrentData<T>() where T : IConvertible;
     }
 
-    /* -- Helper struct for carrying both time and Data in a single Span-like structure -- */
+    /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
     public readonly ref struct SpanPair<T>
     {
         public SpanPair(Span<long> x, Span<T> y)
