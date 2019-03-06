@@ -1,10 +1,9 @@
-﻿using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
-using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
-using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Views;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -18,11 +17,43 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public int BigGridColumns { get; set; } = 2;
         public int BigGridRows { get; set; } = 1;
 
+        private FigureView _currentlySelected;
+        public FigureView Selected
+        {
+            get => _currentlySelected;
+            set
+            {
+                if (_currentlySelected != null) _currentlySelected.Selected = false;
+                _currentlySelected = value;
+                if (_currentlySelected != null) _currentlySelected.Selected = true;
+            }
+        }
+
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
         public async void AddPlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
+            if (Selected != null)
+            {
+                try
+                {
+                   await Selected.AddDataPoint(datapoint, timeContext);
+                }
+                catch (Exception ex)
+                {
+                    //TODO: put this in a helper method?
+                    var page = Navigation.NavigationStack.LastOrDefault();
+                    if (page != null)
+                    {
+                        await page.DisplayAlert("Error", $"Could not add data point for {datapoint.Name}: {ex.Message}",
+                            "Ok");
+                    }
+                }
+                
+
+                return;
+            }
             var view = await FigureView.GetView(datapoint, timeContext);
             {
                 var tgr = new TapGestureRecognizer {NumberOfTapsRequired = 1};
@@ -130,7 +161,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public void RemoveChild(FigureView figureView)
         {
+            if (Selected == figureView)
+                Selected = null;
+            
             Children.Remove(figureView);
         }
+
     }
 }

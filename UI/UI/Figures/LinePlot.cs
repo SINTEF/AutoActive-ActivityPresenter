@@ -10,7 +10,10 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using Xamarin.Forms;
+using ITimeSeriesViewer = SINTEF.AutoActive.Databus.Common.ITimeSeriesViewer;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
@@ -32,9 +35,14 @@ namespace SINTEF.AutoActive.UI.Figures
         private float? _minYValue;
         private float? _maxYValue;
 
-        public async void AddLine(IDataPoint datapoint)
+        public async Task AddLine(IDataPoint datapoint)
         {
-            AddLine(await CreateLineDrawer(datapoint), datapoint.Name);
+            var line = await CreateLineDrawer(datapoint);
+            if (line == null)
+            {
+                throw new ArgumentException("Could not create line");
+            }
+            AddLine(line, datapoint.Name);
         }
         public void AddLine(ILineDrawer lineDrawer, string legend)
         {
@@ -62,22 +70,26 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public async Task<ILineDrawer> CreateLineDrawer(IDataPoint dataPoint)
         {
-            var viewer = await _context.GetDataViewerFor(dataPoint) as ITimeSeriesViewer;
+            foreach (var line in _lines)
+            {
+                if (line.Drawer.Viewer.DataPoint == dataPoint)
+                {
 
-            if (!dataPoint.GetType().IsGenericType || viewer == null) return null;
-
-            var args = new object[] {viewer};
+                }
+            }
+            if (!dataPoint.GetType().IsGenericType) return null;
 
             var genericConstructor = typeof(LineDrawer<>).MakeGenericType(dataPoint.DataType)
-                .GetConstructor(args.Select(a => a.GetType()).ToArray());
-
+                .GetConstructor(new[] { typeof(ITimeSeriesViewer) });
             if (genericConstructor == null)
             {
                 Debug.WriteLine(
                     "Could not find LineDrawer constructor. Make sure it is public and that the specified arguments are correct.");
+                return null;
             }
 
-            var lineDrawer = (ILineDrawer) genericConstructor?.Invoke(args);
+            if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
+            var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
             if (lineDrawer != null)
             {
                 lineDrawer.Legend = dataPoint.Name;
@@ -266,9 +278,11 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string AddLineText = "Add Line";
         protected const string RemoveLineText = "Remove Line";
 
-        protected override string[] GetExtraMenuParameters()
+        protected override bool GetExtraMenuParameters(List<string> parameters)
         {
-            return _lines.Count == 1 ? new[] {AddLineText} : new[] {AddLineText, RemoveLineText};
+            parameters.Add(AddLineText);
+            if(_lines.Count > 1) parameters.Add(RemoveLineText);
+            return true;
         }
 
         private List<IDataPoint> GetAllDataPoints(IEnumerable<IDataStructure> dataStructures)
@@ -288,6 +302,10 @@ namespace SINTEF.AutoActive.UI.Figures
             return dataPoints;
         }
 
+        public override async Task AddDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        {
+            await AddLine(datapoint);
+        }
 
         protected override async void OnHandleMenuResult(Page page, string action)
         {

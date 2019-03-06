@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SkiaSharp;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,6 +27,12 @@ namespace SINTEF.AutoActive.UI.Views
 	        StrokeJoin = SKStrokeJoin.Miter,
 	        IsAntialias = false,
 	    };
+
+	    public bool Selected
+	    {
+	        get => SelectionFrame.BorderColor == Color.Red;
+	        set => SelectionFrame.BorderColor = value ? Color.Red : Color.Black;
+	    }
 
 	    protected readonly SKPaint TextPaint = new SKPaint
 	    {
@@ -154,20 +161,27 @@ namespace SINTEF.AutoActive.UI.Views
 
 	    protected const string CancelText = "Cancel";
 	    protected const string RemoveText = "Remove";
-	    
+	    protected const string SelectText = "Select";
+	    protected const string DeselectText = "Deselect";
+
 
         protected async void MenuButton_OnClicked(object sender, EventArgs e)
 	    {
 	        var page = Navigation.NavigationStack.LastOrDefault();
 	        if (page == null) return;
 
-	        var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, GetExtraMenuParameters());
+
+	        var parameters = new List<string> {Selected ? DeselectText : SelectText};
+
+	        GetExtraMenuParameters(parameters);
+
+	        var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, parameters.ToArray());
 	        OnHandleMenuResult(page, action);
 	    }
 
-	    protected virtual string[] GetExtraMenuParameters()
+	    protected virtual bool GetExtraMenuParameters(List<string> parameters)
 	    {
-	        return new string[0];
+	        return false;
 	    }
 
 	    protected virtual void OnHandleMenuResult(Page page, string action)
@@ -181,6 +195,27 @@ namespace SINTEF.AutoActive.UI.Views
 	        {
 	            case CancelText:
 	                return;
+                case SelectText:
+                    switch (Parent)
+                    {
+                        case PlayerGridLayout playerGridLayout:
+                            playerGridLayout.Selected = this;
+                            break;
+                        default:
+                            throw new ArgumentException("Layout not recognized");
+                    }
+
+                    break;
+                case DeselectText:
+                    switch (Parent)
+                    {
+                        case PlayerGridLayout playerGridLayout:
+                            playerGridLayout.Selected = null;
+                            break;
+                        default:
+                            throw new ArgumentException("Layout not recognized");
+                    }
+                    break;
 	            case RemoveText:
 	                switch (Parent)
 	                {
@@ -198,6 +233,11 @@ namespace SINTEF.AutoActive.UI.Views
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
 	        }
+	    }
+
+	    public virtual async Task AddDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+	    {
+	        throw new NotImplementedException();
 	    }
 	}
 }

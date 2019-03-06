@@ -7,7 +7,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
     public class TableTimeIndex : GenericColumn<long>, ITimePoint
     {
-        private List<TableTimeIndexViewer> _viewers = new List<TableTimeIndexViewer>();
+        private readonly List<TableTimeIndexViewer> _viewers = new List<TableTimeIndexViewer>();
         public TableTimeIndex(string name, Task<long[]> loader, bool isWorldClockSynchronized) : base(name, loader, null)
         {
             IsSynchronizedToWorldClock = isWorldClockSynchronized;

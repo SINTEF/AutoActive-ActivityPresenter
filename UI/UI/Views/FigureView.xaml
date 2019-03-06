@@ -4,21 +4,24 @@
              xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
              x:Class="SINTEF.AutoActive.UI.Views.FigureView">
     <ContentView.Content>
-        <Grid HorizontalOptions="FillAndExpand">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="*"/>
-            </Grid.ColumnDefinitions>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="Auto"/>
-                <RowDefinition Height="*"/>
-            </Grid.RowDefinitions>
-            <sk:SKCanvasView Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"
-                             x:Name="Canvas" x:FieldModifier="protected" />
-            <Button Grid.Row="0" Grid.Column="0"
-                    Text="•••" WidthRequest="40" HeightRequest="40"
-                    Clicked="MenuButton_OnClicked"
-                    />
-        </Grid>
+        <Frame x:Name="SelectionFrame" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"
+                Padding="0" BorderColor="Black">
+            <Grid HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <sk:SKCanvasView Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"
+                                 x:Name="Canvas" x:FieldModifier="protected" />
+                <Button Grid.Row="0" Grid.Column="0"
+                        Text="•••" WidthRequest="40" HeightRequest="40"
+                        Clicked="MenuButton_OnClicked"
+                        />
+            </Grid>
+        </Frame>
     </ContentView.Content>
 </ContentView>
