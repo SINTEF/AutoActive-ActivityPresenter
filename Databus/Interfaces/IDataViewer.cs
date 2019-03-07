@@ -5,7 +5,6 @@ namespace SINTEF.AutoActive.Databus.Interfaces
     
     public interface IDataViewer
     {
-        //ITimeViewer Time { get; }
         IDataPoint DataPoint { get; }
 
         long CurrentTimeRangeFrom { get; }

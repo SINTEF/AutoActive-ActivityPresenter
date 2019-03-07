@@ -1,5 +1,4 @@
-﻿using SINTEF.AutoActive.Databus.Common;
-using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
 using SINTEF.AutoActive.UI.Views;
@@ -10,8 +9,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using Xamarin.Forms;
 using ITimeSeriesViewer = SINTEF.AutoActive.Databus.Common.ITimeSeriesViewer;
 
@@ -47,7 +44,6 @@ namespace SINTEF.AutoActive.UI.Figures
         public void AddLine(ILineDrawer lineDrawer, string legend)
         {
             lineDrawer.Parent = this;
-
             
             _lines.Add(new LineConfiguration()
             {
@@ -64,19 +60,19 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.YDelta = yDelta;
                 line.OffsetY = _maxYValue.Value;
             }
+
+            InvalidateSurface();
         }
 
         public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
 
         public async Task<ILineDrawer> CreateLineDrawer(IDataPoint dataPoint)
         {
-            foreach (var line in _lines)
+            if (_lines.Any(lp => lp.Drawer.Viewer.DataPoint == dataPoint))
             {
-                if (line.Drawer.Viewer.DataPoint == dataPoint)
-                {
-
-                }
+                throw new ArgumentException("Line already in plot");
             }
+
             if (!dataPoint.GetType().IsGenericType) return null;
 
             var genericConstructor = typeof(LineDrawer<>).MakeGenericType(dataPoint.DataType)
@@ -87,8 +83,9 @@ namespace SINTEF.AutoActive.UI.Figures
                     "Could not find LineDrawer constructor. Make sure it is public and that the specified arguments are correct.");
                 return null;
             }
-
+            
             if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
+            viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
             if (lineDrawer != null)
             {
@@ -97,7 +94,7 @@ namespace SINTEF.AutoActive.UI.Figures
             return lineDrawer;
         }
 
-        protected LinePlot(ITimeSeriesViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
+        protected LinePlot(IDataViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
             _context = context;
         }
@@ -189,7 +186,10 @@ namespace SINTEF.AutoActive.UI.Figures
             if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
             var currentXTime = firstStartTime;
+
+            //TODO: make this selectable
             var startX = currentXTime - xDiff/3;
+
             var scaleX = (float)info.Width / xDiff;
             
             foreach (var line in _lines)
@@ -316,15 +316,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
                     var newLineName = await page.DisplayActionSheet("Add Line", CancelText, null,
                         dataPoints.Select(child => child.Name).ToArray());
-                    if (newLineName == CancelText)
+                    if (newLineName == null || newLineName == CancelText)
                         return;
                     var dataPoint = dataPoints.First(dp => dp.Name == newLineName);
-                    AddLine(dataPoint);
+                    await AddLine(dataPoint);
                     return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
                         _lines.Select(line => line.Drawer.Legend).ToArray());
-                    if (lineToRemoveAction == CancelText)
+                    if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
                         return;
 
                     var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction);

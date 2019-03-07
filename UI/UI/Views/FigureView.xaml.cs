@@ -164,7 +164,6 @@ namespace SINTEF.AutoActive.UI.Views
 	    protected const string SelectText = "Select";
 	    protected const string DeselectText = "Deselect";
 
-
         protected async void MenuButton_OnClicked(object sender, EventArgs e)
 	    {
 	        var page = Navigation.NavigationStack.LastOrDefault();
@@ -176,7 +175,14 @@ namespace SINTEF.AutoActive.UI.Views
 	        GetExtraMenuParameters(parameters);
 
 	        var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, parameters.ToArray());
-	        OnHandleMenuResult(page, action);
+	        try
+	        {
+	            OnHandleMenuResult(page, action);
+	        }
+	        catch (ArgumentException ex)
+	        {
+	            await page.DisplayAlert("Illegal argument", $"Could not handle menu input: {ex.Message}", "Ok");
+	        }
 	    }
 
 	    protected virtual bool GetExtraMenuParameters(List<string> parameters)
@@ -193,6 +199,7 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        switch (action)
 	        {
+                case null:
 	            case CancelText:
 	                return;
                 case SelectText:

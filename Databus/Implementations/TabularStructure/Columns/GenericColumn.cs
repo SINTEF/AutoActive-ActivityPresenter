@@ -53,17 +53,16 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         {
             if (typeof(T1) != typeof(T))
                 throw new ArgumentException();
+            if (Length <= 0) return new SpanPair<T1>();
 
             var elements = _column.Data.AsSpan(StartIndex, Length);
-            Span<T1> data;
 
+            Span<T1> data;
             unsafe
             {
                 var mem = _column.Data.AsMemory(StartIndex, Length);
                 using (var pin = mem.Pin())
-                {
                     data = new Span<T1>(pin.Pointer, elements.Length);
-                }
             }
 
             return new SpanPair<T1>(Index.Data.AsSpan(StartIndex, Length), data);
