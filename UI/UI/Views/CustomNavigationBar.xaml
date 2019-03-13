@@ -39,14 +39,15 @@
                 Text="Save"
                 Clicked="SaveArchiveButton_OnClicked"
             />
+            <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
+
             <Button
-                Grid.Column="4"
+                Grid.Column="5"
                 x:Name="MenuButton"
                 Text="Menu"
                 IsVisible="false"
                 Clicked="MenuButton_Clicked"
             />
-            <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
         </Grid>
     </ContentView.Content>
 </ContentView>

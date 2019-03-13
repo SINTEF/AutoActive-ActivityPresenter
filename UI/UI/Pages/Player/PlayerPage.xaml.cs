@@ -144,7 +144,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         protected override void OnSizeAllocated(double width, double height)
         {
             base.OnSizeAllocated(width, height);
-            var shouldShowSplit = width >= SPLIT_VIEW_WIDTH_MIN;
+            // Disable hiding overlay
+            UpdateTreeView(TreeViewState.SplitMode);
+            return;
+            var shouldShowSplit = width >= SplitViewWidthMin;
             if (shouldShowSplit && _treeViewState != TreeViewState.SplitMode)
             {
                 UpdateTreeView(TreeViewState.SplitMode);
