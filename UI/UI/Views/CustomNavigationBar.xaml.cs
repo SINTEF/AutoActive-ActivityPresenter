@@ -30,8 +30,8 @@ namespace SINTEF.AutoActive.UI.Views
 
         public bool MenuButtonShown
         {
-            get { return (bool)GetValue(MenuButtonShownProperty); }
-            set { SetValue(MenuButtonShownProperty, value); }
+            get => (bool)GetValue(MenuButtonShownProperty);
+            set => SetValue(MenuButtonShownProperty, value);
         }
 
         static void MenuButtonShownChanged(BindableObject bindable, object oldValue, object newValue)

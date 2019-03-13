@@ -8,11 +8,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 {
 	public partial class PlayerPage : ContentPage
 	{
-        static readonly double SPLIT_VIEW_WIDTH_MIN = 1000;
-        static readonly double OVERLAY_MODE_WIDTH = 0.9;
-        static readonly double OVERLAY_MODE_SHADE_OPACITY = 0.5;
+	    private const double SplitViewWidthMin = 1000;
+	    private const double OverlayModeWidth = 0.9;
+	    private const double OverlayModeShadeOpacity = 0.5;
 
-        public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
+	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
 
         public PlayerPage ()
@@ -83,7 +83,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     ColumnTree.Width = GridZeroLength;
                     grid.Children.Remove(TreeView);
                     // Show it in the overlay
-                    OverlayLayout.Children.Add(TreeView, new Rectangle(1, 1, OVERLAY_MODE_WIDTH, 1), AbsoluteLayoutFlags.All);
+                    OverlayLayout.Children.Add(TreeView, new Rectangle(1, 1, OverlayModeWidth, 1), AbsoluteLayoutFlags.All);
 
                     // Show or hide the view
                     if (nextTreeViewState == TreeViewState.OverlayModeShown)
@@ -106,29 +106,29 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                         OverlayShading.IsVisible = true;
                         // Animate the TreeView with a fixed position (so it doesn't scale)
                         AbsoluteLayout.SetLayoutFlags(TreeView, AbsoluteLayoutFlags.SizeProportional);
-                        AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(0, 0, OVERLAY_MODE_WIDTH, 1));
+                        AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(0, 0, OverlayModeWidth, 1));
                         TreeView.IsVisible = true;
                         var animation = new Animation(v =>
                         {
-                            OverlayShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
-                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-v*TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
+                            OverlayShading.Opacity = v * OverlayModeShadeOpacity;
+                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-v*TreeView.Width, 0, OverlayModeWidth, 1));
                         });
                         animation.Commit(this, "SlideTreeOverlayIn", rate: 10, length: 100, easing: Easing.SinIn, finished: (v, c) =>
                         {
-                            OverlayShading.Opacity = OVERLAY_MODE_SHADE_OPACITY;
+                            OverlayShading.Opacity = OverlayModeShadeOpacity;
                             AbsoluteLayout.SetLayoutFlags(TreeView, AbsoluteLayoutFlags.All);
-                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(1, 0, OVERLAY_MODE_WIDTH, 1));
+                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(1, 0, OverlayModeWidth, 1));
                         });
                     }
                     else
                     {
                         // Animate the TreeView with a fixed position (so it doesn't scale)
                         AbsoluteLayout.SetLayoutFlags(TreeView, AbsoluteLayoutFlags.SizeProportional);
-                        AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-OVERLAY_MODE_WIDTH*TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
+                        AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width-OverlayModeWidth*TreeView.Width, 0, OverlayModeWidth, 1));
                         var animation = new Animation(v =>
                         {
-                            OverlayShading.Opacity = v * OVERLAY_MODE_SHADE_OPACITY;
-                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width - v * TreeView.Width, 0, OVERLAY_MODE_WIDTH, 1));
+                            OverlayShading.Opacity = v * OverlayModeShadeOpacity;
+                            AbsoluteLayout.SetLayoutBounds(TreeView, new Rectangle(Width - v * TreeView.Width, 0, OverlayModeWidth, 1));
                         }, start: 1, end: 0);
                         animation.Commit(this, "SlideTreeOverlayOut", rate: 10, length: 100, easing: Easing.SinOut, finished: (v, c) =>
                         {
