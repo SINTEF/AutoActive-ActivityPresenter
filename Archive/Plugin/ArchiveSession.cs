@@ -13,7 +13,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
     {
         public override string Type => "no.sintef.session";
 
+        private readonly Archive _archive;
         public Guid Id { get; }
+        public List<Guid> BasedOn = new List<Guid>();
         public DateTimeOffset Created { get; }
         public const string SessionFileName = "AUTOACTIVE_SESSION.json";
 
@@ -27,15 +29,28 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Name = name ?? throw new ArgumentException("Session is missing 'name'");
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
             IsSaved = true;
+            _archive = archive;
+        }
+
+        public static ArchiveSession Create(Archive archive, string name, List<Guid> basedOn)
+        {
+            var meta = new JObject { ["id"] = Guid.NewGuid() };
+            var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
+            var json = new JObject { ["meta"] = meta, ["user"] = user };
+
+            var session = new ArchiveSession(json, archive) { IsSaved = false, BasedOn = basedOn };
+            archive.AddSession(session);
+            return session;
+        }
+
+        public static ArchiveSession Create(Archive archive, string name, Guid basedOn)
+        {
+            return Create(archive, name, basedOn == Guid.Empty ? new List<Guid>() : new List<Guid> { basedOn });
         }
 
         public new static ArchiveSession Create(Archive archive, string name)
         {
-            var meta = new JObject {["id"] = Guid.NewGuid()};
-            var user = new JObject {["name"] = name, ["created"] = DateTimeOffset.Now};
-            var json = new JObject {["meta"] = meta, ["user"] = user};
-
-            return new ArchiveSession(json, archive) { IsSaved = false };
+            return Create(archive, name, Guid.Empty);
         }
 
         public override int GetHashCode()
@@ -48,8 +63,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
         public event DataStructureRemovedHandler DataStructureRemovedFromTree;
         public event DataPointAddedHandler DataPointAddedToTree;
         public event DataPointRemovedHandler DataPointRemovedFromTree;
+        public void Close()
+        {
+            _archive.Close();
+        }
 
-        public static async void WriteChildren(ISessionWriter sessionWriter, JObject json, IEnumerable<IDataStructure> children)
+        public static async Task WriteChildren(ISessionWriter sessionWriter, JObject json, IEnumerable<IDataStructure> children)
         {
             foreach (var child in children)
             {
@@ -77,7 +96,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 if (child.Children.Any())
                 {
                     sessionWriter.PushPathName(child.Name);
-                    WriteChildren(sessionWriter, root, child.Children);
+                    await WriteChildren(sessionWriter, root, child.Children);
                     sessionWriter.PopPathName();
                 }
 
@@ -109,14 +128,26 @@ namespace SINTEF.AutoActive.Archive.Plugin
             }
         }
 
-        public void WriteFile(ZipFile zipFile)
+        public async Task WriteFile(ZipFile zipFile)
         {
             var sessionWriter = new ArchiveSessionWriter(zipFile, this);
+
+            sessionWriter.BeginUpdate();
+
             var sessionJsonRoot = ToArchiveJson();
-
-            WriteChildren(sessionWriter, sessionJsonRoot, Children);
-
+            await WriteChildren(sessionWriter, sessionJsonRoot, Children);
             sessionWriter.StoreMeta(sessionJsonRoot);
+
+            sessionWriter.CommitUpdate();
+        }
+
+        public override async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+            await base.WriteData(root, writer);
+            root["meta"]["id"] = Id.ToString();
+            root["meta"]["based_on"] = new JObject(BasedOn);
+            root["user"]["created"] = Created.ToString();
+            return true;
         }
     }
 

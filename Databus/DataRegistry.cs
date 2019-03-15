@@ -75,6 +75,7 @@ namespace SINTEF.AutoActive.Databus
             dataprovider.DataPointRemoved -= OnDataPointRemoved;
             InvokeRemoveDataPointsOnAll(dataprovider);
             ProviderRemoved?.Invoke(dataprovider);
+            dataprovider.Close();
         }
     }
 }

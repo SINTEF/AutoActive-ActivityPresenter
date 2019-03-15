@@ -8,5 +8,6 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         event DataStructureRemovedHandler DataStructureRemovedFromTree;
         event DataPointAddedHandler DataPointAddedToTree;
         event DataPointRemovedHandler DataPointRemovedFromTree;
+        void Close();
     }
 }

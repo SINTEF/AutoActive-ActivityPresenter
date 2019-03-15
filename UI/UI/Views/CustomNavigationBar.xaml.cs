@@ -1,9 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Threading;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
@@ -112,37 +115,64 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
 	    private async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
-	    {
-	        var dataPoints = new List<IDataStructure>();
-	        var sessions = new List<ArchiveSession>(OpenSessions);
-	        var selector = new StorageSelector(sessions, dataPoints);
+        {
+            var dataPoints = new List<IDataStructure>(DataRegistry.Providers);
+            //var sessions = new List<ArchiveSession>(OpenSessions);
+            var sessions = new List<ArchiveSession>();
 
-	        await Navigation.PushAsync(selector);
+            // TODO: implement
+            //var selector = new StorageSelector(sessions, dataPoints);
+            var sessionName = "newSession";
 
-	        selector.Disappearing += (o, args) =>
-	        {
-	            if (selector.Cancelled) return;
-	            SaveArchive(selector.SelectedSession, selector.SelectedDataPoints, selector.SessionName);
-	        };
+            SaveArchiveButton.Text = "Saving";
+            SaveComplete += (s, a) => XamarinHelpers.EnsureMainThread(() => OnSaved(a));
+
+            var saveTask = SaveArchive(sessions, dataPoints, sessionName);
+
+            var thread = new Thread(() => saveTask.Wait());
+            thread.Start();
+
+        }
+
+        private void OnSaved(SaveCompleteArgs args)
+        {
+            if (!args.Success)
+            {
+                XamarinHelpers.GetCurrentPage(this).DisplayAlert("Save failed", args.Message, "OK");
+                SaveArchiveButton.Text = "Save";
+                return;
+            }
+            SaveArchiveButton.Text = "Saved";
+
 	    }
 
-	    private async void SaveArchive(ICollection<ArchiveSession> selectedSession, ICollection<IDataStructure> selectedDataPoints, string sessionName)
+	    public event SaveCompleteEvent SaveComplete;
+
+	    private async Task SaveArchive(ICollection<ArchiveSession> selectedSession,
+	        ICollection<IDataStructure> selectedDataPoints, string sessionName)
+	    {
+	        var result = await SaveArchiveProxy(selectedSession, selectedDataPoints, sessionName);
+            SaveComplete?.Invoke(this, result);
+	    }
+
+
+        private async Task<SaveCompleteArgs> SaveArchiveProxy(ICollection<ArchiveSession> selectedSession, ICollection<IDataStructure> selectedDataPoints, string sessionName)
 	    {
 	        if ((selectedSession == null || selectedSession.Count == 0) && (selectedDataPoints == null || selectedDataPoints.Count == 0))
 	        {
 	            await Application.Current.MainPage.DisplayAlert("Can not save:", "No data selected.", "OK");
-	            return;
+	            return new SaveCompleteArgs(false, "No data selected.");
 	        }
 
 	        var browser = DependencyService.Get<IFileBrowser>();
 	        if (browser == null)
 	        {
 	            await Application.Current.MainPage.DisplayAlert("File open error", "Could get file browser.", "OK");
-	            return;
+	            return new SaveCompleteArgs(false, "Could not get file browser.");
 	        }
 
 	        var file = await browser.BrowseForSave();
-	        if (file == null) return;
+	        if (file == null) return new SaveCompleteArgs(false, "No file selected");
 
 	        var stream = await file.GetReadWriteStream();
 
@@ -166,15 +196,31 @@ namespace SINTEF.AutoActive.UI.Views
 	            }
 	        }
 
-            archive.WriteFile();
+            await archive.WriteFile();
             archive.Close();
 	        file.Close();
-        }
+	        return new SaveCompleteArgs(true, "success");
+	    }
 
 	    private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
 	        Navigation.PushAsync(new SynchronizationPage());
 	    }
+
+    }
+
+    public delegate void SaveCompleteEvent(object sender, SaveCompleteArgs args);
+
+    public class SaveCompleteArgs
+    {
+        public SaveCompleteArgs(bool success, string message)
+        {
+            Success = success;
+            Message = message;
+        }
+
+        public string Message;
+        public bool Success;
 
     }
 }

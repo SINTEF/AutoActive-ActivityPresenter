@@ -10,7 +10,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
         string StoreMeta(JObject root);
         string StoreFile(Stream data, string name);
-        void CreateDirectory(string name);
+        void EnsureDirectory(string name);
 
         void PushPathName(string childName);
         void PopPathName();

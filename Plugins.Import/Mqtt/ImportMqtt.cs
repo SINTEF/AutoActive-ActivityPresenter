@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             Name = name;
         }
 
-        internal void ParseFile(Stream s)
+        protected override void DoParseFile(Stream s)
         {
             Debug.WriteLine("Starting MqttImporter ");
 
@@ -43,15 +43,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
 
     internal class MqttJsonTable
     {
-        public string name { get; set; }
-        public long[] time { get; set; }
-        public MqttJsonColumn[] columns { get; set; }
+        public string Name { get; set; }
+        public long[] Time { get; set; }
+        public MqttJsonColumn[] Columns { get; set; }
     }
 
     public class MqttJsonColumn
     {
-        public string name { get; set; }
-        public double[] val { get; set; }
+        public string Name { get; set; }
+        public double[] Value { get; set; }
     }
 
     public class MqttStr : BaseDataStructure
@@ -106,13 +106,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             public void RxValue(MqttJsonTable jsonTab)
             {
                 //Debug.WriteLine($"RxValue name: {rx.name} time: {rx.time} val: {rx.val}");
-                for (int i = 0; i < jsonTab.time.Length; i++)
+                for (int i = 0; i < jsonTab.Time.Length; i++)
                 {
-                    timeCol.AddData(jsonTab.time[i]);
+                    timeCol.AddData(jsonTab.Time[i]);
                     for (int col = 0; col < dataColArr.Length; col++)
                     {
-                        dataColArr[col] = new DoubleColumnDyn(jsonTab.columns[col].name, timeCol);
-                        dataColArr[col].AddData(jsonTab.columns[col].val[i]);
+                        dataColArr[col] = new DoubleColumnDyn(jsonTab.Columns[col].Name, timeCol);
+                        dataColArr[col].AddData(jsonTab.Columns[col].Value[i]);
                     }
                 }
                 for (int col = 0; col < dataColArr.Length; col++)

@@ -2,7 +2,6 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
 using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -81,7 +80,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     var grid = Content as Grid;
                     ColumnSplitter.Width = GridZeroLength;
                     ColumnTree.Width = GridZeroLength;
-                    grid.Children.Remove(TreeView);
+                    grid?.Children.Remove(TreeView);
                     // Show it in the overlay
                     OverlayLayout.Children.Add(TreeView, new Rectangle(1, 1, OverlayModeWidth, 1), AbsoluteLayoutFlags.All);
 

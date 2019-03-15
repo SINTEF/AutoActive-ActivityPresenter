@@ -66,7 +66,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             Name = name;
         }
 
-        internal void ParseFile(Stream s)
+
+        protected override void DoParseFile(Stream s)
         {
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";

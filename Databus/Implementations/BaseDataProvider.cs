@@ -1,5 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System;
+using System.IO;
 
 namespace SINTEF.AutoActive.Databus.Implementations
 {
@@ -42,6 +43,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
         public event DataStructureRemovedHandler DataStructureRemovedFromTree;
         public event DataPointAddedHandler DataPointAddedToTree;
         public event DataPointRemovedHandler DataPointRemovedFromTree;
+        private Stream _stream;
 
         private void OnDataStructureAddedToTree(IDataStructure sender, IDataStructure datastructure)
         {
@@ -95,6 +97,18 @@ namespace SINTEF.AutoActive.Databus.Implementations
         private void OnDataPointRemovedFromTree(IDataStructure sender, IDataPoint datapoint)
         {
             DataPointRemovedFromTree?.Invoke(sender, datapoint);
+        }
+
+        protected abstract void DoParseFile(Stream stream);
+
+        public void ParseFile(Stream stream)
+        {
+            _stream = stream;
+            DoParseFile(stream);
+        }
+        public void Close()
+        {
+            _stream?.Close();
         }
     }
 }

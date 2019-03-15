@@ -146,28 +146,29 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         public bool IsSaved { get; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
+            string tablePath;
             if (IsSaved)
             {
-                using (var stream = await _archive.OpenFile(_zipEntry))
-                {
-                    writer.StoreFile(stream, _zipEntry.Name);
-                }
+                var stream = await _archive.OpenFile(_zipEntry);
 
-                return true;
+                tablePath = writer.StoreFile(stream, _zipEntry.Name);
             }
-
-            var tableName = "data.parquet";
-            string tablePath;
-
-            using (var ms = new MemoryStream())
+            else
             {
-                using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
-                {
-                    tableWriter.Write(_reader.ReadAsTable());
-                }
+                //TODO: the table name should probably be something else
+                var tableName = "data.parquet";
 
-                ms.Position = 0;
-                tablePath = writer.StoreFile(ms, tableName);
+                //TODO: this stream might be disposed on commit?
+                using (var ms = new MemoryStream())
+                {
+                    using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
+                    {
+                        tableWriter.Write(_reader.ReadAsTable());
+                    }
+
+                    ms.Position = 0;
+                    tablePath = writer.StoreFile(ms, tableName);
+                }
             }
 
             if (!root.TryGetValue("user", out var user))
@@ -183,6 +184,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             }
             root["meta"]["type"] = Type;
             root["meta"]["path"] = tablePath;
+            // TODO: add units
+            // root["meta"]["units"]
+
+            root["name"] = Name;
 
             return true;
         }

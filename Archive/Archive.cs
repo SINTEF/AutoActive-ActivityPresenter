@@ -51,7 +51,7 @@ namespace SINTEF.AutoActive.Archive
                 var json = (JToken)serializer.Deserialize(jsonReader);
 
                 // Load the contents of the file
-                if (ParseJSONElement(json) is ArchiveSession session)
+                if (ParseJsonElement(json) is ArchiveSession session)
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
@@ -59,7 +59,7 @@ namespace SINTEF.AutoActive.Archive
             }
         }
 
-        public object ParseJSONElement(JToken json)
+        public object ParseJsonElement(JToken json)
         {
             // Check if this element is a datastructure
             var meta = (json as JObject)?.Property("meta")?.Value as JObject;
@@ -94,9 +94,13 @@ namespace SINTEF.AutoActive.Archive
             return _zipFile.GetEntry(path);
         }
 
+        public List<Stream> OpenFiles = new List<Stream>();
+
         public async Task<Stream> OpenFile(ZipEntry entry)
         {
-            return await _zipFile.OpenReadSeekStream(entry, _streamFactory);
+            var stream = await _zipFile.OpenReadSeekStream(entry, _streamFactory);
+            OpenFiles.Add(stream);
+            return stream;
         }
 
         public IReadSeekStreamFactory OpenFileFactory(ZipEntry entry)
@@ -136,29 +140,33 @@ namespace SINTEF.AutoActive.Archive
             _sessions.Add(session);
         }
 
-        public void WriteFile()
+        public async Task WriteFile()
         {
-            WriteFile(_zipFile);
+            await WriteFile(_zipFile);
         }
 
-        public void WriteFile(string fileName)
+        public async Task WriteFile(string fileName)
         {
             var zip = ZipFile.Create(fileName);
-            WriteFile(zip);
+            await WriteFile(zip);
             zip.Close();
         }
 
-        public void WriteFile(ZipFile zipFile)
+        public async Task WriteFile(ZipFile zipFile)
         {
             foreach (var session in Sessions)
             {
-                session.WriteFile(zipFile);
+                await session.WriteFile(zipFile);
             }
         }
 
         public void Close()
         {
             _zipFile?.Close();
+            foreach (var stream in OpenFiles)
+            {
+                stream.Close();
+            }
         }
 
         /* ---- Public API ---- */

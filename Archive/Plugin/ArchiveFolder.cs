@@ -16,7 +16,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             // Find all the contents of the folder
             foreach (var property in User.Properties())
             {
-                var content = archive.ParseJSONElement(property.Value);
+                var content = archive.ParseJsonElement(property.Value);
                 if (!(content is ArchiveStructure datastruct)) continue;
 
                 datastruct.SetName(property.Name);
@@ -47,9 +47,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public bool IsSaved { get; protected set; }
 
-        public Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public virtual Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            writer.CreateDirectory(Name);
+            writer.EnsureDirectory(Name);
 
             if (!writer.JsonCreated)
             {
@@ -61,6 +61,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
                 user = new JObject();
                 root["user"] = user;
+                root["user"]["name"] = Name;
             }
 
             if (!root.TryGetValue("meta", out var meta))

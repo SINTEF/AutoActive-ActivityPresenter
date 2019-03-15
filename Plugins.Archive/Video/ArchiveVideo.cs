@@ -39,10 +39,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             if (IsSaved)
             {
-                using (var stream = await _archive.OpenFile(_zipEntry))
-                {
-                    writer.StoreFile(stream, _zipEntry.Name);
-                }
+                var stream = await _archive.OpenFile(_zipEntry);
+
+                 writer.StoreFile(stream, _zipEntry.Name);
 
                 return true;
             }
@@ -57,10 +56,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
                     ["path"] = path,
                     ["type"] = Type
                 },
-                ["user"] = new JObject
-                {
-
-                }
+                ["user"] = new JObject()
             };
 
             throw new NotImplementedException();
@@ -92,14 +88,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public async Task<IDataViewer> CreateViewer()
         {
             var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
-            if (factory != null)
-            {
-                var mime = MimeUtility.GetMimeMapping(_path);
-                var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
-                Debug.WriteLine("Decoder created!");
-                return new ArchiveVideoVideoViewer(this, decoder);
-            }
-            throw new NotImplementedException();
+            if (factory == null) throw new NotImplementedException();
+
+            var mime = MimeUtility.GetMimeMapping(_path);
+            var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
+            Debug.WriteLine("Decoder created!");
+            return new ArchiveVideoVideoViewer(this, decoder);
         }
     }
 
@@ -175,7 +169,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         private VideoDecoderFrame _currentFrame;
 
-        readonly object _locker = new object();
+        private readonly object _locker = new object();
         private CancellationTokenSource _cancellation;
 
         public event DataViewerWasChangedHandler Changed;
