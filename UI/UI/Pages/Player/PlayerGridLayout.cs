@@ -43,7 +43,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 catch (Exception ex)
                 {
                     //TODO: put this in a helper method?
-                    var page = Navigation.NavigationStack.LastOrDefault();
+                    var page = XamarinHelpers.GetCurrentPage(this);
                     if (page != null)
                     {
                         await page.DisplayAlert("Error", $"Could not add data point for {datapoint.Name}: {ex.Message}",
