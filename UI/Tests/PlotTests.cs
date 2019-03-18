@@ -23,6 +23,7 @@ namespace Tests
             dataViewerTask.Wait();
             var viewer = dataViewerTask.Result as ITimeSeriesViewer;
             Assert.NotNull(viewer);
+            viewer.PreviewPercentage = 0;
 
             var startTime = timeArray[0];
             Assert.Equal(0, tsc.AvailableTimeFrom);

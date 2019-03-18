@@ -44,6 +44,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
         }
     }
 
+    //TODO: This class is likely deprecated
     public class DoubleColumnDynViewer : TableColumnDynViewer
     {
         private DoubleColumnDyn column;
@@ -53,7 +54,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
             this.column = column;
         }
 
-        public override SpanPair<double> GetCurrentDoubles()
+        public SpanPair<double> GetCurrentDoubles()
         {
             //Debug.WriteLine("GetCurrentDoubles " + this.Column.Name + " " + startIndex + " " + length);
 

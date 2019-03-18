@@ -86,6 +86,7 @@ namespace SINTEF.AutoActive.UI.Figures
             
             if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
+            viewer.PreviewPercentage = PreviewPercentage;
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
             if (lineDrawer != null)
             {
@@ -161,6 +162,8 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.DrawPath(plot, lineConfig.LinePaint);
         }
 
+        public long PreviewPercentage = 30;
+
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             // Clear background and draw frame
@@ -188,7 +191,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var currentXTime = firstStartTime;
 
             //TODO: make this selectable
-            var startX = currentXTime - xDiff/3;
+            var startX = currentXTime - xDiff * PreviewPercentage / 100;
 
             var scaleX = (float)info.Width / xDiff;
             

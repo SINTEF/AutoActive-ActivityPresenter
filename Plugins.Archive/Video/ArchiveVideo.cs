@@ -178,6 +178,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public long CurrentTimeRangeFrom { get; private set; }
         public long CurrentTimeRangeTo { get; private set; }
+        public long PreviewPercentage { get; set; }
 
         internal ArchiveVideoVideoViewer(ArchiveVideoVideo video, IVideoDecoder decoder)
         {

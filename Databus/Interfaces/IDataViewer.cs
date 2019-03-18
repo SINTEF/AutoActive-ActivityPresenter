@@ -10,6 +10,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         long CurrentTimeRangeFrom { get; }
         long CurrentTimeRangeTo { get; }
 
+        long PreviewPercentage { get; set; }
         void SetTimeRange(long from, long to);
 
         event DataViewerWasChangedHandler Changed;

@@ -84,6 +84,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected int EndIndex = -1;
         protected int Length = -1;
 
+        public long PreviewPercentage { get; set; }
+
         protected TableColumnViewer(TableTimeIndex index, TableColumn column)
         {
             Index = index;
@@ -92,9 +94,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public void SetTimeRange(long from, long to)
         {
-            var plotWindow = GetPlotWindow(from, to);
-            var startTime = plotWindow.Item1;
-            var endTime = plotWindow.Item2;
+            var diff = to - from;
+            var startTime = from - diff * PreviewPercentage / 100;
+            var endTime = startTime + diff;
 
             var start = Index.FindIndex(StartIndex, startTime);
             var end = Index.FindIndex(EndIndex, endTime);
@@ -119,14 +121,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public long CurrentTimeRangeFrom { get; private set; }
         public long CurrentTimeRangeTo { get; private set; }
-
-        public static Tuple<long,long> GetPlotWindow(long from, long to)
-        {
-            var diff = (to - from);
-            var startTime = from - diff * 1 / 3;
-            var endTime = startTime + diff;
-            return new Tuple<long, long>(startTime, endTime);
-        }
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }

@@ -57,6 +57,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
         }
     }
 
+    //TODO: This class is likely deprecated
     public class LongColumnDynViewer : TableColumnDynViewer
     {
         private LongColumnDyn column;
@@ -66,7 +67,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
             this.column = column;
         }
 
-        public override SpanPair<long> GetCurrentLongs()
+        public SpanPair<long> GetCurrentLongs()
         {
             return new SpanPair<long>(index.data.AsSpan(startIndex, length), column.data.AsSpan(startIndex, length));
         }

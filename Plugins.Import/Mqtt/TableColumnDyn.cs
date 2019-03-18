@@ -103,10 +103,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             Column = column;
         }
 
+        public long PreviewPercentage { get; set; }
         public void SetTimeRange(long from, long to)
         {
-            var start = index.FindIndex(startIndex, from);
-            var end = index.FindIndex(endIndex, to);
+            var diff = to - from;
+            var startTime = from - diff * PreviewPercentage / 100;
+            var endTime = startTime + diff;
+            var start = index.FindIndex(startIndex, startTime);
+            var end = index.FindIndex(endIndex, endTime);
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
             //lastTo = to;
@@ -153,11 +157,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public long CurrentTimeRangeTo { get; private set; }
 
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
-        public virtual SpanPair<byte> GetCurrentBytes() { throw new NotSupportedException(); }
-        public virtual SpanPair<int> GetCurrentInts() { throw new NotSupportedException(); }
-        public virtual SpanPair<long> GetCurrentLongs() { throw new NotSupportedException(); }
-        public virtual SpanPair<float> GetCurrentFloats() { throw new NotSupportedException(); }
-        public virtual SpanPair<double> GetCurrentDoubles() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
         public virtual SpanPair<T> GetCurrentData<T>() where T : IConvertible { throw new NotImplementedException(); }
     }
