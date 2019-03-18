@@ -159,16 +159,16 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 var tableName = "data.parquet";
 
                 //TODO: this stream might be disposed on commit?
-                using (var ms = new MemoryStream())
-                {
-                    using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
-                    {
-                        tableWriter.Write(_reader.ReadAsTable());
-                    }
+                var ms = new MemoryStream();
 
-                    ms.Position = 0;
-                    tablePath = writer.StoreFile(ms, tableName);
+                using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
+                {
+                    tableWriter.Write(_reader.ReadAsTable());
                 }
+
+                ms.Position = 0;
+                tablePath = writer.StoreFile(ms, tableName);
+
             }
 
             if (!root.TryGetValue("user", out var user))

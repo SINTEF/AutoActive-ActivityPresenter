@@ -69,16 +69,17 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return true;
         }
 
-        private readonly LinkedList<Stream> _streams = new LinkedList<Stream>();
+        private readonly LinkedList<StreamSource> _streamSources = new LinkedList<StreamSource>();
 
         public void CommitUpdate()
         {
             _zipFile.CommitUpdate();
             _isUpdating = false;
 
-            foreach (var stream in _streams)
+            //TODO: should this really be responsible for closing streams?
+            foreach (var streamSource in _streamSources)
             {
-                stream.Close();
+                streamSource.GetSource().Close();
             }
         }
 
@@ -87,7 +88,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
             var path = $"{_id}/{ArchiveSession.SessionFileName}";
 
             var ms = new MemoryStream();
-            _streams.AddLast(ms);
 
             var writer = new StreamWriter(ms);
             var jsonWriter = new JsonTextWriter(writer);
@@ -99,7 +99,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
             ms.Position = 0;
 
             var changed = BeginUpdate();
-            _zipFile.Add(new StreamSource(ms), path, CompressionMethod.Stored);
+            var ss = new StreamSource(ms);
+            _streamSources.AddLast(ss);
+            _zipFile.Add(ss, path, CompressionMethod.Stored);
             if (changed) _zipFile.CommitUpdate();
 
             return path;
@@ -109,7 +111,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             var path = $"{RootName}/{name}";
             var changed = BeginUpdate();
-            _zipFile.Add(new StreamSource(data), path, CompressionMethod.Stored);
+            var ss = new StreamSource(data);
+            _streamSources.AddLast(ss);
+            _zipFile.Add(ss, path, CompressionMethod.Stored);
 
             if (changed) CommitUpdate();
             return path;

@@ -240,7 +240,7 @@ namespace SINTEF.AutoActive.Archive.Tests
             archive.AddSession(session);
             archive.AddSession(session2);
 
-            archive.WriteFile();
+            archive.WriteFile().Wait();
             archive.Close();
 
             using (var fr = new FileReader(tmpName))
@@ -283,11 +283,9 @@ namespace SINTEF.AutoActive.Archive.Tests
                     groupWriter.WriteColumn(timeColumn);
                     groupWriter.WriteColumn(numbersColumn);
                 }
-
                 ms.Position = 0;
 
-                using (var parquetReader = new ParquetReader(ms))
-                {
+                using (var parquetReader = new ParquetReader(ms)) {
                     var tableInformation = new ArchiveTableInformation()
                     {
                         Columns = new List<DataField>(parquetReader.Schema.GetDataFields()),
@@ -304,7 +302,7 @@ namespace SINTEF.AutoActive.Archive.Tests
                     session.AddChild(folder);
                     archive.AddSession(session);
 
-                    archive.WriteFile();
+                    archive.WriteFile().Wait();
                     archive.Close();
 
                     using (var fr = new FileReader(tmpName))

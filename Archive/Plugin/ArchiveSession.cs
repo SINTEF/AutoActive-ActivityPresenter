@@ -38,9 +38,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
             var json = new JObject { ["meta"] = meta, ["user"] = user };
 
-            var session = new ArchiveSession(json, archive) { IsSaved = false, BasedOn = basedOn };
-            archive.AddSession(session);
-            return session;
+            return new ArchiveSession(json, archive) { IsSaved = false, BasedOn = basedOn };
         }
 
         public static ArchiveSession Create(Archive archive, string name, Guid basedOn)
@@ -136,9 +134,10 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
             var sessionJsonRoot = ToArchiveJson();
             await WriteChildren(sessionWriter, sessionJsonRoot, Children);
-            sessionWriter.StoreMeta(sessionJsonRoot);
 
             sessionWriter.CommitUpdate();
+            sessionWriter.StoreMeta(sessionJsonRoot);
+
         }
 
         public override async Task<bool> WriteData(JObject root, ISessionWriter writer)
