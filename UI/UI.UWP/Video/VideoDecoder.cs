@@ -23,7 +23,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks.Schedulers;
-using System.Collections.Concurrent;
+
 
 [assembly: Dependency(typeof(VideoDecoderFactory))]
 namespace SINTEF.AutoActive.UI.UWP.Video
@@ -32,18 +32,19 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
     public class VideoDecoder : IVideoDecoder
     {
-        MediaPlayer decoder;
-        SoftwareBitmap destination;
-        CanvasDevice device;
-        CanvasBitmap bitmap;
+        private readonly MediaPlayer _decoder;
+        private SoftwareBitmap _destination;
+        private readonly CanvasDevice _device;
+        private CanvasBitmap _bitmap;
 
-        readonly object locker = new object();
-        bool isDecoding;
-        readonly Queue<VideoDecoderAction> queue;
+        private readonly object _mutex = new object();
+        private bool _isDecoding;
+        private readonly Queue<VideoDecoderAction> _queue = new Queue<VideoDecoderAction>();
 
-        TaskCompletionSource<long> length;
+        private readonly TaskCompletionSource<long> _videoLength = new TaskCompletionSource<long>();
 
         public bool DEBUG_OUTPUT = false;
+        private bool _sizeChangeRequested;
 
         internal VideoDecoder(IRandomAccessStream stream, string mime)
         {
@@ -51,28 +52,26 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
             var source = MediaSource.CreateFromStream(stream, mime);
             var item = new MediaPlaybackItem(source);
-            decoder = new MediaPlayer
+            _decoder = new MediaPlayer
             {
                 AutoPlay = false,
                 IsMuted = true,
                 IsVideoFrameServerEnabled = true,
                 Source = item,
             };
-            decoder.VideoFrameAvailable += Decoder_VideoFrameAvailable;
+            _decoder.VideoFrameAvailable += Decoder_VideoFrameAvailable;
 
-            isDecoding = true;
-            queue = new Queue<VideoDecoderAction>();
+            _isDecoding = true;
 
-            length = new TaskCompletionSource<long>();
 
-            device = new CanvasDevice();
-            CreateBitmaps(1, 1);
+            _device = new CanvasDevice();
+            //CreateBitmaps(10, 10);
         }
 
-        void RunNextActions()
+        private void RunNextActions()
         {
             //Debug.WriteLine($"RunNextActions #{Thread.CurrentThread.ManagedThreadId}");
-            while (queue.TryDequeue(out var nextAction))
+            while (_queue.TryDequeue(out var nextAction))
             {
                 //Debug.WriteLine($"RunNextAction - Running #{Thread.CurrentThread.ManagedThreadId}");
                 // Run the next action in the queue
@@ -80,21 +79,21 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 {
                     //Debug.WriteLine($"RunNextAction - Starting new decode #{Thread.CurrentThread.ManagedThreadId}");
                     // The previously decoded frame was consumed, so we need to decode the next one
-                    decoder.StepForwardOneFrame();
-                    isDecoding = true;
+                    _decoder.StepForwardOneFrame();
+                    _isDecoding = true;
                 }
             }
         }
 
-        void EnqueueAndPossiblyRun(params VideoDecoderAction[] actions)
+        private void EnqueueAndPossiblyRun(params VideoDecoderAction[] actions)
         {
             //Debug.WriteLine($"EnqueueAndPossiblyRun #{Thread.CurrentThread.ManagedThreadId}");
-            lock (locker)
+            lock (_mutex)
             {
                 foreach (var action in actions)
-                    queue.Enqueue(action);
+                    _queue.Enqueue(action);
 
-                if (!isDecoding)
+                if (!_isDecoding)
                 {
                     // Decoding is already done, so we are free to run the next action here
                     RunNextActions();
@@ -104,8 +103,8 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         (uint width, uint height) GetActualSize(uint requestedWidth, uint requestedHeight)
         {
-            var naturalWidth = (double)decoder.PlaybackSession.NaturalVideoWidth;
-            var naturalHeight = (double)decoder.PlaybackSession.NaturalVideoHeight;
+            var naturalWidth = (double)_decoder.PlaybackSession.NaturalVideoWidth;
+            var naturalHeight = (double)_decoder.PlaybackSession.NaturalVideoHeight;
             var widthFactor = requestedWidth / naturalWidth;
             var heightFactor = requestedHeight / naturalHeight;
             if (widthFactor < heightFactor)
@@ -118,34 +117,44 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             }
         }
 
-        void CreateBitmaps(uint width, uint height)
+        private void CreateBitmaps(uint width, uint height)
         {
             //Debug.WriteLine($"CreateBitmaps #{Thread.CurrentThread.ManagedThreadId}");
-            destination = new SoftwareBitmap(BitmapPixelFormat.Rgba8, (int)width, (int)height, BitmapAlphaMode.Ignore);
-            bitmap = CanvasBitmap.CreateFromSoftwareBitmap(device, destination);
+            _destination = new SoftwareBitmap(BitmapPixelFormat.Rgba8, (int)width, (int)height, BitmapAlphaMode.Ignore);
+            _bitmap = CanvasBitmap.CreateFromSoftwareBitmap(_device, _destination);
         }
 
         VideoDecoderFrame CopyCurrentDecodedFrame(ArraySegment<byte> buffer)
         {
-            var time = (long)decoder.PlaybackSession.Position.TotalMilliseconds * 1000;
-            var width = (uint)destination.PixelWidth;
-            var height = (uint)destination.PixelHeight;
+            var time = (long)_decoder.PlaybackSession.Position.TotalMilliseconds * 1000;
+            var width = (uint)_destination.PixelWidth;
+            var height = (uint)_destination.PixelHeight;
             var slice = buffer.Array.AsBuffer(buffer.Offset, buffer.Count);
             /*destination.CopyToBuffer(slice);*/
-            bitmap.GetPixelBytes(slice);
+            _bitmap.GetPixelBytes(slice);
             return new VideoDecoderFrame(time, width, height, buffer);
         }
 
-        void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
+        private void Decoder_VideoFrameAvailable(MediaPlayer sender, object args)
         {
             // TODO(sigurdal): Is this supposed to be 1e6 instead of 10e6?
-            length.TrySetResult((long)(decoder.PlaybackSession.NaturalDuration.TotalSeconds*1e6));
-
-            decoder.CopyFrameToVideoSurface(bitmap);
-
-            lock (locker)
+            _videoLength.TrySetResult((long)(_decoder.PlaybackSession.NaturalDuration.TotalSeconds*1e6));
+            if (_bitmap != null && !_sizeChangeRequested)
             {
-                isDecoding = false;
+                try
+                {
+                    _decoder.CopyFrameToVideoSurface(_bitmap);
+                }
+                catch (ArgumentException ex)
+                {
+                    Debug.WriteLine($"Could not decode: {ex.Message}");
+                }
+
+            }
+
+            lock (_mutex)
+            {
+                _isDecoding = false;
                 RunNextActions();
             }
         }
@@ -153,7 +162,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         /* -- Public API -- */
         public Task<long> GetLengthAsync()
         {
-            return length.Task;
+            return _videoLength.Task;
         }
 
         public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
@@ -168,7 +177,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                     return false;
                 }
 
-                if (buffer.Count >= destination.PixelHeight*destination.PixelWidth*4)
+                if (buffer.Count >= _destination.PixelHeight*_destination.PixelWidth*4)
                 {
                     if (DEBUG_OUTPUT) Debug.WriteLine($"VIDEO FRAME COPIED");
                     // If there is room in the assigned buffer, return the current decoded frame to the caller
@@ -194,7 +203,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         public Task<long> SeekToAsync(long time, CancellationToken cancellationToken)
         {
             //Debug.WriteLine($"SeekToAsync {Thread.CurrentThread.ManagedThreadId}");
-            TaskCompletionSource<long> source = new TaskCompletionSource<long>();
+            var source = new TaskCompletionSource<long>();
             EnqueueAndPossiblyRun(() =>
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -203,7 +212,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 }
 
                 // First, tell the decoder to seek
-                decoder.PlaybackSession.Position = TimeSpan.FromMilliseconds(time/1000);
+                _decoder.PlaybackSession.Position = TimeSpan.FromMilliseconds(time/1000);
                 return false;
             }, () =>
             {
@@ -214,7 +223,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 }
 
                 // Then, when the next frame is available, we are done seeking
-                var position = (long)(decoder.PlaybackSession.Position.TotalSeconds * 1e6);
+                var position = (long)(_decoder.PlaybackSession.Position.TotalSeconds * 1e6);
                 source.SetResult(position);
                 return false;
             });
@@ -227,8 +236,9 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         public Task<(uint width, uint height)> SetSizeAsync(uint width, uint height, CancellationToken cancellationToken)
         {
+            _sizeChangeRequested = true;
             //Debug.WriteLine($"SetSizeAsync {width}x{height} #{Thread.CurrentThread.ManagedThreadId}");
-            TaskCompletionSource<(uint width, uint height)> source = new TaskCompletionSource<(uint width, uint height)>();
+            var source = new TaskCompletionSource<(uint width, uint height)>();
             EnqueueAndPossiblyRun(() =>
             {
                 if (cancellationToken.IsCancellationRequested)
@@ -243,6 +253,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
                 // Just create new bitmaps
                 CreateBitmaps(actualWidth, actualHeight);
                 source.SetResult((actualWidth, actualHeight));
+                _sizeChangeRequested = false;
                 return false;
             });
             return source.Task;
@@ -266,40 +277,40 @@ namespace SINTEF.AutoActive.UI.UWP.Video
     /* --- IRandomAccessStream helper --- */
     internal class FactoryRandomAccessStream : IRandomAccessStream
     {
-        IRandomAccessStream original;
-        IReadSeekStreamFactory factory;
+        private readonly IRandomAccessStream _original;
+        private readonly IReadSeekStreamFactory _factory;
 
         internal FactoryRandomAccessStream(IRandomAccessStream stream, IReadSeekStreamFactory file)
         {
-            original = stream;
-            factory = file;
+            _original = stream;
+            _factory = file;
         }
 
-        public bool CanRead => original.CanRead;
-        public bool CanWrite => original.CanWrite;
-        public ulong Position => original.Position;
+        public bool CanRead => _original.CanRead;
+        public bool CanWrite => _original.CanWrite;
+        public ulong Position => _original.Position;
 
-        public void Seek(ulong position) { original.Seek(position); }
-        public ulong Size { get => original.Size; set => original.Size = value; }
+        public void Seek(ulong position) { _original.Seek(position); }
+        public ulong Size { get => _original.Size; set => _original.Size = value; }
 
         public IAsyncOperationWithProgress<IBuffer, uint> ReadAsync(IBuffer buffer, uint count, InputStreamOptions options) {
-            return original.ReadAsync(buffer, count, options);
+            return _original.ReadAsync(buffer, count, options);
         }
-        public IAsyncOperationWithProgress<uint, uint> WriteAsync(IBuffer buffer) { return original.WriteAsync(buffer); }
-        public IAsyncOperation<bool> FlushAsync() { return original.FlushAsync(); }
+        public IAsyncOperationWithProgress<uint, uint> WriteAsync(IBuffer buffer) { return _original.WriteAsync(buffer); }
+        public IAsyncOperation<bool> FlushAsync() { return _original.FlushAsync(); }
 
-        public void Dispose() { original.Dispose(); }
+        public void Dispose() { _original.Dispose(); }
 
         private async Task<Stream> GetClonedStream()
         {
-            return await factory.GetReadStream().ConfigureAwait(false);
+            return await _factory.GetReadStream().ConfigureAwait(false);
         }
 
         public IRandomAccessStream CloneStream()
         {
-            var task = Task.Run(factory.GetReadStream);
+            var task = Task.Run(_factory.GetReadStream);
             var stream = task.Result;
-            return new FactoryRandomAccessStream(stream.AsRandomAccessStream(), factory);
+            return new FactoryRandomAccessStream(stream.AsRandomAccessStream(), _factory);
         }
 
         public IInputStream GetInputStreamAt(ulong position)
