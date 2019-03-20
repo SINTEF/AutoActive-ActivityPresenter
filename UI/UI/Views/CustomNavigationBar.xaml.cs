@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Archive.Plugin;
@@ -114,7 +115,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
-	    private async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
+	    private void SaveArchiveButton_OnClicked(object sender, EventArgs e)
         {
             var dataPoints = new List<IDataStructure>(DataRegistry.Providers);
             //var sessions = new List<ArchiveSession>(OpenSessions);
@@ -122,7 +123,8 @@ namespace SINTEF.AutoActive.UI.Views
 
             // TODO: implement
             //var selector = new StorageSelector(sessions, dataPoints);
-            var sessionName = "newSession";
+            var sessionName = dataPoints.First().Name;
+
 
             SaveArchiveButton.Text = "Saving";
             SaveComplete += (s, a) => XamarinHelpers.EnsureMainThread(() => OnSaved(a));
@@ -183,7 +185,10 @@ namespace SINTEF.AutoActive.UI.Views
 	            var session = ArchiveSession.Create(archive, sessionName);
 	            foreach (var dataPoint in selectedDataPoints)
 	            {
-	                session.AddChild(dataPoint);
+	                foreach (var child in dataPoint.Children)
+	                {
+	                    session.AddChild(child);
+                    }
                 }
                 archive.AddSession(session);
 	        }
