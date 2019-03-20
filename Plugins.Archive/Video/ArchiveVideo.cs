@@ -37,29 +37,19 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public bool IsSaved { get; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            if (IsSaved)
-            {
-                var stream = await _archive.OpenFile(_zipEntry);
+            var stream = await _archive.OpenFile(_zipEntry);
 
-                 writer.StoreFile(stream, _zipEntry.Name);
+            //TODO: Fix path
+            var path = writer.StoreFile(stream, _zipEntry.Name);
 
-                return true;
-            }
-
-            System.IO.Stream videoStream = null;
-            var path = writer.StoreFile(videoStream, _zipEntry.Name);
-
-            root["video"] = new JObject
-            {
-                ["meta"] = new JObject
+            root["meta"] = new JObject
                 {
                     ["path"] = path,
                     ["type"] = Type
-                },
-                ["user"] = new JObject()
-            };
+                };
+            root["user"] = new JObject();
 
-            throw new NotImplementedException();
+            return true;
         }
     }
 

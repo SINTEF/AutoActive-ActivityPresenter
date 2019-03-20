@@ -342,7 +342,7 @@ namespace SINTEF.AutoActive.Archive.Tests
                         Assert.Equal(timeData, data.X.ToArray());
                         Assert.Equal(numbersData, data.Y.ToArray());
 
-                        openTask.Result.Close();
+                        newArchive.Close();
                     }
                 }
             }
@@ -350,6 +350,135 @@ namespace SINTEF.AutoActive.Archive.Tests
             //Debug.WriteLine(tmpName);
             File.Delete(tmpName);
         }
+
+        private string CreateTestArchive()
+        {
+            var tmpName = Path.GetTempFileName();
+
+            var timeData = new[] { 1L, 2L, 3L };
+            var timeColumn = new DataColumn(
+                new DataField<long>("time"),
+                timeData);
+
+            var numbersData = new[] { 42d, 1337d, 6.022e23 };
+            var numbersColumn = new DataColumn(
+                new DataField<double>("cool_numbers"),
+                numbersData);
+
+            var schema = new Schema(timeColumn.Field, numbersColumn.Field);
+
+            var json = new JObject { ["meta"] = new JObject(), ["user"] = new JObject() };
+
+
+            using (var ms = new MemoryStream())
+            {
+                using (var parquetWriter = new ParquetWriter(schema, ms))
+                using (var groupWriter = parquetWriter.CreateRowGroup())
+                {
+                    groupWriter.WriteColumn(timeColumn);
+                    groupWriter.WriteColumn(numbersColumn);
+                }
+
+                ms.Position = 0;
+
+                using (var parquetReader = new ParquetReader(ms))
+                {
+                    var tableInformation = new ArchiveTableInformation()
+                    {
+                        Columns = new List<DataField>(parquetReader.Schema.GetDataFields()),
+                        Time = timeColumn.Field
+                    };
+                    var table = new ArchiveTable(json, parquetReader, tableInformation, "testData");
+
+                    var archive = Archive.Create(tmpName);
+
+                    var session = ArchiveSession.Create(archive, "testName");
+                    var folder = ArchiveFolder.Create(archive, "testFolder");
+
+                    folder.AddChild(table);
+                    session.AddChild(folder);
+                    archive.AddSession(session);
+
+                    archive.WriteFile().Wait();
+                    archive.Close();
+                }
+            }
+
+            return tmpName;
+        }
+
+        [Fact]
+        public async void ChangeSingleDataArchive()
+        {
+            var tmpName = CreateTestArchive();
+            var tmpName2 = Path.GetTempFileName();
+
+            long preFrom;
+            long preTo;
+            long[] preData;
+
+            const long offset = 10L;
+
+            using (var fr = new FileReader(tmpName))
+            {
+                var archive = await Archive.Open(fr);
+                var readFolder = archive.Sessions.First().Children.First();
+
+                var child = readFolder.Children.First();
+                Assert.IsAssignableFrom<ArchiveTable>(child);
+                var tableChild = (ArchiveTable) child;
+
+                var dataPoint = tableChild.DataPoints.First();
+                var context = new TimeSynchronizedContext();
+                context.SetSynchronizedToWorldClock(true);
+                context.AvailableTimeRangeChanged +=
+                    (sender, from, to) => context.SetSelectedTimeRange(from, to);
+                var viewer = await context.GetDataViewerFor(dataPoint);
+
+                var timeViewer = (ITimeSeriesViewer)viewer;
+
+                preData = timeViewer.GetCurrentData<double>().X.ToArray();
+
+
+                preFrom = context.AvailableTimeFrom;
+                preTo = context.AvailableTimeTo;
+
+                dataPoint.Time.TransformTime(offset, 1);
+
+                await archive.WriteFile(tmpName2);
+                archive.Close();
+            }
+
+            File.Delete(tmpName);
+            using (var fileReader = new FileReader(tmpName2))
+            {
+                var archive = await Archive.Open(fileReader);
+                var readFolder = archive.Sessions.First().Children.First();
+
+                var child = readFolder.Children.First();
+                Assert.IsAssignableFrom<ArchiveTable>(child);
+                var tableChild = (ArchiveTable)child;
+
+                var dataPoint = tableChild.DataPoints.First();
+                var context = new TimeSynchronizedContext();
+                context.SetSynchronizedToWorldClock(true);
+                context.AvailableTimeRangeChanged +=
+                    (sender, from, to) => context.SetSelectedTimeRange(from, to);
+                var viewer = await context.GetDataViewerFor(dataPoint);
+                var timeViewer = (ITimeSeriesViewer)viewer;
+                var postData = timeViewer.GetCurrentData<double>().X.ToArray();
+
+                Assert.Equal(preFrom + offset, context.AvailableTimeFrom);
+                Assert.Equal(preTo + offset, context.AvailableTimeTo);
+                for (var i = 0; i < preData.Length; i++)
+                {
+                    Assert.Equal(preData[i] + offset, postData[i]);
+                }
+            }
+
+            File.Delete(tmpName2);
+        }
+
 
         private class Storable : IStaticDataSource
         {

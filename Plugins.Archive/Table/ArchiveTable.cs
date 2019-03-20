@@ -9,7 +9,9 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Reflection;
 using System.Threading.Tasks;
+using Parquet.Data.Rows;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 {
@@ -23,9 +25,21 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 
         public Schema Schema => _reader.Schema;
 
-        public Parquet.Data.Rows.Table ReadAsTable() => _reader.ReadAsTable();
-
         private readonly Dictionary<DataField, Array> _data = new Dictionary<DataField, Array>();
+
+        public void LoadAll()
+        {
+            foreach (var column in _reader.Schema.GetDataFields())
+            {
+                if (_data.TryGetValue(column, out var arr))
+                {
+                    continue;
+                }
+
+                var t = DataType2Type(column.DataType);
+                GetType().GetMethod("LoadColumn")?.MakeGenericMethod(t).Invoke(this, new object[] {column});
+            }
+        }
 
         public T[] LoadColumn<T>(DataField column)
         {
@@ -34,6 +48,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 return arr as T[];
             }
 
+            //TODO: these should not be needed
             // Find the datafield we want to use
             var dataField = Array.Find(_reader.Schema.GetDataFields(), field => field.Name == column.Name);
             if (dataField == null) throw new ArgumentException($"Couldn't find column {column.Name} in table");
@@ -53,6 +68,58 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             _data[column] = data;
 
             return data;
+        }
+
+        public static Type DataType2Type(DataType type)
+        {
+            switch (type)
+            {
+                case DataType.Boolean:
+                    return typeof(bool);
+                case DataType.Byte:
+                    return typeof(byte);
+                case DataType.Int32:
+                    return typeof(int);
+                case DataType.Int64:
+                    return typeof(long);
+                case DataType.Float:
+                    return typeof(float);
+                case DataType.Double:
+                    return typeof(double);
+                case DataType.SignedByte:
+                    return typeof(sbyte);
+                case DataType.UnsignedByte:
+                    return typeof(byte);
+                case DataType.Short:
+                    return typeof(short);
+                case DataType.UnsignedShort:
+                    return typeof(ushort);
+                case DataType.Int16:
+                    return typeof(short);
+                case DataType.UnsignedInt16:
+                    return typeof(ushort);
+                case DataType.Int96:
+                    break;
+                case DataType.ByteArray:
+                    break;
+                case DataType.String:
+                    break;
+                case DataType.Decimal:
+                    break;
+                case DataType.DateTimeOffset:
+                    break;
+                case DataType.Interval:
+                    break;
+                case DataType.Unspecified:
+                    break;
+            }
+
+            throw new NotImplementedException($"Data type {type} not implemented.");
+        }
+
+        public Array GetColumn(DataField field)
+        {
+            return _data[field];
         }
     }
 
@@ -91,7 +158,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 
             AddColumns(tableInformation);
         }
-
 
         void AddColumns(ArchiveTableInformation tableInformation)
         {
@@ -143,11 +209,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             return new Task<T[]>(() => LoadColumn<T>(reader, column).Result);
         }
 
-        public bool IsSaved { get; }
+        public bool IsSaved { get; set; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             string tablePath;
-            if (IsSaved)
+            //TODO: Implement?
+            if (false && IsSaved)
             {
                 var stream = await _archive.OpenFile(_zipEntry);
 
@@ -156,14 +223,20 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             else
             {
                 //TODO: the table name should probably be something else
-                var tableName = "data.parquet";
+                var tableName = Name + "/" + "data.parquet";
 
                 //TODO: this stream might be disposed on commit?
                 var ms = new MemoryStream();
 
+                _reader.LoadAll();
                 using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
                 {
-                    tableWriter.Write(_reader.ReadAsTable());
+                    var rowGroup = tableWriter.CreateRowGroup();
+                    foreach (var field in _reader.Schema.GetDataFields())
+                    {
+                        var column = new DataColumn(field, _reader.GetColumn(field));
+                        rowGroup.WriteColumn(column);
+                    }
                 }
 
                 ms.Position = 0;

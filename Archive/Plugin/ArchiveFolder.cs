@@ -51,11 +51,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             writer.EnsureDirectory(Name);
 
-            if (!writer.JsonCreated)
-            {
-                return Task.FromResult(true);
-            }
-
             if (!root.TryGetValue("user", out var user))
             {
 
