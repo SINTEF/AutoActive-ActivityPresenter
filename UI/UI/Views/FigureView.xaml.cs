@@ -122,7 +122,8 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
-            Debug.WriteLine("FigureView::Canvas_PaintSurface ");
+            // GUI becomes sluggish and unresponsive at large window length with debug output here.
+            //Debug.WriteLine("FigureView::Canvas_PaintSurface ");
             RedrawCanvas(e.Surface.Canvas, e.Info);
         }
 
