@@ -17,13 +17,13 @@
     <EnableDotNetNativeCompatibleProfile>true</EnableDotNetNativeCompatibleProfile>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{A5A43C5B-DE2A-4C0C-9213-0A381AF9435A};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <PackageCertificateKeyFile>ActivityPilot.pfx</PackageCertificateKeyFile>
+    <PackageCertificateKeyFile>ActivityPilot_F1955218A1C82A0AE0B97BBC82DA1DA974351B23.pfx</PackageCertificateKeyFile>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
     <AppxPackageDir>C:\aa2\</AppxPackageDir>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>7C73AD5121BDEEF7D35A74E027E4DDCDE86F4408</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>F1955218A1C82A0AE0B97BBC82DA1DA974351B23</PackageCertificateThumbprint>
     <AppInstallerUpdateFrequency>1</AppInstallerUpdateFrequency>
     <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
   </PropertyGroup>
@@ -201,6 +201,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="ActivityPilot.pfx" />
+    <None Include="ActivityPilot_F1955218A1C82A0AE0B97BBC82DA1DA974351B23.pfx" />
     <None Include="UI.UWP_TemporaryKey.pfx" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
