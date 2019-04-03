@@ -23,6 +23,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             _reader = reader;
         }
 
+        public RememberingParquetReader(RememberingParquetReader rpr)
+        {
+            // Make a copy of existing data and reader
+            _reader = rpr._reader;
+            _data = new Dictionary<DataField, Array>(rpr._data);
+        }
+
         public Schema Schema => _reader.Schema;
 
         private readonly Dictionary<DataField, Array> _data = new Dictionary<DataField, Array>();
@@ -228,13 +235,16 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 //TODO: this stream might be disposed on commit?
                 var ms = new MemoryStream();
 
-                _reader.LoadAll();
-                using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
+                // Make a copy of the Remembering reader that later can be discarded
+                // This to avoid to read in all tables in memory at the same time.
+                var fullReader = new RememberingParquetReader(_reader);
+                fullReader.LoadAll();
+                using (var tableWriter = new ParquetWriter(fullReader.Schema, ms))
                 {
                     var rowGroup = tableWriter.CreateRowGroup();
-                    foreach (var field in _reader.Schema.GetDataFields())
+                    foreach (var field in fullReader.Schema.GetDataFields())
                     {
-                        var column = new DataColumn(field, _reader.GetColumn(field));
+                        var column = new DataColumn(field, fullReader.GetColumn(field));
                         rowGroup.WriteColumn(column);
                     }
                 }

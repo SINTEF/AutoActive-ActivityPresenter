@@ -130,12 +130,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             var sessionWriter = new ArchiveSessionWriter(zipFile, this);
 
-            sessionWriter.BeginUpdate();
+            // Use begin/commit close to the actual changes    sessionWriter.BeginUpdate();
 
             var sessionJsonRoot = ToArchiveJson();
             await WriteChildren(sessionWriter, sessionJsonRoot, Children);
 
-            sessionWriter.CommitUpdate();
+            // Use begin/commit close to the actual changes    sessionWriter.CommitUpdate();
             sessionWriter.StoreMeta(sessionJsonRoot);
 
         }
