@@ -101,28 +101,34 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 JObject user;
                 if (!json.TryGetValue("user", out var currentUser))
                 {
+                    // No 'user' obj in json ... make a default and use it
                     user = new JObject();
-                    json["user"] = user;
                 }
 
                 if (currentUser is JObject o)
                 {
+                    // Found 'user' obj in json ... use it
                     user = o;
                 }
                 else
                 {
+                    // Found 'user' obj in json, but not a JObject ... make a default and use it
                     user = new JObject();
-                    json["user"] = user;
                 }
 
                 if (child.Name != null)
                 {
+                    // Store tree from child
                     user[child.Name] = root;
                 }
                 else
                 {
+                    // Merge tree
                     user.Merge(root);
                 }
+
+                // Update json
+                json["user"] = user;
             }
         }
 
@@ -143,9 +149,20 @@ namespace SINTEF.AutoActive.Archive.Plugin
         public override async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             await base.WriteData(root, writer);
+
+            // root["meta"]["id"] = Id.ToString();
+            // root["meta"]["based_on"] = new JObject(BasedOn);
+            // root["user"]["created"] = Created.ToString();
+
+            // Copy previous
+            root["meta"] = Meta;
+            root["user"] = User;
+
+            // Overwrite potentially changed
             root["meta"]["id"] = Id.ToString();
-            root["meta"]["based_on"] = new JObject(BasedOn);
             root["user"]["created"] = Created.ToString();
+            root["meta"]["based_on"] = new JObject(BasedOn);
+
             return true;
         }
     }

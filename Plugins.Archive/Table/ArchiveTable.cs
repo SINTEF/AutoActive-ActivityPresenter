@@ -229,10 +229,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             }
             else
             {
-                //TODO: the table name should probably be something else
-                var tableName = Name + "/" + "data.parquet";
+                var tableName = Name + ".parquet";
 
-                //TODO: this stream might be disposed on commit?
+                // This stream will be disposed by the sessionWriter
                 var ms = new MemoryStream();
 
                 // Make a copy of the Remembering reader that later can be discarded
@@ -241,11 +240,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 fullReader.LoadAll();
                 using (var tableWriter = new ParquetWriter(fullReader.Schema, ms))
                 {
-                    var rowGroup = tableWriter.CreateRowGroup();
-                    foreach (var field in fullReader.Schema.GetDataFields())
+                    using (var rowGroup = tableWriter.CreateRowGroup())
                     {
-                        var column = new DataColumn(field, fullReader.GetColumn(field));
-                        rowGroup.WriteColumn(column);
+                        foreach (var field in fullReader.Schema.GetDataFields())
+                        {
+                            var column = new DataColumn(field, fullReader.GetColumn(field));
+                            rowGroup.WriteColumn(column);
+                        }
                     }
                 }
 
@@ -254,23 +255,28 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 
             }
 
-            if (!root.TryGetValue("user", out var user))
-            {
-                user = new JObject();
-                root["user"] = user;
-            }
+            // if (!root.TryGetValue("user", out var user))
+            // {
+            //     user = new JObject();
+            //     root["user"] = user;
+            // }
 
-            if (!root.TryGetValue("meta", out var meta))
-            {
-                meta = new JObject();
-                root["meta"] = meta;
-            }
-            root["meta"]["type"] = Type;
+            // if (!root.TryGetValue("meta", out var meta))
+            // {
+            //     meta = new JObject();
+            //     root["meta"] = meta;
+            // }
+            // // TODO: add units
+            // // root["meta"]["units"]
+
+            // Copy previous
+            root["meta"] = Meta;
+            root["user"] = User;
+
+            // Overwrite potentially changed
             root["meta"]["path"] = tablePath;
-            // TODO: add units
-            // root["meta"]["units"]
-
-            root["name"] = Name;
+            //root["meta"]["is_world_clock"] = ;
+            // root["meta"]["synced_to"] =  ;
 
             return true;
         }

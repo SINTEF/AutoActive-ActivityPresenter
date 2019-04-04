@@ -51,21 +51,26 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             writer.EnsureDirectory(Name);
 
-            if (!root.TryGetValue("user", out var user))
-            {
+            // if (!root.TryGetValue("user", out var user))
+            // {
+            // 
+            //     user = new JObject();
+            //     root["user"] = user;
+            //     root["user"]["name"] = Name;
+            // }
 
-                user = new JObject();
-                root["user"] = user;
-                root["user"]["name"] = Name;
-            }
+            // if (!root.TryGetValue("meta", out var meta))
+            // {
+            //     meta = new JObject();
+            //     root["meta"] = meta;
+            // }
 
-            if (!root.TryGetValue("meta", out var meta))
-            {
-                meta = new JObject();
-                root["meta"] = meta;
-            }
+            // meta["type"] = Type;
 
-            meta["type"] = Type;
+            // Copy previous
+            root["meta"] = Meta;
+            root["user"] = User;
+
             return Task.FromResult(true);
         }
     }
