@@ -108,6 +108,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             // if (changed) _zipFile.CommitUpdate();
             _zipFile.CommitUpdate();
             ms.Close();
+            ms.Dispose();
 
             return path;
         }
@@ -126,6 +127,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             // if (changed) _zipFile.CommitUpdate();
             _zipFile.CommitUpdate();
             data.Close();
+            data.Dispose();
 
             return path;
         }
