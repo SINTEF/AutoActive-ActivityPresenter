@@ -34,7 +34,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public static ArchiveSession Create(Archive archive, string name, List<Guid> basedOn)
         {
-            Guid sessionId = new Guid();
+            Guid sessionId = Guid.NewGuid();
             var meta = new JObject { ["id"] = sessionId };
             var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
             var json = new JObject { ["meta"] = meta, ["user"] = user };

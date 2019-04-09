@@ -38,10 +38,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public bool IsSaved { get; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
+            var pathArr = Meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Video is missing 'attachments'");
+
             var stream = await _archive.OpenFile(_zipEntry);
 
-            //TODO: Fix path
-            var path = writer.StoreFile(stream, _zipEntry.Name);
+            writer.StoreFileId(stream, pathArr[0]);
 
             // root["meta"] = new JObject
             //     {

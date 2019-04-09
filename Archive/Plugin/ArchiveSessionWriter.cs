@@ -132,6 +132,23 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return path;
         }
 
+        public void StoreFileId(Stream data, string path)
+        {
+            var fullPath = $"{_id}{path}";
+
+            // var changed = BeginUpdate();
+            _zipFile.BeginUpdate();
+
+            var ss = new StreamSource(data);
+            // Close stream after use       _streamSources.AddLast(ss);
+            _zipFile.Add(ss, fullPath, CompressionMethod.Stored);
+
+            // if (changed) _zipFile.CommitUpdate();
+            _zipFile.CommitUpdate();
+            data.Close();
+            data.Dispose();
+        }
+
         public void EnsureDirectory(string name)
         {
             var pathName = $"{RootName}/{name}";

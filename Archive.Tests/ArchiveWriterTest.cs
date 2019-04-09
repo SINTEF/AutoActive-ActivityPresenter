@@ -258,7 +258,7 @@ namespace SINTEF.AutoActive.Archive.Tests
         [Fact]
         public void SaveSingleDataArchive()
         {
-            Guid sessionId = new Guid(); // Todo fake sessionId
+            Guid sessionId = Guid.NewGuid(); // Todo fake sessionId
 
             var tmpName = Path.GetTempFileName();
 
@@ -412,7 +412,7 @@ namespace SINTEF.AutoActive.Archive.Tests
         [Fact]
         public async void ChangeSingleDataArchive()
         {
-            Guid sessionId = new Guid(); // Todo fake sessionId
+            Guid sessionId = Guid.NewGuid(); // Todo fake sessionId
             var tmpName = CreateTestArchive(sessionId);
             var tmpName2 = Path.GetTempFileName();
 

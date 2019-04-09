@@ -219,18 +219,17 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         public bool IsSaved { get; set; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            string tablePath;
+            var pathArr = Meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'attachments'");
+
             //TODO: Implement?
             if (false && IsSaved)
             {
                 var stream = await _archive.OpenFile(_zipEntry);
 
-                tablePath = writer.StoreFile(stream, _zipEntry.Name);
+                writer.StoreFileId(stream, pathArr[0]);
             }
             else
             {
-                var tableName = Name + ".parquet";
-
                 // This stream will be disposed by the sessionWriter
                 var ms = new MemoryStream();
 
@@ -251,7 +250,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 }
 
                 ms.Position = 0;
-                tablePath = writer.StoreFile(ms, tableName);
+                writer.StoreFileId(ms, pathArr[0]);
 
             }
 
@@ -274,7 +273,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             root["user"] = User;
 
             // Overwrite potentially changed
-            root["meta"]["path"] = tablePath;
             //root["meta"]["is_world_clock"] = ;
             // root["meta"]["synced_to"] =  ;
 
