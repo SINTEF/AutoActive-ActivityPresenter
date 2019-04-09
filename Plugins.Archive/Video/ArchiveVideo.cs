@@ -18,9 +18,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly Archive.Archive _archive;
         public override string Type => "no.sintef.video";
 
-        internal ArchiveVideo(JObject json, Archive.Archive archive) : base(json)
+        internal ArchiveVideo(JObject json, Archive.Archive archive, Guid sessionId) : base(json)
         {
-            var path = Meta["path"].ToObject<string>() ?? throw new ArgumentException("Video is missing 'path'");
+            var pathArr = Meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Video is missing 'attachments'");
+            var path = "" + sessionId + pathArr[0];
 
             _archive = archive;
 
@@ -221,9 +222,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive));
+            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive, sessionId));
         }
     }
 }

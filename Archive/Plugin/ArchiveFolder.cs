@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 
@@ -11,12 +12,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public override string Type { get; } = PluginType;
 
-        public ArchiveFolder(JObject json, Archive archive) : base(json)
+        public ArchiveFolder(JObject json, Archive archive, Guid sessionId) : base(json)
         {
             // Find all the contents of the folder
             foreach (var property in User.Properties())
             {
-                var content = archive.ParseJsonElement(property.Value);
+                var content = archive.ParseJsonElement(property.Value, sessionId);
                 if (!(content is ArchiveStructure datastruct)) continue;
 
                 datastruct.SetName(property.Name);
@@ -31,7 +32,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             }
         }
 
-        public static ArchiveFolder Create(Archive archive, string name)
+        public static ArchiveFolder Create(Archive archive, Guid sessionId, string name)
         {
             var json = new JObject
             {
@@ -42,7 +43,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 ["user"] = new JObject()
             };
 
-            return new ArchiveFolder(json, archive) { IsSaved = false, Name = name};
+            return new ArchiveFolder(json, archive, sessionId) { IsSaved = false, Name = name};
         }
 
         public bool IsSaved { get; protected set; }
@@ -78,9 +79,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
     [ArchivePlugin("no.sintef.folder")]
     public class ArchiveFolderPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveFolder(json, archive));
+            return Task.FromResult<ArchiveStructure>(new ArchiveFolder(json, archive, sessionId));
         }
     }
 }

@@ -258,6 +258,8 @@ namespace SINTEF.AutoActive.Archive.Tests
         [Fact]
         public void SaveSingleDataArchive()
         {
+            Guid sessionId = new Guid(); // Todo fake sessionId
+
             var tmpName = Path.GetTempFileName();
 
             var timeData = new[] {1L, 2L, 3L};
@@ -296,7 +298,7 @@ namespace SINTEF.AutoActive.Archive.Tests
                     var archive = Archive.Create(tmpName);
 
                     var session = ArchiveSession.Create(archive, "testName");
-                    var folder = ArchiveFolder.Create(archive, "testFolder");
+                    var folder = ArchiveFolder.Create(archive, sessionId, "testFolder");
 
                     folder.AddChild(table);
                     session.AddChild(folder);
@@ -351,7 +353,7 @@ namespace SINTEF.AutoActive.Archive.Tests
             File.Delete(tmpName);
         }
 
-        private string CreateTestArchive()
+        private string CreateTestArchive(Guid sessionId)
         {
             var tmpName = Path.GetTempFileName();
 
@@ -393,7 +395,7 @@ namespace SINTEF.AutoActive.Archive.Tests
                     var archive = Archive.Create(tmpName);
 
                     var session = ArchiveSession.Create(archive, "testName");
-                    var folder = ArchiveFolder.Create(archive, "testFolder");
+                    var folder = ArchiveFolder.Create(archive, sessionId, "testFolder");
 
                     folder.AddChild(table);
                     session.AddChild(folder);
@@ -410,7 +412,8 @@ namespace SINTEF.AutoActive.Archive.Tests
         [Fact]
         public async void ChangeSingleDataArchive()
         {
-            var tmpName = CreateTestArchive();
+            Guid sessionId = new Guid(); // Todo fake sessionId
+            var tmpName = CreateTestArchive(sessionId);
             var tmpName2 = Path.GetTempFileName();
 
             long preFrom;

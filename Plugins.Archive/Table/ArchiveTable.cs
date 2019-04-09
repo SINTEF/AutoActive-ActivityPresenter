@@ -137,7 +137,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         private readonly RememberingParquetReader _reader;
         private readonly Archive.Archive _archive;
 
-        internal ArchiveTable(JObject json, Archive.Archive archive, ArchiveTableInformation tableInformation) :
+        internal ArchiveTable(JObject json, Archive.Archive archive, Guid sessionId, ArchiveTableInformation tableInformation) :
             base(json)
         {
             IsSaved = true;
@@ -285,11 +285,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     [ArchivePlugin("no.sintef.table")]
     public class ArchiveTablePlugin : IArchivePlugin
     {
-        private async Task<ArchiveTableInformation> ParseTableInformation(JObject json, Archive.Archive archive)
+        private async Task<ArchiveTableInformation> ParseTableInformation(JObject json, Archive.Archive archive, Guid sessionId)
         {
             // Find the properties in the JSON
             ArchiveStructure.GetUserMeta(json, out var meta, out var user);
-            var path = meta["path"].ToObject<string>() ?? throw new ArgumentException("Table is missing 'path'");
+            var pathArr = meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'attachments'");
+            var path = "" + sessionId + pathArr[0];
 
             // Find the file in the archive
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
@@ -324,10 +325,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             return tableInformation;
         }
 
-        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
+        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
-            var information = await ParseTableInformation(json, archive);
-            return new ArchiveTable(json, archive, information);
+            var information = await ParseTableInformation(json, archive, sessionId);
+            return new ArchiveTable(json, archive, sessionId, information);
         }
     }
 
