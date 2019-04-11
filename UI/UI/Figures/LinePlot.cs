@@ -305,9 +305,21 @@ namespace SINTEF.AutoActive.UI.Figures
             return dataPoints;
         }
 
-        public override async Task AddDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        /// Delete datapoint from plot if existing, or add it otherwise.
+        public override async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
-            await AddLine(datapoint);
+            var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
+            if (existing.Count == 0)
+                await AddLine(datapoint);
+            else
+            {
+                foreach (var line in existing)
+                {
+                    _context.Remove(line.Drawer.Viewer);
+                }
+                _lines.RemoveAll(line => existing.Contains(line));
+                // \todo Update plot view here or from the caller?
+            }
         }
 
         protected override async void OnHandleMenuResult(Page page, string action)
