@@ -313,11 +313,12 @@ namespace SINTEF.AutoActive.UI.Figures
                 await AddLine(datapoint);
             else
             {
+                // Normally only one is existing, but remove all if more.
                 foreach (var line in existing)
                 {
                     _context.Remove(line.Drawer.Viewer);
+                    _lines.Remove(line);
                 }
-                _lines.RemoveAll(line => existing.Contains(line));
                 // \todo Update plot view here or from the caller?
             }
         }
