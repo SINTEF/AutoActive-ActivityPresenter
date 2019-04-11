@@ -239,7 +239,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 fullReader.LoadAll();
                 using (var tableWriter = new ParquetWriter(fullReader.Schema, ms))
                 {
-                    using (var rowGroup = tableWriter.CreateRowGroup())
+                    using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
                     {
                         foreach (var field in fullReader.Schema.GetDataFields())
                         {
@@ -254,27 +254,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 
             }
 
-            // if (!root.TryGetValue("user", out var user))
-            // {
-            //     user = new JObject();
-            //     root["user"] = user;
-            // }
-
-            // if (!root.TryGetValue("meta", out var meta))
-            // {
-            //     meta = new JObject();
-            //     root["meta"] = meta;
-            // }
-            // // TODO: add units
-            // // root["meta"]["units"]
-
             // Copy previous
             root["meta"] = Meta;
             root["user"] = User;
 
             // Overwrite potentially changed
-            //root["meta"]["is_world_clock"] = ;
-            // root["meta"]["synced_to"] =  ;
+            // TODO root["meta"]["is_world_clock"] = ;
+            // TODO root["meta"]["synced_to"] =  ;
 
             return true;
         }

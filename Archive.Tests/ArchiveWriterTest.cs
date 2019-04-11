@@ -510,9 +510,9 @@ namespace SINTEF.AutoActive.Archive.Tests
             ms.Write(tmpBytes);
             ms.Position = 0;
 
-            // Use begin/commit close to the actual changes    zip.BeginUpdate();
+            zip.BeginUpdate();
             zip.Add(new Storable(ms), "testFile.bin", CompressionMethod.Stored);
-            // Use begin/commit close to the actual changes    zip.CommitUpdate();
+            zip.CommitUpdate();
 
             zip.Close();
 

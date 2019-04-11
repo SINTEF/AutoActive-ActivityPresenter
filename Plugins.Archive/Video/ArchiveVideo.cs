@@ -44,21 +44,14 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
             writer.StoreFileId(stream, pathArr[0]);
 
-            // root["meta"] = new JObject
-            //     {
-            //         ["path"] = path,
-            //         ["type"] = Type
-            //     };
-            // root["user"] = new JObject();
-
             // Copy previous
             root["meta"] = Meta;
             root["user"] = User;
 
             // Overwrite potentially changed
-            // root["meta"]["start_time"] =  ;
-            // root["meta"]["is_world_clock"] =  ;
-            // root["meta"]["synced_to"] =  ;
+            // TODO root["meta"]["start_time"] =  ;
+            // TODO root["meta"]["is_world_clock"] =  ;
+            // TODO root["meta"]["synced_to"] =  ;
 
             return true;
         }

@@ -151,18 +151,13 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             await base.WriteData(root, writer);
 
-            // root["meta"]["id"] = Id.ToString();
-            // root["meta"]["based_on"] = new JObject(BasedOn);
-            // root["user"]["created"] = Created.ToString();
-
-            // Copy previous
-            root["meta"] = Meta;
-            root["user"] = User;
-
-            // Overwrite potentially changed
+            // Copy previous session selectivly
+            root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
-            root["user"]["created"] = Created.ToString();
             root["meta"]["based_on"] = new JObject(BasedOn);
+
+            root["user"]["created"] = Created.ToString();
+            root["user"]["name"] = User["name"];
 
             return true;
         }

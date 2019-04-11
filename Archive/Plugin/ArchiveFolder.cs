@@ -1,4 +1,5 @@
-﻿using System;
+﻿using ICSharpCode.SharpZipLib.Zip;
+using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
@@ -12,8 +13,15 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public override string Type { get; } = PluginType;
 
+        private readonly Archive _archive;
+        private readonly Guid _sourceSessionId;
+
         public ArchiveFolder(JObject json, Archive archive, Guid sessionId) : base(json)
         {
+            // Remember sessionId in case we shall write attachements later
+            _archive = archive;
+            _sourceSessionId = sessionId;
+
             // Find all the contents of the folder
             foreach (var property in User.Properties())
             {
@@ -30,6 +38,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             {
                 Type = type.ToObject<string>();
             }
+
         }
 
         public static ArchiveFolder Create(Archive archive, Guid sessionId, string name)
@@ -48,31 +57,31 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public bool IsSaved { get; protected set; }
 
-        public virtual Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public async virtual Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            writer.EnsureDirectory(Name);
+            // Copy attachments if present. This assures correct handling of unknown plugins
+            var pathArr = Meta["attachments"].ToObject<string[]>();
+            if(pathArr != null)
+            {
+                // There are attachments...
+                foreach( var path in pathArr)
+                {
+                    // Fetch from sourceArchive
+                    var fullSourcePath = "" + _sourceSessionId + pathArr[0];
+                    var zipEntry = _archive.FindFile(fullSourcePath) ?? throw new ZipException($"{Meta["type"]} file '{path}' not found in archive");
+                    var stream = await _archive.OpenFile(zipEntry);
 
-            // if (!root.TryGetValue("user", out var user))
-            // {
-            // 
-            //     user = new JObject();
-            //     root["user"] = user;
-            //     root["user"]["name"] = Name;
-            // }
+                    // Store in new session
+                    writer.StoreFileId(stream, path);
 
-            // if (!root.TryGetValue("meta", out var meta))
-            // {
-            //     meta = new JObject();
-            //     root["meta"] = meta;
-            // }
-
-            // meta["type"] = Type;
+                }
+            }
 
             // Copy previous
             root["meta"] = Meta;
             root["user"] = User;
 
-            return Task.FromResult(true);
+            return true;
         }
     }
 
