@@ -319,7 +319,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     _context.Remove(line.Drawer.Viewer);
                     _lines.Remove(line);
                 }
-                // \todo Update plot view here or from the caller?
+                InvalidateSurface();
             }
         }
 
