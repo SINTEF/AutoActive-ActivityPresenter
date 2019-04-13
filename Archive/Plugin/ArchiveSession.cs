@@ -151,10 +151,13 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             await base.WriteData(root, writer);
 
+            // FIXME This is never called during save ....
+
             // Copy previous session selectivly
             root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
-            root["meta"]["based_on"] = new JObject(BasedOn);
+            //root["meta"]["based_on"] = new JObject(BasedOn); TODO make proper based_on structure with id, name, created and archive_filename
+            root["meta"]["version"] = Meta["version"];
 
             root["user"]["created"] = Created.ToString();
             root["user"]["name"] = User["name"];

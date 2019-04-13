@@ -59,12 +59,11 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public async virtual Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            // Copy attachments if present. This assures correct handling of unknown plugins
-            var pathArr = Meta["attachments"].ToObject<string[]>();
-            if(pathArr != null)
+            if (Meta.ContainsKey("attachments"))
             {
                 // There are attachments...
-                foreach( var path in pathArr)
+                var pathArr = Meta["attachments"].ToObject<string[]>();
+                foreach (var path in pathArr)
                 {
                     // Fetch from sourceArchive
                     var fullSourcePath = "" + _sourceSessionId + pathArr[0];
@@ -73,7 +72,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
                     // Store in new session
                     writer.StoreFileId(stream, path);
-
                 }
             }
 
