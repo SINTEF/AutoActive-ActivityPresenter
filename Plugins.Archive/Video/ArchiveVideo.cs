@@ -44,6 +44,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
             writer.StoreFileId(stream, pathArr[0]);
 
+            // TODO AUTOACTIVE-58 - Generalize copy of previous metadata for save
+
             // Copy previous
             root["meta"] = Meta;
             root["user"] = User;

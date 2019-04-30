@@ -66,7 +66,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 foreach (var path in pathArr)
                 {
                     // Fetch from sourceArchive
-                    var fullSourcePath = "" + _sourceSessionId + pathArr[0];
+                    var fullSourcePath = "" + _sourceSessionId + path;
                     var zipEntry = _archive.FindFile(fullSourcePath) ?? throw new ZipException($"{Meta["type"]} file '{path}' not found in archive");
                     var stream = await _archive.OpenFile(zipEntry);
 
