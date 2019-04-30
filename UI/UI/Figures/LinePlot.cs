@@ -305,7 +305,7 @@ namespace SINTEF.AutoActive.UI.Figures
             return dataPoints;
         }
 
-        /// Delete datapoint from plot if existing, or add it otherwise.
+        /// Add new datapoint to plot, or remove it if already present in the plot.
         public override async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
