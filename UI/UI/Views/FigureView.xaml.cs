@@ -104,7 +104,6 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Viewer_Changed(IDataViewer sender)
         {
-            //Debug.WriteLine("FigureView::Viewer_Changed ");
             Canvas.InvalidateSurface();
             Viewer_Changed_Hook();
         }
@@ -116,14 +115,11 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Context_SelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
         {
-            //Debug.WriteLine("FigureView::Context_RangeUpdated " + from + " " + to );
             Canvas.InvalidateSurface();
         }
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
-            // GUI becomes sluggish and unresponsive at large window length with debug output here.
-            //Debug.WriteLine("FigureView::Canvas_PaintSurface ");
             RedrawCanvas(e.Surface.Canvas, e.Info);
         }
 
