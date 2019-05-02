@@ -69,7 +69,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             var serializer = new JsonSerializer();
             serializer.Serialize(jsonWriter, meta);
             jsonWriter.Flush();
-            
+
 
             ms.Position = 0;
 
@@ -80,7 +80,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
             _zipFile.CommitUpdate();
             ms.Close();
-            ms.Dispose();
 
             return path;
         }
@@ -96,8 +95,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
             _zipFile.CommitUpdate();
             data.Close();
-            data.Dispose();
         }
-
     }
 }
