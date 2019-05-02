@@ -32,13 +32,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
-        public async void AddPlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        public async void TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             if (Selected != null)
             {
                 try
                 {
-                   await Selected.AddDataPoint(datapoint, timeContext);
+                   await Selected.ToggleDataPoint(datapoint, timeContext);
                 }
                 catch (Exception ex)
                 {
@@ -46,7 +46,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     var page = XamarinHelpers.GetCurrentPage(this);
                     if (page != null)
                     {
-                        await page.DisplayAlert("Error", $"Could not add data point for {datapoint.Name}: {ex.Message}",
+                        await page.DisplayAlert("Error", $"Could not toggle data point for {datapoint.Name}: {ex.Message}",
                             "Ok");
                     }
                 }
