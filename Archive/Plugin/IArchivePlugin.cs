@@ -9,7 +9,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
     [PluginType(AllowMultipleImplementations = false, UseSingletonInstance = true)]
     public interface IArchivePlugin
     {
-        Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive);
+        Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId);
     }
 
     public class ArchivePluginAttribute : PluginAttribute

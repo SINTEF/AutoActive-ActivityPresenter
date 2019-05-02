@@ -1,0 +1,153 @@
+Root-level
+	Session folders with unique id name for each session
+		Example: \b60c00ea-1214-40af-a5a8-f4b325a30ff9
+		
+Session folder
+	AUTOACTIVE_SESSION.json - metadata for the complete session including path to all attached files
+	
+Attached files - located in session folder or sub-folders. 
+		The files can be named anything and is located in the session folder or below. 
+		Path to attached files shall be listed in metadata entry 'attachments' as an array of strings.
+		Each string is a path to a file relative to the session folder.
+		By using one metadata entry, attached files can be linked to an object even if the specific object is unknown.
+		
+		
+AUTOACTIVE_SESSION.json
+	Json file with object structure where all objects have following mandatory top level structure describing the session:
+	{
+		"meta": {
+			"version": 1,
+			"type": "no.sintef.session",
+			"id": "<session id>",
+			"based_on": [
+				<based on object>
+				...
+			]
+		},
+
+		"user": {
+			"name":"<session name>",
+			"created": "2018-05-31T09:58:07.709+02:00",
+			"description": "Short description of the session"
+
+			<user object>
+			<user object>
+			...
+		}
+	}
+	
+	The <based_on_object> describe relation to other sessions used as input for processing data in this session
+	It has the following mandatory structure:
+	{
+		"id":"<id of the sesson>",
+		"name":"<name of the session>",
+		"created":"<created data of the session>",
+		"archive_filename":"<filename from where the session were fetched>",
+	}
+	
+	The <user object> describe the data and how it is structured and stored.
+	There are many different user objects that may be nested in many levels.
+	The different user object types are identified by a unique type string that has a URL like structure
+	The type string refers to a plugin thats used for read and write.
+	If the indicated plugin is not installed the reader will default to the folder-plugin.
+	Following sections show currently defined plugins with their mandatory fields: 
+	
+	****** Folder object ******
+	"<name of object>": {
+		"meta": {
+			"version": 1,
+			"type": "no.sintef.folder"
+		},
+		"user": {
+			<user object>
+			<user object>
+			...
+		}
+	}
+
+	****** Table object ******
+	Table object
+	{
+		"meta": {
+			"version": 1,
+			"type":"no.sintef.table",
+			"attachments":["/.../<filename>.parquet"],  // Time in microSecs or epochMicroSecs stored in column 'time'
+			"is_world_clock":<true/false>,
+			"units":["<unit col1>", "<unit col2>", ...],
+			"synced_to": {"session_id":"<session id>", "elem_path":"<path to data in session>"}   // Optional
+		},
+		"user": {
+		}
+	}
+	
+	****** Video object ******
+	{
+		"meta": {
+			"version": 1,
+			"type":"no.sintef.video",
+			"attachments":["/.../<filename>"],
+			"start_time":<time in epochMicroSecs>,
+			"time_scale":1.0,                                // Future use
+			"is_world_clock":<true/false>,
+			"synced_to": {"session_id":"<session id>", "elem_path":"<path to data in session>"}   // Optional
+		},
+		"user": {
+		}
+
+	}
+
+	****** source object ******
+	{
+		"meta": {
+			"version": 1,
+			"type":"no.sintef.source",
+			"attachments":["/.../<filename>"],
+		},
+		"user": {
+			"language": "<name of language>"
+		}
+	}
+
+	****** Garmin object ******
+	"<name of object>": {
+		"meta": {
+			"version": 1,
+			"type": "no.sintef.garmin"
+		},
+		"user": {
+			"full_table":<table object>,
+			"filename":"<name of imported file>",
+			"ør":"<folder of imported file>"
+		}
+	}
+	
+	****** Gaitup object ******
+	"<name of object>": {
+		"meta": {
+			"version": 1,
+			"type": "no.sintef.gaitup"
+		},
+		"user": {
+			<gaitup sensor folder>,
+			<gaitup sensor folder>,
+			...
+		}
+	}
+	
+	****** Gaitup sensor folder ******
+	"<name of gaitup sensor folder>": {
+		"meta": {
+			"version": 1,
+			"type": "no.sintef.folder"
+		},
+		"user": {
+			"info":<gaitup info object>   // To be specified later
+			"accel":<table object>
+			"gyro":<table object>
+			"baro":<table object>
+			"events":<table object>
+		}
+	}
+
+	
+	

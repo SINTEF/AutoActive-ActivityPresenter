@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
         public DateTimeOffset Created { get; }
         public const string SessionFileName = "AUTOACTIVE_SESSION.json";
 
-        internal ArchiveSession(JObject json, Archive archive) : base(json, archive)
+        internal ArchiveSession(JObject json, Archive archive, Guid sessionId) : base(json, archive, sessionId)
         {
             var id = Meta["id"].ToObject<Guid?>();
             var name = User["name"].ToObject<string>();
@@ -34,11 +34,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public static ArchiveSession Create(Archive archive, string name, List<Guid> basedOn)
         {
-            var meta = new JObject { ["id"] = Guid.NewGuid() };
+            Guid sessionId = Guid.NewGuid();
+            var meta = new JObject { ["id"] = sessionId };
             var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
             var json = new JObject { ["meta"] = meta, ["user"] = user };
 
-            return new ArchiveSession(json, archive) { IsSaved = false, BasedOn = basedOn };
+            return new ArchiveSession(json, archive, sessionId) { IsSaved = false, BasedOn = basedOn };
         }
 
         public static ArchiveSession Create(Archive archive, string name, Guid basedOn)
@@ -101,28 +102,34 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 JObject user;
                 if (!json.TryGetValue("user", out var currentUser))
                 {
+                    // No 'user' obj in json ... make a default and use it
                     user = new JObject();
-                    json["user"] = user;
                 }
 
                 if (currentUser is JObject o)
                 {
+                    // Found 'user' obj in json ... use it
                     user = o;
                 }
                 else
                 {
+                    // Found 'user' obj in json, but not a JObject ... make a default and use it
                     user = new JObject();
-                    json["user"] = user;
                 }
 
                 if (child.Name != null)
                 {
+                    // Store tree from child
                     user[child.Name] = root;
                 }
                 else
                 {
+                    // Merge tree
                     user.Merge(root);
                 }
+
+                // Update json
+                json["user"] = user;
             }
         }
 
@@ -130,12 +137,12 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             var sessionWriter = new ArchiveSessionWriter(zipFile, this);
 
-            sessionWriter.BeginUpdate();
+            // Use begin/commit close to the actual changes    sessionWriter.BeginUpdate();
 
             var sessionJsonRoot = ToArchiveJson();
             await WriteChildren(sessionWriter, sessionJsonRoot, Children);
 
-            sessionWriter.CommitUpdate();
+            // Use begin/commit close to the actual changes    sessionWriter.CommitUpdate();
             sessionWriter.StoreMeta(sessionJsonRoot);
 
         }
@@ -143,9 +150,18 @@ namespace SINTEF.AutoActive.Archive.Plugin
         public override async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             await base.WriteData(root, writer);
+
+            // FIXME This is never called during save ....
+
+            // Copy previous session selectivly
+            root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
-            root["meta"]["based_on"] = new JObject(BasedOn);
+            //root["meta"]["based_on"] = new JObject(BasedOn); TODO make proper based_on structure with id, name, created and archive_filename
+            root["meta"]["version"] = Meta["version"];
+
             root["user"]["created"] = Created.ToString();
+            root["user"]["name"] = User["name"];
+
             return true;
         }
     }
@@ -154,9 +170,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
     [ArchivePlugin("no.sintef.session")]
     public class ArchiveSessionPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive)
+        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveSession(json, archive));
+            return Task.FromResult<ArchiveStructure>(new ArchiveSession(json, archive, sessionId));
         }
     }
 }

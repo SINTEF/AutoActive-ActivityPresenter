@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations;
 
@@ -40,8 +41,13 @@ namespace SINTEF.AutoActive.Archive
             var meta = Meta;
             var user = User;
             meta["type"] = Type;
+            meta["version"] = 1; // TODO inherit from source?
+            //meta["based_on"] = new JObject(BasedOn); TODO make proper based_on structure with id, name, created and archive_filename
+            meta.Add("based_on", JToken.FromObject(new List<Guid>())); // TODO fake an empty array
+
             json["meta"] = meta;
             json["user"] = user;
+
             return json;
         }
     }

@@ -23,6 +23,13 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             _reader = reader;
         }
 
+        public RememberingParquetReader(RememberingParquetReader rpr)
+        {
+            // Make a copy of existing data and reader
+            _reader = rpr._reader;
+            _data = new Dictionary<DataField, Array>(rpr._data);
+        }
+
         public Schema Schema => _reader.Schema;
 
         private readonly Dictionary<DataField, Array> _data = new Dictionary<DataField, Array>();
@@ -130,7 +137,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         private readonly RememberingParquetReader _reader;
         private readonly Archive.Archive _archive;
 
-        internal ArchiveTable(JObject json, Archive.Archive archive, ArchiveTableInformation tableInformation) :
+        internal ArchiveTable(JObject json, Archive.Archive archive, Guid sessionId, ArchiveTableInformation tableInformation) :
             base(json)
         {
             IsSaved = true;
@@ -212,55 +219,50 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         public bool IsSaved { get; set; }
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            string tablePath;
+            var pathArr = Meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'attachments'");
+
             //TODO: Implement?
             if (false && IsSaved)
             {
                 var stream = await _archive.OpenFile(_zipEntry);
 
-                tablePath = writer.StoreFile(stream, _zipEntry.Name);
+                writer.StoreFileId(stream, pathArr[0]);
             }
             else
             {
-                //TODO: the table name should probably be something else
-                var tableName = Name + "/" + "data.parquet";
-
-                //TODO: this stream might be disposed on commit?
+                // This stream will be disposed by the sessionWriter
                 var ms = new MemoryStream();
 
-                _reader.LoadAll();
-                using (var tableWriter = new ParquetWriter(_reader.Schema, ms))
+                // Make a copy of the Remembering reader that later can be discarded
+                // This to avoid to read in all tables in memory at the same time.
+                var fullReader = new RememberingParquetReader(_reader);
+                fullReader.LoadAll();
+                using (var tableWriter = new ParquetWriter(fullReader.Schema, ms))
                 {
-                    var rowGroup = tableWriter.CreateRowGroup();
-                    foreach (var field in _reader.Schema.GetDataFields())
+                    using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
                     {
-                        var column = new DataColumn(field, _reader.GetColumn(field));
-                        rowGroup.WriteColumn(column);
+                        foreach (var field in fullReader.Schema.GetDataFields())
+                        {
+                            var column = new DataColumn(field, fullReader.GetColumn(field));
+                            rowGroup.WriteColumn(column);
+                        }
                     }
                 }
 
                 ms.Position = 0;
-                tablePath = writer.StoreFile(ms, tableName);
+                writer.StoreFileId(ms, pathArr[0]);
 
             }
 
-            if (!root.TryGetValue("user", out var user))
-            {
-                user = new JObject();
-                root["user"] = user;
-            }
+            // TODO AUTOACTIVE-58 - Generalize copy of previous metadata for save
 
-            if (!root.TryGetValue("meta", out var meta))
-            {
-                meta = new JObject();
-                root["meta"] = meta;
-            }
-            root["meta"]["type"] = Type;
-            root["meta"]["path"] = tablePath;
-            // TODO: add units
-            // root["meta"]["units"]
+            // Copy previous
+            root["meta"] = Meta;
+            root["user"] = User;
 
-            root["name"] = Name;
+            // Overwrite potentially changed
+            // TODO root["meta"]["is_world_clock"] = ;
+            // TODO root["meta"]["synced_to"] =  ;
 
             return true;
         }
@@ -269,11 +271,12 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     [ArchivePlugin("no.sintef.table")]
     public class ArchiveTablePlugin : IArchivePlugin
     {
-        private async Task<ArchiveTableInformation> ParseTableInformation(JObject json, Archive.Archive archive)
+        private async Task<ArchiveTableInformation> ParseTableInformation(JObject json, Archive.Archive archive, Guid sessionId)
         {
             // Find the properties in the JSON
             ArchiveStructure.GetUserMeta(json, out var meta, out var user);
-            var path = meta["path"].ToObject<string>() ?? throw new ArgumentException("Table is missing 'path'");
+            var pathArr = meta["attachments"].ToObject<string[]>() ?? throw new ArgumentException("Table is missing 'attachments'");
+            var path = "" + sessionId + pathArr[0];
 
             // Find the file in the archive
             var zipEntry = archive.FindFile(path) ?? throw new ZipException($"Table file '{path}' not found in archive");
@@ -308,10 +311,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             return tableInformation;
         }
 
-        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive)
+        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
-            var information = await ParseTableInformation(json, archive);
-            return new ArchiveTable(json, archive, information);
+            var information = await ParseTableInformation(json, archive, sessionId);
+            return new ArchiveTable(json, archive, sessionId, information);
         }
     }
 

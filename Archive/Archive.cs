@@ -50,8 +50,20 @@ namespace SINTEF.AutoActive.Archive
                 var serializer = new JsonSerializer();
                 var json = (JToken)serializer.Deserialize(jsonReader);
 
+                var meta = json["meta"];
+                if (meta == null)
+                {
+                    throw new ArgumentException("Object missing 'meta' ", nameof(json));
+                }
+
+                var sessionId = meta["id"].ToObject<Guid?>();
+                if (!sessionId.HasValue)
+                {
+                    throw new ArgumentException("Session is missing 'id'");
+                }
+
                 // Load the contents of the file
-                if (ParseJsonElement(json) is ArchiveSession session)
+                if (ParseJsonElement(json, sessionId.Value) is ArchiveSession session)
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
@@ -59,7 +71,7 @@ namespace SINTEF.AutoActive.Archive
             }
         }
 
-        public object ParseJsonElement(JToken json)
+        public object ParseJsonElement(JToken json, Guid sessionId)
         {
             // Check if this element is a datastructure
             var meta = (json as JObject)?.Property("meta")?.Value as JObject;
@@ -73,14 +85,14 @@ namespace SINTEF.AutoActive.Archive
             var plugin = PluginService.GetSingle<IArchivePlugin>(type);
             if (plugin != null)
             {
-                var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                var parsed = plugin.CreateFromJSON(json as JObject, this, sessionId).Result;
                 if (parsed != null) return parsed;
             }
             // If not, try to parse it as a folder (the default)
             plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
             if (plugin != null)
             {
-                var parsed = plugin.CreateFromJSON(json as JObject, this).Result;
+                var parsed = plugin.CreateFromJSON(json as JObject, this, sessionId).Result;
                 if (parsed != null) return parsed;
             }
 

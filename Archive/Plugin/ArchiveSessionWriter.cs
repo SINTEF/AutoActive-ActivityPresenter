@@ -58,31 +58,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public string RootName { get; private set; }
 
-        private bool _isUpdating;
-        public bool BeginUpdate()
-        {
-            if (_isUpdating) return false;
-
-            _zipFile.BeginUpdate();
-            _isUpdating = true;
-
-            return true;
-        }
-
-        private readonly LinkedList<StreamSource> _streamSources = new LinkedList<StreamSource>();
-
-        public void CommitUpdate()
-        {
-            _zipFile.CommitUpdate();
-            _isUpdating = false;
-
-            //TODO: should this really be responsible for closing streams?
-            foreach (var streamSource in _streamSources)
-            {
-                streamSource.GetSource().Close();
-            }
-        }
-
         public string StoreMeta(JObject meta)
         {
             var path = $"{_id}/{ArchiveSession.SessionFileName}";
@@ -94,39 +69,32 @@ namespace SINTEF.AutoActive.Archive.Plugin
             var serializer = new JsonSerializer();
             serializer.Serialize(jsonWriter, meta);
             jsonWriter.Flush();
-            
+
 
             ms.Position = 0;
 
-            var changed = BeginUpdate();
+            _zipFile.BeginUpdate();
+
             var ss = new StreamSource(ms);
-            _streamSources.AddLast(ss);
             _zipFile.Add(ss, path, CompressionMethod.Stored);
-            if (changed) _zipFile.CommitUpdate();
+
+            _zipFile.CommitUpdate();
+            ms.Close();
 
             return path;
         }
 
-        public string StoreFile(Stream data, string name)
+        public void StoreFileId(Stream data, string path)
         {
-            var path = $"{RootName}/{name}";
-            var changed = BeginUpdate();
+            var fullPath = $"{_id}{path}";
+
+            _zipFile.BeginUpdate();
+
             var ss = new StreamSource(data);
-            _streamSources.AddLast(ss);
-            _zipFile.Add(ss, path, CompressionMethod.Stored);
+            _zipFile.Add(ss, fullPath, CompressionMethod.Stored);
 
-            if (changed) CommitUpdate();
-            return path;
-        }
-
-        public void EnsureDirectory(string name)
-        {
-            var pathName = $"{RootName}/{name}";
-            if (_zipFile.FindEntry(pathName, true) == -1) return;
-
-            var changed = BeginUpdate();
-            _zipFile.AddDirectory(pathName);
-            if (changed) CommitUpdate();
+            _zipFile.CommitUpdate();
+            data.Close();
         }
     }
 }
