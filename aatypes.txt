@@ -16,6 +16,7 @@ AUTOACTIVE_SESSION.json
 	Json file with object structure where all objects have following mandatory top level structure describing the session:
 	{
 		"meta": {
+			"version": 1,
 			"type": "no.sintef.session",
 			"id": "<session id>",
 			"based_on": [
@@ -54,6 +55,7 @@ AUTOACTIVE_SESSION.json
 	****** Folder object ******
 	"<name of object>": {
 		"meta": {
+			"version": 1,
 			"type": "no.sintef.folder"
 		},
 		"user": {
@@ -67,6 +69,7 @@ AUTOACTIVE_SESSION.json
 	Table object
 	{
 		"meta": {
+			"version": 1,
 			"type":"no.sintef.table",
 			"attachments":["/.../<filename>.parquet"],  // Time in microSecs or epochMicroSecs stored in column 'time'
 			"is_world_clock":<true/false>,
@@ -80,6 +83,7 @@ AUTOACTIVE_SESSION.json
 	****** Video object ******
 	{
 		"meta": {
+			"version": 1,
 			"type":"no.sintef.video",
 			"attachments":["/.../<filename>"],
 			"start_time":<time in epochMicroSecs>,
@@ -95,6 +99,7 @@ AUTOACTIVE_SESSION.json
 	****** source object ******
 	{
 		"meta": {
+			"version": 1,
 			"type":"no.sintef.source",
 			"attachments":["/.../<filename>"],
 		},
@@ -106,6 +111,7 @@ AUTOACTIVE_SESSION.json
 	****** Garmin object ******
 	"<name of object>": {
 		"meta": {
+			"version": 1,
 			"type": "no.sintef.garmin"
 		},
 		"user": {
@@ -118,6 +124,7 @@ AUTOACTIVE_SESSION.json
 	****** Gaitup object ******
 	"<name of object>": {
 		"meta": {
+			"version": 1,
 			"type": "no.sintef.gaitup"
 		},
 		"user": {
@@ -130,6 +137,7 @@ AUTOACTIVE_SESSION.json
 	****** Gaitup sensor folder ******
 	"<name of gaitup sensor folder>": {
 		"meta": {
+			"version": 1,
 			"type": "no.sintef.folder"
 		},
 		"user": {
