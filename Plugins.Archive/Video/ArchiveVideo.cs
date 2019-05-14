@@ -4,11 +4,13 @@ using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Diagnostics;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using MimeMapping;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.FileSystem;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
@@ -29,8 +31,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             _zipEntry = _archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
 
             // Create the video datapoint
-            var video = new ArchiveVideoVideo(_zipEntry, _archive, path);
-            video.Name = "Video";
+            var video = new ArchiveVideoVideo(_zipEntry, _archive, path) {Name = "Video"};
             AddDataPoint(video);
             IsSaved = true;
         }
@@ -90,6 +91,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
             Debug.WriteLine("Decoder created!");
             return new ArchiveVideoVideoViewer(this, decoder);
+        }
+
+        public (IReadSeekStreamFactory streamFactory, string mime) GetStreamFactory()
+        {
+            return (_archive.OpenFileFactory(_zipEntry), MimeUtility.GetMimeMapping(_path));
         }
     }
 
@@ -161,6 +167,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public class ArchiveVideoVideoViewer : IImageViewer
     {
         private readonly ArchiveVideoVideo _video;
+        public ArchiveVideoVideo Video => _video;
         private readonly BufferedVideoDecoder _decoder;
 
         private VideoDecoderFrame _currentFrame;
@@ -179,12 +186,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         internal ArchiveVideoVideoViewer(ArchiveVideoVideo video, IVideoDecoder decoder)
         {
             _video = video;
-            _decoder = new BufferedVideoDecoder(decoder);
         }
 
         public Task SetSize(uint width, uint height)
         {
-            return _decoder.SetSizeAsync(width, height);
+            return Task.CompletedTask;
         }
 
         public ImageFrame GetCurrentImage()
@@ -194,7 +200,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public void SetTimeRange(long from, long to)
         {
-            UpdateCurrentFrame(from);
+            //UpdateCurrentFrame(from);
         }
 
         private async void UpdateCurrentFrame(long time)

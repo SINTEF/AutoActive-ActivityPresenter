@@ -57,7 +57,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlaybarView()
         {
             InitializeComponent();
-        
+
             var playTask = new Task(PlayButtonLoop);
             playTask.Start();
 
@@ -174,11 +174,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 _playTaskRunning = true;
                 PlayButton.Text = "II";
+                _viewerContext.IsPlaying = true;
             }
             else
             {
                 _playTaskRunning = false;
                 PlayButton.Text = ">";
+                _viewerContext.IsPlaying = false;
             }
         }
 
@@ -191,6 +193,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             var trimChars = new[] {'x', ' '};
             PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
+            _viewerContext.PlaybackRate = PlaybackSpeed;
         }
 
         private void ButtonUpExpand_OnClicked(object sender, EventArgs e)

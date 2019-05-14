@@ -242,7 +242,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
 	    }
 
-	    public virtual async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+	    public virtual Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
 	    {
 	        throw new NotImplementedException();
 	    }

@@ -110,6 +110,7 @@
     <Compile Include="Video\VideoDecoder.cs" />
     <Compile Include="Views\NativeUwpDeltaSliderRenderer.cs" />
     <Compile Include="Views\PlayerSplitterViewRenderer.cs" />
+    <Compile Include="Views\VideoPlayerRenderer.cs" />
   </ItemGroup>
   <ItemGroup>
     <AppxManifest Include="Package.appxmanifest">
