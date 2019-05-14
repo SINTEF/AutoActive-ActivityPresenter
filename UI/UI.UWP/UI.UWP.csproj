@@ -20,7 +20,7 @@
     <PackageCertificateKeyFile>ActivityPilot_F1955218A1C82A0AE0B97BBC82DA1DA974351B23.pfx</PackageCertificateKeyFile>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxAutoIncrementPackageRevision>True</AppxAutoIncrementPackageRevision>
-    <AppxPackageDir>C:\aa2\</AppxPackageDir>
+    <AppxPackageDir>..\..\..\AppPackages\</AppxPackageDir>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x86|x64</AppxBundlePlatforms>
     <PackageCertificateThumbprint>F1955218A1C82A0AE0B97BBC82DA1DA974351B23</PackageCertificateThumbprint>
