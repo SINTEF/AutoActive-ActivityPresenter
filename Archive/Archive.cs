@@ -26,6 +26,11 @@ namespace SINTEF.AutoActive.Archive
             _streamFactory = factory;
         }
 
+        public string GetFilename()
+        {
+            return _streamFactory.Name + _streamFactory.Extension;
+        }
+
         private async Task ParseSessions()
         {
             // Find all sessions in the archive

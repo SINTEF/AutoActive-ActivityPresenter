@@ -9,13 +9,30 @@ using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
+    public class BasedOnInfo
+    {
+        public Guid id;
+        public string name;
+        public DateTimeOffset created;
+        public string archive_filename;
+
+        public BasedOnInfo(ArchiveSession session)
+        {
+            id = session.Id;
+            name = session.Name;
+            created = session.Created;
+            archive_filename = session.GetArchiveFilename();
+        }
+    }
+
     public class ArchiveSession : ArchiveFolder, IDataProvider
     {
         public override string Type => "no.sintef.session";
 
         private readonly Archive _archive;
         public Guid Id { get; }
-        public List<Guid> BasedOn = new List<Guid>();
+        private List<BasedOnInfo> _basedOn = new List<BasedOnInfo>();
+
         public DateTimeOffset Created { get; }
         public const string SessionFileName = "AUTOACTIVE_SESSION.json";
 
@@ -32,24 +49,38 @@ namespace SINTEF.AutoActive.Archive.Plugin
             _archive = archive;
         }
 
-        public static ArchiveSession Create(Archive archive, string name, List<Guid> basedOn)
+        public static ArchiveSession Create(Archive archive, string name, List<BasedOnInfo> basedOn)
         {
             Guid sessionId = Guid.NewGuid();
-            var meta = new JObject { ["id"] = sessionId };
+            var meta = new JObject { ["id"] = sessionId, ["based_on"] = JToken.FromObject(basedOn) };
             var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
             var json = new JObject { ["meta"] = meta, ["user"] = user };
 
-            return new ArchiveSession(json, archive, sessionId) { IsSaved = false, BasedOn = basedOn };
+            return new ArchiveSession(json, archive, sessionId) { IsSaved = false, _basedOn = basedOn };
         }
 
-        public static ArchiveSession Create(Archive archive, string name, Guid basedOn)
+        public static ArchiveSession Create(Archive archive, string name, ArchiveSession basedOnSession)
         {
-            return Create(archive, name, basedOn == Guid.Empty ? new List<Guid>() : new List<Guid> { basedOn });
+            var basedOn = new List<BasedOnInfo>();
+            if (basedOnSession != null) basedOn.Add(new BasedOnInfo(basedOnSession));
+
+            return Create(archive, name, basedOn);
         }
 
         public new static ArchiveSession Create(Archive archive, string name)
         {
-            return Create(archive, name, Guid.Empty);
+            return Create(archive, name, new List<BasedOnInfo>());
+        }
+
+        public void AddBasedOnSession(ArchiveSession basedOnSession)
+        {
+            _basedOn.Add(new BasedOnInfo(basedOnSession));  // TODO check for session duplicates
+            Meta["based_on"] = JToken.FromObject(_basedOn); // Refresh metadata
+        }
+
+        public string GetArchiveFilename()
+        {
+            return _archive.GetFilename();
         }
 
         public override int GetHashCode()
@@ -156,7 +187,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             // Copy previous session selectivly
             root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
-            //root["meta"]["based_on"] = new JObject(BasedOn); TODO make proper based_on structure with id, name, created and archive_filename
+            root["meta"]["based_on"] = new JObject(_basedOn); 
             root["meta"]["version"] = Meta["version"];
 
             root["user"]["created"] = Created.ToString();
