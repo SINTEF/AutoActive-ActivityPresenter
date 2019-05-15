@@ -45,10 +45,10 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 {
                     var stream = await streamFactory.GetBoundedStream();
                     Control.SetSource(stream.AsRandomAccessStream(), videoPlayer.MimeType);
-                    //Control.Position = videoPlayer.Position;
-                    var binding = new Binding {Source = videoPlayer, Path = new PropertyPath("Position"), Mode = BindingMode.OneWay};
+                    /*var binding = new Binding {Source = videoPlayer, Path = new PropertyPath("Position"), Mode = BindingMode.OneWay};
+                    Control.SetBinding(MediaElement.PositionProperty, binding);*/
+
                     videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
-                    Control.SetBinding(MediaElement.PositionProperty, binding);
                     videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
                     videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
                 }
