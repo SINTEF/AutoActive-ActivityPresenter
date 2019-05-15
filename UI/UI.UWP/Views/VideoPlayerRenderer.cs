@@ -34,7 +34,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     SetNativeControl(_mediaElement);
 
                     _mediaElement.MediaOpened += OnMediaElementMediaOpened;
-                    _mediaElement.PlaybackRate = 0.1;
+                    _mediaElement.PlaybackRate = 1;
                     _mediaElement.AutoPlay = false;
                     _mediaElement.IsMuted = true;
                     _mediaElement.Volume = 0;
@@ -47,8 +47,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
                     var stream = await streamFactory.GetBoundedStream();
                     Control.SetSource(stream.AsRandomAccessStream(), videoPlayer.MimeType);
-                    /*var binding = new Binding {Source = videoPlayer, Path = new PropertyPath("Position"), Mode = BindingMode.OneWay};
-                    Control.SetBinding(MediaElement.PositionProperty, binding);*/
 
                     videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
                     videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
