@@ -28,10 +28,12 @@ namespace SINTEF.AutoActive.UI.Figures
 
             view.SetStreamFactory(streamFactory, mime);
             view.TimeOffset = 0L;
-            context.SelectedTimeRangeChanged += view.ContextOnSelectedTimeRangeChanged;
+            context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
             context.IsPlayingChanged += view.IsPlayingChanged;
             context.PlaybackRateChanged += view.PlaybackRateChanged;
             view.IsPlayingChanged(null, context.IsPlaying);
+            view.PlaybackRateChanged(null, context.PlaybackRate);
+
 
             return view;
         }
@@ -48,7 +50,7 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.PlaybackRate = playbackRate;
         }
 
-        private void ContextOnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
+        private void OnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
         {
             _player.Position = TimeSpan.FromSeconds(TimeFormatter.SecondsFromTime(from + TimeOffset));
 

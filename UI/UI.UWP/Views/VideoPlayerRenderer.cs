@@ -34,10 +34,10 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     SetNativeControl(_mediaElement);
 
                     _mediaElement.MediaOpened += OnMediaElementMediaOpened;
-                    _mediaElement.PlaybackRate = 1;
+                    _mediaElement.PlaybackRate = 1d;
                     _mediaElement.AutoPlay = false;
                     _mediaElement.IsMuted = true;
-                    _mediaElement.Volume = 0;
+                    _mediaElement.Volume = 0d;
                 }
 
                 var videoPlayer = args.NewElement;
@@ -51,6 +51,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
                     videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
                     videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
+                    PlaybackRateChanged(this, videoPlayer.PlaybackRate);
 
                     if (videoPlayer.IsPlaying)
                     {
@@ -74,6 +75,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
         private void PlaybackRateChanged(object sender, double rate)
         {
+            if (rate == 0d) rate = 1d;
             _mediaElement.DefaultPlaybackRate = rate;
             _mediaElement.PlaybackRate = rate;
         }

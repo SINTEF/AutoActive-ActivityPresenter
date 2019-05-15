@@ -78,7 +78,7 @@ namespace SINTEF.AutoActive.UI
             }
         }
 
-        private double _playbackRate;
+        private double _playbackRate = 1d;
         public double PlaybackRate
         {
             get => _playbackRate;
@@ -88,8 +88,6 @@ namespace SINTEF.AutoActive.UI
                 PlaybackRateChanged?.Invoke(this, _playbackRate);
             }
         }
-
-
 
         public event EventHandler<double> PlaybackRateChanged;
     }
