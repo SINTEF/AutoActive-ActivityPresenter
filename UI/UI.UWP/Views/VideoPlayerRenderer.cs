@@ -36,6 +36,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     _mediaElement.MediaOpened += OnMediaElementMediaOpened;
                     _mediaElement.PlaybackRate = 0.1;
                     _mediaElement.AutoPlay = false;
+                    _mediaElement.IsMuted = true;
+                    _mediaElement.Volume = 0;
                 }
 
                 var videoPlayer = args.NewElement;
