@@ -67,7 +67,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly string _path;
         private readonly ArchiveVideoTime _time;
 
-
         internal ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path)
         {
             _zipEntry = zipEntry;
@@ -82,15 +81,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public ITimePoint Time => _time;
 
-        public async Task<IDataViewer> CreateViewer()
+        public Task<IDataViewer> CreateViewer()
         {
-            var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
-            if (factory == null) throw new NotImplementedException();
-
-            var mime = MimeUtility.GetMimeMapping(_path);
-            var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
-            Debug.WriteLine("Decoder created!");
-            return new ArchiveVideoVideoViewer(this, decoder);
+            return Task.FromResult((IDataViewer)new ArchiveVideoVideoViewer(this));
         }
 
         public (IReadSeekStreamFactory streamFactory, string mime) GetStreamFactory()
@@ -106,6 +99,17 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly string _path;
         public long Offset;
         public double Scale;
+        private IVideoLengthExtractor _videoLengthExtractor;
+        private async Task<IVideoLengthExtractor> GetDecoder()
+        {
+            if (_videoLengthExtractor != null) return _videoLengthExtractor;
+            var factory = DependencyHandler.GetInstance<IVideoLengthExtractorFactory>();
+            if (factory == null) throw new NotImplementedException();
+
+            var mime = MimeUtility.GetMimeMapping(_path);
+            _videoLengthExtractor = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
+            return _videoLengthExtractor;
+        }
 
         internal ArchiveVideoTime(ZipEntry zipEntry, Archive.Archive archive, string path)
         {
@@ -118,13 +122,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<ITimeViewer> CreateViewer()
         {
-            var factory = DependencyHandler.GetInstance<IVideoDecoderFactory>();
-
-            if (factory == null) throw new NotImplementedException();
-
-            var mime = MimeUtility.GetMimeMapping(_path);
-            var decoder = await factory.CreateVideoDecoder(_archive.OpenFileFactory(_zipEntry), mime);
-            return new ArchiveVideoTimeViewer(this, decoder);
+            return new ArchiveVideoTimeViewer(this, await GetDecoder());
         }
 
         public void TransformTime(long offset, double scale)
@@ -138,18 +136,18 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public class ArchiveVideoTimeViewer : ITimeViewer
     {
         private readonly ArchiveVideoTime _time;
-        private readonly IVideoDecoder _decoder;
+        private readonly IVideoLengthExtractor _videoLengthExtractor;
 
-        internal ArchiveVideoTimeViewer(ArchiveVideoTime time, IVideoDecoder decoder)
+        internal ArchiveVideoTimeViewer(ArchiveVideoTime time, IVideoLengthExtractor videoLengthExtractor)
         {
             _time = time;
-            _decoder = decoder;
+            _videoLengthExtractor = videoLengthExtractor;
             LoadTime();
         }
 
         private async void LoadTime()
         {
-            End = await _decoder.GetLengthAsync();
+            End = await _videoLengthExtractor.GetLengthAsync();
             TimeChanged?.Invoke(this, Start, End);
             Debug.WriteLine($"Change invoked {Start}->{End}");
         }
@@ -158,66 +156,29 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public ITimePoint TimePoint => _time;
 
-        public long Start { get; private set; } = 0;
+        public long Start => _time.Offset;
         public long End { get; private set; } = 0;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }
 
-    public class ArchiveVideoVideoViewer : IImageViewer
+    public class ArchiveVideoVideoViewer : IDataViewer
     {
-        private readonly ArchiveVideoVideo _video;
-        public ArchiveVideoVideo Video => _video;
-        private readonly BufferedVideoDecoder _decoder;
-
-        private VideoDecoderFrame _currentFrame;
-
-        private readonly object _locker = new object();
-        private CancellationTokenSource _cancellation;
-
+        public ArchiveVideoVideo Video;
+        public IDataPoint DataPoint => Video;
+        public long CurrentTimeRangeFrom { get; }
+        public long CurrentTimeRangeTo { get; }
         public event DataViewerWasChangedHandler Changed;
 
-        public IDataPoint DataPoint => _video;
-
-        public long CurrentTimeRangeFrom { get; private set; }
-        public long CurrentTimeRangeTo { get; private set; }
         public long PreviewPercentage { get; set; }
-
-        internal ArchiveVideoVideoViewer(ArchiveVideoVideo video, IVideoDecoder decoder)
-        {
-            _video = video;
-        }
-
-        public Task SetSize(uint width, uint height)
-        {
-            return Task.CompletedTask;
-        }
-
-        public ImageFrame GetCurrentImage()
-        {
-            return new ImageFrame(_currentFrame.Width, _currentFrame.Height, _currentFrame.Frame);
-        }
-
         public void SetTimeRange(long from, long to)
         {
-            //UpdateCurrentFrame(from);
+            // This event is handled directly by the video handler
         }
 
-        private async void UpdateCurrentFrame(long time)
+        internal ArchiveVideoVideoViewer(ArchiveVideoVideo video)
         {
-            lock (_locker)
-            {
-                // Stop any previous frame grabbing
-                _cancellation?.Cancel();
-                _cancellation = new CancellationTokenSource();
-            }
-            try
-            {
-                var frame = await _decoder.GetFrameAtAsync(time, _cancellation.Token);
-                _currentFrame = frame;
-                Changed?.Invoke(this);
-            }
-            catch (OperationCanceledException) { }
+            Video = video;
         }
     }
 

@@ -17,7 +17,7 @@ namespace SINTEF.AutoActive.UI.Figures
         public static async Task<ImageView> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
             // TODO: Check that this datapoint has a type that can be used
-            var viewer = await context.GetDataViewerFor(datapoint) as IImageViewer;
+            var viewer = await context.GetDataViewerFor(datapoint);
 
             var view = new ImageView(viewer, context);
 
@@ -33,7 +33,6 @@ namespace SINTEF.AutoActive.UI.Figures
             context.PlaybackRateChanged += view.PlaybackRateChanged;
             view.IsPlayingChanged(null, context.IsPlaying);
             view.PlaybackRateChanged(null, context.PlaybackRate);
-
 
             return view;
         }
@@ -73,11 +72,8 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.Position = TimeSpan.Zero;
         }
 
-        protected IImageViewer Viewer { get; }
-
-        protected ImageView(IImageViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
+        protected ImageView(IDataViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
         {
-            Viewer = viewer;
         }
     }
 }

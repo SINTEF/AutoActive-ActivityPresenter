@@ -19,15 +19,15 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Droid.Video;
 using Xamarin.Forms;
 
-[assembly: Dependency(typeof(VideoDecoderFactory))]
+[assembly: Dependency(typeof(VideoLengthExtractorFactory))]
 namespace SINTEF.AutoActive.UI.Droid.Video
 {
-    internal class VideoDecoder : IVideoDecoder
+    internal class VideoLengthExtractor : IVideoLengthExtractor
     {
         MediaExtractor extractor;
         MediaCodec decoder;
 
-        internal  VideoDecoder(System.IO.Stream stream)
+        internal  VideoLengthExtractor(System.IO.Stream stream)
         {
             extractor = new MediaExtractor();
             extractor.SetDataSource(new ReadSeekStreamMediaSource(stream));
@@ -43,14 +43,14 @@ namespace SINTEF.AutoActive.UI.Droid.Video
             decoder = MediaCodec.CreateDecoderByType(format.GetString(MediaFormat.KeyMime));
 
             ///Surface.
-            
+
 
 
             //extractor.SeekTo(0, MediaExtractorSeekTo.)
             var info = new MediaCodec.BufferInfo();
             //info.
-            
-            //decoder.
+
+            //videoLengthExtractor.
         }
 
         MediaFormat SelectFirstVideoTrack()
@@ -72,16 +72,6 @@ namespace SINTEF.AutoActive.UI.Droid.Video
         public Task<double> GetLengthAsync()
         {
             throw new NotImplementedException();
-        }
-
-        public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task<VideoDecoderFrame> DecodeNextFrameAsync(ArraySegment<byte> buffer)
-        {
-            return DecodeNextFrameAsync(buffer, CancellationToken.None);
         }
 
 
@@ -106,7 +96,7 @@ namespace SINTEF.AutoActive.UI.Droid.Video
             return SetSizeAsync(width, height, CancellationToken.None);
         }
 
-        Task<long> IVideoDecoder.GetLengthAsync()
+        Task<long> IVideoLengthExtractor.GetLengthAsync()
         {
             throw new NotImplementedException();
         }
@@ -122,17 +112,17 @@ namespace SINTEF.AutoActive.UI.Droid.Video
         }
     }
 
-    public class VideoDecoderFactory : IVideoDecoderFactory
+    public class VideoLengthExtractorFactory : IVideoLengthExtractorFactory
     {
-        public async Task<IVideoDecoder> CreateVideoDecoder(IReadSeekStreamFactory file, string mime)
+        public async Task<IVideoLengthExtractor> CreateVideoDecoder(IReadSeekStreamFactory file, string mime)
         {
             var stream = await file.GetReadStream();
-            return new VideoDecoder(stream);
+            return new VideoLengthExtractor(stream);
         }
     }
 
     /* -- Helper classes -- */
-    
+
     internal class ReadSeekStreamMediaSource : MediaDataSource
     {
         System.IO.Stream original;

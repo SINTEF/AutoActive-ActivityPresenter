@@ -1,17 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.IO;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
-using Windows.Media.Core;
-using Windows.UI.Xaml;
+using Windows.Storage.Streams;
 using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Data;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI;
-using SINTEF.AutoActive.UI.UWP.FileSystem;
 using SINTEF.AutoActive.UI.UWP.Views;
 using Xamarin.Forms.Platform.UWP;
 
@@ -21,6 +14,17 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 {
     public class VideoPlayerRenderer : ViewRenderer<VideoPlayer, MediaElement>
     {
+        public static async Task<IRandomAccessStream> GetVideoStream(IReadSeekStreamFactory factory)
+        {
+            if (!(factory is Archive.Archive.ArchiveFileBoundFactory streamFactory))
+            {
+                throw new ArgumentException("Video source must be ArchiveFileBoundFactory");
+            }
+
+            var stream = await streamFactory.GetBoundedStream();
+            return stream.AsRandomAccessStream();
+        }
+
         private MediaElement _mediaElement;
         protected override async void OnElementChanged(ElementChangedEventArgs<VideoPlayer> args)
         {
@@ -33,7 +37,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     _mediaElement = new MediaElement();
                     SetNativeControl(_mediaElement);
 
-                    _mediaElement.MediaOpened += OnMediaElementMediaOpened;
                     _mediaElement.PlaybackRate = 1d;
                     _mediaElement.AutoPlay = false;
                     _mediaElement.IsMuted = true;
@@ -41,27 +44,20 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 }
 
                 var videoPlayer = args.NewElement;
-                if (videoPlayer.Source is Archive.Archive.ArchiveFileBoundFactory streamFactory)
+
+                _mediaElement.AutoPlay = videoPlayer.IsPlaying;
+                Control.SetSource(await GetVideoStream(videoPlayer.Source), videoPlayer.MimeType);
+
+                videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
+                videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
+                videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
+                PlaybackRateChanged(this, videoPlayer.PlaybackRate);
+
+                if (videoPlayer.IsPlaying)
                 {
-                    _mediaElement.AutoPlay = videoPlayer.IsPlaying;
-
-                    var stream = await streamFactory.GetBoundedStream();
-                    Control.SetSource(stream.AsRandomAccessStream(), videoPlayer.MimeType);
-
-                    videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
-                    videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
-                    videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
-                    PlaybackRateChanged(this, videoPlayer.PlaybackRate);
-
-                    if (videoPlayer.IsPlaying)
-                    {
-                        _mediaElement.Play();
-                    }
+                    _mediaElement.Play();
                 }
-                else
-                {
-                    throw new ArgumentException("Video player must be stream factory");
-                }
+
             }
 
             if (args.OldElement != null)
@@ -89,6 +85,23 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             else _mediaElement.Pause();
         }
 
+        private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
+        {
+            var offset = Math.Abs((_mediaElement.Position - wantedPosition).TotalSeconds);
+
+            // A possibility here would be to estimate the expected offset and compensate for it
+            if (offset > allowedOffset)
+            {
+                _mediaElement.Position = wantedPosition;
+            }
+
+            // Only ensure play state if the time is not later than the duration
+            if (_currentlyPlaying && wantedPosition < _mediaElement.NaturalDuration)
+            {
+                _mediaElement.Play();
+            }
+        }
+
         private void VideoPlayerOnPositionChanged(object sender, PositionChangedEventArgs args)
         {
             var allowedOffset = 3.0;
@@ -97,31 +110,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 allowedOffset = player.AllowedOffset;
             }
 
-            var offset = Math.Abs((_mediaElement.Position - args.Time).TotalSeconds);
-
-            if (offset > allowedOffset)
-            {
-                _mediaElement.Position = args.Time;
-            }
-
-            // Only ensure play state if the time is not later than the duration
-            if (_currentlyPlaying && args.Time < _mediaElement.NaturalDuration)
-            {
-                _mediaElement.Play();
-            }
-        }
-
-        protected override void OnElementPropertyChanged(object sender, PropertyChangedEventArgs args)
-        {
-            if (args.PropertyName == VideoPlayer.SourceProperty.PropertyName)
-            {
-
-            }
-        }
-
-        private void OnMediaElementMediaOpened(object sender, RoutedEventArgs e)
-        {
-            // TODO: provide length
+            XamarinHelpers.EnsureMainThread(() => SetVideoPosition(args.Time, allowedOffset));
         }
     }
 }

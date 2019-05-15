@@ -40,7 +40,7 @@ namespace SINTEF.AutoActive.UI
             get { return (double)GetValue(AllowedOffsetProperty); }
         }
 
-        // Position changed event TODO: replace this with binding
+        // Position changed event TODO: replace this with binding?
         public event PositionChangedEvent PositionChanged;
 
         // Position property
