@@ -60,8 +60,10 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
             if (args.OldElement != null)
             {
-                //TODO: remove event listeners?
-                // args.OldElement.PositionChanged
+                var oldVideoPlayer = args.OldElement;
+                oldVideoPlayer.PositionChanged -= VideoPlayerOnPositionChanged;
+                oldVideoPlayer.PlayingChanged -= VideoPlayerOnPlayingChanged;
+                oldVideoPlayer.PlaybackRateChanged -= PlaybackRateChanged;
             }
         }
 
