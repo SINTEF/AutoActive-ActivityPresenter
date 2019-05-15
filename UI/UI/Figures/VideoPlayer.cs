@@ -47,7 +47,7 @@ namespace SINTEF.AutoActive.UI
         public static readonly BindableProperty PositionProperty =
             BindableProperty.Create(nameof(Position), typeof(string), typeof(TimeSpan), null);
 
-        private bool _playing;
+        private bool _isPlaying;
 
         [TypeConverter(typeof(TimeSpan))]
         public TimeSpan Position
@@ -68,13 +68,13 @@ namespace SINTEF.AutoActive.UI
 
         public event EventHandler<bool> PlayingChanged;
 
-        public bool Playing
+        public bool IsPlaying
         {
-            get => _playing;
+            get => _isPlaying;
             set
             {
-                _playing = value;
-                PlayingChanged?.Invoke(this, _playing);
+                _isPlaying = value;
+                PlayingChanged?.Invoke(this, _isPlaying);
             }
         }
 

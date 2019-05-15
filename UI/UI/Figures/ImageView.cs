@@ -31,6 +31,7 @@ namespace SINTEF.AutoActive.UI.Figures
             context.SelectedTimeRangeChanged += view.ContextOnSelectedTimeRangeChanged;
             context.IsPlayingChanged += view.IsPlayingChanged;
             context.PlaybackRateChanged += view.PlaybackRateChanged;
+            view.IsPlayingChanged(null, context.IsPlaying);
 
             return view;
         }
@@ -39,7 +40,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void IsPlayingChanged(object sender, bool isPlaying)
         {
-            _player.Playing = isPlaying;
+            _player.IsPlaying = isPlaying;
         }
 
         private void PlaybackRateChanged(object sender, double playbackRate)

@@ -43,6 +43,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 var videoPlayer = args.NewElement;
                 if (videoPlayer.Source is Archive.Archive.ArchiveFileBoundFactory streamFactory)
                 {
+                    _mediaElement.AutoPlay = videoPlayer.IsPlaying;
+
                     var stream = await streamFactory.GetBoundedStream();
                     Control.SetSource(stream.AsRandomAccessStream(), videoPlayer.MimeType);
                     /*var binding = new Binding {Source = videoPlayer, Path = new PropertyPath("Position"), Mode = BindingMode.OneWay};
@@ -51,6 +53,11 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
                     videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
                     videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
+
+                    if (videoPlayer.IsPlaying)
+                    {
+                        _mediaElement.Play();
+                    }
                 }
                 else
                 {
