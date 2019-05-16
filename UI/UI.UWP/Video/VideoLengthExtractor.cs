@@ -37,9 +37,31 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
         private void MediaPlayerOnMediaOpened(MediaPlayer sender, object args)
         {
-            _videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
-            _videoLengthTask.SetResult(_videoLength.Value);
+            var videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
             sender.MediaOpened -= MediaPlayerOnMediaOpened;
+
+            if (videoLength == 0)
+            {
+                sender.CurrentStateChanged += CurrentStateChanged;
+                return;
+            }
+
+            _videoLength = videoLength;
+            _videoLengthTask.SetResult(_videoLength.Value);
+
+            sender.Dispose();
+        }
+
+        private void CurrentStateChanged(MediaPlayer sender, object args)
+        {
+            var videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
+            if (videoLength == 0)
+                return;
+            sender.CurrentStateChanged -= CurrentStateChanged;
+
+            _videoLength = videoLength;
+            _videoLengthTask.SetResult(_videoLength.Value);
+
             sender.Dispose();
         }
 
