@@ -3,6 +3,7 @@ using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -19,6 +20,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
         public override string Type => "no.sintef.video";
+        private ArchiveVideoVideo _video;
 
         internal ArchiveVideo(JObject json, Archive.Archive archive, Guid sessionId) : base(json)
         {
@@ -27,12 +29,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
             _archive = archive;
 
+            var offset = Meta["start_time"].Value<long>();
+
             // Find the file in the archive
             _zipEntry = _archive.FindFile(path) ?? throw new ZipException($"Video file '{path}' not found in archive");
 
             // Create the video datapoint
-            var video = new ArchiveVideoVideo(_zipEntry, _archive, path) {Name = "Video"};
-            AddDataPoint(video);
+            _video = new ArchiveVideoVideo(_zipEntry, _archive, path, offset) {Name = "Video"};
+
+            AddDataPoint(_video);
             IsSaved = true;
         }
 
@@ -45,6 +50,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
             writer.StoreFileId(stream, pathArr[0]);
 
+            var offset = _video.VideoTime.Offset;
+
             // TODO AUTOACTIVE-58 - Generalize copy of previous metadata for save
 
             // Copy previous
@@ -52,7 +59,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             root["user"] = User;
 
             // Overwrite potentially changed
-            // TODO root["meta"]["start_time"] =  ;
+            root["meta"]["start_time"] = offset;
             // TODO root["meta"]["is_world_clock"] =  ;
             // TODO root["meta"]["synced_to"] =  ;
 
@@ -65,21 +72,19 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
         private readonly string _path;
-        private readonly ArchiveVideoTime _time;
 
-        internal ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path)
+        public Type DataType => throw new NotImplementedException();
+        public string Name { get; set; }
+        public ArchiveVideoTime VideoTime { get; }
+        public ITimePoint Time => VideoTime;
+
+        internal ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime)
         {
             _zipEntry = zipEntry;
             _archive = archive;
             _path = path;
-            _time = new ArchiveVideoTime(zipEntry, archive, path);
+            VideoTime = new ArchiveVideoTime(zipEntry, archive, path, startTime);
         }
-
-        public Type DataType => throw new NotImplementedException();
-
-        public string Name { get; set; }
-
-        public ITimePoint Time => _time;
 
         public Task<IDataViewer> CreateViewer()
         {
@@ -97,7 +102,19 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
         private readonly string _path;
-        public long Offset;
+
+        public event EventHandler<long> OffsetChanged;
+        private long _offset;
+        public long Offset
+        {
+            get => _offset;
+            set
+            {
+                _offset = value;
+                OffsetChanged?.Invoke(this, _offset);
+            }
+        }
+
         public double Scale;
         private IVideoLengthExtractor _videoLengthExtractor;
         private async Task<IVideoLengthExtractor> GetDecoder()
@@ -111,25 +128,34 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             return _videoLengthExtractor;
         }
 
-        internal ArchiveVideoTime(ZipEntry zipEntry, Archive.Archive archive, string path)
+        internal ArchiveVideoTime(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime)
         {
             _zipEntry = zipEntry;
             _archive = archive;
             _path = path;
+            _offset = startTime;
         }
 
         public bool IsSynchronizedToWorldClock => false; // FIXME: How do we store the sync?
 
+        private readonly List<ArchiveVideoTimeViewer> _viewers = new List<ArchiveVideoTimeViewer>();
+
         public async Task<ITimeViewer> CreateViewer()
         {
-            return new ArchiveVideoTimeViewer(this, await GetDecoder());
+            var viewer = new ArchiveVideoTimeViewer(this, await GetDecoder());
+            _viewers.Add(viewer);
+            return viewer;
         }
 
         public void TransformTime(long offset, double scale)
         {
             // TODO: Trigger TimeViewers' TimeChanged
-            Offset = offset;
+            Offset += offset;
             Scale = scale;
+            foreach (var viewer in _viewers)
+            {
+                viewer.Start = Offset;
+            }
         }
     }
 
@@ -145,9 +171,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             LoadTime();
         }
 
+        private long _videoLength;
+
         private async void LoadTime()
         {
-            End = await _videoLengthExtractor.GetLengthAsync();
+            _videoLength = await _videoLengthExtractor.GetLengthAsync();
             TimeChanged?.Invoke(this, Start, End);
             Debug.WriteLine($"Change invoked {Start}->{End}");
         }
@@ -156,8 +184,17 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public ITimePoint TimePoint => _time;
 
-        public long Start => _time.Offset;
-        public long End { get; private set; } = 0;
+        public long Start
+        {
+            get => _time.Offset;
+            set
+            {
+                _time.Offset = value;
+                TimeChanged?.Invoke(this, Start, End);
+            }
+        }
+
+        public long End => Start + _videoLength;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }

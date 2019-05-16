@@ -5,6 +5,7 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 
@@ -21,13 +22,18 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var view = new ImageView(viewer, context);
 
-            if (!(viewer is Plugins.ArchivePlugins.Video.ArchiveVideoVideoViewer videoViewer))
+            if (!(viewer is ArchiveVideoVideoViewer videoViewer))
                 return view;
 
             var (streamFactory, mime) = videoViewer.Video.GetStreamFactory();
-
             view.SetStreamFactory(streamFactory, mime);
-            view.TimeOffset = 0L;
+
+            if (viewer.DataPoint.Time is ArchiveVideoTime time)
+            {
+                view.TimeOffset = time.Offset;
+                time.OffsetChanged += (s, offset) => view.TimeOffset = offset;
+            }
+
             context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
             context.IsPlayingChanged += view.IsPlayingChanged;
             context.PlaybackRateChanged += view.PlaybackRateChanged;
@@ -51,8 +57,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void OnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
         {
-            _player.Position = TimeSpan.FromSeconds(TimeFormatter.SecondsFromTime(from + TimeOffset));
-
+            var diff = TimeFormatter.SecondsFromTime(from - TimeOffset);
+            try
+            {
+                _player.Position = TimeSpan.FromSeconds(diff);
+            }
+            catch(OverflowException)
+            {
+                //TODO: add warning?
+            }
         }
 
         private void SetStreamFactory(IReadSeekStreamFactory streamFactory, string mime)
