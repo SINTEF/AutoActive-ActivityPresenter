@@ -48,6 +48,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _mediaElement.AutoPlay = videoPlayer.IsPlaying;
                 Control.SetSource(await GetVideoStream(videoPlayer.Source), videoPlayer.MimeType);
 
+
                 videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
                 videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
                 videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
@@ -87,6 +88,12 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
         private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
         {
+            if (!_currentlyPlaying)
+            {
+                _mediaElement.Position = wantedPosition;
+                return;
+            }
+
             var offset = Math.Abs((_mediaElement.Position - wantedPosition).TotalSeconds);
 
             // A possibility here would be to estimate the expected offset and compensate for it
