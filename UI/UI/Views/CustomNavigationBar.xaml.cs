@@ -192,7 +192,7 @@ namespace SINTEF.AutoActive.UI.Views
                     if (dataPoint is Archive.Plugin.ArchiveSession)
                     {
                         var locArch = dataPoint as Archive.Plugin.ArchiveSession;
-                        session.BasedOn.Add(locArch.Id);  // FIXME make proper based_on info
+                        session.AddBasedOnSession(locArch); 
                     }
                 }
                 archive.AddSession(session);
