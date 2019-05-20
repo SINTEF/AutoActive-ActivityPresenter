@@ -31,6 +31,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "UI.Tests", "UI\Tests\UI.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Archive.Tests", "Archive.Tests\Archive.Tests.csproj", "{FE8D379F-B6E2-4269-BF31-3AA8F173A6DC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.UWP.Tests", "UI.UWP.Tests\UI.UWP.Tests.csproj", "{2A1C39C4-A05F-429A-97DC-A206E0D1F78E}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU

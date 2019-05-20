@@ -1,11 +1,13 @@
-﻿namespace SINTEF.AutoActive.UI.Helpers
+﻿using System;
+
+namespace SINTEF.AutoActive.UI.Helpers
 {
     public static class TimeFormatter
     {
         public const long MicrosPerSecond = 1000000L;
         public static string FormatTime(long time, long offset = 0)
         {
-            
+
             var remTime = time - offset;
 
             var hours = remTime / (3600L * MicrosPerSecond);
@@ -21,7 +23,10 @@
 
             return $"{hours:D2}:{minutes:D2}:{seconds:D2}.{millis:D3}";
         }
-
+        public static long TimeFromTimeSpan(TimeSpan timeSpan)
+        {
+            return (long)(MicrosPerSecond * timeSpan.TotalSeconds);
+        }
         public static long TimeFromSeconds(double time)
         {
             return (long) (MicrosPerSecond * time);

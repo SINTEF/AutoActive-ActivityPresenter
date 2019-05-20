@@ -47,6 +47,11 @@
                     _selectedTo = to;
                     TransformSelectedTime();
                 };
+            masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
+            masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
+
+            IsPlaying = masterContext.IsPlaying;
+            PlaybackRate = masterContext.PlaybackRate;
         }
 
     }

@@ -108,7 +108,7 @@ namespace SINTEF.AutoActive.Archive
 
         public List<Stream> OpenFiles = new List<Stream>();
 
-        public async Task<Stream> OpenFile(ZipEntry entry)
+        public async Task<BoundedReadSeekStream> OpenFile(ZipEntry entry)
         {
             var stream = await _zipFile.OpenReadSeekStream(entry, _streamFactory);
             OpenFiles.Add(stream);
@@ -185,7 +185,7 @@ namespace SINTEF.AutoActive.Archive
         public IReadOnlyCollection<ArchiveSession> Sessions => _sessions.AsReadOnly();
 
         /* ---- Helpers ---- */
-        internal class ArchiveFileBoundFactory : IReadSeekStreamFactory
+        public class ArchiveFileBoundFactory : IReadSeekStreamFactory
         {
             private readonly Archive _archive;
             private readonly ZipEntry _entry;
@@ -205,6 +205,11 @@ namespace SINTEF.AutoActive.Archive
             public string Mime => throw new NotImplementedException();
 
             public async Task<Stream> GetReadStream()
+            {
+                return await _archive.OpenFile(_entry);
+            }
+
+            public async Task<BoundedReadSeekStream> GetBoundedStream()
             {
                 return await _archive.OpenFile(_entry);
             }

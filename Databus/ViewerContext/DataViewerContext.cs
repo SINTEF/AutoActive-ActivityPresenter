@@ -1,4 +1,5 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using System;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,6 +42,33 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         }
         public long SelectedTimeFrom { get; protected set; }
         public long SelectedTimeTo { get; protected set; }
+
+        private bool _isPlaying;
+        private double _playbackRate;
+
+        public bool IsPlaying
+        {
+            get => _isPlaying;
+            set
+            {
+                _isPlaying = value;
+                IsPlayingChanged?.Invoke(this, value);
+            }
+        }
+
+        public event EventHandler<bool> IsPlayingChanged;
+
+        public double PlaybackRate
+        {
+            get => _playbackRate;
+            set
+            {
+                _playbackRate = value;
+                PlaybackRateChanged?.Invoke(this, value);
+            }
+        }
+
+        public event EventHandler<double> PlaybackRateChanged;
     }
 
     public delegate void DataViewerContextSelectedRangeChangedHandler(SingleSetDataViewerContext sender, long from, long to);
