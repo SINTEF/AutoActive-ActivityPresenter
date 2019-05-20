@@ -42,12 +42,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         }
 
 
-        async Task<ITimeViewer> ITimePoint.CreateViewer()
+        Task<ITimeViewer> ITimePoint.CreateViewer()
         {
             // Ensure that the data is loaded
             var tv = new TableTimeIndexDynViewer(this);
             dynTimeIndexViewers.Add(tv);
-            return tv;
+            return Task.FromResult((ITimeViewer)tv);
         }
 
         public void TransformTime(long offset, double scale)

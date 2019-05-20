@@ -41,7 +41,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             }
         }
 
-        public async Task<IDataViewer> CreateViewer()
+        public Task<IDataViewer> CreateViewer()
         {
             TableColumnDynViewer newViewer;
             switch (this)
@@ -71,7 +71,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                     throw new NotSupportedException();
             }
             dynDataViewers.Add(newViewer);
-            return newViewer;
+            return Task.FromResult((IDataViewer)newViewer);
         }
 
         //protected abstract (double? min, double? max) GetDataMinMax();
