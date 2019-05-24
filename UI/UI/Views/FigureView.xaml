@@ -27,7 +27,7 @@
                     <sk:SKCanvasView Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"
                                      x:Name="Canvas" x:FieldModifier="protected" />
                 </Grid>
-                <Button
+                <Button x:Name="ContextButton"
                         Text="•••" WidthRequest="40" HeightRequest="40"
                         BackgroundColor="LightSlateGray"
                         Clicked="MenuButton_OnClicked"

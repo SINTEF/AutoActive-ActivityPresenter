@@ -34,6 +34,12 @@ namespace SINTEF.AutoActive.UI.Views
 	        set => SelectionFrame.BorderColor = value ? Color.Red : Color.Black;
 	    }
 
+	    public bool ContextButtonIsVisible
+	    {
+	        get => ContextButton.IsVisible;
+	        set => ContextButton.IsVisible = value;
+	    }
+
 	    protected readonly SKPaint TextPaint = new SKPaint
 	    {
 	        Color = SKColors.Black,
