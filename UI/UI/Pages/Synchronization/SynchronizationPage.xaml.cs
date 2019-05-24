@@ -17,9 +17,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private readonly TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
         private int _index;
         private bool _masterSet;
+        private FigureView _masterFigure;
         private ITimePoint _masterTime;
 
-        private readonly Dictionary<ITimePoint, Tuple<SynchronizationContext, List<RelativeSlider>>> _dataContextDictionary = new Dictionary<ITimePoint, Tuple<SynchronizationContext, List<RelativeSlider>>>();
+        private readonly Dictionary<ITimePoint, (TimeSynchronizedContext, List<RelativeSlider>)> _dataContextDictionary = new Dictionary<ITimePoint, (TimeSynchronizedContext, List<RelativeSlider>)>();
 
         public SynchronizationPage()
         {
@@ -30,6 +31,18 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             Playbar.ViewerContext = _masterContext;
         }
 
+        private FigureView _selected;
+        public FigureView Selected
+        {
+            get => _selected;
+            set
+            {
+                if (_selected != null) _selected.Selected = false;
+                _selected = value;
+                if (_selected != null) _selected.Selected = true;
+            }
+        }
+
         private async void SetMaster(IDataPoint dataPoint)
         {
             var masterLayout = new StackLayout();
@@ -37,10 +50,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 Text = "Master"
             });
-            var figure = await FigureView.GetView(dataPoint, _masterContext);
-            figure.HorizontalOptions = LayoutOptions.FillAndExpand;
-            figure.VerticalOptions = LayoutOptions.FillAndExpand;
-            masterLayout.Children.Add(figure);
+
+            _masterFigure = await FigureView.GetView(dataPoint, _masterContext);
+            _masterFigure.ContextButtonIsVisible = false;
+            _masterFigure.HorizontalOptions = LayoutOptions.FillAndExpand;
+            _masterFigure.VerticalOptions = LayoutOptions.FillAndExpand;
+            masterLayout.Children.Add(_masterFigure);
 
             var frame = new Frame
             {
@@ -57,43 +72,60 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _masterTime = dataPoint.Time;
             _masterSet = true;
+            _dataContextDictionary[_masterTime] = (_masterContext, null);
         }
 
-        private async void TreeView_DataPointTapped(object sender, IDataPoint e)
+        private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
             if (!_masterSet)
             {
-                SetMaster(e);
+                SetMaster(datapoint);
                 return;
             }
 
-            if (e.Time == _masterTime)
+            if (Selected != null)
             {
-                await DisplayAlert("Data error", "Can't synchronize with the master context itself", "OK");
+                //TODO(sigurdal): Only allow adding of datasets with the same Time? If so: how to get selected time?
+            }
+
+            if (!_dataContextDictionary.TryGetValue(datapoint.Time, out var contextSliders))
+            {
+                contextSliders = (new SynchronizationContext(_masterContext), new List<RelativeSlider>());
+                _dataContextDictionary[datapoint.Time] = contextSliders;
+            }
+
+            var (context, sliders) = contextSliders;
+
+            if (Selected != null)
+            {
+                await Selected.ToggleDataPoint(datapoint, context);
                 return;
             }
 
-            if (!_dataContextDictionary.TryGetValue(e.Time, out var context))
-            {
-                context = new Tuple<SynchronizationContext, List<RelativeSlider>>(new SynchronizationContext(_masterContext), new List<RelativeSlider>());
-                _dataContextDictionary[e.Time] = context;
-            }
-
-            var figure = await FigureView.GetView(e, context.Item1);
+            var figure = await FigureView.GetView(datapoint, context);
             figure.HorizontalOptions = LayoutOptions.FillAndExpand;
             figure.VerticalOptions = LayoutOptions.FillAndExpand;
 
             var layout = new StackLayout();
             layout.Children.Add(figure);
-            var slider = new RelativeSlider();
-            context.Item2.Add(slider);
-            slider.OffsetChanged += (s, a) => context.Item1.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
-            var offset = TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.Item1.AvailableTimeFrom);
+            if (sliders != null && context is SynchronizationContext syncContext)
+            {
+                var slider = new RelativeSlider();
+                sliders.Add(slider);
+                slider.OffsetChanged += (s, a) => syncContext.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
+                var offset =
+                    TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.AvailableTimeFrom);
 
-            if (Math.Abs(offset) > OffsetBeforeZeroing)
-                slider.Offset = -offset;
+                if (Math.Abs(offset) > OffsetBeforeZeroing)
+                    slider.Offset = -offset;
 
-            layout.Children.Add(slider);
+                layout.Children.Add(slider);
+            }
+            else
+            {
+                layout.Children.Add(new Label {Text = "Master Time", HorizontalOptions = LayoutOptions.Center, VerticalOptions = LayoutOptions.Center});
+            }
+
             var frame = new Frame
             {
                 Content = layout,
@@ -106,7 +138,38 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             PlaceControl(frame, _index);
             _index++;
             SyncGrid.Children.Add(frame);
+        }
 
+
+        public void RemoveChild(FigureView figureView)
+        {
+            var stackLayout = figureView.Parent;
+            if (!(stackLayout.Parent is View frame))
+            {
+                throw new ArgumentException("A frame is expected as the figure's parent's parent");
+            }
+            UnPlaceControl(SyncGrid.Children, frame);
+            SyncGrid.Children.Remove(frame);
+            _index--;
+        }
+
+        private static void UnPlaceControl(IList<View> objects, View toRemove)
+        {
+            // Look for the index of the object to remove. After that move all objects one to the left
+            var index = -1;
+            for (var i = 0; i < objects.Count; i++)
+            {
+                var obj = objects[i];
+                if (index != -1)
+                {
+                    PlaceControl(obj, i - 1);
+                }
+
+                if (obj == toRemove)
+                {
+                    index = i;
+                }
+            }
         }
 
         private static void PlaceControl(BindableObject obj, int index)
@@ -134,8 +197,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             foreach (var syncItem in _dataContextDictionary)
             {
-                Debug.WriteLine($"Offset: {syncItem.Value.Item1.Offset}");
-                syncItem.Key.TransformTime(-syncItem.Value.Item1.Offset, syncItem.Value.Item1.Scale);
+                var (context, sliders) = syncItem.Value;
+                if (context is SynchronizationContext syncContext)
+                {
+                    syncItem.Key.TransformTime(-syncContext.Offset, syncContext.Scale);
+                }
             }
 
             foreach (var syncItem in _dataContextDictionary)
