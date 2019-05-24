@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Views.RelativeSlider">
@@ -8,16 +8,18 @@
             <views:DeltaSlider x:Name="Slider" Value="0" Minimum="-500" Maximum="500" UpdateRate="50"/>
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition  Width="*" />
+                    <ColumnDefinition  Width="25" />
+                    <ColumnDefinition  Width="Auto" />
                     <ColumnDefinition  Width="*"/>
-                    <ColumnDefinition  Width="*" />
+                    <ColumnDefinition  Width="Auto" />
+                    <ColumnDefinition  Width="25" />
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="1" HorizontalOptions="Center">
+                <Grid Grid.Column="2" HorizontalOptions="FillAndExpand">
                     <Grid.ColumnDefinitions>
-                        <ColumnDefinition Width="80"/>
+                        <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Entry Grid.Column="0" BindingContext="{x:Reference Slider}" HorizontalTextAlignment="End" Text="{Binding Offset}" VerticalOptions="Center" />
+                    <Entry Grid.Column="0" BindingContext="{x:Reference Slider}" HorizontalTextAlignment="End" Text="{Binding Offset}" VerticalOptions="Center" HorizontalOptions="FillAndExpand" />
                     <Label Grid.Column="1" Text="s" HorizontalOptions="Start" VerticalOptions="Center" />
                 </Grid>
             </Grid>
