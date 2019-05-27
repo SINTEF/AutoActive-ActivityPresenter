@@ -158,7 +158,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         protected override void OnTapped()
         {
             var dataItem = BindingContext as DataItem;
-            dataItem?.OnTapped();
+            try
+            {
+                dataItem?.OnTapped();
+            }
+            catch (Exception ex)
+            {
+                XamarinHelpers.GetCurrentPage().DisplayAlert("Unknown error", ex.Message, "OK");
+            }
         }
     }
 

@@ -11,6 +11,7 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Pages.Player;
+using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -18,6 +19,7 @@ namespace SINTEF.AutoActive.UI.Views
 	public partial class FigureView : ContentView
 	{
         private IDataViewer Viewer { get; set; }
+
         protected TimeSynchronizedContext Context { get; private set; }
 	    protected static readonly SKPaint FramePaint = new SKPaint
 	    {
@@ -32,6 +34,12 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        get => SelectionFrame.BorderColor == Color.Red;
 	        set => SelectionFrame.BorderColor = value ? Color.Red : Color.Black;
+	    }
+
+	    public bool ContextButtonIsVisible
+	    {
+	        get => ContextButton.IsVisible;
+	        set => ContextButton.IsVisible = value;
 	    }
 
 	    protected readonly SKPaint TextPaint = new SKPaint
@@ -120,7 +128,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
-            /// \todo Investigate why a \c Debug.WriteLine() output here makes 
+            /// \todo Investigate why a \c Debug.WriteLine() output here makes
             /// the GUI sluggish and unresponsive at large windows length.
             /// Why is it correlated with the data window length?
             RedrawCanvas(e.Surface.Canvas, e.Info);
@@ -209,6 +217,11 @@ namespace SINTEF.AutoActive.UI.Views
                             playerGridLayout.Selected = this;
                             break;
                         default:
+                            if (page is SynchronizationPage syncPage)
+                            {
+                                syncPage.Selected = this;
+                                break;
+                            }
                             throw new ArgumentException("Layout not recognized");
                     }
 
@@ -220,6 +233,11 @@ namespace SINTEF.AutoActive.UI.Views
                             playerGridLayout.Selected = null;
                             break;
                         default:
+                            if (page is SynchronizationPage syncPage)
+                            {
+                                syncPage.Selected = null;
+                                break;
+                            }
                             throw new ArgumentException("Layout not recognized");
                     }
                     break;
@@ -233,6 +251,12 @@ namespace SINTEF.AutoActive.UI.Views
 	                        parentLayout.Children.Remove(this);
 	                        break;
 	                    default:
+	                        if (page is SynchronizationPage syncPage)
+	                        {
+	                            syncPage.RemoveChild(this);
+	                            break;
+	                        }
+
 	                        throw new ArgumentException("Layout not recognized");
 	                }
 
