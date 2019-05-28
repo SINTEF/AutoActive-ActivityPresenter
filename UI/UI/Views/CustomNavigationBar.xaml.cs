@@ -13,6 +13,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.Import;
 using SINTEF.AutoActive.UI.Pages;
+using SINTEF.AutoActive.UI.Pages.HeadToHead;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 
@@ -217,6 +218,10 @@ namespace SINTEF.AutoActive.UI.Views
 	        Navigation.PushAsync(new SynchronizationPage());
 	    }
 
+        private void Head2Head_OnClicked(object sender, EventArgs e)
+        {
+            Navigation.PushAsync(new HeadToHead());
+        }
     }
 
     public delegate void SaveCompleteEvent(object sender, SaveCompleteArgs args);
