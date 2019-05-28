@@ -206,6 +206,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             foreach (var syncItem in _dataContextDictionary)
             {
+                if (syncItem.Value.Item1 == _masterContext)
+                    continue;
+
                 foreach (var item in syncItem.Value.Item2)
                 {
                     item.Offset = 0;
