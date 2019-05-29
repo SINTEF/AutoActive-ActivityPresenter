@@ -17,13 +17,41 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Frame Grid.Column="0" Grid.Row="0">
-                <player:PlayerGridLayout/>
+                <RelativeLayout>
+                    <player:PlayerGridLayout x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                                             RelativeLayout.WidthConstraint=
+                                             "{ConstraintExpression Type=RelativeToParent,
+                                Property=Width,
+                                Factor=1}"
+                                             RelativeLayout.HeightConstraint=
+                                             "{ConstraintExpression Type=RelativeToParent,
+                                Property=Height,
+                                Factor=1}" />
+                    <Button x:Name="LeftButton"
+                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            BackgroundColor="LightSlateGray"
+                            Clicked="SelectButton_Clicked"
+                    />
+                </RelativeLayout>
             </Frame>
             <Frame Grid.Column="1" Grid.Row="0">
-                <player:PlayerGridLayout/>
+                <RelativeLayout>
+                    <player:PlayerGridLayout x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                                             RelativeLayout.WidthConstraint=
+                                             "{ConstraintExpression Type=RelativeToParent,
+                                Property=Width, Factor=1}"
+                                             RelativeLayout.HeightConstraint=
+                                             "{ConstraintExpression Type=RelativeToParent,
+                                Property=Height, Factor=1}" />
+                    <Button x:Name="RightButton"
+                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            BackgroundColor="LightSlateGray"
+                            Clicked="SelectButton_Clicked"
+                    />
+                </RelativeLayout>
             </Frame>
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="2" Grid.Row="0"/>
-            <player:PlaybarView Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0"/>
+            <player:PlaybarView Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0" x:Name="Playbar"/>
             <views:RelativeSlider Grid.Row="1" Grid.ColumnSpan="3" Grid.Column="0" x:Name="OffsetSlider"/>
         </Grid>
     </ContentPage.Content>
