@@ -16,9 +16,6 @@ namespace SINTEF.AutoActive.UI
         public App()
         {
             InitializeComponent();
-#if DEBUG
-            LiveReload.Init();
-#endif
             // Load the plugins
 
             //MainPage = new NavigationPage(new WelcomePage());
