@@ -32,6 +32,19 @@ namespace SINTEF.AutoActive.UI.Figures
         private float? _minYValue;
         private float? _maxYValue;
 
+        private void UpdateLineData()
+        {
+            _minYValue = _lines.Max(line => line.Drawer.MinY);
+            _maxYValue = _lines.Max(line => line.Drawer.MaxY);
+
+            var yDelta = _maxYValue.Value - _minYValue.Value;
+            foreach (var line in _lines)
+            {
+                line.YDelta = yDelta;
+                line.OffsetY = _maxYValue.Value;
+            }
+        }
+
         public async Task AddLine(IDataPoint datapoint)
         {
             var line = await CreateLineDrawer(datapoint);
@@ -45,22 +58,13 @@ namespace SINTEF.AutoActive.UI.Figures
         private void AddLine(ILineDrawer lineDrawer, string legend)
         {
             lineDrawer.Parent = this;
-            
             _lines.Add(new LineConfiguration()
             {
                 Drawer = lineDrawer,
                 LinePaint = LinePaintProvider.GetNextPaint()
             });
-            
-            _minYValue = _lines.Max(line => line.Drawer.MinY);
-            _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
-            var yDelta = _maxYValue.Value - _minYValue.Value;
-            foreach (var line in _lines)
-            {
-                line.YDelta = yDelta;
-                line.OffsetY = _maxYValue.Value;
-            }
+            UpdateLineData();
 
             InvalidateSurface();
         }
@@ -70,6 +74,8 @@ namespace SINTEF.AutoActive.UI.Figures
             _context.Remove(line.Drawer.Viewer);
             DataPoints.Remove(line.Drawer.Viewer.DataPoint);
             _lines.Remove(line);
+
+            UpdateLineData();
         }
 
         public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
@@ -91,7 +97,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     "Could not find LineDrawer constructor. Make sure it is public and that the specified arguments are correct.");
                 return null;
             }
-            
+
             if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             viewer.PreviewPercentage = PreviewPercentage;
@@ -107,7 +113,7 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             _context = context;
         }
-        
+
         public static int MaxPlotPoints { get; } = 1000;
 
         // ---- Drawing ----
@@ -191,7 +197,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 firstStartTime = viewer.CurrentTimeRangeFrom;
                 break;
             }
-            
+
             if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
             var currentXTime = firstStartTime;
@@ -200,7 +206,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var startX = currentXTime - xDiff * PreviewPercentage / 100;
 
             var scaleX = (float)info.Width / xDiff;
-            
+
             foreach (var line in _lines)
             {
                 line.OffsetX = startX;
@@ -250,7 +256,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var legendLineX1 = legendTextStartX - legendLineSpacing;
             var legendLineX0 = legendLineX1 - legendLineWidth;
-            
+
             var legendFrameStartX = legendLineX0 - legendPadding;
             var legendFrameWidth = info.Width - legendMargin - legendFrameStartX;
             var legendEndY = legendTextStartY + legendPadding;
@@ -272,7 +278,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 var yPos = legendTextStartY + legendYDelta * legendIx;
 
                 var legendLineY = yPos - textHeight / 2;
-                
+
                 canvas.DrawText(text, legendTextStartX, yPos, TextPaint);
                 canvas.DrawLine(legendLineX0, legendLineY, legendLineX1, legendLineY, config.LinePaint);
                 legendIx++;
@@ -348,7 +354,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
                         return;
 
-                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction);
+                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction).ToArray();
                     foreach (var line in toRemove)
                     {
                         RemoveLine(line);
