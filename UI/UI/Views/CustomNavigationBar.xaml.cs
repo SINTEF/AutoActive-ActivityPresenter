@@ -61,7 +61,7 @@ namespace SINTEF.AutoActive.UI.Views
 	            return;
 	        }
 
-	        var file = await browser.BrowseForArchive();
+	        var file = await browser.BrowseForLoad();
 	        if (file == null) return;
 
             try
@@ -163,14 +163,14 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        if ((selectedSession == null || selectedSession.Count == 0) && (selectedDataPoints == null || selectedDataPoints.Count == 0))
 	        {
-	            await Application.Current.MainPage.DisplayAlert("Can not save:", "No data selected.", "OK");
+	            await XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Can not save:", "No data selected.", "OK");
 	            return new SaveCompleteArgs(false, "No data selected.");
 	        }
 
 	        var browser = DependencyService.Get<IFileBrowser>();
 	        if (browser == null)
 	        {
-	            await Application.Current.MainPage.DisplayAlert("File open error", "Could get file browser.", "OK");
+	            await XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("File open error", "Could get file browser.", "OK");
 	            return new SaveCompleteArgs(false, "Could not get file browser.");
 	        }
 

@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.FileSystem
                 return;
             }
 
-            var file = await browser.BrowseForArchive();
+            var file = await browser.BrowseForLoad();
             if (file == null) return;
 
             try
