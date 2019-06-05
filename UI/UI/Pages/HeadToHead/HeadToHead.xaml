@@ -16,7 +16,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Frame Grid.Column="0" Grid.Row="0">
+            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red">
                 <RelativeLayout>
                     <player:PlayerGridLayout x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -36,8 +36,8 @@
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="1" Grid.Row="0">
-                <RelativeLayout>
+            <Frame Grid.Column="1" Grid.Row="0" BorderColor="Blue">
+                <RelativeLayout VerticalOptions="StartAndExpand">
                     <player:PlayerGridLayout x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
                                              "{ConstraintExpression Type=RelativeToParent, Property=Width, Factor=1}"
@@ -52,10 +52,17 @@
                             Clicked="SelectButton_Clicked"
                     />
                 </RelativeLayout>
+
+
             </Frame>
+            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Blue">
+                <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />
+            </Frame>
+
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="2" Grid.Row="0"/>
+            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="Start"/>
+            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="End"/>
             <player:PlaybarView Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0" x:Name="Playbar"/>
-            <views:RelativeSlider Grid.Row="1" Grid.ColumnSpan="3" Grid.Column="0" x:Name="OffsetSlider"/>
         </Grid>
     </ContentPage.Content>
 </ContentPage>
