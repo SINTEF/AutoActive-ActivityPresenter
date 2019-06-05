@@ -2,6 +2,9 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+#if !DEBUG
+using Xamarin.Forms;
+#endif
 
 namespace SINTEF.AutoActive.Plugins
 {
@@ -13,10 +16,13 @@ namespace SINTEF.AutoActive.Plugins
 
         static PluginService()
         {
+#if DEBUG
             var initializers = DependencyHandler.GetAllInstances<IPluginInitializer>();
-
             foreach (var initializer in initializers)
             {
+#else
+            var initializer = DependencyService.Get<IPluginInitializer>();
+#endif
                 // Map out all provided plugins
                 foreach (var plugin in initializer.Plugins)
                 {
@@ -34,7 +40,9 @@ namespace SINTEF.AutoActive.Plugins
                         RegisterPlugin(plugin, pluginAttribute as PluginAttribute);
                     }
                 }
+#if DEBUG
             }
+#endif
         }
 
         private static PluginTypeAttribute GetOrRegisterPluginType(Type pluginTarget)
