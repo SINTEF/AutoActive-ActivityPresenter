@@ -19,7 +19,6 @@ namespace SINTEF.AutoActive.UI.Views
 {
 	public partial class FigureView : ContentView
 	{
-        private static readonly List<FigureView> figureviews = new List<FigureView>();
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
         protected TimeSynchronizedContext Context { get; private set; }
@@ -69,6 +68,8 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        InitializeComponent();
 	        //Canvas.PaintSurface += Canvas_PaintSurface;
+
+            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
         }
 
         protected FigureView(TimeSynchronizedContext context, IDataPoint dataPoint)
@@ -84,16 +85,15 @@ namespace SINTEF.AutoActive.UI.Views
             SizeChanged += FigureView_SizeChanged;
             Context.SelectedTimeRangeChanged += Context_SelectedTimeRangeChanged;
             Canvas.PaintSurface += Canvas_PaintSurface;
-            figureviews.Add(this);
+
             SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
+            /// \todo Remove eventhandler again when removing this view.
         }
 
-        private static void DataRegistry_DataPointRemoved(IDataStructure sender, IDataPoint datapoint)
+        /// Called when datapoint is removed from DataRegistry, i.e. session closed.
+        private void DataRegistry_DataPointRemoved(IDataStructure sender, IDataPoint datapoint)
         {
-            foreach (var view in figureviews)
-            {
-                view.RemoveDataPoint(datapoint);
-            }
+            RemoveDataPoint(datapoint);
         }
 
         private void FigureView_SizeChanged(object sender, EventArgs e)
