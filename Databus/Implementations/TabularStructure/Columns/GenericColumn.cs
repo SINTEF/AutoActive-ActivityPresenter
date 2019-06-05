@@ -10,7 +10,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal T[] Data;
         private readonly Task<T[]> _loader;
         // private float[] _floatData; Buffer data?
-        public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index) : base(typeof(T), name, loader, index)
+        public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri) : base(typeof(T), name, loader, index, uri)
         {
             _loader = loader;
         }

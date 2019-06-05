@@ -12,6 +12,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         private readonly Task _loader;
 
+        public string URI { get; }
         public Type DataType { get; private set; }
         public string Name { get; set; }
 
@@ -20,12 +21,13 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public ITimePoint Time => Index;
 
-        internal TableColumn(Type type, string name, Task loader, TableTimeIndex index)
+        internal TableColumn(Type type, string name, Task loader, TableTimeIndex index, string uri)
         {
             DataType = type;
             Name = name;
             Index = index;
             _loader = loader;
+            URI = uri;
         }
 
         // FIXME: Thread safety of the loading functions!!
