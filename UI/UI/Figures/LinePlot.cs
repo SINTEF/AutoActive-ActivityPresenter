@@ -22,7 +22,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public static async Task<LinePlot> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
-            var linePlot = new LinePlot(null, context);
+            var linePlot = new LinePlot(context, datapoint);
 
             var lineDrawer = await linePlot.CreateLineDrawer(datapoint);
             linePlot.AddLine(lineDrawer, datapoint.Name);
@@ -40,8 +40,9 @@ namespace SINTEF.AutoActive.UI.Figures
                 throw new ArgumentException("Could not create line");
             }
             AddLine(line, datapoint.Name);
+            DataPoints.Add(datapoint);
         }
-        public void AddLine(ILineDrawer lineDrawer, string legend)
+        private void AddLine(ILineDrawer lineDrawer, string legend)
         {
             lineDrawer.Parent = this;
             
@@ -62,6 +63,13 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             InvalidateSurface();
+        }
+
+        private void RemoveLine(LineConfiguration line)
+        {
+            _context.Remove(line.Drawer.Viewer);
+            DataPoints.Remove(line.Drawer.Viewer.DataPoint);
+            _lines.Remove(line);
         }
 
         public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
@@ -95,7 +103,7 @@ namespace SINTEF.AutoActive.UI.Figures
             return lineDrawer;
         }
 
-        protected LinePlot(IDataViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
+        protected LinePlot(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
             _context = context;
         }
@@ -170,19 +178,17 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.Clear(SKColors.White);
             canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
 
-            ITimeSeriesViewer firstViewer;
-
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
             var firstStartTime = long.MaxValue;
             foreach (var line in _lines)
             {
-                firstViewer = line.Drawer.Viewer;
+                var viewer = line.Drawer.Viewer;
                 // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
-                xDiff = firstViewer.CurrentTimeRangeTo - firstViewer.CurrentTimeRangeFrom;
+                xDiff = viewer.CurrentTimeRangeTo - viewer.CurrentTimeRangeFrom;
                 if (xDiff == 0) continue;
 
-                firstStartTime = firstViewer.CurrentTimeRangeFrom;
+                firstStartTime = viewer.CurrentTimeRangeFrom;
                 break;
             }
             
@@ -316,8 +322,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 // Normally only one is existing, but remove all if more.
                 foreach (var line in existing)
                 {
-                    _context.Remove(line.Drawer.Viewer);
-                    _lines.Remove(line);
+                    RemoveLine(line);
                 }
                 InvalidateSurface();
             }
@@ -346,15 +351,16 @@ namespace SINTEF.AutoActive.UI.Figures
                     var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction);
                     foreach (var line in toRemove)
                     {
-                        _context.Remove(line.Drawer.Viewer);
+                        RemoveLine(line);
                     }
-                    _lines.RemoveAll(line => line.Drawer.Legend == lineToRemoveAction);
                     return;
                 case RemoveText:
+                    DataPoints.Clear();
                     foreach (var line in _lines)
                     {
                         _context.Remove(line.Drawer.Viewer);
                     }
+                    _lines.Clear();
                     break;
                 default:
                     break;

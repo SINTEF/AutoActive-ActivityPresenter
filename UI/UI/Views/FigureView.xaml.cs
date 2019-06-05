@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SkiaSharp;
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,7 +19,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
 	public partial class FigureView : ContentView
 	{
-        private IDataViewer Viewer { get; set; }
+        public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
         protected TimeSynchronizedContext Context { get; private set; }
 	    protected static readonly SKPaint FramePaint = new SKPaint
@@ -42,7 +43,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        set => ContextButton.IsVisible = value;
 	    }
 
-	    protected readonly SKPaint TextPaint = new SKPaint
+        protected readonly SKPaint TextPaint = new SKPaint
 	    {
 	        Color = SKColors.Black,
 	        Style = SKPaintStyle.Fill,
@@ -56,15 +57,12 @@ namespace SINTEF.AutoActive.UI.Views
 	        //Canvas.PaintSurface += Canvas_PaintSurface;
         }
 
-        protected FigureView(IDataViewer viewer, TimeSynchronizedContext context)
+        protected FigureView(TimeSynchronizedContext context, IDataPoint dataPoint)
         {
             InitializeComponent();
+            DataPoints.Add(dataPoint);
 
-            Viewer = viewer;
             Context = context;
-
-            if (viewer != null)
-                viewer.Changed += Viewer_Changed;
 
             // Redraw canvas when data changes, size of figure changes, or range updates
             // FIXME: This usually causes at least double updates. Maybe we can sort that out somehow
@@ -108,17 +106,6 @@ namespace SINTEF.AutoActive.UI.Views
             Debug.WriteLine(debugText);
             Debug.WriteLine($"X:{e.TotalX} Y:{e.TotalY}");
 
-        }
-
-        private void Viewer_Changed(IDataViewer sender)
-        {
-            Canvas.InvalidateSurface();
-            Viewer_Changed_Hook();
-        }
-
-        protected virtual void Viewer_Changed_Hook()
-        {
-            // Hook method to be overridden by sub classes if special handling needed
         }
 
         private void Context_SelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
