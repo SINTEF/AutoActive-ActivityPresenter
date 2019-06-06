@@ -178,11 +178,18 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public long PreviewPercentage = 30;
 
+        private const int TickBoxMargin = 60;
+        private const int TickLength = 3;
+        private const int TickMargin = 3;
+
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             // Clear background and draw frame
             canvas.Clear(SKColors.White);
-            canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
+
+            var plotWidth = info.Width - TickBoxMargin;
+
+            canvas.DrawRect(TickBoxMargin, 0, plotWidth-1, info.Height-1, FramePaint);
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
@@ -202,10 +209,10 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var currentXTime = firstStartTime;
 
-            //TODO: make this selectable
-            var startX = currentXTime - xDiff * PreviewPercentage / 100;
+            var scaleX = (float)plotWidth / xDiff;
 
-            var scaleX = (float)info.Width / xDiff;
+            //TODO: make the percentage selectable
+            var startX = currentXTime - xDiff * PreviewPercentage / 100 - (long)(TickBoxMargin/scaleX);
 
             foreach (var line in _lines)
             {
@@ -222,11 +229,91 @@ namespace SINTEF.AutoActive.UI.Figures
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
 
-            foreach(var lineConfig in _lines) {
+            if (_minYValue.HasValue && _maxYValue.HasValue)
+            {
+                DrawTicks(canvas, info, _minYValue.Value, _maxYValue.Value);
+            }
+
+            foreach (var lineConfig in _lines)
+            {
                 DrawLine(canvas, lineConfig);
             }
+
             DrawLegends(canvas, info, _lines);
         }
+
+
+        private static float SmartRound(float num, float diff)
+        {
+            // This method should round to the nearest 1, 5, 10, 0.1 in a smart way
+            // This could become very sophisticated, for example rounding to nearest 10 or 5 when proper
+            if (diff < 0.01)
+                return num;
+            if (diff < 0.1)
+                return (float)Math.Round(num, 2);
+            if (diff < 5)
+                return (float)Math.Round(num, 1);
+            if (diff < 50)
+                return (float)Math.Round(num, 0);
+            if (diff < 100)
+                return (float)Math.Round(num / 10, 0) * 10;
+
+            return (float)Math.Round(num / 50, 0) * 50;
+        }
+
+        private static (string, float) GetFormat(float minY, float maxY)
+        {
+            const float offset = 0f;
+
+            var yDiff = maxY - minY;
+            if (maxY > 10000 || maxY < 5)
+                return ("#0.0e0", offset);
+
+            if (maxY < 10 || yDiff < 100)
+                return ("##.###", offset);
+
+            return ("#####", offset);
+
+        }
+
+        private void DrawTicks(SKCanvas canvas, SKImageInfo info, float minY, float maxY)
+        {
+            var diffY = maxY - minY;
+            const uint nTicks = 8;
+            var tickDelta = SmartRound(diffY / nTicks, diffY);
+            var scale = -info.Height/diffY;
+            var tickStart = minY + (diffY / 2f);
+
+            // If we cross the zero-axis, use zero as the tick center, if not round it smartly
+            if (minY < 0 && 0 < maxY)
+                tickStart = 0;
+            else
+                tickStart = SmartRound(tickStart, diffY);
+
+            var (valueFormat, yOffset) = GetFormat(minY, maxY);
+
+            for (var i = -nTicks; i < nTicks; i++)
+            {
+                var val = tickStart + i * tickDelta;
+                var drawVal = ScaleY(val, maxY, scale);
+                var valueText = (val - yOffset).ToString(valueFormat);
+                if (valueText == "")
+                {
+                    continue;
+                }
+                var textSize = TextPaint.MeasureText(valueText);
+                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TextPaint);
+                canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
+                if (yOffset != 0f)
+                {
+                    var offsetTextSize = TextPaint.MeasureText(valueText);
+                    canvas.DrawText("+", TickBoxMargin - TickLength - TickMargin - offsetTextSize, info.Height - TextPaint.TextSize, TextPaint);
+                }
+            }
+
+        }
+
+
 
         private void DrawLegends(SKCanvas canvas, SKImageInfo info, IReadOnlyCollection<LineConfiguration> configs)
         {
