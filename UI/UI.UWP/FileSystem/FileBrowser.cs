@@ -85,14 +85,6 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
     {
         private const string DefaultExtension = ".aaz";
 
-        /*public async Task<IReadWriteSeekStreamFactory> BrowseForArchive()
-        {
-            var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(DefaultExtension);
-            var file = await picker.PickSingleFileAsync();
-            return file == null ? null : new ReadWriteSeekStreamFactory(file);
-        }*/
-
         public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default)
         {
             var picker = new FileOpenPicker();
