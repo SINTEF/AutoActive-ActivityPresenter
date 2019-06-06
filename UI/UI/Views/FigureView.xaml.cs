@@ -19,6 +19,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
 	public partial class FigureView : ContentView
 	{
+        private static readonly List<FigureView> figureviews = new List<FigureView>();
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
         protected TimeSynchronizedContext Context { get; private set; }
@@ -83,6 +84,16 @@ namespace SINTEF.AutoActive.UI.Views
             SizeChanged += FigureView_SizeChanged;
             Context.SelectedTimeRangeChanged += Context_SelectedTimeRangeChanged;
             Canvas.PaintSurface += Canvas_PaintSurface;
+            figureviews.Add(this);
+            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
+        }
+
+        private static void DataRegistry_DataPointRemoved(IDataStructure sender, IDataPoint datapoint)
+        {
+            foreach (var view in figureviews)
+            {
+                view.RemoveDataPoint(datapoint);
+            }
         }
 
         private void FigureView_SizeChanged(object sender, EventArgs e)
@@ -273,5 +284,10 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        throw new NotImplementedException();
 	    }
+
+        protected virtual void RemoveDataPoint(IDataPoint datapoint)
+        {
+            throw new NotImplementedException();
+        }
     }
 }

@@ -447,6 +447,25 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
+        protected override void RemoveDataPoint(IDataPoint datapoint)
+        {
+            var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
+            if (existing.Count == 0)
+                return;
+
+            // Normally only one is existing, but remove all if more.
+            foreach (var line in existing)
+            {
+                _context.Remove(line.Drawer.Viewer);
+                _lines.Remove(line);
+            }
+/// \todo Remove plot if the last line is removed.
+//            if (_lines.Count == 0)
+//                Parent.RemoveChild(this);
+//            else
+            InvalidateSurface();
+        }
+
         protected override async void OnHandleMenuResult(Page page, string action)
         {
             switch (action)
