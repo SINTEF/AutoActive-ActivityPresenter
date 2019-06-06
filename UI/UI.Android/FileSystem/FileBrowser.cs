@@ -106,8 +106,7 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
         }
 
         // FIXME: How can we specify what kind of files we can open?
-
-        public async Task<IReadWriteSeekStreamFactory> BrowseForArchive()
+        public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default)
         {
             uriSource = new TaskCompletionSource<Android.Net.Uri>();
 
@@ -130,10 +129,10 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
 
         public async Task<IReadSeekStreamFactory> BrowseForImportFile()
         {
-            return await BrowseForArchive();
+            return await BrowseForLoad();
         }
 
-        public async Task<IReadWriteSeekStreamFactory> BrowseForSave()
+        public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default, string filename = null)
         {
             uriSource = new TaskCompletionSource<Android.Net.Uri>();
 

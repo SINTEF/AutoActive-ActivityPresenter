@@ -198,16 +198,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
+            var uri = "LIVE";
             // Create the time index
-            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true);
+            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true, uri);
 
             // Add other columns
-            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol);
-            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol);
-            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol);
-            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol);
-            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol);
-            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol);
+            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol, uri);
+            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol, uri);
+            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol, uri);
+            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol, uri);
+            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol, uri);
+            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol, uri);
         }
 
         private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)

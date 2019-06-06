@@ -6,7 +6,7 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public interface ILineDrawer
     {
-        void CreatePath(SKPath plot, LineConfiguration lineConfig);
+        void CreatePath(SKPath plot, SKImageInfo info, LineConfiguration lineConfig);
 
         float MinY { get; }
         float MaxY { get; }
@@ -29,7 +29,7 @@ namespace SINTEF.AutoActive.UI.Figures
             if (viewer.MaxValueHint.HasValue) _maxYValue = (float)viewer.MaxValueHint.Value;
         }
 
-        public void CreatePath(SKPath plot, LineConfiguration lineConfig)
+        public void CreatePath(SKPath plot, SKImageInfo info, LineConfiguration lineConfig)
         {
             var offsetX = lineConfig.OffsetX;
             var scaleX = lineConfig.ScaleX;
@@ -39,10 +39,20 @@ namespace SINTEF.AutoActive.UI.Figures
             var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems);
             if (!en.MoveNext()) return;
 
-            plot.MoveTo(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
-            while (en.MoveNext())
+            var width = info.Width;
+
+            var startX = Math.Max(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), LinePlot.ScaleX(offsetX, offsetX, scaleX));
+            plot.MoveTo(startX, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+            var done = false;
+            while (en.MoveNext() && !done)
             {
-                plot.LineTo(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+                var plotX = LinePlot.ScaleX(en.Current.x, offsetX, scaleX);
+                if (plotX > width)
+                {
+                    plotX = width;
+                    done = true;
+                }
+                plot.LineTo(plotX, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
             }
         }
 

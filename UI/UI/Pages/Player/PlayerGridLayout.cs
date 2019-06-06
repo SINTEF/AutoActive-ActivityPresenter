@@ -2,13 +2,17 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views;
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public class PlayerGridLayout : Layout<FigureView>
+    public class PlayerGridLayout : Layout<FigureView>, ISerializableView
     {
         //TODO: re-layout if these changes
         public int GridColumns { get; set; } = 4;
@@ -167,5 +171,22 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             Children.Remove(figureView);
         }
 
+        public JObject SerializeView(JObject root = null)
+        {
+            if (root == null)
+            {
+                root = new JObject();
+            }
+
+            var uris = (from child in Children from dataPoint in child.DataPoints select dataPoint.URI).ToList();
+            root["Children"] = new JArray(uris);
+            return root;
+        }
+
+        public void DeserializeView(JObject root)
+        {
+            var children = root["Children"];
+            return;
+        }
     }
 }

@@ -14,7 +14,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
     public abstract class DataViewerContext
     {
         // --- Clock mode ---
-        private bool _isSynchronizedToWorldClock;
+        private bool _isSynchronizedToWorldClock = true;
         protected bool IsSynchronizedToWorldClock
         {
             get => _isSynchronizedToWorldClock;

@@ -83,12 +83,19 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
 
     public class FileBrowser : IFileBrowser
     {
-        private const string Extension = ".aaz";
+        private const string DefaultExtension = ".aaz";
 
-        public async Task<IReadWriteSeekStreamFactory> BrowseForArchive()
+        public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default((string, string)))
         {
             var picker = new FileOpenPicker();
-            picker.FileTypeFilter.Add(Extension);
+            if (extensionDescription.Item1 == default(string) && extensionDescription.Item2 == default(string))
+                picker.FileTypeFilter.Add(DefaultExtension);
+            else
+            {
+                var (extension, _) = extensionDescription;
+                picker.FileTypeFilter.Add(extension);
+            }
+
             var file = await picker.PickSingleFileAsync();
             return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
@@ -106,13 +113,19 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             var file = await picker.PickSingleFileAsync();
             return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
-
-        public async Task<IReadWriteSeekStreamFactory> BrowseForSave()
+        public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default((string, string)),
+            string filename = null)
         {
             var picker = new FileSavePicker();
+            if (extensionDescription.Item1 == default(string) && extensionDescription.Item2 == default(string))
+                picker.FileTypeChoices.Add("AutoActive archive", new List<string> { DefaultExtension });
+            else
+            {
+                var (extension, description) = extensionDescription;
+                picker.FileTypeChoices.Add(description, new List<string> { extension });
+            }
 
-            picker.FileTypeChoices.Add("AutoActive archive", new List<string> { Extension });
-            picker.SuggestedFileName = DateTime.Now.ToString("yyyy-MM-dd--HH-mm");
+            picker.SuggestedFileName = filename ?? DateTime.Now.ToString("yyyy-MM-dd--HH-mm");
 
             var file = await picker.PickSaveFileAsync();
             return file == null ? null : new ReadWriteSeekStreamFactory(file);

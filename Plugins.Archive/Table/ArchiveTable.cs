@@ -9,9 +9,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Reflection;
 using System.Threading.Tasks;
-using Parquet.Data.Rows;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
 {
@@ -136,6 +134,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         private readonly ZipEntry _zipEntry;
         private readonly RememberingParquetReader _reader;
         private readonly Archive.Archive _archive;
+        private readonly Guid _sessionId;
 
         internal ArchiveTable(JObject json, Archive.Archive archive, Guid sessionId, ArchiveTableInformation tableInformation) :
             base(json)
@@ -143,6 +142,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             IsSaved = true;
             _archive = archive;
             _zipEntry = tableInformation.ZipEntry;
+            _sessionId = sessionId;
 
             if (tableInformation.Time == null) throw new ArgumentException("Table does not have a column named 'Time'");
 
@@ -152,7 +152,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 _reader = new RememberingParquetReader(reader);
             }
-
+            
             AddColumns(tableInformation);
         }
 
@@ -170,7 +170,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         {
             // TODO(sigurdal): Handle nullable data? column.HasNulls
             var timeInfo = tableInformation.Time;
-            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), false);
+            var tableFile = _sessionId + "://" + tableInformation.Uri;
+            var uri2 = tableFile + "/" + timeInfo.Name;
+            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), tableInformation.IsWorldSynchronized, uri2);
 
             foreach (var column in tableInformation.Columns)
             {
@@ -179,25 +181,27 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                     throw new NotImplementedException("Nullable columns are not yet implemented.");
                 }
 
+                var uri = tableFile + "/" + column.Name;
+
                 switch (column.DataType)
                 {
                     case DataType.Boolean:
-                        this.AddColumn(column.Name, GenerateLoader<bool>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<bool>(_reader, column), time, uri);
                         break;
                     case DataType.Byte:
-                        this.AddColumn(column.Name, GenerateLoader<byte>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<byte>(_reader, column), time, uri);
                         break;
                     case DataType.Int32:
-                        this.AddColumn(column.Name, GenerateLoader<int>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<int>(_reader, column), time, uri);
                         break;
                     case DataType.Int64:
-                        this.AddColumn(column.Name, GenerateLoader<long>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<long>(_reader, column), time, uri);
                         break;
                     case DataType.Float:
-                        this.AddColumn(column.Name, GenerateLoader<float>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<float>(_reader, column), time, uri);
                         break;
                     case DataType.Double:
-                        this.AddColumn(column.Name, GenerateLoader<double>(_reader, column), time);
+                        this.AddColumn(column.Name, GenerateLoader<double>(_reader, column), time, uri);
                         break;
 
                     default:
@@ -285,6 +289,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 ZipEntry = zipEntry,
                 Columns = new List<DataField>(),
+                Uri = path
             };
 
             // Open the table file
@@ -307,6 +312,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 }
             }
 
+            if (meta.ContainsKey("is_world_clock"))
+                tableInformation.IsWorldSynchronized = meta["is_world_clock"].Value<bool>();
+
             // Return the collected info
             return tableInformation;
         }
@@ -323,6 +331,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     {
         public ZipEntry ZipEntry;
         public DataField Time;
+        public string Uri;
         public List<DataField> Columns;
+        public bool IsWorldSynchronized;
     }
 }

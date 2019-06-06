@@ -40,6 +40,7 @@
                 Clicked="SaveArchiveButton_OnClicked"
             />
             <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
+            <Button Grid.Column="5" Text="Head2Head" Clicked="Head2Head_OnClicked"/>
 
             <Button
                 Grid.Column="5"

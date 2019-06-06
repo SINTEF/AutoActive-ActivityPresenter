@@ -76,6 +76,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly Archive.Archive _archive;
         private readonly string _path;
 
+        public string URI => _path;
         public Type DataType => throw new NotImplementedException();
         public string Name { get; set; }
         public ArchiveVideoTime VideoTime { get; }

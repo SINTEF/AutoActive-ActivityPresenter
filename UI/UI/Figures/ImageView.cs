@@ -20,7 +20,8 @@ namespace SINTEF.AutoActive.UI.Figures
             // TODO: Check that this datapoint has a type that can be used
             var viewer = await context.GetDataViewerFor(datapoint);
 
-            var view = new ImageView(viewer, context);
+            var view = new ImageView(context, datapoint);
+            view.AddViewer(viewer);
 
             if (!(viewer is ArchiveVideoVideoViewer videoViewer))
                 return view;
@@ -85,7 +86,7 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.Position = TimeSpan.Zero;
         }
 
-        protected ImageView(IDataViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
+        protected ImageView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
         }
     }

@@ -24,7 +24,7 @@
             <player:PlayerTreeView x:Name="TreeView" Grid.Row="1" Grid.Column="2" />
             <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="3" />
             
-            <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="3" Grid.RowSpan="1" Grid.Column="0">
+            <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="3" Grid.Column="0">
                 <BoxView x:Name="OverlayShading" IsVisible="False" Color="Black" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1"/>
             </AbsoluteLayout>
         </Grid>

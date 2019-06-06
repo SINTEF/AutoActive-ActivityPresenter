@@ -15,8 +15,8 @@ namespace Tests
         {
             Assert.Equal(timeArray.Length, dataArray.Length);
 
-            var time = new TableTimeIndex("time", new Task<long[]>(() => timeArray), true);
-            var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time);
+            var time = new TableTimeIndex("time", new Task<long[]>(() => timeArray), true, "test:/time");
+            var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time, "test/acc");
 
             var tsc = new TimeSynchronizedContext();
             var dataViewerTask = tsc.GetDataViewerFor(data);

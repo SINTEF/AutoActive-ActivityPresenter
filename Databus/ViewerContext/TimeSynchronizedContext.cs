@@ -10,7 +10,6 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
         protected override void OnTimeViewerAvailableChanged(ITimeViewer sender, long start, long end)
         {
-            //Debug.WriteLine($"TimeSynchronizedContext.OnTimeViewerAvailbleChanged({sender}, {start}, {end})");
             var newFrom = AvailableTimeFrom;
             var newTo = AvailableTimeTo;
             var changedStart = IsSynchronizedToWorldClock ? start : 0;

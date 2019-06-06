@@ -11,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal string[] data;
         private Task<string[]> loader;
 
-        public StringColumn(string name, Task<string[]> loader, TableTimeIndex index) : base(typeof(string), name, loader, index)
+        public StringColumn(string name, Task<string[]> loader, TableTimeIndex index, string uri) : base(typeof(string), name, loader, index, uri)
         {
             this.loader = loader;
         }

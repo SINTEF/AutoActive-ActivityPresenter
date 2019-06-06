@@ -14,6 +14,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         protected TableTimeIndexDyn index;
         internal readonly List<IDynDataViewer> dynDataViewers = new List<IDynDataViewer>();
 
+        public string URI => "LIVE";
         public Type DataType { get; private set; }
         public string Name { get; set; }
 

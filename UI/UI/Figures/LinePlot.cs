@@ -22,7 +22,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public static async Task<LinePlot> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
-            var linePlot = new LinePlot(null, context);
+            var linePlot = new LinePlot(context, datapoint);
 
             var lineDrawer = await linePlot.CreateLineDrawer(datapoint);
             linePlot.AddLine(lineDrawer, datapoint.Name);
@@ -32,25 +32,8 @@ namespace SINTEF.AutoActive.UI.Figures
         private float? _minYValue;
         private float? _maxYValue;
 
-        public async Task AddLine(IDataPoint datapoint)
+        private void UpdateLineData()
         {
-            var line = await CreateLineDrawer(datapoint);
-            if (line == null)
-            {
-                throw new ArgumentException("Could not create line");
-            }
-            AddLine(line, datapoint.Name);
-        }
-        public void AddLine(ILineDrawer lineDrawer, string legend)
-        {
-            lineDrawer.Parent = this;
-            
-            _lines.Add(new LineConfiguration()
-            {
-                Drawer = lineDrawer,
-                LinePaint = LinePaintProvider.GetNextPaint()
-            });
-            
             _minYValue = _lines.Max(line => line.Drawer.MinY);
             _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
@@ -60,8 +43,39 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.YDelta = yDelta;
                 line.OffsetY = _maxYValue.Value;
             }
+        }
+
+        public async Task AddLine(IDataPoint datapoint)
+        {
+            var line = await CreateLineDrawer(datapoint);
+            if (line == null)
+            {
+                throw new ArgumentException("Could not create line");
+            }
+            AddLine(line, datapoint.Name);
+            DataPoints.Add(datapoint);
+        }
+        private void AddLine(ILineDrawer lineDrawer, string legend)
+        {
+            lineDrawer.Parent = this;
+            _lines.Add(new LineConfiguration()
+            {
+                Drawer = lineDrawer,
+                LinePaint = LinePaintProvider.GetNextPaint()
+            });
+
+            UpdateLineData();
 
             InvalidateSurface();
+        }
+
+        private void RemoveLine(LineConfiguration line)
+        {
+            RemoveViewer(line.Drawer.Viewer);
+            DataPoints.Remove(line.Drawer.Viewer.DataPoint);
+            _lines.Remove(line);
+
+            UpdateLineData();
         }
 
         public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
@@ -83,8 +97,10 @@ namespace SINTEF.AutoActive.UI.Figures
                     "Could not find LineDrawer constructor. Make sure it is public and that the specified arguments are correct.");
                 return null;
             }
-            
+
             if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
+            AddViewer(viewer);
+
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             viewer.PreviewPercentage = PreviewPercentage;
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
@@ -95,12 +111,10 @@ namespace SINTEF.AutoActive.UI.Figures
             return lineDrawer;
         }
 
-        protected LinePlot(IDataViewer viewer, TimeSynchronizedContext context) : base(viewer, context)
+        protected LinePlot(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
             _context = context;
         }
-        
-        public static int MaxPlotPoints { get; } = 1000;
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -152,49 +166,66 @@ namespace SINTEF.AutoActive.UI.Figures
             IsAntialias = true,
         };
 
-        private void DrawLine(SKCanvas canvas, LineConfiguration lineConfig)
+        private void DrawLine(SKCanvas canvas, SKImageInfo info, LineConfiguration lineConfig)
         {
             // Create path
             var plot = new SKPath();
-            lineConfig.Drawer.CreatePath(plot, lineConfig);
+            lineConfig.Drawer.CreatePath(plot, info, lineConfig);
 
             // Draw the data
             canvas.DrawPath(plot, lineConfig.LinePaint);
         }
 
+        public bool AxisValuesVisible = true;
+        public static int MaxPlotPoints { get; } = 1000;
+        public bool CurrentTimeVisible { get; set; } = true;
+
         public long PreviewPercentage = 30;
+
+        private const int TickBoxMargin = 45;
+        private const int TickLength = 3;
+        private const int TickMargin = 3;
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             // Clear background and draw frame
             canvas.Clear(SKColors.White);
-            canvas.DrawRect(0, 0, info.Width-1, info.Height-1, FramePaint);
 
-            ITimeSeriesViewer firstViewer;
+            var plotWidth = AxisValuesVisible  ? info.Width - TickBoxMargin : info.Width;
+
+            canvas.DrawRect(AxisValuesVisible ? TickBoxMargin : 0, 0, plotWidth - 1, info.Height - 1, FramePaint);
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
             var firstStartTime = long.MaxValue;
             foreach (var line in _lines)
             {
-                firstViewer = line.Drawer.Viewer;
+                var viewer = line.Drawer.Viewer;
                 // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
-                xDiff = firstViewer.CurrentTimeRangeTo - firstViewer.CurrentTimeRangeFrom;
+                xDiff = viewer.CurrentTimeRangeTo - viewer.CurrentTimeRangeFrom;
                 if (xDiff == 0) continue;
 
-                firstStartTime = firstViewer.CurrentTimeRangeFrom;
+                firstStartTime = viewer.CurrentTimeRangeFrom;
                 break;
             }
-            
+
             if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
             var currentXTime = firstStartTime;
 
-            //TODO: make this selectable
+            var scaleX = (float)plotWidth / xDiff;
+
+            //TODO: make the percentage selectable
             var startX = currentXTime - xDiff * PreviewPercentage / 100;
 
-            var scaleX = (float)info.Width / xDiff;
-            
+            if (startX < _context.AvailableTimeFrom)
+            {
+                startX = _context.AvailableTimeFrom;
+            }
+
+            if(AxisValuesVisible)
+                startX -= (long) (TickBoxMargin / scaleX);
+
             foreach (var line in _lines)
             {
                 line.OffsetX = startX;
@@ -202,18 +233,112 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.ScaleY = -info.Height / (line.YDelta);
             }
 
-            // Draw current-y axis
-            var zeroX = ScaleX(currentXTime, startX, scaleX);
-            canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
+            if (CurrentTimeVisible)
+            {
+                // Draw current time axis
+                var zeroX = ScaleX(currentXTime, startX, scaleX);
+                canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
+            }
 
             // Draw zero-x axis
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
 
-            foreach(var lineConfig in _lines) {
-                DrawLine(canvas, lineConfig);
+            if (AxisValuesVisible && _minYValue.HasValue && _maxYValue.HasValue)
+            {
+                DrawTicks(canvas, info, _minYValue.Value, _maxYValue.Value);
             }
+
+            foreach (var lineConfig in _lines)
+            {
+                DrawLine(canvas, info, lineConfig);
+            }
+
             DrawLegends(canvas, info, _lines);
+        }
+
+
+        private static float SmartRound(float num, float diff)
+        {
+            // This method should round to the nearest 1, 5, 10, 0.1 in a smart way
+            // This could become very sophisticated, for example rounding to nearest 10 or 5 when proper
+            if (diff < 0.01)
+                return num;
+            if (diff < 0.1)
+                return (float)Math.Round(num, 2);
+            if (diff < 5)
+                return (float)Math.Round(num, 1);
+            if (diff < 10)
+                return (float)Math.Round(num*5, 1)/5;
+            if (diff < 50)
+                return (float)Math.Round(num, 0);
+            if (diff < 100)
+                return (float)Math.Round(num / 10, 0) * 10;
+
+            return (float)Math.Round(num / 50, 0) * 50;
+        }
+
+        private static (string, float) GetFormat(float minY, float maxY)
+        {
+            var yDiff = maxY - minY;
+
+            var offset = 0f;
+
+            if (minY > yDiff * 10)
+            {
+                offset = minY;
+            }
+
+            if (maxY > 10000 || maxY < 5)
+                return ("#0.0e0", offset);
+
+            if (maxY < 10 || yDiff < 100)
+                return ("##.###", offset);
+
+            return ("#####", offset);
+
+        }
+
+        private void DrawTicks(SKCanvas canvas, SKImageInfo info, float minY, float maxY)
+        {
+            var diffY = maxY - minY;
+            const uint nTicks = 8;
+            var tickStart = minY + (diffY / 2f);
+
+            // If we cross the zero-axis, use zero as the tick center, if not round it smartly
+            if (minY < 0 && 0 < maxY)
+                tickStart = 0;
+            else
+                tickStart = SmartRound(tickStart, diffY);
+
+            var tickDelta = SmartRound(diffY / nTicks, diffY);
+            var scale = -info.Height/diffY;
+
+            var (valueFormat, yOffset) = GetFormat(minY, maxY);
+
+            for (var i = -nTicks; i < nTicks; i++)
+            {
+                var val = tickStart + i * tickDelta;
+                var drawVal = ScaleY(val, maxY, scale);
+                var valueText = (val - yOffset).ToString(valueFormat);
+                if (valueText == "")
+                {
+                    continue;
+                }
+                var textSize = TextPaint.MeasureText(valueText);
+                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TextPaint);
+                canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
+
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (yOffset == 0f) continue;
+                var offsetText = yOffset.ToString("+#0.0e0;-#0.0e0");
+                //var offsetTextSize = TextPaint.MeasureText(offsetText);
+
+                //TODO: instead of drawing this, skip drawing the text in the first place
+                canvas.DrawRect(0, info.Height - TextPaint.TextSize -1, TickBoxMargin-1, info.Height, _legendFill);
+                canvas.DrawText(offsetText, TickMargin, info.Height - TextPaint.TextSize, TextPaint);
+            }
+
         }
 
         private void DrawLegends(SKCanvas canvas, SKImageInfo info, IReadOnlyCollection<LineConfiguration> configs)
@@ -244,7 +369,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var legendLineX1 = legendTextStartX - legendLineSpacing;
             var legendLineX0 = legendLineX1 - legendLineWidth;
-            
+
             var legendFrameStartX = legendLineX0 - legendPadding;
             var legendFrameWidth = info.Width - legendMargin - legendFrameStartX;
             var legendEndY = legendTextStartY + legendPadding;
@@ -266,7 +391,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 var yPos = legendTextStartY + legendYDelta * legendIx;
 
                 var legendLineY = yPos - textHeight / 2;
-                
+
                 canvas.DrawText(text, legendTextStartX, yPos, TextPaint);
                 canvas.DrawLine(legendLineX0, legendLineY, legendLineX1, legendLineY, config.LinePaint);
                 legendIx++;
@@ -316,8 +441,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 // Normally only one is existing, but remove all if more.
                 foreach (var line in existing)
                 {
-                    _context.Remove(line.Drawer.Viewer);
-                    _lines.Remove(line);
+                    RemoveLine(line);
                 }
                 InvalidateSurface();
             }
@@ -343,18 +467,15 @@ namespace SINTEF.AutoActive.UI.Figures
                     if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
                         return;
 
-                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction);
+                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction).ToArray();
                     foreach (var line in toRemove)
                     {
-                        _context.Remove(line.Drawer.Viewer);
+                        RemoveLine(line);
                     }
-                    _lines.RemoveAll(line => line.Drawer.Legend == lineToRemoveAction);
                     return;
                 case RemoveText:
-                    foreach (var line in _lines)
-                    {
-                        _context.Remove(line.Drawer.Viewer);
-                    }
+                    DataPoints.Clear();
+                    _lines.Clear();
                     break;
                 default:
                     break;
