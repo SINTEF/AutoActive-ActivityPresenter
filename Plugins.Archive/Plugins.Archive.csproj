@@ -9,7 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="MimeMapping" Version="1.0.1.12" />
-    <PackageReference Include="Parquet.Net" Version="3.3.3" />
+    <PackageReference Include="Parquet.Net" Version="3.3.4" />
   </ItemGroup>
 
   <ItemGroup>
