@@ -164,6 +164,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             _previewView = await LinePlot.Create(datapoint, _previewContext);
+            if (_previewView is LinePlot lineView)
+            {
+                lineView.AxisValuesVisible = false;
+                lineView.CurrentTimeVisible = false;
+            }
+
             ContentGrid.Children.Add(_previewView, 1, 0);
             _previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
         }

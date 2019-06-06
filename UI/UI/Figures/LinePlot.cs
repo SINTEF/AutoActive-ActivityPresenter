@@ -114,8 +114,6 @@ namespace SINTEF.AutoActive.UI.Figures
             _context = context;
         }
 
-        public static int MaxPlotPoints { get; } = 1000;
-
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public new static float ScaleX(long v, long offset, float scale)
@@ -176,6 +174,10 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.DrawPath(plot, lineConfig.LinePaint);
         }
 
+        public bool AxisValuesVisible = true;
+        public static int MaxPlotPoints { get; } = 1000;
+        public bool CurrentTimeVisible { get; set; } = true;
+
         public long PreviewPercentage = 30;
 
         private const int TickBoxMargin = 45;
@@ -187,9 +189,9 @@ namespace SINTEF.AutoActive.UI.Figures
             // Clear background and draw frame
             canvas.Clear(SKColors.White);
 
-            var plotWidth = info.Width - TickBoxMargin;
+            var plotWidth = AxisValuesVisible  ? info.Width - TickBoxMargin : info.Width;
 
-            canvas.DrawRect(TickBoxMargin, 0, plotWidth-1, info.Height-1, FramePaint);
+            canvas.DrawRect(AxisValuesVisible ? TickBoxMargin : 0, 0, plotWidth - 1, info.Height - 1, FramePaint);
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
@@ -219,7 +221,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 startX = _context.AvailableTimeFrom;
             }
 
-            startX -= (long) (TickBoxMargin / scaleX);
+            if(AxisValuesVisible)
+                startX -= (long) (TickBoxMargin / scaleX);
 
             foreach (var line in _lines)
             {
@@ -228,15 +231,18 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.ScaleY = -info.Height / (line.YDelta);
             }
 
-            // Draw current-y axis
-            var zeroX = ScaleX(currentXTime, startX, scaleX);
-            canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
+            if (CurrentTimeVisible)
+            {
+                // Draw current time axis
+                var zeroX = ScaleX(currentXTime, startX, scaleX);
+                canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
+            }
 
             // Draw zero-x axis
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
 
-            if (_minYValue.HasValue && _maxYValue.HasValue)
+            if (AxisValuesVisible && _minYValue.HasValue && _maxYValue.HasValue)
             {
                 DrawTicks(canvas, info, _minYValue.Value, _maxYValue.Value);
             }
@@ -332,8 +338,6 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
         }
-
-
 
         private void DrawLegends(SKCanvas canvas, SKImageInfo info, IReadOnlyCollection<LineConfiguration> configs)
         {
