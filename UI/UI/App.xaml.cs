@@ -1,10 +1,4 @@
-﻿using System;
-using System.Diagnostics;
-using Xamarin.Forms;
-using Xamarin.Forms.Xaml;
-
-using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
+﻿using Xamarin.Forms;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages;
 
@@ -16,14 +10,13 @@ namespace SINTEF.AutoActive.UI
         public App()
         {
             InitializeComponent();
-#if DEBUG
-            LiveReload.Init();
-#endif
             // Load the plugins
 
             //MainPage = new NavigationPage(new WelcomePage());
             MainPage = new CustomNavigationPage(new PlayerPage());
             //MainPage = new PlayerPage();
+
+            DependencyService.Register<InitializePlugins>();
         }
 
         protected override void OnStart()

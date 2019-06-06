@@ -12,6 +12,9 @@ using ICSharpCode.SharpZipLib.Zip;
 using MimeMapping;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
+#if !DEBUG
+using Xamarin.Forms; // Only used by DependencyService
+#endif
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 {
@@ -120,7 +123,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private async Task<IVideoLengthExtractor> GetDecoder()
         {
             if (_videoLengthExtractor != null) return _videoLengthExtractor;
+#if DEBUG
             var factory = DependencyHandler.GetInstance<IVideoLengthExtractorFactory>();
+#else
+            var factory = DependencyService.Get<IVideoLengthExtractorFactory>();
+#endif
             if (factory == null) throw new NotImplementedException();
 
             var mime = MimeUtility.GetMimeMapping(_path);
