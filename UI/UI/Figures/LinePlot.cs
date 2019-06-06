@@ -32,6 +32,8 @@ namespace SINTEF.AutoActive.UI.Figures
         private float? _minYValue;
         private float? _maxYValue;
 
+        /// Update axis range and scaling for this plot.
+        /// \pre _lines cannot be empty when calling this.
         private void UpdateLineData()
         {
             _minYValue = _lines.Max(line => line.Drawer.MinY);
@@ -69,6 +71,8 @@ namespace SINTEF.AutoActive.UI.Figures
             InvalidateSurface();
         }
 
+        /// \todo Is this needed? It seems that all code for removing a line are
+        /// using a collection of lines that makes RemoveLines() a better fit.
         private void RemoveLine(LineConfiguration line)
         {
             RemoveViewer(line.Drawer.Viewer);
@@ -430,39 +434,48 @@ namespace SINTEF.AutoActive.UI.Figures
             return dataPoints;
         }
 
-        /// Add new datapoint to plot, or remove it if already present in the plot.
+        /// Add new datapoint to plot, or remove it if already present here.
         public override async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
-            var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
+            var existing = FindLines(datapoint);
             if (existing.Count == 0)
                 await AddLine(datapoint);
             else
-            {
-                // Normally only one is existing, but remove all if more.
-                foreach (var line in existing)
-                {
-                    RemoveLine(line);
-                }
-                InvalidateSurface();
-            }
+                RemoveLines(existing);
         }
 
+        /// Remove datapoint from plot if present here.
         protected override void RemoveDataPoint(IDataPoint datapoint)
         {
-            var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
-            if (existing.Count == 0)
+            RemoveLines(FindLines(datapoint));
+        }
+
+        /// Find lines showing datapoint.
+        /// \note Normally, the list returned does not contain more than one line.
+        private List<LineConfiguration> FindLines(IDataPoint datapoint)
+        {
+            return _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
+        }
+
+        /// Remove lines from plot, and remove plot if the last line is removed.
+        private void RemoveLines(IReadOnlyCollection<LineConfiguration> linesToRemove)
+        {
+            if (linesToRemove.Count == 0)
                 return;
 
-            // Normally only one is existing, but remove all if more.
-            foreach (var line in existing)
+            foreach (var line in linesToRemove)
             {
-                _context.Remove(line.Drawer.Viewer);
+                DataPoints.Remove(line.Drawer.Viewer.DataPoint);
+                RemoveViewer(line.Drawer.Viewer);
                 _lines.Remove(line);
             }
 /// \todo Remove plot if the last line is removed.
+/// \todo Call new function RemoveView() when no lines left.
 //            if (_lines.Count == 0)
 //                Parent.RemoveChild(this);
+/// \todo Check if InvalidateSurface() is needed when RemoveView is called.
 //            else
+            UpdateLineData();
             InvalidateSurface();
         }
 
@@ -486,11 +499,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
                         return;
 
-                    var toRemove = _lines.Where(line => line.Drawer.Legend == lineToRemoveAction).ToArray();
-                    foreach (var line in toRemove)
-                    {
-                        RemoveLine(line);
-                    }
+                    RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
                     return;
                 case RemoveText:
                     DataPoints.Clear();
