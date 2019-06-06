@@ -51,6 +51,19 @@ namespace SINTEF.AutoActive.UI.Views
 	        SubpixelText = true,
 	    };
 
+        private readonly List<IDataViewer> _viewers = new List<IDataViewer>();
+
+        protected void AddViewer(IDataViewer viewer)
+        {
+            _viewers.Add(viewer);
+        }
+
+        protected void RemoveViewer(IDataViewer viewer)
+        {
+            Context.Remove(viewer);
+            _viewers.Remove(viewer);
+        }
+
         public FigureView()
 	    {
 	        InitializeComponent();
@@ -229,7 +242,11 @@ namespace SINTEF.AutoActive.UI.Views
                     }
                     break;
 	            case RemoveText:
-	                switch (Parent)
+                    foreach (var viewer in _viewers)
+                    {
+                        Context.Remove(viewer);
+                    }
+                    switch (Parent)
 	                {
 	                    case PlayerGridLayout playerGridLayout:
 	                        playerGridLayout.RemoveChild(this);
@@ -246,7 +263,6 @@ namespace SINTEF.AutoActive.UI.Views
 
 	                        throw new ArgumentException("Layout not recognized");
 	                }
-
 	                break;
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
@@ -257,5 +273,5 @@ namespace SINTEF.AutoActive.UI.Views
 	    {
 	        throw new NotImplementedException();
 	    }
-	}
+    }
 }

@@ -19,8 +19,9 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             // TODO: Check that this datapoint has a type that can be used
             var viewer = await context.GetDataViewerFor(datapoint);
-            
+
             var view = new ImageView(context, datapoint);
+            view.AddViewer(viewer);
 
             if (!(viewer is ArchiveVideoVideoViewer videoViewer))
                 return view;

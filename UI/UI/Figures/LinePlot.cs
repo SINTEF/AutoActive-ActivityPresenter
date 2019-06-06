@@ -71,7 +71,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void RemoveLine(LineConfiguration line)
         {
-            _context.Remove(line.Drawer.Viewer);
+            RemoveViewer(line.Drawer.Viewer);
             DataPoints.Remove(line.Drawer.Viewer.DataPoint);
             _lines.Remove(line);
 
@@ -99,6 +99,8 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             if (!(await _context.GetDataViewerFor(dataPoint) is ITimeSeriesViewer viewer)) return null;
+            AddViewer(viewer);
+
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             viewer.PreviewPercentage = PreviewPercentage;
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
@@ -473,10 +475,6 @@ namespace SINTEF.AutoActive.UI.Figures
                     return;
                 case RemoveText:
                     DataPoints.Clear();
-                    foreach (var line in _lines)
-                    {
-                        _context.Remove(line.Drawer.Viewer);
-                    }
                     _lines.Clear();
                     break;
                 default:

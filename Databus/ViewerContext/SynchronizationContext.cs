@@ -37,7 +37,7 @@
             SetSelectedTimeRange(TransformTime(_selectedFrom), TransformTime(_selectedTo));
         }
 
-        public SynchronizationContext(TimeSynchronizedContext masterContext)
+        public SynchronizationContext(SingleSetDataViewerContext masterContext)
         {
             SetSynchronizedToWorldClock(true);
             masterContext.SelectedTimeRangeChanged +=

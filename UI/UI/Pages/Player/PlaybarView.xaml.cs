@@ -18,7 +18,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private DataViewerContext _viewerContext;
         public DataViewerContext ViewerContext
         {
-            get { return _viewerContext; }
+            get => _viewerContext;
             set
             {
                 if (_viewerContext != null)
@@ -52,7 +52,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private bool _fromTimeIsCurrent = true;
 
         private readonly TimeSynchronizedContext _previewContext = new TimeSynchronizedContext();
-        private FigureView _previewView;
+        private LinePlot _previewView;
 
         public PlaybarView()
         {
@@ -164,11 +164,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             _previewView = await LinePlot.Create(datapoint, _previewContext);
-            if (_previewView is LinePlot lineView)
+            if (_previewView == null)
             {
-                lineView.AxisValuesVisible = false;
-                lineView.CurrentTimeVisible = false;
+                //TODO: add Warning;
+                return;
             }
+            _previewView.ContextButtonIsVisible = false;
+            _previewView.AxisValuesVisible = false;
+            _previewView.CurrentTimeVisible = false;
 
             ContentGrid.Children.Add(_previewView, 1, 0);
             _previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
