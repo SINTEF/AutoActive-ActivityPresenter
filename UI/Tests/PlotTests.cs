@@ -19,6 +19,7 @@ namespace Tests
             var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time, "test/acc");
 
             var tsc = new TimeSynchronizedContext();
+            tsc.SetSynchronizedToWorldClock(false);
             var dataViewerTask = tsc.GetDataViewerFor(data);
             dataViewerTask.Wait();
             var viewer = dataViewerTask.Result as ITimeSeriesViewer;
