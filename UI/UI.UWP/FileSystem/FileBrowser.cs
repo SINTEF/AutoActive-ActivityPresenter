@@ -88,7 +88,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default((string, string)))
         {
             var picker = new FileOpenPicker();
-            if (extensionDescription == default((string, string)))
+            if (extensionDescription.Item1 == default(string) && extensionDescription.Item2 == default(string))
                 picker.FileTypeFilter.Add(DefaultExtension);
             else
             {
@@ -117,7 +117,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             string filename = null)
         {
             var picker = new FileSavePicker();
-            if(extensionDescription == default((string, string)))
+            if (extensionDescription.Item1 == default(string) && extensionDescription.Item2 == default(string))
                 picker.FileTypeChoices.Add("AutoActive archive", new List<string> { DefaultExtension });
             else
             {
