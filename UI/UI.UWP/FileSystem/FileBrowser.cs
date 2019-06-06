@@ -85,10 +85,10 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
     {
         private const string DefaultExtension = ".aaz";
 
-        public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default)
+        public async Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default((string, string)))
         {
             var picker = new FileOpenPicker();
-            if (extensionDescription == default)
+            if (extensionDescription == default((string, string)))
                 picker.FileTypeFilter.Add(DefaultExtension);
             else
             {
@@ -113,11 +113,11 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             var file = await picker.PickSingleFileAsync();
             return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
-        public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default,
+        public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default((string, string)),
             string filename = null)
         {
             var picker = new FileSavePicker();
-            if(extensionDescription == default)
+            if(extensionDescription == default((string, string)))
                 picker.FileTypeChoices.Add("AutoActive archive", new List<string> { DefaultExtension });
             else
             {
