@@ -166,11 +166,11 @@ namespace SINTEF.AutoActive.UI.Figures
             IsAntialias = true,
         };
 
-        private void DrawLine(SKCanvas canvas, LineConfiguration lineConfig)
+        private void DrawLine(SKCanvas canvas, SKImageInfo info, LineConfiguration lineConfig)
         {
             // Create path
             var plot = new SKPath();
-            lineConfig.Drawer.CreatePath(plot, lineConfig);
+            lineConfig.Drawer.CreatePath(plot, info, lineConfig);
 
             // Draw the data
             canvas.DrawPath(plot, lineConfig.LinePaint);
@@ -178,7 +178,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public long PreviewPercentage = 30;
 
-        private const int TickBoxMargin = 60;
+        private const int TickBoxMargin = 45;
         private const int TickLength = 3;
         private const int TickMargin = 3;
 
@@ -212,7 +212,14 @@ namespace SINTEF.AutoActive.UI.Figures
             var scaleX = (float)plotWidth / xDiff;
 
             //TODO: make the percentage selectable
-            var startX = currentXTime - xDiff * PreviewPercentage / 100 - (long)(TickBoxMargin/scaleX);
+            var startX = currentXTime - xDiff * PreviewPercentage / 100;
+
+            if (startX < _context.AvailableTimeFrom)
+            {
+                startX = _context.AvailableTimeFrom;
+            }
+
+            startX -= (long) (TickBoxMargin / scaleX);
 
             foreach (var line in _lines)
             {
@@ -236,7 +243,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var lineConfig in _lines)
             {
-                DrawLine(canvas, lineConfig);
+                DrawLine(canvas, info, lineConfig);
             }
 
             DrawLegends(canvas, info, _lines);
@@ -253,6 +260,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 return (float)Math.Round(num, 2);
             if (diff < 5)
                 return (float)Math.Round(num, 1);
+            if (diff < 10)
+                return (float)Math.Round(num*5, 1)/5;
             if (diff < 50)
                 return (float)Math.Round(num, 0);
             if (diff < 100)
@@ -263,9 +272,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private static (string, float) GetFormat(float minY, float maxY)
         {
-            const float offset = 0f;
-
             var yDiff = maxY - minY;
+
+            var offset = 0f;
+
+            if (minY > yDiff * 10)
+            {
+                offset = minY;
+            }
+
             if (maxY > 10000 || maxY < 5)
                 return ("#0.0e0", offset);
 
@@ -280,8 +295,6 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             var diffY = maxY - minY;
             const uint nTicks = 8;
-            var tickDelta = SmartRound(diffY / nTicks, diffY);
-            var scale = -info.Height/diffY;
             var tickStart = minY + (diffY / 2f);
 
             // If we cross the zero-axis, use zero as the tick center, if not round it smartly
@@ -289,6 +302,9 @@ namespace SINTEF.AutoActive.UI.Figures
                 tickStart = 0;
             else
                 tickStart = SmartRound(tickStart, diffY);
+
+            var tickDelta = SmartRound(diffY / nTicks, diffY);
+            var scale = -info.Height/diffY;
 
             var (valueFormat, yOffset) = GetFormat(minY, maxY);
 
@@ -304,11 +320,15 @@ namespace SINTEF.AutoActive.UI.Figures
                 var textSize = TextPaint.MeasureText(valueText);
                 canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TextPaint);
                 canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
-                if (yOffset != 0f)
-                {
-                    var offsetTextSize = TextPaint.MeasureText(valueText);
-                    canvas.DrawText("+", TickBoxMargin - TickLength - TickMargin - offsetTextSize, info.Height - TextPaint.TextSize, TextPaint);
-                }
+
+                // ReSharper disable once CompareOfFloatsByEqualityOperator
+                if (yOffset == 0f) continue;
+                var offsetText = yOffset.ToString("+#0.0e0;-#0.0e0");
+                //var offsetTextSize = TextPaint.MeasureText(offsetText);
+
+                //TODO: instead of drawing this, skip drawing the text in the first place
+                canvas.DrawRect(0, info.Height - TextPaint.TextSize -1, TickBoxMargin-1, info.Height, _legendFill);
+                canvas.DrawText(offsetText, TickMargin, info.Height - TextPaint.TextSize, TextPaint);
             }
 
         }

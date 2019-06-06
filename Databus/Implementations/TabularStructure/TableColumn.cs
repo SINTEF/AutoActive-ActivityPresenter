@@ -98,7 +98,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         {
             var diff = to - from;
             var startTime = from - diff * PreviewPercentage / 100;
-            var endTime = startTime + diff;
+            var endTime = from + diff;
 
             var start = Index.FindIndex(StartIndex, startTime);
             var end = Index.FindIndex(EndIndex, endTime);
