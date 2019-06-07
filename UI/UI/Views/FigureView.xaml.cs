@@ -158,7 +158,12 @@ namespace SINTEF.AutoActive.UI.Views
             canvas.DrawText(text, info.Width/2f - maxTextWidth/2, info.Height/2f - textHeight/2, TextPaint);
         }
 
-
+        /// Create new view of the proper type to visualize datapoint.
+        /// \todo Add new argument "ISelecting selectingView" and
+        /// store it as _selectingView for later usage.
+        /// Declare the new interface ISelecting to contain the functions
+        /// Select(FigureView view) and RemoveChild(FigureView view).
+        /// PlayerGridLayout and SynchronizationPage must implement ISelecting.
 	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
 	    {
 	        FigureView view;
@@ -222,6 +227,7 @@ namespace SINTEF.AutoActive.UI.Views
 	            case CancelText:
 	                return;
                 case SelectText:
+                    /// \todo Call _selectingView.Select(this) instead of this switch.
                     switch (Parent)
                     {
                         case PlayerGridLayout playerGridLayout:
@@ -238,6 +244,7 @@ namespace SINTEF.AutoActive.UI.Views
 
                     break;
                 case DeselectText:
+                    /// \todo Call _selectingView.Select(null) instead of this switch.
                     switch (Parent)
                     {
                         case PlayerGridLayout playerGridLayout:
@@ -257,6 +264,7 @@ namespace SINTEF.AutoActive.UI.Views
                     {
                         Context.Remove(viewer);
                     }
+                    /// \todo Call _selectingView.RemoveChild(this) instead of this switch.
                     switch (Parent)
 	                {
 	                    case PlayerGridLayout playerGridLayout:
