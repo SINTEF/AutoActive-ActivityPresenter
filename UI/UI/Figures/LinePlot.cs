@@ -34,7 +34,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void UpdateLineData()
         {
-            _minYValue = _lines.Max(line => line.Drawer.MinY);
+            _minYValue = _lines.Min(line => line.Drawer.MinY);
             _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
             var yDelta = _maxYValue.Value - _minYValue.Value;
