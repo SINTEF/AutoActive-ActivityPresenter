@@ -87,7 +87,7 @@ namespace SINTEF.AutoActive.UI.Views
             Canvas.PaintSurface += Canvas_PaintSurface;
 
             SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
-            /// \todo Remove eventhandler again when removing this view.
+            /// The DataRegistry_DataPointRemoved callback is removed again in RemoveThisView().
         }
 
         /// Called when datapoint is removed from DataRegistry, i.e. session closed.
@@ -214,11 +214,21 @@ namespace SINTEF.AutoActive.UI.Views
 	        return false;
 	    }
 
+        /// Remove this view from the selecting view that contains it.
+        protected void RemoveThisView()
+        {
+            /// \todo Call _selectingView.RemoveChild(this) instead of this indirect call.
+            OnHandleMenuResult(XamarinHelpers.GetCurrentPage(this), RemoveText);
+
+            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
+        }
+
 	    protected virtual void OnHandleMenuResult(Page page, string action)
 	    {
 	        DefaultOnHandleMenuResult(page, action);
         }
 
+        /// Handle menu action.
 	    protected void DefaultOnHandleMenuResult(Page page, string action)
 	    {
 	        switch (action)
@@ -288,11 +298,13 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
 	    }
 
+        /// Add new datapoint to view, or remove it if already present here.
 	    public virtual Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
 	    {
 	        throw new NotImplementedException();
 	    }
 
+        /// Remove datapoint from view if present here.
         protected virtual void RemoveDataPoint(IDataPoint datapoint)
         {
             throw new NotImplementedException();

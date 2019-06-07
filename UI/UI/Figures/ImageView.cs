@@ -89,5 +89,12 @@ namespace SINTEF.AutoActive.UI.Figures
         protected ImageView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
         }
+
+        /// Remove datapoint (by removing this image view) if present here.
+        protected override void RemoveDataPoint(IDataPoint datapoint)
+        {
+            if (DataPoints.Contains(datapoint))
+                RemoveThisView();
+        }
     }
 }

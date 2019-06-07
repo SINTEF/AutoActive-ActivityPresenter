@@ -469,13 +469,10 @@ namespace SINTEF.AutoActive.UI.Figures
                 RemoveViewer(line.Drawer.Viewer);
                 _lines.Remove(line);
             }
-/// \todo Remove plot if the last line is removed.
-/// \todo Call new function RemoveView() when no lines left.
-//            if (_lines.Count == 0)
-//                Parent.RemoveChild(this);
-/// \todo Check if InvalidateSurface() is needed when RemoveView is called.
-//            else
-            UpdateLineData();
+            if (_lines.Count == 0)
+                RemoveThisView();
+            else
+                UpdateLineData();
             InvalidateSurface();
         }
 
