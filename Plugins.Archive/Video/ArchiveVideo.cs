@@ -81,6 +81,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public string Name { get; set; }
         public ArchiveVideoTime VideoTime { get; }
         public ITimePoint Time => VideoTime;
+        public string Unit { get; set; }
 
         internal ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime)
         {

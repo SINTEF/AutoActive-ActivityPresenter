@@ -25,6 +25,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         internal double? MaxValueHint { get; set; }
 
         public ITimePoint Time => index;
+        public string Unit { get; set; }
 
         internal TableColumnDyn(Type type, string name, TableTimeIndexDyn index)
         {

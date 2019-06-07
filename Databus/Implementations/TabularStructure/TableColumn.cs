@@ -20,6 +20,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         internal double? MaxValueHint { get; private set; }
 
         public ITimePoint Time => Index;
+        public string Unit { get; set; }
 
         internal TableColumn(Type type, string name, Task loader, TableTimeIndex index, string uri)
         {
