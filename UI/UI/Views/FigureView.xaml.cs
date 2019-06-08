@@ -219,8 +219,6 @@ namespace SINTEF.AutoActive.UI.Views
         {
             /// \todo Call _selectingView.RemoveChild(this) instead of this indirect call.
             OnHandleMenuResult(XamarinHelpers.GetCurrentPage(this), RemoveText);
-
-            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
         }
 
 	    protected virtual void OnHandleMenuResult(Page page, string action)
@@ -270,6 +268,10 @@ namespace SINTEF.AutoActive.UI.Views
                     }
                     break;
 	            case RemoveText:
+                    /// \todo When the switch below is replaced with a call to
+                    /// _selectingView.RemoveChild(this), then move all code for
+                    /// this RemoveText case into RemoveThisView() and call that
+                    /// function from here instead of the other way around.
                     foreach (var viewer in _viewers)
                     {
                         Context.Remove(viewer);
@@ -292,6 +294,9 @@ namespace SINTEF.AutoActive.UI.Views
 
 	                        throw new ArgumentException("Layout not recognized");
 	                }
+                    /// Remove callback to this view when this view is removed.
+                    SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
+                    /// \todo End of case to move into RemoveThisView(). See above.
 	                break;
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
