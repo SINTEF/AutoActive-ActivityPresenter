@@ -159,11 +159,11 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         /// Create new view of the proper type to visualize datapoint.
-        /// \todo Add new argument "ISelecting selectingView" and
+        /// \todo Add new argument "ISelectingView selectingView" and
         /// store it as _selectingView for later usage.
-        /// Declare the new interface ISelecting to contain the functions
+        /// Declare the new interface ISelectingView to contain the functions
         /// Select(FigureView view) and RemoveChild(FigureView view).
-        /// PlayerGridLayout and SynchronizationPage must implement ISelecting.
+        /// PlayerGridLayout and SynchronizationPage must implement ISelectingView.
 	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
 	    {
 	        FigureView view;
