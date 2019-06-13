@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json.Linq;
@@ -17,6 +18,8 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using Xunit;
 using CompressionMethod = ICSharpCode.SharpZipLib.Zip.CompressionMethod;
 
+
+[assembly: Dependency("SINTEF.AutoActive.Archive.Tests.PluginTestInitializer", LoadHint.Always)]
 namespace SINTEF.AutoActive.Archive.Tests
 {
     public class ArchiveWriterTest
@@ -179,24 +182,20 @@ namespace SINTEF.AutoActive.Archive.Tests
         }
 
         [Fact]
-        public void ReSaveSingleArchive()
+        public async void ReSaveSingleArchive()
         {
             var tmpName = Path.GetTempFileName();
             using (var testdataReader = new FileReader(@"testdata\empty.aaz"))
             {
-                var openTask = Archive.Open(testdataReader);
-                openTask.Wait();
-                var archive = openTask.Result;
+                var archive = await Archive.Open(testdataReader);
                 Assert.Equal(1, archive.Sessions.Count);
                 
-                archive.WriteFile(tmpName);
+                await archive.WriteFile(tmpName);
                 archive.Close();
 
                 using (var fr = new FileReader(tmpName))
                 {
-                    openTask = Archive.Open(fr);
-                    openTask.Wait();
-                    var readArchive = openTask.Result;
+                    var readArchive = await Archive.Open(fr);
                     AssertArchivesEqual(archive, readArchive);
 
                     readArchive.Close();
@@ -207,14 +206,14 @@ namespace SINTEF.AutoActive.Archive.Tests
 
 
         [Fact]
-        public void CreateEmptySingleArchive()
+        public async void CreateEmptySingleArchive()
         {
             var tmpName = Path.GetTempFileName();
             var archive = Archive.Create(tmpName);
 
             var session = ArchiveSession.Create(archive, "testName");
             archive.AddSession(session);
-            archive.WriteFile();
+            await archive.WriteFile();
             archive.Close();
 
             using (var fr = new FileReader(tmpName))
@@ -229,7 +228,7 @@ namespace SINTEF.AutoActive.Archive.Tests
         }
 
         [Fact]
-        public void CreateEmptyDoubleArchive()
+        public async void CreateEmptyDoubleArchive()
         {
             var tmpName = Path.GetTempFileName();
             var archive = Archive.Create(tmpName);
@@ -245,9 +244,8 @@ namespace SINTEF.AutoActive.Archive.Tests
 
             using (var fr = new FileReader(tmpName))
             {
-                var openTask = Archive.Open(fr);
-                openTask.Wait();
-                AssertArchivesEqual(archive, openTask.Result);
+                var newArchive = await Archive.Open(fr);
+                AssertArchivesEqual(archive, newArchive);
 
                 archive.Close();
             }
@@ -304,7 +302,15 @@ namespace SINTEF.AutoActive.Archive.Tests
                     session.AddChild(folder);
                     archive.AddSession(session);
 
-                    archive.WriteFile().Wait();
+                    try
+                    {
+                        archive.WriteFile().Wait();
+                    }
+                    catch (Exception)
+                    {
+                        Assert.True(false);
+                    }
+
                     archive.Close();
 
                     using (var fr = new FileReader(tmpName))
@@ -349,7 +355,6 @@ namespace SINTEF.AutoActive.Archive.Tests
                 }
             }
 
-            //Debug.WriteLine(tmpName);
             File.Delete(tmpName);
         }
 
