@@ -431,11 +431,14 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
         /// Add new datapoint to plot, or remove it if already present in the plot.
-        public override async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        public override async Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             var existing = _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
             if (existing.Count == 0)
+            {
                 await AddLine(datapoint);
+                return ToggleResult.Added;
+            }
             else
             {
                 // Normally only one is existing, but remove all if more.
@@ -444,6 +447,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     RemoveLine(line);
                 }
                 InvalidateSurface();
+                return ToggleResult.Removed;
             }
         }
 

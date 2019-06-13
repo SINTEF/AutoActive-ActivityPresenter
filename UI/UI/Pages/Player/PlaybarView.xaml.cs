@@ -15,8 +15,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
 
-        private DataViewerContext _viewerContext;
-        public DataViewerContext ViewerContext
+        private SingleSetDataViewerContext _viewerContext;
+        public SingleSetDataViewerContext ViewerContext
         {
             get => _viewerContext;
             set
@@ -156,17 +156,27 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 RowDataPreview.Height = DefaultPreviewHeight;
             }
-            PreviewDataPoint = datapoint;
 
             if (_previewView != null)
             {
                 ContentGrid.Children.Remove(_previewView);
             }
 
+            // This implements toggling
+            if (PreviewDataPoint == datapoint)
+            {
+                PreviewDataPoint = null;
+                return;
+            }
+
+
+            PreviewDataPoint = datapoint;
+
             _previewView = await LinePlot.Create(datapoint, _previewContext);
+
             if (_previewView == null)
             {
-                //TODO: add Warning;
+                //TODO: add warning
                 return;
             }
             _previewView.ContextButtonIsVisible = false;

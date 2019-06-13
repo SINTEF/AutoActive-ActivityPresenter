@@ -75,6 +75,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
     public abstract class SingleSetDataViewerContext : DataViewerContext
     {
+        private readonly List<SingleSetDataViewerContext> AssociatedContext = new List<SingleSetDataViewerContext>();
+
         // ---- Data _viewers ----
         private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
 

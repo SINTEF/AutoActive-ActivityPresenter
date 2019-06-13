@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -36,13 +37,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
         public PlayerGridLayout() { }
 
-        public async void TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             if (Selected != null)
             {
                 try
                 {
-                   await Selected.ToggleDataPoint(datapoint, timeContext);
+                   return await Selected.ToggleDataPoint(datapoint, timeContext);
                 }
                 catch (Exception ex)
                 {
@@ -54,9 +55,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                             "Ok");
                     }
                 }
-                
 
-                return;
+                return ToggleResult.Cancelled;
             }
             var view = await FigureView.GetView(datapoint, timeContext);
             {
@@ -71,12 +71,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(view);
-        }
 
-        private void UseInTimelineClicked(object sender, EventArgs e)
-        {
-            var dataPointItem = BindingContext as DataPointItem;
-            dataPointItem?.OnUseInTimelineTapped();
+            return ToggleResult.Added;
         }
 
         /* -- Grid layout operations -- */
@@ -167,7 +163,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (Selected == figureView)
                 Selected = null;
-            
+
             Children.Remove(figureView);
         }
 

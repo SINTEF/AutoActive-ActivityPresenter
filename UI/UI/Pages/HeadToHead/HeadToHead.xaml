@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
+             xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
              x:Class="SINTEF.AutoActive.UI.Pages.HeadToHead.HeadToHead">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -14,9 +15,10 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="120"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red">
+            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red" MinimumHeightRequest="200">
                 <RelativeLayout>
                     <player:PlayerGridLayout x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -52,8 +54,6 @@
                             Clicked="SelectButton_Clicked"
                     />
                 </RelativeLayout>
-
-
             </Frame>
             <Frame Grid.Column="1" Grid.Row="1" BorderColor="Blue">
                 <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />
@@ -62,7 +62,8 @@
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="2" Grid.Row="0"/>
             <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="Start"/>
             <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="End"/>
-            <player:PlaybarView Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0" x:Name="Playbar"/>
+            <views:DataTracklineView x:Name="DataTrackline" Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
+            <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="0" x:Name="Playbar"/>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

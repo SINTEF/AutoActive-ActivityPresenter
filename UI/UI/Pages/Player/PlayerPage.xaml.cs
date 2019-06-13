@@ -20,7 +20,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
-            //PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
+            Appearing += OnAppearing;
+        }
+
+        private void OnAppearing(object sender, EventArgs e)
+        {
             Playbar.ViewerContext = ViewerContext;
 
             Splitter.DragStart += Splitter_DragStart;
@@ -56,7 +60,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             // Hide or show the menu button
             NavigationBar.MenuButtonShown = nextTreeViewState != TreeViewState.SplitMode;
-            
+
             // Deal with the tree
             if (nextTreeViewState == TreeViewState.SplitMode)
             {

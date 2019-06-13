@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -10,6 +11,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Pages.Player;
+using SkiaSharp.Views.Forms;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -44,7 +46,11 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             _dictionary[LeftButton] = (masterContext, LeftGrid);
 
             var slaveContext = new SynchronizationContext(masterContext);
-            OffsetSlider.OffsetChanged += (sender, args) => slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
+            OffsetSlider.OffsetChanged += (sender, args) =>
+            {
+                slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
+                DataTrackline.InvalidateSurface();
+            };
             _dictionary[RightButton] = (slaveContext, RightGrid);
 
             SelectButton_Clicked(LeftButton, new EventArgs());
@@ -55,7 +61,23 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
             var (context, grid) = _dictionary[SelectedButton];
-            grid.TogglePlotFor(dataPoint, context);
+            grid.TogglePlotFor(dataPoint, context).ContinueWith(task =>
+            {
+                switch (task.Result)
+                {
+                    case ToggleResult.Added:
+                        DataTrackline.AddDataPoint(dataPoint, context);
+                        break;
+                    case ToggleResult.Removed:
+                        DataTrackline.RemoveDataPoint(dataPoint, context);
+                        break;
+                    case ToggleResult.Cancelled:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+            });
         }
 
         private void SelectButton_Clicked(object sender, EventArgs e)
@@ -73,7 +95,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         {
             await LoadView();
         }
-
 
         private async Task SaveView()
         {
@@ -167,5 +188,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             return root;
         }
+
     }
 }

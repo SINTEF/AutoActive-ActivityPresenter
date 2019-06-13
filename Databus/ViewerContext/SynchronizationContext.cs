@@ -5,6 +5,9 @@
         private long _selectedFrom;
         private long _selectedTo;
 
+        private long _availableFrom;
+        private long _availableTo;
+
         private long _offset;
         public long Offset
         {
@@ -24,6 +27,7 @@
             {
                 _scale = value;
                 TransformSelectedTime();
+                TransformAvailableTime();
             }
         }
 
@@ -37,6 +41,11 @@
             SetSelectedTimeRange(TransformTime(_selectedFrom), TransformTime(_selectedTo));
         }
 
+        private void TransformAvailableTime()
+        {
+            InternalSetAvailableTimeRange(TransformTime(_availableFrom), TransformTime(_availableTo));
+        }
+
         public SynchronizationContext(SingleSetDataViewerContext masterContext)
         {
             SetSynchronizedToWorldClock(true);
@@ -47,6 +56,12 @@
                     _selectedTo = to;
                     TransformSelectedTime();
                 };
+            masterContext.AvailableTimeRangeChanged += (sender, from, to) =>
+            {
+                _availableFrom = from;
+                _availableTo = to;
+                TransformAvailableTime();
+            };
             masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
             masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
 
