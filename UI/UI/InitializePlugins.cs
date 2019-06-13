@@ -6,7 +6,6 @@ using SINTEF.AutoActive.Plugins.Import.Garmin;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using System;
 using System.Collections.Generic;
-using System.Text;
 using Xamarin.Forms;
 
 [assembly: Dependency(typeof(SINTEF.AutoActive.UI.InitializePlugins))]

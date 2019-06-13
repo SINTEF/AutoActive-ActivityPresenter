@@ -88,11 +88,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return Id.GetHashCode();
         }
 
-        // FIXME: Implement these
-        public event DataStructureAddedHandler DataStructureAddedToTree;
-        public event DataStructureRemovedHandler DataStructureRemovedFromTree;
-        public event DataPointAddedHandler DataPointAddedToTree;
-        public event DataPointRemovedHandler DataPointRemovedFromTree;
         public void Close()
         {
             _archive.Close();
