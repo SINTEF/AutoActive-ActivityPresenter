@@ -15,8 +15,10 @@
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button
+                x:Name="BackButton"
                 Grid.Column="0"
                 Text="&lt;-"
+                IsVisible="False"
             />
 
             <Button

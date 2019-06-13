@@ -25,7 +25,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var linePlot = new LinePlot(context, datapoint);
 
             var lineDrawer = await linePlot.CreateLineDrawer(datapoint);
-            linePlot.AddLine(lineDrawer, datapoint.Name);
+            linePlot.AddLine(lineDrawer);
             return linePlot;
         }
 
@@ -52,10 +52,11 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 throw new ArgumentException("Could not create line");
             }
-            AddLine(line, datapoint.Name);
+
+            AddLine(line);
             DataPoints.Add(datapoint);
         }
-        private void AddLine(ILineDrawer lineDrawer, string legend)
+        private void AddLine(ILineDrawer lineDrawer)
         {
             lineDrawer.Parent = this;
             _lines.Add(new LineConfiguration()
