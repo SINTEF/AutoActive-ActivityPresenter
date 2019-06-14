@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -73,6 +72,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterTime = dataPoint.Time;
             _masterSet = true;
             _dataContextDictionary[_masterTime] = (_masterContext, null);
+
+            DataTracklineView.AddDataPoint(dataPoint, _masterContext);
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -98,7 +99,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             if (Selected != null)
             {
-                await Selected.ToggleDataPoint(datapoint, context);
+                var result = await Selected.ToggleDataPoint(datapoint, context);
+                switch (result)
+                {
+                    case ToggleResult.Added:
+                        DataTracklineView.AddDataPoint(datapoint, context);
+                        break;
+                    case ToggleResult.Removed:
+                        DataTracklineView.RemoveDataPoint(datapoint, context);
+                        break;
+                    case ToggleResult.Cancelled:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 return;
             }
 
@@ -113,11 +127,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 var slider = new RelativeSlider();
                 sliders.Add(slider);
                 slider.OffsetChanged += (s, a) => syncContext.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
+                slider.OffsetChanged += (s, a) => DataTracklineView.InvalidateSurface();
                 var offset =
                     TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.AvailableTimeFrom);
 
                 if (Math.Abs(offset) > OffsetBeforeZeroing)
-                    slider.Offset = -offset;
+                    slider.Offset = offset;
 
                 layout.Children.Add(slider);
             }
@@ -138,6 +153,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             PlaceControl(frame, _index);
             _index++;
             SyncGrid.Children.Add(frame);
+            DataTracklineView.AddDataPoint(datapoint, context);
         }
 
 
@@ -197,10 +213,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             foreach (var syncItem in _dataContextDictionary)
             {
-                var (context, sliders) = syncItem.Value;
+                var (context, _) = syncItem.Value;
                 if (context is SynchronizationContext syncContext)
                 {
-                    syncItem.Key.TransformTime(-syncContext.Offset, syncContext.Scale);
+                    syncItem.Key.TransformTime(syncContext.Offset, syncContext.Scale);
                 }
             }
 
