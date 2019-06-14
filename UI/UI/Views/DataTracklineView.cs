@@ -16,17 +16,24 @@ namespace SINTEF.AutoActive.UI.Views
     public class DataTracklineView : SKCanvasView
     {
 
-        private readonly List<(ITimeViewer, string)> _timeViewers = new List<(ITimeViewer, string)>();
+        private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
         private readonly Dictionary<IDataPoint, ITimeViewer> _dataTimeDict = new Dictionary<IDataPoint, ITimeViewer>();
 
-        public void AddTimeViewer(ITimeViewer viewer, string label)
+        public void AddTimeViewer(ITimeViewer viewer, TimeSynchronizedContext context, string label)
         {
-            _timeViewers.Add((viewer, label));
+            _timeViewers.Add((viewer, context, label));
+            viewer.TimeChanged += ViewerOnTimeChanged;
+            InvalidateSurface();
+        }
+
+        private void ViewerOnTimeChanged(ITimeViewer sender, long start, long end)
+        {
             InvalidateSurface();
         }
 
         private void RemoveTimeViewer(ITimeViewer timeViewer)
         {
+            _timeViewers.ForEach(el => el.Item1.TimeChanged -= ViewerOnTimeChanged);
             _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
         }
 
@@ -68,7 +75,7 @@ namespace SINTEF.AutoActive.UI.Views
             DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
         }
 
-        private void DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, string)> timeViewers)
+        private void DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
         {
             if (timeViewers.Count == 0) return;
 
@@ -77,15 +84,25 @@ namespace SINTEF.AutoActive.UI.Views
             const float boxRoundnessY = boxRoundnessX;
             const float minTextSize = 10f;
             const float yMargin = 2f;
+            const float maxTrackHeight = 30f;
 
 
-            var xMin = timeViewers.Min(el => el.Item1.Start);
-            var xMax = timeViewers.Max(el => el.Item1.End);
+            var times = new List<(long, long, string)>();
+            foreach (var (viewer, context, label) in timeViewers)
+            {
+                var (start, end) = context.GetAvailableTimeInContext(viewer);
+                times.Add((start, end, label));
+            }
+
+            var xMin = times.Min(el => el.Item1);
+            var xMax = times.Max(el => el.Item2);
             var xDiff = xMax - xMin;
             var xScale = drawRect.Width / xDiff;
 
             var nLines = _timeViewers.Count;
             var yHeight = (drawRect.Height) / nLines - yMargin;
+
+            if (yHeight > maxTrackHeight) yHeight = maxTrackHeight;
 
             var paint = new SKPaint
             {
@@ -121,10 +138,10 @@ namespace SINTEF.AutoActive.UI.Views
                     : 0f;
 
             var yPos = yMargin;
-            foreach (var (viewer, label) in timeViewers)
+            foreach (var (start, end, label) in times)
             {
-                var xPos = (viewer.Start - xMin) * xScale;
-                var width = (viewer.End - viewer.Start) * xScale;
+                var xPos = (start - xMin) * xScale;
+                var width = (end - start) * xScale;
                 canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, paint);
                 canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, textPaint);
 
@@ -146,7 +163,7 @@ namespace SINTEF.AutoActive.UI.Views
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
             _dataTimeDict[dataPoint] = timeViewer;
-            AddTimeViewer(timeViewer, dataPoint.Name);
+            AddTimeViewer(timeViewer, context, dataPoint.Name);
             timeViewer.TimeChanged += TimeViewer_TimeChanged;
         }
 

@@ -1,12 +1,11 @@
-﻿namespace SINTEF.AutoActive.Databus.ViewerContext
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+
+namespace SINTEF.AutoActive.Databus.ViewerContext
 {
     public class SynchronizationContext : TimeSynchronizedContext
     {
         private long _selectedFrom;
         private long _selectedTo;
-
-        private long _availableFrom;
-        private long _availableTo;
 
         private long _offset;
         public long Offset
@@ -27,7 +26,6 @@
             {
                 _scale = value;
                 TransformSelectedTime();
-                TransformAvailableTime();
             }
         }
 
@@ -38,12 +36,14 @@
 
         private void TransformSelectedTime()
         {
-            SetSelectedTimeRange(TransformTime(_selectedFrom), TransformTime(_selectedTo));
+            SetSelectedTimeRange(
+                TransformTime(_selectedFrom),
+                TransformTime(_selectedTo));
         }
 
-        private void TransformAvailableTime()
+        public override (long, long) GetAvailableTimeInContext(ITimeViewer view)
         {
-            InternalSetAvailableTimeRange(TransformTime(_availableFrom), TransformTime(_availableTo));
+            return (view.Start - _offset, view.End - _offset);
         }
 
         public SynchronizationContext(SingleSetDataViewerContext masterContext)
@@ -56,14 +56,11 @@
                     _selectedTo = to;
                     TransformSelectedTime();
                 };
-            masterContext.AvailableTimeRangeChanged += (sender, from, to) =>
-            {
-                _availableFrom = from;
-                _availableTo = to;
-                TransformAvailableTime();
-            };
             masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
             masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
+
+            _selectedFrom = masterContext.SelectedTimeFrom;
+            _selectedTo = masterContext.SelectedTimeTo;
 
             IsPlaying = masterContext.IsPlaying;
             PlaybackRate = masterContext.PlaybackRate;

@@ -164,6 +164,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             {
                 viewer.Start = Offset;
             }
+
+            foreach (var viewer in _viewers)
+            {
+                viewer.UpdatedTimeIndex();
+            }
         }
     }
 
@@ -188,7 +193,10 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
-        public void UpdatedTimeIndex() { }
+        public void UpdatedTimeIndex()
+        {
+            TimeChanged?.Invoke(this, Start, End);
+        }
 
         public ITimePoint TimePoint => _time;
 

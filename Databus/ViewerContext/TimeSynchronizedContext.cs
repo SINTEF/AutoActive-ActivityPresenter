@@ -67,5 +67,10 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             GetAvailableTimeMinMax(value, out _currentMinViewer, out var from, out _currentMaxViewer, out var to);
             InternalSetAvailableTimeRange(from, to);
         }
+
+        public virtual (long, long) GetAvailableTimeInContext(ITimeViewer view)
+        {
+            return (view.Start, view.End);
+        }
     }
 }
