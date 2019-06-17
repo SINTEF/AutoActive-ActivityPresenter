@@ -198,7 +198,6 @@ namespace SINTEF.AutoActive.UI.Figures
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
-            var firstStartTime = long.MaxValue;
             foreach (var line in _lines)
             {
                 var viewer = line.Drawer.Viewer;
@@ -206,18 +205,16 @@ namespace SINTEF.AutoActive.UI.Figures
                 xDiff = viewer.CurrentTimeRangeTo - viewer.CurrentTimeRangeFrom;
                 if (xDiff == 0) continue;
 
-                firstStartTime = viewer.CurrentTimeRangeFrom;
                 break;
             }
-
             if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
-            var currentXTime = firstStartTime;
+            var earliestStartTime = _lines.Min(line => line.Drawer.Viewer.CurrentTimeRangeFrom);
 
             var scaleX = (float)plotWidth / xDiff;
 
             //TODO: make the percentage selectable
-            var startX = currentXTime - xDiff * PreviewPercentage / 100;
+            var startX = earliestStartTime - xDiff * PreviewPercentage / 100;
 
             if (startX < _context.AvailableTimeFrom)
             {
@@ -237,7 +234,7 @@ namespace SINTEF.AutoActive.UI.Figures
             if (CurrentTimeVisible)
             {
                 // Draw current time axis
-                var zeroX = ScaleX(currentXTime, startX, scaleX);
+                var zeroX = ScaleX(earliestStartTime, startX, scaleX);
                 canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
             }
 
