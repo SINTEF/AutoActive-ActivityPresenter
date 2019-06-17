@@ -132,7 +132,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.AvailableTimeFrom);
 
                 if (Math.Abs(offset) > OffsetBeforeZeroing)
-                    slider.Offset = offset;
+                    slider.Offset = -offset;
 
                 layout.Children.Add(slider);
             }
