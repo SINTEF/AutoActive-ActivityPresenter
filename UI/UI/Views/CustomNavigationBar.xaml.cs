@@ -102,7 +102,7 @@ namespace SINTEF.AutoActive.UI.Views
 	            // TODO: Should probably be run on a background thread...
 
 	            // Find the proper import plugin to use
-                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension);
+                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
 
 	            var provider = await plugins[0].Import(file);
 

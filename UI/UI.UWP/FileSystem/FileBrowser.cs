@@ -104,7 +104,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
         {
             var picker = new FileOpenPicker();
             // Find all extensions we support
-            foreach (var extension in ImportPlugins.SupportedExtensions)
+            foreach (var (extension, type)  in ImportPlugins.ExtensionTypes)
             {
                 // TODO: Perhaps do some checking here, it's a bit picky about the format
                 // FIXME: Also, I don't know how well this handles duplicates
