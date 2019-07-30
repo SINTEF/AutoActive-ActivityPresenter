@@ -16,12 +16,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
     {
         public static async Task<IRandomAccessStream> GetVideoStream(IReadSeekStreamFactory factory)
         {
-            if (!(factory is Archive.Archive.ArchiveFileBoundFactory streamFactory))
-            {
-                throw new ArgumentException("Video source must be ArchiveFileBoundFactory");
-            }
 
-            var stream = await streamFactory.GetBoundedStream();
+            var stream = await factory.GetReadStream();
             return stream.AsRandomAccessStream();
         }
 

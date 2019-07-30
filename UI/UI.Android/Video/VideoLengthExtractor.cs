@@ -26,9 +26,11 @@ namespace SINTEF.AutoActive.UI.Droid.Video
     {
         MediaExtractor extractor;
         MediaCodec decoder;
+        private long _reportedLength;
 
-        internal  VideoLengthExtractor(System.IO.Stream stream)
+        internal  VideoLengthExtractor(System.IO.Stream stream, long reportedLength)
         {
+            _reportedLength = reportedLength;
             extractor = new MediaExtractor();
             extractor.SetDataSource(new ReadSeekStreamMediaSource(stream));
             var format = SelectFirstVideoTrack() ?? throw new Exception("Stream has no video track");
@@ -74,6 +76,8 @@ namespace SINTEF.AutoActive.UI.Droid.Video
             throw new NotImplementedException();
         }
 
+        public long ReportedLength { get; }
+
 
         public Task<double> SeekToAsync(double time, CancellationToken cancellationToken)
         {
@@ -114,10 +118,10 @@ namespace SINTEF.AutoActive.UI.Droid.Video
 
     public class VideoLengthExtractorFactory : IVideoLengthExtractorFactory
     {
-        public async Task<IVideoLengthExtractor> CreateVideoDecoder(IReadSeekStreamFactory file, string mime)
+        public async Task<IVideoLengthExtractor> CreateVideoDecoder(IReadSeekStreamFactory file, string mime, long suggestedLength)
         {
             var stream = await file.GetReadStream();
-            return new VideoLengthExtractor(stream);
+            return new VideoLengthExtractor(stream, suggestedLength);
         }
     }
 

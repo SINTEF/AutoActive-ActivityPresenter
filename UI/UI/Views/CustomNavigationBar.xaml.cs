@@ -190,9 +190,8 @@ namespace SINTEF.AutoActive.UI.Views
 	                {
 	                    session.AddChild(child);
                     }
-                    if (dataPoint is Archive.Plugin.ArchiveSession)
+                    if (dataPoint is ArchiveSession locArch)
                     {
-                        var locArch = dataPoint as Archive.Plugin.ArchiveSession;
                         session.AddBasedOnSession(locArch); 
                     }
                 }

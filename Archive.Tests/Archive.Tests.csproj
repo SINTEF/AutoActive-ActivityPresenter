@@ -18,6 +18,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Archive\Archive.csproj" />
     <ProjectReference Include="..\Plugins.Archive\Plugins.Archive.csproj" />
+    <ProjectReference Include="..\Plugins.Import\Plugins.Import.csproj" />
   </ItemGroup>
 
   <ItemGroup>
