@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.FileSystem
@@ -8,7 +9,7 @@ namespace SINTEF.AutoActive.FileSystem
         Task<IReadWriteSeekStreamFactory> BrowseForLoad((string, string) extensionDescription = default);
 
         // TODO: Should also have some helpers to find supported files from plugins
-        Task<IReadSeekStreamFactory> BrowseForImportFile();
+        Task<IReadOnlyList<IReadSeekStreamFactory>> BrowseForImportFiles();
 
         Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default, string filename = null);
 

@@ -4,6 +4,7 @@ using SINTEF.AutoActive.UI.UWP.FileSystem;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Windows.Storage;
 using Windows.Storage.Pickers;
@@ -100,7 +101,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             return file == null ? null : new ReadWriteSeekStreamFactory(file);
         }
 
-        public async Task<IReadSeekStreamFactory> BrowseForImportFile()
+        public async Task<IReadOnlyList<IReadSeekStreamFactory>> BrowseForImportFiles()
         {
             var picker = new FileOpenPicker();
             // Find all extensions we support
@@ -110,8 +111,8 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
                 // FIXME: Also, I don't know how well this handles duplicates
                 picker.FileTypeFilter.Add(extension);
             }
-            var file = await picker.PickSingleFileAsync();
-            return file == null ? null : new ReadWriteSeekStreamFactory(file);
+            var files = await picker.PickMultipleFilesAsync();
+            return files.Count == 0 ? null : new List<ReadWriteSeekStreamFactory>(files.Select(file => new ReadWriteSeekStreamFactory(file)));
         }
         public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default((string, string)),
             string filename = null)
