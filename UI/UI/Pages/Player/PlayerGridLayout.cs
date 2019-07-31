@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -22,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public int BigGridRows { get; set; } = 1;
 
         private FigureView _currentlySelected;
+
         public FigureView Selected
         {
             get => _currentlySelected;
@@ -34,15 +36,40 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
-        public PlayerGridLayout() { }
+        public PlayerGridLayout()
+        {
+            DatapointAdded += (sender, args) =>
+            {
+                var (datapoint, context) = args;
+                _contexts[datapoint] = context;
+            };
+        }
 
-        public async void TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        private Dictionary<IDataPoint, DataViewerContext> _contexts = new Dictionary<IDataPoint, DataViewerContext>();
+
+        public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             if (Selected != null)
             {
                 try
                 {
-                   await Selected.ToggleDataPoint(datapoint, timeContext);
+                   var result = await Selected.ToggleDataPoint(datapoint, timeContext);
+                   switch (result)
+                   {
+                       case ToggleResult.Added:
+                           DatapointAdded?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Removed:
+                           DatapointRemoved?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Cancelled:
+                           break;
+                       default:
+                           throw new ArgumentOutOfRangeException();
+                   }
+                   return result;
                 }
                 catch (Exception ex)
                 {
@@ -54,9 +81,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                             "Ok");
                     }
                 }
-                
 
-                return;
+                return ToggleResult.Cancelled;
             }
             var view = await FigureView.GetView(datapoint, timeContext);
             {
@@ -71,12 +97,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(view);
-        }
+            DatapointAdded?.Invoke(this, (datapoint, timeContext));
 
-        private void UseInTimelineClicked(object sender, EventArgs e)
-        {
-            var dataPointItem = BindingContext as DataPointItem;
-            dataPointItem?.OnUseInTimelineTapped();
+            return ToggleResult.Added;
         }
 
         /* -- Grid layout operations -- */
@@ -167,8 +190,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (Selected == figureView)
                 Selected = null;
-            
+
             Children.Remove(figureView);
+            foreach(var datapoint in figureView.DataPoints)
+            {
+                DatapointRemoved?.Invoke(this, (datapoint, _contexts[datapoint]));
+                _contexts.Remove(datapoint);
+            }
         }
 
         public JObject SerializeView(JObject root = null)

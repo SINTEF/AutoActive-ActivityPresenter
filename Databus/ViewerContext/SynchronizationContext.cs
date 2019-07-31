@@ -1,4 +1,6 @@
-﻿namespace SINTEF.AutoActive.Databus.ViewerContext
+﻿using SINTEF.AutoActive.Databus.Interfaces;
+
+namespace SINTEF.AutoActive.Databus.ViewerContext
 {
     public class SynchronizationContext : TimeSynchronizedContext
     {
@@ -34,7 +36,14 @@
 
         private void TransformSelectedTime()
         {
-            SetSelectedTimeRange(TransformTime(_selectedFrom), TransformTime(_selectedTo));
+            SetSelectedTimeRange(
+                TransformTime(_selectedFrom),
+                TransformTime(_selectedTo));
+        }
+
+        public override (long, long) GetAvailableTimeInContext(ITimeViewer view)
+        {
+            return (view.Start - _offset, view.End - _offset);
         }
 
         public SynchronizationContext(SingleSetDataViewerContext masterContext)
@@ -49,6 +58,9 @@
                 };
             masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
             masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
+
+            _selectedFrom = masterContext.SelectedTimeFrom;
+            _selectedTo = masterContext.SelectedTimeTo;
 
             IsPlaying = masterContext.IsPlaying;
             PlaybackRate = masterContext.PlaybackRate;

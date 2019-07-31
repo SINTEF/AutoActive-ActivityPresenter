@@ -421,14 +421,18 @@ namespace SINTEF.AutoActive.UI.Figures
             return dataPoints;
         }
 
-        /// Add new datapoint to plot, or remove it if already present here.
-        public override async Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        /// Add new datapoint to plot, or remove it if already present in the plot.
+        public override async Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             var existing = FindLines(datapoint);
             if (existing.Count == 0)
+            {
                 await AddLine(datapoint);
-            else
-                RemoveLines(existing);
+                return ToggleResult.Added;
+            }
+
+            RemoveLines(existing);
+            return ToggleResult.Removed;
         }
 
         /// Remove datapoint from plot if present here.
@@ -486,7 +490,6 @@ namespace SINTEF.AutoActive.UI.Figures
                     RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
                     return;
                 case RemoveText:
-                    DataPoints.Clear();
                     _lines.Clear();
                     break;
                 default:

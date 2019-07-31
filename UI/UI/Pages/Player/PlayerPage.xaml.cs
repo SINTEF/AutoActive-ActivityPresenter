@@ -1,6 +1,8 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
+using System.Diagnostics;
+using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -20,7 +22,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
-            //PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
+            Appearing += OnAppearing;
+        }
+
+        private void OnAppearing(object sender, EventArgs e)
+        {
             Playbar.ViewerContext = ViewerContext;
 
             Splitter.DragStart += Splitter_DragStart;
@@ -30,6 +36,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
+
+            Playbar.DataTrackline.RegisterFigureContainer(PlayerGrid);
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -56,7 +64,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             // Hide or show the menu button
             NavigationBar.MenuButtonShown = nextTreeViewState != TreeViewState.SplitMode;
-            
+
             // Deal with the tree
             if (nextTreeViewState == TreeViewState.SplitMode)
             {

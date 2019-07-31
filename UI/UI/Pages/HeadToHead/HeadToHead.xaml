@@ -3,6 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
+             xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
              x:Class="SINTEF.AutoActive.UI.Pages.HeadToHead.HeadToHead">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -16,7 +17,7 @@
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red">
+            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red" MinimumHeightRequest="200">
                 <RelativeLayout>
                     <player:PlayerGridLayout x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -52,8 +53,6 @@
                             Clicked="SelectButton_Clicked"
                     />
                 </RelativeLayout>
-
-
             </Frame>
             <Frame Grid.Column="1" Grid.Row="1" BorderColor="Blue">
                 <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />

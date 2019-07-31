@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.UI.Views
 	{
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
-        protected TimeSynchronizedContext Context { get; private set; }
+        public TimeSynchronizedContext Context { get; }
 	    protected static readonly SKPaint FramePaint = new SKPaint
 	    {
 	        Color = SKColors.LightSlateGray,
@@ -206,12 +206,14 @@ namespace SINTEF.AutoActive.UI.Views
         /// Remove this view from the selecting view that contains it.
         protected void RemoveThisView()
         {
+            var figureContainer = GetFigureContainerFromParents(Parent);
+            figureContainer.RemoveChild(this);
+
             foreach (var viewer in _viewers)
             {
                 Context.Remove(viewer);
             }
-
-            GetFigureContainerFromParents(Parent).RemoveChild(this);
+            DataPoints.Clear();
 
             // Remove callback to this view when this view is removed.
             Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
@@ -222,7 +224,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        DefaultOnHandleMenuResult(page, action);
         }
 
-        private static IFigureContainer GetFigureContainerFromParents(Element element)
+        protected static IFigureContainer GetFigureContainerFromParents(Element element)
         {
             while (element != null)
             {
@@ -258,8 +260,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
 	    }
 
-        /// Add new datapoint to view, or remove it if already present here.
-	    public virtual Task ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+	    public virtual Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
 	    {
 	        throw new NotImplementedException();
 	    }

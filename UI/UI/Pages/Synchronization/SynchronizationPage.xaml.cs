@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -30,6 +29,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
             Playbar.ViewerContext = _masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(this);
         }
 
         private FigureView _selected;
@@ -43,6 +43,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 if (_selected != null) _selected.Selected = true;
             }
         }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
 
         private async void SetMaster(IDataPoint dataPoint)
         {
@@ -74,6 +77,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterTime = dataPoint.Time;
             _masterSet = true;
             _dataContextDictionary[_masterTime] = (_masterContext, null);
+
+            DatapointAdded?.Invoke(this, (dataPoint, _masterContext));
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -99,7 +104,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             if (Selected != null)
             {
-                await Selected.ToggleDataPoint(datapoint, context);
+                var result = await Selected.ToggleDataPoint(datapoint, context);
+                switch (result)
+                {
+                    case ToggleResult.Added:
+                        DatapointAdded?.Invoke(sender, (datapoint, context));
+                        break;
+                    case ToggleResult.Removed:
+                        DatapointRemoved?.Invoke(sender, (datapoint, context)); ;
+                        break;
+                    case ToggleResult.Cancelled:
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
                 return;
             }
 
@@ -114,6 +132,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 var slider = new RelativeSlider();
                 sliders.Add(slider);
                 slider.OffsetChanged += (s, a) => syncContext.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
+                slider.OffsetChanged += (s, a) => Playbar.DataTrackline.InvalidateSurface();
                 var offset =
                     TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.AvailableTimeFrom);
 
@@ -139,6 +158,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             PlaceControl(frame, _index);
             _index++;
             SyncGrid.Children.Add(frame);
+            DatapointAdded?.Invoke(sender, (datapoint, context));
         }
 
 
@@ -152,7 +172,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             UnPlaceControl(SyncGrid.Children, frame);
             SyncGrid.Children.Remove(frame);
             _index--;
+            foreach (var dataPoint in figureView.DataPoints)
+            {
+                DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
+            }
         }
+
 
         private static void UnPlaceControl(IList<View> objects, View toRemove)
         {
@@ -198,10 +223,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             foreach (var syncItem in _dataContextDictionary)
             {
-                var (context, sliders) = syncItem.Value;
+                var (context, _) = syncItem.Value;
                 if (context is SynchronizationContext syncContext)
                 {
-                    syncItem.Key.TransformTime(-syncContext.Offset, syncContext.Scale);
+                    syncItem.Key.TransformTime(syncContext.Offset, syncContext.Scale);
                 }
             }
 
