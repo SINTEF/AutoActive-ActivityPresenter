@@ -71,17 +71,6 @@ namespace SINTEF.AutoActive.UI.Figures
             InvalidateSurface();
         }
 
-        /// \todo Is this needed? It seems that all code for removing a line are
-        /// using a collection of lines that makes RemoveLines() a better fit.
-        private void RemoveLine(LineConfiguration line)
-        {
-            RemoveViewer(line.Drawer.Viewer);
-            DataPoints.Remove(line.Drawer.Viewer.DataPoint);
-            _lines.Remove(line);
-
-            UpdateLineData();
-        }
-
         public ILinePaintProvider LinePaintProvider { get; set; } = new MatPlotLib2LinePaint();
 
         public async Task<ILineDrawer> CreateLineDrawer(IDataPoint dataPoint)
