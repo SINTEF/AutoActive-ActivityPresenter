@@ -12,7 +12,6 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
-                <RowDefinition Height="120"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <Grid Grid.Column="0" Grid.Row="0" x:Name="SyncGrid" VerticalOptions="FillAndExpand">
@@ -31,9 +30,8 @@
             </Grid>
             <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
 
-            <views:DataTracklineView Grid.Column="0" Grid.Row="1" x:Name="DataTracklineView"/>
-            <player:PlaybarView Grid.Column="0" Grid.Row="2" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
-            <StackLayout Grid.Column="1" Grid.Row="2" Orientation="Horizontal" FlowDirection="RightToLeft">
+            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
+            <StackLayout Grid.Column="1" Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button Text="Save" Clicked ="Save_OnClicked"/>
                 <Button Text="Cancel" Clicked="Cancel_OnClicked"/>
             </StackLayout>

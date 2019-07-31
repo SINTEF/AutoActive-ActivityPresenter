@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.UI.Interfaces;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using Xamarin.Forms.Xaml;
@@ -40,7 +41,10 @@ namespace SINTEF.AutoActive.UI.Views
         public DataTracklineView()
         {
             PaintSurface += OnPaintSurface;
+            WidthMargins = 10;
         }
+
+        public int WidthMargins { get; set; }
 
         protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
@@ -64,8 +68,8 @@ namespace SINTEF.AutoActive.UI.Views
 
             canvas.DrawRect(drawRect, borderPaint);
 
-            drawRect.Left = 10;
-            drawRect.Right -= 10;
+            drawRect.Left = WidthMargins;
+            drawRect.Right -= WidthMargins;
             drawRect.Top = 2;
             drawRect.Bottom -= 2;
 
@@ -177,12 +181,12 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
-        public async Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
+        public Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             if (!_dataTimeDict.TryGetValue(dataPoint, out var timeViewer))
             {
                 //TODO: add warning
-                return;
+                return Task.CompletedTask;
             }
             _dataTimeDict.Remove(dataPoint);
             if (_dataTimeDict.Count == 0)
@@ -192,6 +196,25 @@ namespace SINTEF.AutoActive.UI.Views
 
             timeViewer.TimeChanged -= TimeViewer_TimeChanged;
             RemoveTimeViewer(timeViewer);
+            InvalidateSurface();
+            return Task.CompletedTask;
+        }
+
+
+        public void RegisterFigureContainer(IFigureContainer container)
+        {
+            container.DatapointAdded += async (_, args) =>
+            {
+                var (datapoint, context) = args;
+                if (context is TimeSynchronizedContext timeContext)
+                    await AddDataPoint(datapoint, timeContext);
+            };
+            container.DatapointRemoved += (_, args) =>
+            {
+                var (datapoint, context) = args;
+                if (context is TimeSynchronizedContext timeContext)
+                    RemoveDataPoint(datapoint, timeContext);
+            };
         }
     }
 }

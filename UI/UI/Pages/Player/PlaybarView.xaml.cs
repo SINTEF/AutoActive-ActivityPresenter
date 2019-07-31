@@ -14,6 +14,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     public partial class PlaybarView : ContentView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
+        public static readonly GridLength DefaultTimelineHeight = 100;
 
         private SingleSetDataViewerContext _viewerContext;
         public SingleSetDataViewerContext ViewerContext
@@ -185,6 +186,21 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             ContentGrid.Children.Add(_previewView, 1, 0);
             _previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
+        }
+
+        private void TimelineExpand_OnClickedExpand_OnClicked(object sender, EventArgs e)
+        {
+            var wasVisible = RowTimelineView.Height.Value == 0d;
+            if (wasVisible)
+            {
+                RowTimelineView.Height = DefaultTimelineHeight;
+            }
+            else
+            {
+                RowTimelineView.Height = 0;
+            }
+
+            TimelineExpand.Text = wasVisible ? "^" : "v";
         }
 
         private void PlayButton_Clicked(object sender, EventArgs e)

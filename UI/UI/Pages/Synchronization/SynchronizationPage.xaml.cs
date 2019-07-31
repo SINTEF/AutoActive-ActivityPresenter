@@ -29,6 +29,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
             Playbar.ViewerContext = _masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(this);
         }
 
         private FigureView _selected;
@@ -42,6 +43,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 if (_selected != null) _selected.Selected = true;
             }
         }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
 
         private async void SetMaster(IDataPoint dataPoint)
         {
@@ -74,7 +78,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterSet = true;
             _dataContextDictionary[_masterTime] = (_masterContext, null);
 
-            DataTracklineView.AddDataPoint(dataPoint, _masterContext);
+            DatapointAdded?.Invoke(this, (dataPoint, _masterContext));
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -104,10 +108,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 switch (result)
                 {
                     case ToggleResult.Added:
-                        DataTracklineView.AddDataPoint(datapoint, context);
+                        DatapointAdded?.Invoke(sender, (datapoint, context));
                         break;
                     case ToggleResult.Removed:
-                        DataTracklineView.RemoveDataPoint(datapoint, context);
+                        DatapointRemoved?.Invoke(sender, (datapoint, context)); ;
                         break;
                     case ToggleResult.Cancelled:
                         break;
@@ -128,7 +132,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 var slider = new RelativeSlider();
                 sliders.Add(slider);
                 slider.OffsetChanged += (s, a) => syncContext.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
-                slider.OffsetChanged += (s, a) => DataTracklineView.InvalidateSurface();
+                slider.OffsetChanged += (s, a) => Playbar.DataTrackline.InvalidateSurface();
                 var offset =
                     TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - context.AvailableTimeFrom);
 
@@ -154,7 +158,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             PlaceControl(frame, _index);
             _index++;
             SyncGrid.Children.Add(frame);
-            DataTracklineView.AddDataPoint(datapoint, context);
+            DatapointAdded?.Invoke(sender, (datapoint, context));
         }
 
 
@@ -168,7 +172,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             UnPlaceControl(SyncGrid.Children, frame);
             SyncGrid.Children.Remove(frame);
             _index--;
+            foreach (var dataPoint in figureView.DataPoints)
+            {
+                DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
+            }
         }
+
 
         private static void UnPlaceControl(IList<View> objects, View toRemove)
         {

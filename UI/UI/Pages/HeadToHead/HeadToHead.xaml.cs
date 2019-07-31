@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -11,7 +10,6 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Pages.Player;
-using SkiaSharp.Views.Forms;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -49,35 +47,21 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             OffsetSlider.OffsetChanged += (sender, args) =>
             {
                 slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
-                DataTrackline.InvalidateSurface();
+                Playbar.DataTrackline.InvalidateSurface();
             };
             _dictionary[RightButton] = (slaveContext, RightGrid);
 
             SelectButton_Clicked(LeftButton, new EventArgs());
 
             Playbar.ViewerContext = masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(LeftGrid);
+            Playbar.DataTrackline.RegisterFigureContainer(RightGrid);
         }
 
-        private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
+        private async void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
             var (context, grid) = _dictionary[SelectedButton];
-            grid.TogglePlotFor(dataPoint, context).ContinueWith(task =>
-            {
-                switch (task.Result)
-                {
-                    case ToggleResult.Added:
-                        DataTrackline.AddDataPoint(dataPoint, context);
-                        break;
-                    case ToggleResult.Removed:
-                        DataTrackline.RemoveDataPoint(dataPoint, context);
-                        break;
-                    case ToggleResult.Cancelled:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-            });
+            await grid.TogglePlotFor(dataPoint, context);
         }
 
         private void SelectButton_Clicked(object sender, EventArgs e)

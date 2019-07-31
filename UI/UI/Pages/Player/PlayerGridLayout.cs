@@ -23,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public int BigGridRows { get; set; } = 1;
 
         private FigureView _currentlySelected;
+
         public FigureView Selected
         {
             get => _currentlySelected;
@@ -35,7 +36,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
-        public PlayerGridLayout() { }
+        public PlayerGridLayout()
+        {
+            DatapointAdded += (sender, args) =>
+            {
+                var (datapoint, context) = args;
+                _contexts[datapoint] = context;
+            };
+        }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        private Dictionary<IDataPoint, DataViewerContext> _contexts = new Dictionary<IDataPoint, DataViewerContext>();
 
         public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
@@ -43,7 +55,21 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 try
                 {
-                   return await Selected.ToggleDataPoint(datapoint, timeContext);
+                   var result = await Selected.ToggleDataPoint(datapoint, timeContext);
+                   switch (result)
+                   {
+                       case ToggleResult.Added:
+                           DatapointAdded?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Removed:
+                           DatapointRemoved?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Cancelled:
+                           break;
+                       default:
+                           throw new ArgumentOutOfRangeException();
+                   }
+                   return result;
                 }
                 catch (Exception ex)
                 {
@@ -71,6 +97,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(view);
+            DatapointAdded?.Invoke(this, (datapoint, timeContext));
 
             return ToggleResult.Added;
         }
@@ -165,6 +192,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 Selected = null;
 
             Children.Remove(figureView);
+            foreach(var datapoint in figureView.DataPoints)
+            {
+                DatapointRemoved?.Invoke(this, (datapoint, _contexts[datapoint]));
+                _contexts.Remove(datapoint);
+            }
         }
 
         public JObject SerializeView(JObject root = null)

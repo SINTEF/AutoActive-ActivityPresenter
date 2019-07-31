@@ -1,6 +1,8 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
+using System.Diagnostics;
+using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -34,6 +36,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
+
+            Playbar.DataTrackline.RegisterFigureContainer(PlayerGrid);
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)

@@ -490,7 +490,6 @@ namespace SINTEF.AutoActive.UI.Figures
                     RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
                     return;
                 case RemoveText:
-                    DataPoints.Clear();
                     _lines.Clear();
                     break;
                 default:
