@@ -103,9 +103,9 @@ namespace SINTEF.AutoActive.UI.Views
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
+                    Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
                     await Application.Current.MainPage.DisplayAlert("Open error",
-                        $"Could not open archive:\n{ex.Message}", "OK");
+                        $"Could not import file:\n{ex.Message}", "OK");
                 }
             }
         }
@@ -200,9 +200,8 @@ namespace SINTEF.AutoActive.UI.Views
 	                {
 	                    session.AddChild(child);
                     }
-                    if (dataPoint is Archive.Plugin.ArchiveSession)
+                    if (dataPoint is ArchiveSession locArch)
                     {
-                        var locArch = dataPoint as Archive.Plugin.ArchiveSession;
                         session.AddBasedOnSession(locArch); 
                     }
                 }

@@ -1,11 +1,12 @@
-﻿using SINTEF.AutoActive.Archive.Plugin;
+﻿using System;
+using System.Collections.Generic;
+using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Garmin;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
-using System;
-using System.Collections.Generic;
+using SINTEF.AutoActive.Plugins.Import.Video;
 using Xamarin.Forms;
 
 [assembly: Dependency(typeof(SINTEF.AutoActive.UI.InitializePlugins))]
@@ -23,6 +24,7 @@ namespace SINTEF.AutoActive.UI
             // Import plugins
             typeof(GarminImportPlugin),
             typeof(MqttImportPlugin),
+            typeof(ImportVideoPlugin),
         };
     }
 }
