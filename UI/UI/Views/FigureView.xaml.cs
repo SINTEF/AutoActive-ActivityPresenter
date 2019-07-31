@@ -2,7 +2,6 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SkiaSharp;
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -11,8 +10,7 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
-using SINTEF.AutoActive.UI.Pages.Player;
-using SINTEF.AutoActive.UI.Pages.Synchronization;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -53,6 +51,11 @@ namespace SINTEF.AutoActive.UI.Views
 
         private readonly List<IDataViewer> _viewers = new List<IDataViewer>();
 
+        public FigureView()
+        {
+            InitializeComponent();
+        }
+
         protected void AddViewer(IDataViewer viewer)
         {
             _viewers.Add(viewer);
@@ -62,14 +65,6 @@ namespace SINTEF.AutoActive.UI.Views
         {
             Context.Remove(viewer);
             _viewers.Remove(viewer);
-        }
-
-        public FigureView()
-	    {
-	        InitializeComponent();
-	        //Canvas.PaintSurface += Canvas_PaintSurface;
-
-            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
         }
 
         protected FigureView(TimeSynchronizedContext context, IDataPoint dataPoint)
@@ -86,8 +81,8 @@ namespace SINTEF.AutoActive.UI.Views
             Context.SelectedTimeRangeChanged += Context_SelectedTimeRangeChanged;
             Canvas.PaintSurface += Canvas_PaintSurface;
 
-            SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
-            /// The DataRegistry_DataPointRemoved callback is removed again in RemoveThisView().
+            // The DataRegistry_DataPointRemoved callback is removed in RemoveThisView().
+            Databus.DataRegistry.DataPointRemoved += DataRegistry_DataPointRemoved;
         }
 
         /// Called when datapoint is removed from DataRegistry, i.e. session closed.
@@ -139,9 +134,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
-            /// \todo Investigate why a \c Debug.WriteLine() output here makes
-            /// the GUI sluggish and unresponsive at large windows length.
-            /// Why is it correlated with the data window length?
+            // \todo Investigate why a \c Debug.WriteLine() output here makes
+            // the GUI sluggish and unresponsive at large windows length.
+            // Why is it correlated with the data window length?
             RedrawCanvas(e.Surface.Canvas, e.Info);
         }
 
@@ -159,11 +154,6 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         /// Create new view of the proper type to visualize datapoint.
-        /// \todo Add new argument "ISelectingView selectingView" and
-        /// store it as _selectingView for later usage.
-        /// Declare the new interface ISelectingView to contain the functions
-        /// Select(FigureView view) and RemoveChild(FigureView view).
-        /// PlayerGridLayout and SynchronizationPage must implement ISelectingView.
 	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
 	    {
 	        FigureView view;
@@ -193,7 +183,6 @@ namespace SINTEF.AutoActive.UI.Views
 	        var page = Navigation.NavigationStack.LastOrDefault();
 	        if (page == null) return;
 
-
 	        var parameters = new List<string> {Selected ? DeselectText : SelectText};
 
 	        GetExtraMenuParameters(parameters);
@@ -217,13 +206,34 @@ namespace SINTEF.AutoActive.UI.Views
         /// Remove this view from the selecting view that contains it.
         protected void RemoveThisView()
         {
-            /// \todo Call _selectingView.RemoveChild(this) instead of this indirect call.
-            OnHandleMenuResult(XamarinHelpers.GetCurrentPage(this), RemoveText);
+            foreach (var viewer in _viewers)
+            {
+                Context.Remove(viewer);
+            }
+
+            GetFigureContainerFromParents(Parent).RemoveChild(this);
+
+            // Remove callback to this view when this view is removed.
+            Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
         }
 
 	    protected virtual void OnHandleMenuResult(Page page, string action)
 	    {
 	        DefaultOnHandleMenuResult(page, action);
+        }
+
+        private static IFigureContainer GetFigureContainerFromParents(Element element)
+        {
+            while (element != null)
+            {
+                if (element is IFigureContainer container)
+                {
+                    return container;
+                }
+                element = element.Parent;
+            }
+
+            throw new ArgumentException("Layout not recognized");
         }
 
         /// Handle menu action.
@@ -235,69 +245,14 @@ namespace SINTEF.AutoActive.UI.Views
 	            case CancelText:
 	                return;
                 case SelectText:
-                    /// \todo Call _selectingView.Select(this) instead of this switch.
-                    switch (Parent)
-                    {
-                        case PlayerGridLayout playerGridLayout:
-                            playerGridLayout.Selected = this;
-                            break;
-                        default:
-                            if (page is SynchronizationPage syncPage)
-                            {
-                                syncPage.Selected = this;
-                                break;
-                            }
-                            throw new ArgumentException("Layout not recognized");
-                    }
-
+                    GetFigureContainerFromParents(Parent).Selected = this;
                     break;
                 case DeselectText:
-                    /// \todo Call _selectingView.Select(null) instead of this switch.
-                    switch (Parent)
-                    {
-                        case PlayerGridLayout playerGridLayout:
-                            playerGridLayout.Selected = null;
-                            break;
-                        default:
-                            if (page is SynchronizationPage syncPage)
-                            {
-                                syncPage.Selected = null;
-                                break;
-                            }
-                            throw new ArgumentException("Layout not recognized");
-                    }
+                    GetFigureContainerFromParents(Parent).Selected = null;
                     break;
-	            case RemoveText:
-                    /// \todo When the switch below is replaced with a call to
-                    /// _selectingView.RemoveChild(this), then move all code for
-                    /// this RemoveText case into RemoveThisView() and call that
-                    /// function from here instead of the other way around.
-                    foreach (var viewer in _viewers)
-                    {
-                        Context.Remove(viewer);
-                    }
-                    /// \todo Call _selectingView.RemoveChild(this) instead of this switch.
-                    switch (Parent)
-	                {
-	                    case PlayerGridLayout playerGridLayout:
-	                        playerGridLayout.RemoveChild(this);
-	                        break;
-	                    case Layout<FigureView> parentLayout:
-	                        parentLayout.Children.Remove(this);
-	                        break;
-	                    default:
-	                        if (page is SynchronizationPage syncPage)
-	                        {
-	                            syncPage.RemoveChild(this);
-	                            break;
-	                        }
-
-	                        throw new ArgumentException("Layout not recognized");
-	                }
-                    /// Remove callback to this view when this view is removed.
-                    SINTEF.AutoActive.Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
-                    /// \todo End of case to move into RemoveThisView(). See above.
-	                break;
+                case RemoveText:
+                    RemoveThisView();
+                    break;
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
 	        }

@@ -4,12 +4,13 @@ using System.Diagnostics;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
+using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Synchronization
 {
-    public partial class SynchronizationPage : ContentPage
+    public partial class SynchronizationPage : ContentPage, IFigureContainer
     {
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]
