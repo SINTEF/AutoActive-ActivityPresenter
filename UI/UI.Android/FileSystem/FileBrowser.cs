@@ -127,9 +127,9 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             return !string.IsNullOrEmpty(path) ? new ReadWriteSeekStreamFactory(path) : null;
         }
 
-        public async Task<IReadSeekStreamFactory> BrowseForImportFile()
+        public async Task<IReadOnlyList<IReadSeekStreamFactory>> BrowseForImportFiles()
         {
-            return await BrowseForLoad();
+            return new List<IReadSeekStreamFactory> { await BrowseForLoad() };
         }
 
         public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default, string filename = null)

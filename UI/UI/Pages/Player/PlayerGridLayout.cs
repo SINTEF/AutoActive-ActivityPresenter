@@ -13,7 +13,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public class PlayerGridLayout : Layout<FigureView>, ISerializableView
+    public class PlayerGridLayout : Layout<FigureView>, ISerializableView, IFigureContainer
     {
         //TODO: re-layout if these changes
         public int GridColumns { get; set; } = 4;
