@@ -17,7 +17,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".avi")]
     [ImportPlugin(".mkv")]
     [ImportPlugin(".mp4")]
-    public class ImportVideoPlugin : BaseDataStructure, IDataProvider, IImportPlugin
+    public class ImportVideoPlugin : BaseDataProvider, IImportPlugin
     {
 
         private IReadSeekStreamFactory _readerFactory;
@@ -49,8 +49,19 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
             Name = "Imported Video";
             var stream = await readerFactory.GetReadStream();
 
-            var startTime = GetCreatedTime(stream);
+            ParseFile(stream);
 
+            return this;
+        }
+
+        public void Close()
+        {
+            _readerFactory?.Close();
+        }
+
+        protected override void DoParseFile(Stream stream)
+        {
+            var startTime = GetCreatedTime(stream);
 
             var jsonRoot = new JObject
             {
@@ -61,15 +72,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
                 ["user"] = new JObject()
             };
 
-            var video = new ArchiveVideo(jsonRoot, readerFactory);
+            var video = new ArchiveVideo(jsonRoot, _readerFactory);
             AddChild(video);
-
-            return this;
-        }
-
-        public void Close()
-        {
-            _readerFactory?.Close();
         }
     }
 }
