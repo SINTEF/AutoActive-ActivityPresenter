@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.Archive.Tests
             var str = expectedDate.ToString("ddd MMM dd HH:mm:ss yyyy", culture);
 
 
-            Assert.True(ImportVideoPlugin.TryParseDateTime(sub1_2_MOV_Created, out DateTime date));
+            Assert.True(VideoImporter.TryParseDateTime(sub1_2_MOV_Created, out DateTime date));
             Assert.Equal(expectedDate, date);
 
             Assert.Equal(2019, date.Year);
