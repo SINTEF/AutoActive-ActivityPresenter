@@ -81,12 +81,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         Dictionary<string, Array> GetParsedData();
     }
-
-    public interface ICsvRecord
-    {
-
-    }
-
+    
     public abstract class CsvImporterBase : BaseDataProvider
     {
         protected readonly RememberingCsvReader _reader;
@@ -101,14 +96,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public abstract Dictionary<string, Array> ReadData();
 
-        protected static Task<T[]> LoadColumn<T>(RememberingCsvReader reader, string columnName)
+        protected Task<T[]> LoadColumn<T>(string columnName)
         {
-            return Task.FromResult(reader.LoadColumn<T>(columnName));
+            return Task.FromResult(_reader.LoadColumn<T>(columnName));
         }
 
-        protected static Task<T[]> GenerateLoader<T>(RememberingCsvReader reader, string columnName)
+        protected Task<T[]> GenerateLoader<T>(string columnName)
         {
-            return new Task<T[]>(() => LoadColumn<T>(reader, columnName).Result);
+            return new Task<T[]>(() => LoadColumn<T>(columnName).Result);
         }
 
         
@@ -142,8 +137,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                             rowCount++;
                             hasRec = myEnum.MoveNext();
                         }
-
-
                     }
                 }
             }
@@ -316,118 +309,24 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return GenericReadData<CatapultRecord>(new CatapultParser(), _csvStream);
         }
 
-#if false
-        public override Dictionary<string, Array> ReadData()
-        {
-            Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
-            // Read data from file 
-            try
-            {
-                _csvStream.Seek(0, SeekOrigin.Begin);
-                using (var reader = new StreamReader(_csvStream))
-                {
-                    // var line = reader.ReadLine();
-                    using (var csv = new CsvReader(reader))
-                    {
-                        // Configure csv reader
-                        csv.Configuration.ShouldSkipRecord = CheckLine;
-                        csv.Configuration.BadDataFound = null;
-                        csv.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
-                        csv.Configuration.CountBytes = true;
-
-                        // Make all the arrays needed
-                        long[] timeData = null;
-                        float[] forwardData = null;
-                        float[] sidewaysData = null;
-
-                        // Prepare while loop
-                        var records = csv.GetRecords<CatapultRecord>();
-                        var myEnum = records.GetEnumerator();
-                        var hasRec = myEnum.MoveNext();
-                        int rowCount = 0;   // Number of data rows read
-                        while (hasRec)
-                        {
-                            // Fetch data from record
-                            var rec = myEnum.Current;
-
-                            var currLength = timeData?.Length ?? 0;
-                            if (rowCount >= currLength)
-                            {
-                                var newLength = currLength + 1000;
-                                Array.Resize(ref timeData, newLength);
-                                Array.Resize(ref forwardData, newLength);
-                                Array.Resize(ref sidewaysData, newLength);
-                            }
-
-                            timeData[rowCount] = rowCount;
-                            //timeData[rowCount] = rec.Inputtime;  TODO convert time
-
-                            forwardData[rowCount] = rec.Forward;
-                            sidewaysData[rowCount] = rec.Sideways;
-
-                            // Prepare for next iteration
-                            rowCount++;
-                            hasRec = myEnum.MoveNext();
-                        }
-
-                        // Wrap up and store result
-                        var finalLength = rowCount;
-                        Array.Resize(ref timeData, finalLength);
-                        Array.Resize(ref forwardData, finalLength);
-                        Array.Resize(ref sidewaysData, finalLength);
-                        locData.Add("Time", timeData);
-                        locData.Add("Forward", forwardData);
-                        locData.Add("Sideways", sidewaysData);
-
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                var txt = ex.Message;
-
-            }
-
-            return locData;
-        }
-
-        private List<string> _preHeaderItems = new List<string>();
-        private readonly string[] _preHeaderSignatures = { "Logan", "rawFileName=", "From=", "Date=", "Time=", "Athlete=", "EventDescription=" };
-        internal bool CheckLine(string[] l)
-        {
-            foreach (string signature in _preHeaderSignatures)
-            {
-                if (l[0].StartsWith(signature))
-                {
-                    _preHeaderItems.Add(l[0]);
-                    return true;
-                }
-            }
-            return false;
-        }
-#endif
-
-        //private ArchiveTableInformation _tableInformation = new ArchiveTableInformation();
         protected override void DoParseFile(Stream s)
         {
             _csvStream = s;
-
-            // AddChild(this);
 
             bool isWorldSynchronized = false;
             string columnName = "Time";
             string uri = Name + "/" + columnName;
 
-            var time = new TableTimeIndex(columnName, GenerateLoader<long>(_reader, columnName), isWorldSynchronized, uri);
+            var time = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
 
             columnName = "Forward";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(_reader, columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
 
             columnName = "Sideways";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(_reader, columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
 
             // Todo register more columns
 
