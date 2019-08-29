@@ -22,23 +22,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
 
 
-    [ImportPlugin(".csv")]
-    public class CatapultImportPlugin : IImportPlugin
-    {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
-        {
-            var importer = new CatapultImporter(readerFactory.Name);
-            importer.ParseFile(await readerFactory.GetReadStream());
-            return importer;
-        }
-    }
-
     public class RememberingCsvReader
     {
-        private readonly CsvImporterBase _reader;
+        private readonly CsvTableBase _reader;
         private Dictionary<string, Array> _data = null;
 
-        public RememberingCsvReader(CsvImporterBase reader)
+        public RememberingCsvReader(CsvTableBase reader)
         {
             _reader = reader;
         }
@@ -48,6 +37,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             // Make a copy of existing data and reader
             _reader = rcr._reader;
             _data = new Dictionary<string, Array>(rcr._data);
+        }
+
+        public Dictionary<string, Array> getData()
+        {
+            return _data;
         }
 
         public void LoadAll()
@@ -73,26 +67,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     }
 
-    public interface ICsvParser<T>
-    {
-        void ConfigureCsvReader(CsvReader csvReader);
-
-        void ParseRecord(int rowIdx, T record);
-
-        Dictionary<string, Array> GetParsedData();
-    }
     
-    public abstract class CsvImporterBase : BaseDataProvider
+    public abstract class CsvTableBase : BaseDataStructure
     {
         protected readonly RememberingCsvReader _reader;
 
-        public CsvImporterBase()
+        public CsvTableBase()
         {
             _reader = new RememberingCsvReader(this);
         }
-
-        // To be impemented in specialization
-        protected abstract override void DoParseFile(Stream s);
 
         public abstract Dictionary<string, Array> ReadData();
 
@@ -148,188 +131,67 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
             return parser.GetParsedData();
         }
-    }
 
-
-
-    public class CatapultRecord
-    {
-
-        [Name("Time")]
-        public string Inputtime { get; set; }
-
-        [Name("Forward")]
-        public float Forward { get; set; }
-
-        [Name("Sideways")]
-        public float Sideways { get; set; }
-
-        [Name("Up")]
-        public float Up { get; set; }
-
-        [Name("Vel(Dpr)")]
-        public float Dpr { get; set; }
-
-        [Name("Gyr1(d/s)")]
-        public float Gyr1 { get; set; }
-
-        [Name("Gyr2(d/s)")]
-        public float Gyr2 { get; set; }
-
-        [Name("Gyr3(d/s)")]
-        public float Gyr3 { get; set; }
-
-        [Name("Altitude")]
-        public float Altitude { get; set; }
-
-        [Name("Vel(av)")]
-        public float Vel { get; set; }
-
-        [Name("HDOP")]
-        public float HDOP { get; set; }
-
-        [Name("VDOP")]
-        public float VDOP { get; set; }
-
-        [Name("Longitude")]
-        public float Longitude { get; set; }
-
-        [Name("Latitude")]
-        public float Latitude { get; set; }
-
-        [Name("Heart Rate")]
-        public float Heartrate { get; set; }
-
-        [Name("Acc(dpr)")]
-        public float Acc { get; set; }
-
-        [Name("Raw Vel.")]
-        public float Rawvel { get; set; }
-
-        [Name("GPS Time")]
-        public string GPStime { get; set; }
-
-        [Name("GPS Latitude")]
-        public string GPSlatitude { get; set; }
-
-        [Name("GPS Longitude")]
-        public string GPSlongitude { get; set; }
-
-    }
-
-    public class CatapultParser : ICsvParser<CatapultRecord>
-    {
-        // Make all the arrays needed
-        private long[] timeData = null;
-        private float[] forwardData = null;
-        private float[] sidewaysData = null;
-
-        private int lastIdx = 0;
-
-        public CatapultParser()
+        public DataColumnAndSchema makeDataColumnAndSchema()
         {
+            // Make a copy of the Remembering reader that later can be discarded
+            // This to avoid to read in all tables in memory at the same time.
+            var fullReader = new RememberingCsvReader(_reader);
+            fullReader.LoadAll();
 
-        }
+            var dataDict = fullReader.getData();
 
-        public void ConfigureCsvReader(CsvReader csvReader)
-        {
-            // Configure csv reader
-            csvReader.Configuration.ShouldSkipRecord = CheckLine;
-            csvReader.Configuration.BadDataFound = null;
-            csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
-            csvReader.Configuration.CountBytes = true;
-        }
+            List<Field> fields = new List<Field>();
+            List<DataColumn> datacols = new List<DataColumn>();
 
-        public void ParseRecord(int rowIdx, CatapultRecord rec)
-        {
-            var currLength = timeData?.Length ?? 0;
-            if (rowIdx >= currLength)
+            foreach (KeyValuePair<string, Array> dataEntry in dataDict)
             {
-                var newLength = currLength + 1000;
-                Array.Resize(ref timeData, newLength);
-                Array.Resize(ref forwardData, newLength);
-                Array.Resize(ref sidewaysData, newLength);
-            }
+                var dataArr = dataEntry.Value;
+                var dataName = dataEntry.Key;
+                DataColumn column = null;
 
-            timeData[rowIdx] = rowIdx;
-            //timeData[rowCount] = rec.Inputtime;  TODO convert time
-
-            forwardData[rowIdx] = rec.Forward;
-            sidewaysData[rowIdx] = rec.Sideways;
-
-            lastIdx = rowIdx;
-        }
-
-        public Dictionary<string, Array> GetParsedData()
-        {
-            Dictionary<string, Array> locData = new Dictionary<string, Array>();
-
-            // Wrap up and store result
-            var finalLength = lastIdx + 1;
-            Array.Resize(ref timeData, finalLength);
-            Array.Resize(ref forwardData, finalLength);
-            Array.Resize(ref sidewaysData, finalLength);
-            locData.Add("Time", timeData);
-            locData.Add("Forward", forwardData);
-            locData.Add("Sideways", sidewaysData);
-
-            return locData;
-        }
-
-        private List<string> _preHeaderItems = new List<string>();
-        private readonly string[] _preHeaderSignatures = { "Logan", "rawFileName=", "From=", "Date=", "Time=", "Athlete=", "EventDescription=" };
-        internal bool CheckLine(string[] l)
-        {
-            foreach (string signature in _preHeaderSignatures)
-            {
-                if (l[0].StartsWith(signature))
+                switch (dataArr)
                 {
-                    _preHeaderItems.Add(l[0]);
-                    return true;
+                    case bool[] arr:
+                        column = new DataColumn(new DataField<bool>(dataName), dataArr);
+                        break;
+                    case byte[] arr:
+                        column = new DataColumn(new DataField<byte>(dataName), dataArr);
+                        break;
+                    case int[] arr:
+                        column = new DataColumn(new DataField<int>(dataName), dataArr);
+                        break;
+                    case long[] arr:
+                        column = new DataColumn(new DataField<long>(dataName), dataArr);
+                        break;
+                    case float[] arr:
+                        column = new DataColumn(new DataField<float>(dataName), dataArr);
+                        break;
+                    case double[] arr:
+                        column = new DataColumn(new DataField<double>(dataName), dataArr);
+                        break;
                 }
+                fields.Add(column.Field);
+                datacols.Add(column);
             }
-            return false;
+
+            var schema = new Schema(fields);
+            var dcas = new DataColumnAndSchema(datacols, schema);
+            return dcas;
         }
 
     }
 
-    public class CatapultImporter : CsvImporterBase
+    public class DataColumnAndSchema
     {
-        private Stream _csvStream;
-
-        internal CatapultImporter(string name)
+        public readonly List<DataColumn> dataColumns;
+        public readonly Schema schema;
+        public DataColumnAndSchema(List<DataColumn> dataCols, Schema sch)
         {
-            Name = name;
-            _csvStream = null;
-        }
-
-
-        public override Dictionary<string, Array> ReadData()
-        {
-            return GenericReadData<CatapultRecord>(new CatapultParser(), _csvStream);
-        }
-
-
-        protected override void DoParseFile(Stream s)
-        {
-            _csvStream = s;
-
-            bool isWorldSynchronized = false;
-            string columnName = "Time";
-            string uri = Name + "/" + columnName;
-
-            var time = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
-
-            columnName = "Forward";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
-
-            columnName = "Sideways";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
-
-            // Todo register more columns
-
+            dataColumns = dataCols;
+            schema = sch;
         }
     }
+
+
 }

@@ -7,10 +7,13 @@ using CsvHelper.Configuration.Attributes;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Databus.Implementations;
+using SINTEF.AutoActive.Plugins.Import.Csv;
+using Newtonsoft.Json.Linq;
+using Parquet.Data;
 
 namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 {
-
 
     [ImportPlugin(".csv")]
     public class CatapultImportPlugin : IImportPlugin
@@ -23,26 +26,33 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
         }
     }
 
-    public class CatapultImporter : CsvImporterBase
+    // CsvTableBase
+
+    // BaseDataProvider
+
+    public class CatapultImporter : BaseDataProvider
     {
-        private Stream _csvStream;
 
         internal CatapultImporter(string name)
         {
             Name = name;
-            _csvStream = null;
         }
-
-
-        public override Dictionary<string, Array> ReadData()
-        {
-            return GenericReadData<CatapultRecord>(new CatapultParser(), _csvStream);
-        }
-
 
         protected override void DoParseFile(Stream s)
         {
+            AddChild(new CatapultTable(Name+"_table", s));
+        }
+    }
+
+    public class CatapultTable : CsvTableBase, ISaveable
+    {
+        public bool IsSaved { get; }
+        private Stream _csvStream;
+        internal CatapultTable(string name, Stream s)
+        {
+            Name = name;
             _csvStream = s;
+            IsSaved = false;
 
             bool isWorldSynchronized = false;
             string columnName = "Time";
@@ -113,8 +123,51 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             columnName = "Rawvel";
             uri = Name + "/" + columnName;
             this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+        }
+
+        public override Dictionary<string, Array> ReadData()
+        {
+            return GenericReadData<CatapultRecord>(new CatapultParser(), _csvStream);
+        }
+
+
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+
+            string fileId;
+
+            // TODO: give a better name?
+            fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
+
+            root["meta"]["type"] = "no.sintef.table";
+            root["meta"]["attachments"] = new JArray(new object[] { fileId });
+            root["meta"]["version"] = 1;
+
+            // This stream will be disposed by the sessionWriter
+            var ms = new MemoryStream();
+
+            var dataColAndSchema = makeDataColumnAndSchema();
+
+            using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.schema, ms))
+            {
+                using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
+                {
+                    foreach (var dataCol in dataColAndSchema.dataColumns)
+                    {
+                        rowGroup.WriteColumn(dataCol);
+                    }
+                }
+            }
+
+            ms.Position = 0;
+            writer.StoreFileId(ms, fileId);
+
+            return true;
+        }
+
+
+
     }
-}
 
     public class CatapultParser : ICsvParser<CatapultRecord>
     {
@@ -138,11 +191,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
         private float[] rawvelData = null;
 
         private int lastIdx = 0;
-
-        public CatapultParser()
-        {
-
-        }
 
         public void ConfigureCsvReader(CsvReader csvReader)
         {

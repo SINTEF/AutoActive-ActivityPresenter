@@ -54,7 +54,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
             return this;
         }
 
-        public void Close()
+        public void Close()  // Todo Hides inherited member - check if this is needed - Steffend
         {
             _readerFactory?.Close();
         }
