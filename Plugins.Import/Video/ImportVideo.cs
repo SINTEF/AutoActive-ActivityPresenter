@@ -17,8 +17,25 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".avi")]
     [ImportPlugin(".mkv")]
     [ImportPlugin(".mp4")]
-    public class ImportVideoPlugin : BaseDataProvider, IImportPlugin
+    public class ImportVideoPlugin : IImportPlugin
     {
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        {
+            var importer = new VideoImporter(readerFactory);
+            var stream = await readerFactory.GetReadStream();
+            importer.ParseFile(stream, readerFactory);
+            return importer;
+        }
+    }
+
+    public class VideoImporter : BaseDataProvider
+    {
+        public VideoImporter(IReadSeekStreamFactory readerFactory)
+        {
+            _readerFactory = readerFactory;
+
+            Name = "Imported Video";
+        }
 
         private IReadSeekStreamFactory _readerFactory;
         public string GetCreatedProperty(Stream stream)
@@ -43,16 +60,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
             var property = GetCreatedProperty(stream);
             return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
         }
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
-        {
-            _readerFactory = readerFactory;
-            Name = "Imported Video";
-            var stream = await readerFactory.GetReadStream();
 
-            ParseFile(stream, readerFactory);
-
-            return this;
-        }
 
         public void Close()  // Todo Hides inherited member - check if this is needed - Steffend
         {
