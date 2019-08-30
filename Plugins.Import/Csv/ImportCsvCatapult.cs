@@ -11,6 +11,7 @@ using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Plugins.Import.Csv;
 using Newtonsoft.Json.Linq;
 using Parquet.Data;
+using System.Globalization;
 
 namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 {
@@ -145,6 +146,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
+            metaTable["units"] = new JArray(new object[] {});
+            metaTable["is_world_clock"] = false;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -217,6 +220,30 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
         }
 
+        private long ConvHmssToEpochUs(string timeString)
+        {
+            long epochUs = 0;
+            int h, m;
+            float s;
+            // Expected character format 'M:S.SS' or 'H:M:S.SS'
+            string[] c_split = timeString.Split(':');
+
+            if(c_split.Length == 2)
+            {
+                h = 0;
+                Int32.TryParse(c_split[0], out m);
+                Single.TryParse(c_split[1], out s);
+            }
+            else
+            {
+                Int32.TryParse(c_split[0], out h);
+                Int32.TryParse(c_split[1], out m);
+                Single.TryParse(c_split[2], out s);
+            }
+            epochUs = (long)(((h * 3600) + (m * 60) + s) * 1000000);
+            return epochUs;
+        }
+
         public void ParseRecord(int rowIdx, CatapultRecord rec)
         {
             var currLength = timeData?.Length ?? 0;
@@ -242,8 +269,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
                 Array.Resize(ref rawvelData, newLength);
             }
 
-            timeData[rowIdx] = rowIdx;
-            //timeData[rowCount] = rec.Inputtime;  TODO convert time
+            //timeData[rowIdx] = rowIdx;
+            var time = rec.Stringtime;
+            timeData[rowIdx] = ConvHmssToEpochUs(time);
 
             forwardData[rowIdx] = rec.Forward;
             sidewaysData[rowIdx] = rec.Sideways;
@@ -330,7 +358,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
     {
 
         [Name("Time")]
-        public string Inputtime { get; set; }
+        public string Stringtime { get; set; }
 
         [Name("Forward")]
         public float Forward { get; set; }

@@ -140,7 +140,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return parser.GetParsedData();
         }
 
-        public DataColumnAndSchema makeDataColumnAndSchema()
+        protected DataColumnAndSchema makeDataColumnAndSchema()
         {
             // Make a copy of the Remembering reader that later can be discarded
             // This to avoid to read in all tables in memory at the same time.
