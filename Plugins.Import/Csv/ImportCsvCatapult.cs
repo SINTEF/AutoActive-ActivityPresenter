@@ -170,6 +170,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
             using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.schema, ms))
             {
+                //tableWriter.CompressionMethod = Parquet.CompressionMethod.Gzip;
+
                 using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
                 {
                     foreach (var dataCol in dataColAndSchema.dataColumns)
