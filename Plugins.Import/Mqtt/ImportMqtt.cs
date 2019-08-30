@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
             var importer = new MqttImporter(readerFactory.Name);
-            importer.ParseFile(await readerFactory.GetReadStream());
+            importer.ParseFile(await readerFactory.GetReadStream(), readerFactory);
             return importer;
         }
     }
@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             Name = name;
         }
 
-        protected override void DoParseFile(Stream s)
+        protected override void DoParseFile(Stream s, IReadSeekStreamFactory readerFactory)
         {
             Debug.WriteLine("Starting MqttImporter ");
 

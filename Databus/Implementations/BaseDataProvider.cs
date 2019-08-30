@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.FileSystem;
 using System;
 using System.IO;
 
@@ -99,12 +100,12 @@ namespace SINTEF.AutoActive.Databus.Implementations
             DataPointRemovedFromTree?.Invoke(sender, datapoint);
         }
 
-        protected abstract void DoParseFile(Stream stream);
+        protected abstract void DoParseFile(Stream stream, IReadSeekStreamFactory readerFactory);
 
-        public void ParseFile(Stream stream)
+        public void ParseFile(Stream stream, IReadSeekStreamFactory readerFactory)
         {
             _stream = stream;
-            DoParseFile(stream);
+            DoParseFile(stream, readerFactory);
         }
         public void Close()
         {

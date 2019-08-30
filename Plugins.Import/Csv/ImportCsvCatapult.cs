@@ -20,8 +20,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
-            var importer = new CatapultImporter(readerFactory.Name);
-            importer.ParseFile(await readerFactory.GetReadStream());
+            var importer = new CatapultImporter(readerFactory.Name, readerFactory.Extension);
+            importer.ParseFile(await readerFactory.GetReadStream(), readerFactory);
             return importer;
         }
     }
@@ -32,27 +32,30 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
     public class CatapultImporter : BaseDataProvider
     {
-
-        internal CatapultImporter(string name)
+        internal string _ext;
+        internal CatapultImporter(string name, string ext)
         {
             Name = name;
+            _ext = ext;
         }
 
-        protected override void DoParseFile(Stream s)
+        protected override void DoParseFile(Stream s, IReadSeekStreamFactory readerFactory)
         {
-            AddChild(new CatapultTable(Name+"_table", s));
+            AddChild(new CatapultTable(Name+"_table", readerFactory, Name + _ext));
         }
     }
 
     public class CatapultTable : CsvTableBase, ISaveable
     {
         public bool IsSaved { get; }
-        private Stream _csvStream;
-        internal CatapultTable(string name, Stream s)
+        private IReadSeekStreamFactory _readerFactory;
+        private string _fileName;
+        internal CatapultTable(string name, IReadSeekStreamFactory readerFactory, string fileName)
         {
             Name = name;
-            _csvStream = s;
+            _readerFactory = readerFactory;
             IsSaved = false;
+            _fileName = fileName;
 
             bool isWorldSynchronized = false;
             string columnName = "Time";
@@ -127,7 +130,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
         public override Dictionary<string, Array> ReadData()
         {
-            return GenericReadData<CatapultRecord>(new CatapultParser(), _csvStream);
+            return GenericReadData<CatapultRecord>(new CatapultParser(), _readerFactory);
         }
 
 
@@ -139,9 +142,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             // TODO: give a better name?
             fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
 
-            root["meta"]["type"] = "no.sintef.table";
-            root["meta"]["attachments"] = new JArray(new object[] { fileId });
-            root["meta"]["version"] = 1;
+            // Make table object
+            var metaTable = new JObject { ["type"] = "no.sintef.table" };
+            metaTable["attachments"] = new JArray(new object[] { fileId });
+            metaTable["version"] = 1;
+
+            var userTable = new JObject { };
+
+            var rootTable = new JObject { ["meta"] = metaTable, ["user"] = userTable };
+
+            // Make folder object
+            var metaFolder = new JObject { ["type"] = "no.sintef.folder" };
+            var userFolder = new JObject { ["full_table"] = rootTable };
+            userFolder["filename"] = _fileName;
+
+            // Place objects into root
+            root["meta"] = metaFolder;
+            root["user"] = userFolder;
 
             // This stream will be disposed by the sessionWriter
             var ms = new MemoryStream();
@@ -198,7 +215,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             csvReader.Configuration.ShouldSkipRecord = CheckLine;
             csvReader.Configuration.BadDataFound = null;
             csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
-            csvReader.Configuration.CountBytes = true;
         }
 
         public void ParseRecord(int rowIdx, CatapultRecord rec)

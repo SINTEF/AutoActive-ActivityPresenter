@@ -51,7 +51,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
             var importer = new GarminImporter(readerFactory.Name);
-            importer.ParseFile(await readerFactory.GetReadStream());
+            importer.ParseFile(await readerFactory.GetReadStream(), readerFactory);
             return importer;
         }
     }
@@ -67,7 +67,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         }
 
 
-        protected override void DoParseFile(Stream s)
+        protected override void DoParseFile(Stream s, IReadSeekStreamFactory readerFactory)
         {
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";

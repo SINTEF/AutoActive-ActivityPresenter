@@ -36,7 +36,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         {
             // Make a copy of existing data and reader
             _reader = rcr._reader;
-            _data = new Dictionary<string, Array>(rcr._data);
+
+            if (rcr._data != null)
+            {
+                _data = new Dictionary<string, Array>(rcr._data);
+            }
         }
 
         public Dictionary<string, Array> getData()
@@ -90,15 +94,19 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         }
 
         
-        public Dictionary<string, Array> GenericReadData<CsvRecord>(ICsvParser<CsvRecord> parser, Stream csvStream)
+        public Dictionary<string, Array> GenericReadData<CsvRecord>(ICsvParser<CsvRecord> parser, IReadSeekStreamFactory readerFactory)
         {
             // Read data from file 
             try
             {
+                // We must be able to read the csv file multiple times
+                //   CrvReader close the stream at end of file... create new stream each time reading file.
+                //var csvStream = readerFactory.GetReadStream().GetAwaiter().GetResult();
+                var csvStream = Task.Run(() => readerFactory.GetReadStream()).GetAwaiter().GetResult();
                 csvStream.Seek(0, SeekOrigin.Begin);
+
                 using (var reader = new StreamReader(csvStream))
                 {
-                    // var line = reader.ReadLine();
                     using (var csv = new CsvReader(reader))
                     {
                         parser.ConfigureCsvReader(csv);
