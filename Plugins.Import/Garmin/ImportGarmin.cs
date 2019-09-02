@@ -16,41 +16,17 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Plugins.Import.Garmin
 {
-
-    public class TrackPoint
-    {
-        public string TimeString { set; get; }
-        public long TimeWorldClock { set; get; }
-        public double AltitudeMeters { get; set; }
-        public double DistanceMeters { get; set; }
-        public double SpeedMS { get; set; }
-        public byte HeartRateBpm { get; set; }
-        public double LatitudeDegrees { set; get; }
-        public double LongitudeDegrees { set; get; }
-        public IEnumerable<Speed> SpeedList { get; set; }
-        public IEnumerable<Position> PositionList { get; set; }
-    }
-
-    public class Speed
-    {
-        public double SpeedMS { get; set; }
-    }
-
-    public class Position
-    {
-        public double LatitudeDegrees { set; get; }
-        public double LongitudeDegrees { set; get; }
-    }
 
     [ImportPlugin(".tcx")]
     public class GarminImportPlugin : IImportPlugin
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
-            var importer = new GarminImporter(readerFactory.Name);
+            var importer = new GarminImporter(readerFactory);
             importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
         }
@@ -61,14 +37,87 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
     public class GarminImporter : BaseDataProvider
     {
-        internal GarminImporter(string name)
-        {
-            Name = name;
-        }
+        internal IReadSeekStreamFactory _readerFactory;
 
+        internal GarminImporter(IReadSeekStreamFactory readerFactory)
+        {
+            Name = readerFactory.Name;
+            _readerFactory = readerFactory;
+        }
 
         protected override void DoParseFile(Stream s)
         {
+            AddChild(new GarminTable(Name + "_table", _readerFactory, Name + _readerFactory.Extension));
+        }
+
+    }
+
+    public class GarminTable : ImportTableBase, ISaveable
+    {
+        public bool IsSaved { get; }
+        private IReadSeekStreamFactory _readerFactory;
+        private string _fileName;
+        internal GarminTable(string name, IReadSeekStreamFactory readerFactory, string fileName)
+        {
+            Name = name;
+            _readerFactory = readerFactory;
+            IsSaved = false;
+            _fileName = fileName;
+
+            bool isWorldSynchronized = true;
+
+            string columnName = "Time";
+            string uri = Name + "/" + columnName;
+
+            var time = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
+
+            columnName = "Forward";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+
+        }
+
+        public override Dictionary<string, Array> ReadData()
+        {
+            GarminParser gp = new GarminParser(_readerFactory);
+            return gp.ReadData();
+        }
+
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+            // TODO
+            return true;
+        }
+    }
+
+    public class GarminParser
+    {
+        IReadSeekStreamFactory _readerFactory;
+
+        internal GarminParser(IReadSeekStreamFactory readerFactory)
+        {
+            _readerFactory = readerFactory;
+
+        }
+
+        internal Dictionary<string, Array> ReadData()
+        {
+            Dictionary<string, Array> dataList = null;
+
+            using (var s = Task.Run(() => _readerFactory.GetReadStream()).GetAwaiter().GetResult())
+            {
+                var tpList = ParseFile(s);
+                dataList = ConvertTrackpoints(tpList);
+            }
+            return dataList;
+            
+        }
+
+
+        private List<TrackPoint> ParseFile(Stream s)
+        {
+            List<TrackPoint> parseList = null;
+
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";
 
@@ -148,21 +197,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 // Debug.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
                 // }
 
-                AddChild(new GarminTable(id, trackpointList));
+                parseList = trackpointList;
             }
+            return parseList;
         }
-    }
-
-    public class GarminTable : BaseDataStructure
-    {
-        internal GarminTable(string id, List<TrackPoint> tpList)
-        {
-            Name = id;
-            ConvertTrackpoints(tpList);
-        }
-
-        /* Open an existing gamin file */
-        private void ConvertTrackpoints(List<TrackPoint> tpList)
+        private Dictionary<string, Array> ConvertTrackpoints(List<TrackPoint> tpList)
         {
             var faultyEntries = new List<TrackPoint>();
 
@@ -198,31 +237,56 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
-            var uri = "LIVE";
-            // Create the time index
-            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true, uri);
+            Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
-            // Add other columns
-            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol, uri);
-            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol, uri);
-            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol, uri);
-            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol, uri);
-            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol, uri);
-            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol, uri);
+            // Wrap up and store result
+            locData.Add("Time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
+            locData.Add("AltitudeMeters", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
+            locData.Add("DistanceMeters", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
+            locData.Add("SpeedMS", GenerateColumnArray(tpList, entry => entry.SpeedMS));
+            locData.Add("HeartRateBpm", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
+            locData.Add("LatitudeDegrees", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
+            locData.Add("LongitudeDegrees", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
+
+            return locData;
         }
 
-        private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
+        private T[] GenerateColumnArray<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
         {
-            return new Task<T[]>(() =>
+            T[] data = new T[trackPoints.Count];
+            var i = 0;
+            foreach (var trackPoint in trackPoints)
             {
-                T[] data = new T[trackPoints.Count];
-                var i = 0;
-                foreach (var trackPoint in trackPoints)
-                {
-                    data[i++] = fetchValue(trackPoint);
-                }
-                return data;
-            });
+                data[i++] = fetchValue(trackPoint);
+            }
+            return data;
         }
+
     }
+
+    public class TrackPoint
+    {
+        public string TimeString { set; get; }
+        public long TimeWorldClock { set; get; }
+        public double AltitudeMeters { get; set; }
+        public double DistanceMeters { get; set; }
+        public double SpeedMS { get; set; }
+        public byte HeartRateBpm { get; set; }
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+        public IEnumerable<Speed> SpeedList { get; set; }
+        public IEnumerable<Position> PositionList { get; set; }
+    }
+
+    public class Speed
+    {
+        public double SpeedMS { get; set; }
+    }
+
+    public class Position
+    {
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+    }
+
 }

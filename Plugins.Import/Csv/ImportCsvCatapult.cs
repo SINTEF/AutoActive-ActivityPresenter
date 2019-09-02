@@ -8,10 +8,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
-using SINTEF.AutoActive.Plugins.Import.Csv;
 using Newtonsoft.Json.Linq;
-using Parquet.Data;
-using System.Globalization;
 
 namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 {
@@ -26,10 +23,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             return importer;
         }
     }
-
-    // CsvTableBase
-
-    // BaseDataProvider
 
     public class CatapultImporter : BaseDataProvider
     {
