@@ -194,25 +194,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
     public class CatapultParser : ICsvParser<CatapultRecord>
     {
         // Make all the arrays needed
-        private long[] timeData = null;
-        private float[] forwardData = null;
-        private float[] sidewaysData = null;
-        private float[] upData = null;
-        private float[] dprData = null;
-        private float[] gyr1Data = null;
-        private float[] gyr2Data = null;
-        private float[] gyr3Data = null;
-        private float[] altitudeData = null;
-        private float[] velData = null;
-        private float[] hdopData = null;
-        private float[] vdopData = null;
-        private float[] logitudeData = null;
-        private float[] latitudeData = null;
-        private float[] heartrateData = null;
-        private float[] accData = null;
-        private float[] rawvelData = null;
-
-        private int lastIdx = 0;
+        private List<long> timeData = new List<long>();
+        private List<float> forwardData = new List<float>();
+        private List<float> sidewaysData = new List<float>();
+        private List<float> upData = new List<float>();
+        private List<float> dprData = new List<float>();
+        private List<float> gyr1Data = new List<float>();
+        private List<float> gyr2Data = new List<float>();
+        private List<float> gyr3Data = new List<float>();
+        private List<float> altitudeData = new List<float>();
+        private List<float> velData = new List<float>();
+        private List<float> hdopData = new List<float>();
+        private List<float> vdopData = new List<float>();
+        private List<float> logitudeData = new List<float>();
+        private List<float> latitudeData = new List<float>();
+        private List<float> heartrateData = new List<float>();
+        private List<float> accData = new List<float>();
+        private List<float> rawvelData = new List<float>();
 
         public void ConfigureCsvReader(CsvReader csvReader)
         {
@@ -248,51 +246,25 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
         public void ParseRecord(int rowIdx, CatapultRecord rec)
         {
-            var currLength = timeData?.Length ?? 0;
-            if (rowIdx >= currLength)
-            {
-                var newLength = currLength + 1000;
-                Array.Resize(ref timeData, newLength);
-                Array.Resize(ref forwardData, newLength);
-                Array.Resize(ref sidewaysData, newLength);
-                Array.Resize(ref upData, newLength);
-                Array.Resize(ref dprData, newLength);
-                Array.Resize(ref gyr1Data, newLength);
-                Array.Resize(ref gyr2Data, newLength);
-                Array.Resize(ref gyr3Data, newLength);
-                Array.Resize(ref altitudeData, newLength);
-                Array.Resize(ref velData, newLength);
-                Array.Resize(ref hdopData, newLength);
-                Array.Resize(ref vdopData, newLength);
-                Array.Resize(ref logitudeData, newLength);
-                Array.Resize(ref latitudeData, newLength);
-                Array.Resize(ref heartrateData, newLength);
-                Array.Resize(ref accData, newLength);
-                Array.Resize(ref rawvelData, newLength);
-            }
-
-            //timeData[rowIdx] = rowIdx;
             var time = rec.Stringtime;
-            timeData[rowIdx] = ConvHmssToEpochUs(time);
+            timeData.Add(ConvHmssToEpochUs(time));
 
-            forwardData[rowIdx] = rec.Forward;
-            sidewaysData[rowIdx] = rec.Sideways;
-            upData[rowIdx] = rec.Up;
-            dprData[rowIdx] = rec.Dpr;
-            gyr1Data[rowIdx] = rec.Gyr1;
-            gyr2Data[rowIdx] = rec.Gyr2;
-            gyr3Data[rowIdx] = rec.Gyr3;
-            altitudeData[rowIdx] = rec.Altitude;
-            velData[rowIdx] = rec.Vel;
-            hdopData[rowIdx] = rec.HDOP;
-            vdopData[rowIdx] = rec.VDOP;
-            logitudeData[rowIdx] = rec.Longitude;
-            latitudeData[rowIdx] = rec.Latitude;
-            heartrateData[rowIdx] = rec.Heartrate;
-            accData[rowIdx] = rec.Acc;
-            rawvelData[rowIdx] = rec.Rawvel;
-
-            lastIdx = rowIdx;
+            forwardData.Add(rec.Forward);
+            sidewaysData.Add(rec.Sideways);
+            upData.Add(rec.Up);
+            dprData.Add(rec.Dpr);
+            gyr1Data.Add(rec.Gyr1);
+            gyr2Data.Add(rec.Gyr2);
+            gyr3Data.Add(rec.Gyr3);
+            altitudeData.Add(rec.Altitude);
+            velData.Add(rec.Vel);
+            hdopData.Add(rec.HDOP);
+            vdopData.Add(rec.VDOP);
+            logitudeData.Add(rec.Longitude);
+            latitudeData.Add(rec.Latitude);
+            heartrateData.Add(rec.Heartrate);
+            accData.Add(rec.Acc);
+            rawvelData.Add(rec.Rawvel);
         }
 
         public Dictionary<string, Array> GetParsedData()
@@ -300,41 +272,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
             // Wrap up and store result
-            var finalLength = lastIdx + 1;
-            Array.Resize(ref timeData, finalLength);
-            Array.Resize(ref forwardData, finalLength);
-            Array.Resize(ref sidewaysData, finalLength);
-            Array.Resize(ref upData, finalLength);
-            Array.Resize(ref dprData, finalLength);
-            Array.Resize(ref gyr1Data, finalLength);
-            Array.Resize(ref gyr2Data, finalLength);
-            Array.Resize(ref gyr3Data, finalLength);
-            Array.Resize(ref altitudeData, finalLength);
-            Array.Resize(ref velData, finalLength);
-            Array.Resize(ref hdopData, finalLength);
-            Array.Resize(ref vdopData, finalLength);
-            Array.Resize(ref logitudeData, finalLength);
-            Array.Resize(ref latitudeData, finalLength);
-            Array.Resize(ref heartrateData, finalLength);
-            Array.Resize(ref accData, finalLength);
-            Array.Resize(ref rawvelData, finalLength);
-            locData.Add("Time", timeData);
-            locData.Add("Forward", forwardData);
-            locData.Add("Sideways", sidewaysData);
-            locData.Add("Up", upData);
-            locData.Add("Dpr", dprData);
-            locData.Add("Gyr1", gyr1Data);
-            locData.Add("Gyr2", gyr2Data);
-            locData.Add("Gyr3", gyr3Data);
-            locData.Add("Altitude", altitudeData);
-            locData.Add("Vel", velData);
-            locData.Add("HDOP", hdopData);
-            locData.Add("VDOP", vdopData);
-            locData.Add("Longitude", logitudeData);
-            locData.Add("Latitude", latitudeData);
-            locData.Add("Heartrate", heartrateData);
-            locData.Add("Acc", accData);
-            locData.Add("Rawvel", rawvelData);
+            locData.Add("Time", timeData.ToArray());
+            locData.Add("Forward", forwardData.ToArray());
+            locData.Add("Sideways", sidewaysData.ToArray());
+            locData.Add("Up", upData.ToArray());
+            locData.Add("Dpr", dprData.ToArray());
+            locData.Add("Gyr1", gyr1Data.ToArray());
+            locData.Add("Gyr2", gyr2Data.ToArray());
+            locData.Add("Gyr3", gyr3Data.ToArray());
+            locData.Add("Altitude", altitudeData.ToArray());
+            locData.Add("Vel", velData.ToArray());
+            locData.Add("HDOP", hdopData.ToArray());
+            locData.Add("VDOP", vdopData.ToArray());
+            locData.Add("Longitude", logitudeData.ToArray());
+            locData.Add("Latitude", latitudeData.ToArray());
+            locData.Add("Heartrate", heartrateData.ToArray());
+            locData.Add("Acc", accData.ToArray());
+            locData.Add("Rawvel", rawvelData.ToArray());
 
             return locData;
         }
