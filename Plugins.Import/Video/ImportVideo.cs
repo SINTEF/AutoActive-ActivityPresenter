@@ -23,7 +23,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
         {
             var importer = new VideoImporter(readerFactory);
             var stream = await readerFactory.GetReadStream();
-            importer.ParseFile(stream, readerFactory);
+            importer.ParseFile(stream);
             return importer;
         }
     }
@@ -67,7 +67,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
             _readerFactory?.Close();
         }
 
-        protected override void DoParseFile(Stream stream, IReadSeekStreamFactory readerFactory)
+        protected override void DoParseFile(Stream stream)
         {
             var startTime = GetCreatedTime(stream);
 

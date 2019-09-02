@@ -100,12 +100,12 @@ namespace SINTEF.AutoActive.Databus.Implementations
             DataPointRemovedFromTree?.Invoke(sender, datapoint);
         }
 
-        protected abstract void DoParseFile(Stream stream, IReadSeekStreamFactory readerFactory);
+        protected abstract void DoParseFile(Stream stream);
 
-        public void ParseFile(Stream stream, IReadSeekStreamFactory readerFactory)
+        public void ParseFile(Stream stream)
         {
             _stream = stream;
-            DoParseFile(stream, readerFactory);
+            DoParseFile(stream);
         }
         public void Close()
         {

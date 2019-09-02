@@ -21,8 +21,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
         {
-            var importer = new CatapultImporter(readerFactory.Name, readerFactory.Extension);
-            importer.ParseFile(await readerFactory.GetReadStream(), readerFactory);
+            var importer = new CatapultImporter(readerFactory);
+            importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
         }
     }
@@ -33,16 +33,16 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
     public class CatapultImporter : BaseDataProvider
     {
-        internal string _ext;
-        internal CatapultImporter(string name, string ext)
+        internal IReadSeekStreamFactory _readerFactory;
+        internal CatapultImporter(IReadSeekStreamFactory readerFactory)
         {
-            Name = name;
-            _ext = ext;
+            Name = readerFactory.Name;
+            _readerFactory = readerFactory;
         }
 
-        protected override void DoParseFile(Stream s, IReadSeekStreamFactory readerFactory)
+        protected override void DoParseFile(Stream s)
         {
-            AddChild(new CatapultTable(Name+"_table", readerFactory, Name + _ext));
+            AddChild(new CatapultTable(Name+"_table", _readerFactory, Name + _readerFactory.Extension));
         }
     }
 
