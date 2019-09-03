@@ -7,6 +7,7 @@ using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Garmin;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.Plugins.Import.Video;
+using SINTEF.AutoActive.Plugins.Import.Csv.Catapult;
 using Xamarin.Forms;
 
 [assembly: Dependency(typeof(SINTEF.AutoActive.UI.InitializePlugins))]
@@ -25,6 +26,7 @@ namespace SINTEF.AutoActive.UI
             typeof(GarminImportPlugin),
             typeof(MqttImportPlugin),
             typeof(ImportVideoPlugin),
+            typeof(CatapultImportPlugin),
         };
     }
 }
