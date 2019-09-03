@@ -9,7 +9,8 @@ namespace SINTEF.AutoActive.Plugins.Import
     [PluginType(AllowMultipleImplementations = true, UseSingletonInstance = true)]
     public interface IImportPlugin
     {
-        Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory);
+        Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters);
+        void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters);
     }
 
     public class ImportPluginAttribute : PluginAttribute

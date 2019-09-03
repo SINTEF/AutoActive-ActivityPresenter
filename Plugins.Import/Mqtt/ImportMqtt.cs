@@ -17,11 +17,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
     [ImportPlugin(".mqtt")]
     public class MqttImportPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
         {
             var importer = new MqttImporter(readerFactory.Name);
             importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
+        }
+
+        public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
+        {
         }
     }
 

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,12 +20,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".mp4")]
     public class ImportVideoPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
         {
             var importer = new VideoImporter(readerFactory);
             var stream = await readerFactory.GetReadStream();
             importer.ParseFile(stream);
             return importer;
+        }
+
+        public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
+        {
+            parameters["CreatedAtStart"] = (true, "Created time is at the start of the video file");
         }
     }
 
@@ -59,12 +65,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
         {
             var property = GetCreatedProperty(stream);
             return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
-        }
-
-
-        public void Close()  // Todo Hides inherited member - check if this is needed - Steffend
-        {
-            _readerFactory?.Close();
         }
 
         protected override void DoParseFile(Stream stream)

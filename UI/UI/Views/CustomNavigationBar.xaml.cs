@@ -83,23 +83,40 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
-        private async void DoImportFiles(IReadOnlyList<IReadSeekStreamFactory> files)
+        private static async void DoImportFiles(IEnumerable<IReadSeekStreamFactory> files)
         {
+            IImportPlugin prevPlugin = null;
+            Dictionary<string, (object, string)> prevParameters = null;
             foreach (var file in files)
             {
+                var ext = file.Extension.ToLower();
+                // FIXME: This should probably be handled somewhere else?
+                // FIXME: This should also handle a case where multiple importers are possible
+                // TODO: Should probably be run on a background thread...
+
+                // Find the proper import plugin to use
+                var plugins = PluginService.GetAll<IImportPlugin>(ext);
+
+                var plugin = plugins[0];
+
+                if (prevPlugin == null || plugin != prevPlugin)
+                {
+                    var parameters = new Dictionary<string, (object, string)>
+                    {
+                        ["Name"] = ("Imported File", "Name of the imported session file")
+                    };
+
+                    plugin.GetExtraConfigurationParameters(parameters);
+                    prevParameters = parameters;
+                    prevPlugin = plugin;
+
+                    await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: new ImportParametersPage(file.Name, prevParameters));
+                }
+
                 try
                 {
-                    // FIXME: This should probably be handled somewhere else?
-                    // FIXME: This should also handle a case where multiple importers are possible
-                    // TODO: Should probably be run on a background thread...
-
-                    // Find the proper import plugin to use
-                    var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
-
-                    var provider = await plugins[0].Import(file);
-
+                    var provider = await plugin.Import(file, prevParameters);
                     provider?.Register();
-
                 }
                 catch (Exception ex)
                 {
@@ -122,8 +139,8 @@ namespace SINTEF.AutoActive.UI.Views
 
             if (files == null) return;
 
-            var task = new Task(() => DoImportFiles(files));
-            task.Start();
+            
+            XamarinHelpers.EnsureMainThread(() => DoImportFiles(files));
         }
 
         private void SaveArchiveButton_OnClicked(object sender, EventArgs e)
