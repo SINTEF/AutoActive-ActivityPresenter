@@ -15,14 +15,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
 	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
-
-        public PlayerPage ()
-		{
-			InitializeComponent ();
+        public PlayerPage()
+        {
+            InitializeComponent();
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
             Appearing += OnAppearing;
+            Disappearing += OnDisappearing;
         }
 
         private void OnAppearing(object sender, EventArgs e)
@@ -38,6 +38,17 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerGrid);
+        }
+
+        private void OnDisappearing(object sender, EventArgs e)
+        {
+            Splitter.DragStart -= Splitter_DragStart;
+            Splitter.Dragged -= Splitter_Dragged;
+
+            NavigationBar.MenuButtonClicked -= NavigationBar_MenuButtonClicked;
+
+            TreeView.DataPointTapped -= TreeView_DataPointTapped;
+            TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
