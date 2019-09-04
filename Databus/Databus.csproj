@@ -21,8 +21,4 @@
     <PackageReference Include="System.Memory" Version="4.5.3" />
   </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\FileSystem\FileSystem.csproj" />
-  </ItemGroup>
-
 </Project>
