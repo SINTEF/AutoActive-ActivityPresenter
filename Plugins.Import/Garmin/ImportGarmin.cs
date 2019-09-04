@@ -66,14 +66,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
             bool isWorldSynchronized = true;
 
-            string columnName = "Time";
+            string columnName = "time";
             string uri = Name + "/" + columnName;
 
-            var time = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
+            _timeIndex = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
 
-            columnName = "Forward";
+            columnName = "altitude";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+
+            columnName = "dist";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+
+            columnName = "speed";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+
+            columnName = "HR";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+
+            columnName = "latitude";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+
+            columnName = "longitude";
+            uri = Name + "/" + columnName;
+            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
 
         }
 
@@ -85,8 +105,35 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            // TODO
-            return true;
+
+            string fileId;
+
+            // TODO: give a better name?
+            fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
+
+            // Make table object
+            var metaTable = new JObject { ["type"] = "no.sintef.table" };
+            metaTable["attachments"] = new JArray(new object[] { fileId });
+            metaTable["units"] = new JArray(new object[] { });
+            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["version"] = 1;
+
+            var userTable = new JObject { };
+
+            var rootTable = new JObject { ["meta"] = metaTable, ["user"] = userTable };
+
+            // Make folder object
+            var metaFolder = new JObject { ["type"] = "no.sintef.garmin" };
+            var userFolder = new JObject { ["full_table"] = rootTable };
+            userFolder["filename"] = _fileName;
+
+            // Place objects into root
+            root["meta"] = metaFolder;
+            root["user"] = userFolder;
+
+            bool result = await WriteTable(fileId, writer);
+            return result;
+
         }
     }
 
@@ -210,10 +257,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             string[] dateFormatArr = { "yyyy-MM-ddTHH:mm:ss.fffK", "yyyy-MM-ddTHH:mm:ssK" };
             foreach (TrackPoint entry in tpList)
             {
-
-                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS, DateTimeStyles.None, out var dt))
+                var epochZero = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS, DateTimeStyles.AssumeLocal, out var dt))
                 {
-                    entry.TimeWorldClock = dt.Ticks / 10;
+                    var dtUtc = TimeZoneInfo.ConvertTimeToUtc(dt);
+                    var epdt = dtUtc.Ticks - epochZero.Ticks;
+                    entry.TimeWorldClock = epdt / 10;
                 }
                 else
                 {
@@ -240,13 +289,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
             // Wrap up and store result
-            locData.Add("Time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
-            locData.Add("AltitudeMeters", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
-            locData.Add("DistanceMeters", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
-            locData.Add("SpeedMS", GenerateColumnArray(tpList, entry => entry.SpeedMS));
-            locData.Add("HeartRateBpm", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
-            locData.Add("LatitudeDegrees", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
-            locData.Add("LongitudeDegrees", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
+            locData.Add("time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
+            locData.Add("altitude", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
+            locData.Add("dist", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
+            locData.Add("speed", GenerateColumnArray(tpList, entry => entry.SpeedMS));
+            locData.Add("HR", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
+            locData.Add("latitude", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
+            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
 
             return locData;
         }
@@ -271,7 +320,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
         public double AltitudeMeters { get; set; }
         public double DistanceMeters { get; set; }
         public double SpeedMS { get; set; }
-        public byte HeartRateBpm { get; set; }
+        public double HeartRateBpm { get; set; }
         public double LatitudeDegrees { set; get; }
         public double LongitudeDegrees { set; get; }
         public IEnumerable<Speed> SpeedList { get; set; }

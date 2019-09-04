@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Implementations;
 using Parquet.Data;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using System.IO;
+using SINTEF.AutoActive.Databus.Interfaces;
 
 namespace SINTEF.AutoActive.Plugins.Import
 {
@@ -60,6 +63,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     public abstract class ImportTableBase : BaseDataStructure
     {
         protected readonly RememberingFullTableReader _reader;
+        protected TableTimeIndex _timeIndex = null;
 
         public ImportTableBase()
         {
@@ -124,6 +128,33 @@ namespace SINTEF.AutoActive.Plugins.Import
             var schema = new Schema(fields);
             var dcas = new DataColumnAndSchema(datacols, schema);
             return dcas;
+        }
+
+        public async Task<bool> WriteTable(string fileId, ISessionWriter writer)
+        {
+
+            // This stream will be disposed by the sessionWriter
+            var ms = new MemoryStream();
+
+            var dataColAndSchema = makeDataColumnAndSchema();
+
+            using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.schema, ms))
+            {
+                //tableWriter.CompressionMethod = Parquet.CompressionMethod.Gzip;
+
+                using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
+                {
+                    foreach (var dataCol in dataColAndSchema.dataColumns)
+                    {
+                        rowGroup.WriteColumn(dataCol);
+                    }
+                }
+            }
+
+            ms.Position = 0;
+            writer.StoreFileId(ms, fileId);
+
+            return true;
         }
 
     }

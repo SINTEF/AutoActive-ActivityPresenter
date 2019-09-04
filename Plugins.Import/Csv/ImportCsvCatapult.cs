@@ -55,71 +55,71 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             string columnName = "Time";
             string uri = Name + "/" + columnName;
 
-            var time = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
+            _timeIndex = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
 
             columnName = "Forward";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Sideways";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Up";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Dpr";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Gyr1";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Gyr2";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Gyr3";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Altitude";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Vel";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "HDOP";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "VDOP";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Longitude";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Latitude";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Heartrate";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Acc";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
 
             columnName = "Rawvel";
             uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri);
+            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
         }
 
         public override Dictionary<string, Array> ReadData()
@@ -140,7 +140,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(new object[] {});
-            metaTable["is_world_clock"] = false;
+            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -156,28 +156,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
-            // This stream will be disposed by the sessionWriter
-            var ms = new MemoryStream();
+            bool result = await WriteTable(fileId, writer);
+            return result;
 
-            var dataColAndSchema = makeDataColumnAndSchema();
-
-            using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.schema, ms))
-            {
-                //tableWriter.CompressionMethod = Parquet.CompressionMethod.Gzip;
-
-                using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
-                {
-                    foreach (var dataCol in dataColAndSchema.dataColumns)
-                    {
-                        rowGroup.WriteColumn(dataCol);
-                    }
-                }
-            }
-
-            ms.Position = 0;
-            writer.StoreFileId(ms, fileId);
-
-            return true;
         }
 
 
