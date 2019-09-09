@@ -79,36 +79,73 @@ namespace SINTEF.AutoActive.UI.Views
 	        catch (Exception ex)
 	        {
 	            Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
-	            await Application.Current.MainPage.DisplayAlert("Open error", $"Could not open archive:\n{ex.Message}", "OK");
+                await XamarinHelpers.GetCurrentPage().DisplayAlert("Open error", $"Could not open archive:\n{ex.Message}", "OK");
 	        }
         }
 
-        private async void DoImportFiles(IReadOnlyList<IReadSeekStreamFactory> files)
+        private static async void DoImportFiles(IReadOnlyCollection<IReadSeekStreamFactory> files)
         {
+            var isFirst = true;
+            var tasks = new List<(string, Task<IDataProvider>)>();
+
+            var filesLeft = files.Count;
             foreach (var file in files)
             {
                 try
                 {
                     // FIXME: This should probably be handled somewhere else?
                     // FIXME: This should also handle a case where multiple importers are possible
-                    // TODO: Should probably be run on a background thread...
 
                     // Find the proper import plugin to use
                     var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
+                    var plugin = plugins[0];
 
-                    var provider = await plugins[0].Import(file);
+                    var bip = plugin as IBatchImportPlugin;
+                    if (bip != null)
+                    {
+                        if (isFirst)
+                        {
+                            bip.StartTransaction(files.Count);
+                            isFirst = false;
+                        }
+                    }
 
-                    provider?.Register();
+                    var provider = plugin.Import(file);
+                    tasks.Add((file.Name, provider));
 
+                    filesLeft--;
+
+                    if (bip != null && filesLeft == 0)
+                    {
+                        bip.EndTransaction();
+                    }
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
-                    await Application.Current.MainPage.DisplayAlert("Open error",
-                        $"Could not import file:\n{ex.Message}", "OK");
+                    await ShowError(file.Name, ex);
+                }
+            }
+
+            foreach (var nameTask in tasks)
+            {
+                var (name, task) = nameTask;
+                try {
+                    (await task)?.Register();
+                }
+                catch (Exception ex)
+                {
+                    await ShowError(name, ex);
                 }
             }
         }
+
+        private static async Task ShowError(string filename, Exception ex)
+        {
+            Debug.WriteLine($"Could not import file {filename}: {ex.Message}");
+            await Application.Current.MainPage.DisplayAlert("Open error",
+                $"Could not import file \"${filename}\":\n{ex.Message}", "OK");
+        }
+
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)
         {
             var browser = DependencyService.Get<IFileBrowser>();

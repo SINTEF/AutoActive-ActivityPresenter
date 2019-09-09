@@ -12,6 +12,12 @@ namespace SINTEF.AutoActive.Plugins.Import
         Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory);
     }
 
+    public interface IBatchImportPlugin : IImportPlugin
+    {
+        void StartTransaction(int numFiles);
+        void EndTransaction();
+    }
+
     public class ImportPluginAttribute : PluginAttribute
     {
         public ImportPluginAttribute(string extension) : base(typeof(IImportPlugin), extension) { }

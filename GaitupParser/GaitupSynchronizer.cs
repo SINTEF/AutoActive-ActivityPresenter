@@ -1,13 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.CompilerServices;
 
-[assembly: InternalsVisibleTo("GaitupTest")]
-[assembly: InternalsVisibleTo("GaitupExample")]
 namespace GaitupParser
 {
-    internal class GaitupSynchronizer
+    public class GaitupSynchronizer
     {
         private GaitupData _master;
         private readonly List<GaitupData> _slaves = new List<GaitupData>();
