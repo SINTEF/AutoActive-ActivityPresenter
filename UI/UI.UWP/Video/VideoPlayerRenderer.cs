@@ -7,6 +7,9 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI;
 using SINTEF.AutoActive.UI.UWP.Views;
 using Xamarin.Forms.Platform.UWP;
+using System.Collections.Generic;
+using System.Linq;
+using System.Diagnostics;
 
 [assembly: ExportRenderer(typeof(VideoPlayer), typeof(VideoPlayerRenderer))]
 
@@ -22,6 +25,9 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         }
 
         private MediaElement _mediaElement;
+        private VideoPlayer _videoPlayer;
+        private DateTime _lastUpdate;
+
         protected override async void OnElementChanged(ElementChangedEventArgs<VideoPlayer> args)
         {
             base.OnElementChanged(args);
@@ -39,18 +45,18 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     _mediaElement.Volume = 0d;
                 }
 
-                var videoPlayer = args.NewElement;
+                _videoPlayer = args.NewElement;
 
-                _mediaElement.AutoPlay = videoPlayer.IsPlaying;
-                Control.SetSource(await GetVideoStream(videoPlayer.Source), videoPlayer.MimeType);
+                _mediaElement.AutoPlay = _videoPlayer.IsPlaying;
+                Control.SetSource(await GetVideoStream(_videoPlayer.Source), _videoPlayer.MimeType);
 
 
-                videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
-                videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
-                videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
-                PlaybackRateChanged(this, videoPlayer.PlaybackRate);
+                _videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
+                _videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
+                _videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
+                PlaybackRateChanged(this, _videoPlayer.PlaybackRate);
 
-                if (videoPlayer.IsPlaying)
+                if (_videoPlayer.IsPlaying)
                 {
                     _mediaElement.Play();
                 }
@@ -82,37 +88,85 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             else _mediaElement.Pause();
         }
 
+        private double _offsetCompensator;
+        private double _lastOffsetCompensator;
+        private const int OffsetQueueElements = 120;
+        private const double OffsetEqualComp = 0.1d;
+        private readonly Queue<double> _offsetQueue = new Queue<double>(OffsetQueueElements);
+
+
         private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
         {
             if (!_currentlyPlaying)
             {
+                _videoPlayer.SetOffsetLabel(0);
                 _mediaElement.Position = wantedPosition;
                 return;
             }
 
-            var offset = Math.Abs((_mediaElement.Position - wantedPosition).TotalSeconds);
+            var now = DateTime.Now;
+
+            var expectedDiff = now - _lastUpdate;
+            var diff = (_mediaElement.Position - wantedPosition).TotalSeconds - expectedDiff.TotalSeconds;
+
+            var offset = Math.Abs(diff);
+
+            if (_offsetQueue.Count >= OffsetQueueElements)
+            {
+                _offsetQueue.Dequeue();
+            }
+            _offsetQueue.Enqueue(offset);
+
+            bool offsetChanged = false;
+
+            if(_offsetQueue.Count == OffsetQueueElements)
+            {
+                var first = _offsetQueue.Peek();
+                if (_offsetQueue.All(el => Math.Abs(first - el) < OffsetEqualComp*3)) {
+                    var variance = Math.Sqrt(_offsetQueue.Sum(el => (el - first) * (el - first)));
+                    var newOffset = _offsetQueue.Average();
+                    if (variance < OffsetEqualComp)
+                    {
+                        Debug.WriteLine($"Variance ${variance}");
+                        _offsetCompensator += (newOffset / 2);
+                        if(Math.Abs(_offsetCompensator) > _videoPlayer.AllowedOffset)
+                        {
+                            _offsetCompensator = 0;
+                        }
+                        if (Math.Abs(_lastOffsetCompensator - _offsetCompensator) > OffsetEqualComp)
+                        {
+                            offsetChanged = true;
+                        }
+                        Debug.WriteLine("Offset compensator changed.");
+                    }
+                }
+            }
+            
+            _videoPlayer.SetOffsetLabel(diff);
 
             // A possibility here would be to estimate the expected offset and compensate for it
-            if (offset > allowedOffset)
+            if (offsetChanged || offset > allowedOffset * _mediaElement.DefaultPlaybackRate)
             {
-                _mediaElement.Position = wantedPosition;
+                _offsetQueue.Clear();
+                _lastOffsetCompensator = _offsetCompensator;
+                _mediaElement.Position = wantedPosition.Add(new TimeSpan((long)(_offsetCompensator * -10000000L)));
             }
 
             // Only ensure play state if the time is not later than the duration
             if (_currentlyPlaying && wantedPosition < _mediaElement.NaturalDuration)
             {
                 _mediaElement.Play();
+            } else
+            {
+                _mediaElement.Stop();
             }
+
+            _lastUpdate = DateTime.Now;
         }
 
         private void VideoPlayerOnPositionChanged(object sender, PositionChangedEventArgs args)
         {
-            var allowedOffset = 3.0;
-            if (sender is VideoPlayer player)
-            {
-                allowedOffset = player.AllowedOffset;
-            }
-
+            var allowedOffset = _videoPlayer.AllowedOffset;
             XamarinHelpers.EnsureMainThread(() => SetVideoPosition(args.Time, allowedOffset));
         }
     }

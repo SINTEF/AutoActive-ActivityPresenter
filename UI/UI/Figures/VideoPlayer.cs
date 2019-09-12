@@ -18,6 +18,8 @@ namespace SINTEF.AutoActive.UI
             get { return (IReadSeekStreamFactory)GetValue(SourceProperty); }
         }
 
+        public Label Label { get; internal set; }
+
         // Mime property
         public static readonly BindableProperty MimeTypeProperty =
             BindableProperty.Create(nameof(MimeType), typeof(string), typeof(VideoPlayer), null);
@@ -90,6 +92,11 @@ namespace SINTEF.AutoActive.UI
         }
 
         public event EventHandler<double> PlaybackRateChanged;
+
+        public void SetOffsetLabel(double offset)
+        {
+            XamarinHelpers.EnsureMainThread(() => Label.Text = $"{offset}");
+        }
     }
 
     public delegate void PositionChangedEvent(object sender, PositionChangedEventArgs args);
