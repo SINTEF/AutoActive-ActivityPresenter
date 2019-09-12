@@ -194,10 +194,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (wasVisible)
             {
                 RowTimelineView.Height = DefaultTimelineHeight;
+                DataTrackline.IsVisible = true;
             }
             else
             {
                 RowTimelineView.Height = 0;
+                DataTrackline.IsVisible = false;
             }
 
             TimelineExpand.Text = wasVisible ? "^" : "v";
