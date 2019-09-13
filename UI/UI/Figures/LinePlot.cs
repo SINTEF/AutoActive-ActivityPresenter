@@ -394,12 +394,10 @@ namespace SINTEF.AutoActive.UI.Figures
             Canvas.InvalidateSurface();
         }
 
-        protected const string AddLineText = "Add Line";
         protected const string RemoveLineText = "Remove Line";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
-            parameters.Add(AddLineText);
             if(_lines.Count > 1) parameters.Add(RemoveLineText);
             return true;
         }
@@ -471,16 +469,6 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             switch (action)
             {
-                case AddLineText:
-                    var dataPoints = GetAllDataPoints(Databus.DataRegistry.Providers);
-
-                    var newLineName = await page.DisplayActionSheet("Add Line", CancelText, null,
-                        dataPoints.Select(child => child.Name).ToArray());
-                    if (newLineName == null || newLineName == CancelText)
-                        return;
-                    var dataPoint = dataPoints.First(dp => dp.Name == newLineName);
-                    await AddLine(dataPoint);
-                    return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
                         _lines.Select(line => line.Drawer.Legend).ToArray());
