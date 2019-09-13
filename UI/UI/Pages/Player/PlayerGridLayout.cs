@@ -105,7 +105,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         /* -- Grid layout operations -- */
         protected override SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
         {
-            Debug.WriteLine("GRID: OnMeasure");
+            //Debug.WriteLine("GRID: OnMeasure");
             // We want to use the full size available
             var size = new Size(widthConstraint, heightConstraint);
 
@@ -116,7 +116,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         protected override void LayoutChildren(double x, double y, double width, double height)
         {
-            Debug.WriteLine("GRID: LayoutChildren");
+            //Debug.WriteLine("GRID: LayoutChildren");
             // Leave spacing equal to one free cell
 
             const int cellSpacingX = 10;
@@ -176,13 +176,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         protected override void InvalidateLayout()
         {
-            Debug.WriteLine("GRID: InvalidateLayout");
+            //Debug.WriteLine("GRID: InvalidateLayout");
             // When children are added or removed
         }
 
         protected override void OnChildMeasureInvalidated()
         {
-            Debug.WriteLine("GRID: OnChildMeasureInvalidated");
+            //Debug.WriteLine("GRID: OnChildMeasureInvalidated");
             // When a child's size changes
         }
 
