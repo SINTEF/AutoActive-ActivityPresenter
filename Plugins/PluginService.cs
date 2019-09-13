@@ -200,7 +200,50 @@ namespace SINTEF.AutoActive.Plugins
             {
                 return targetImplementors.Keys.ToArray();
             }
+
             return Array.Empty<string>();
+        }
+
+        public static Dictionary<string, List<Type>> GetExtensionTypes<T>()
+        {
+            var targetType = typeof(T);
+            if (!pluginImplementors.TryGetValue(targetType, out var targetImplementors))
+            {
+                return new Dictionary<string, List<Type>>();
+            }
+
+            var ret = new Dictionary<string, List<Type>>();
+            foreach (var item in targetImplementors)
+            {
+                ret[item.Key] = item.Value.Select(el => el.ImplementorType).ToList();
+            }
+            return ret;
+        }
+
+        public static Dictionary<Type, List<string>> GetTypeExtensions<T>()
+        {
+            var orig = GetExtensionTypes<T>();
+            if (orig.Count == 0)
+            {
+                return new Dictionary<Type, List<string>>();
+            }
+
+            var ret = new Dictionary<Type, List<string>>();
+            foreach (var el in orig)
+            {
+                var ext = el.Key;
+                foreach (var type in el.Value)
+                {
+                    if (!ret.TryGetValue(type, out var list))
+                    {
+                        list = new List<string>();
+                        ret[type] = list;
+                    }
+                    list.Add(ext);
+                }
+            }
+
+            return ret;
         }
 
         class PluginImplementorData

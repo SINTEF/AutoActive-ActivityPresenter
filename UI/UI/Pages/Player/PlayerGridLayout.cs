@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -12,7 +13,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public class PlayerGridLayout : Layout<FigureView>, ISerializableView
+    public class PlayerGridLayout : Layout<FigureView>, ISerializableView, IFigureContainer
     {
         //TODO: re-layout if these changes
         public int GridColumns { get; set; } = 4;
@@ -22,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public int BigGridRows { get; set; } = 1;
 
         private FigureView _currentlySelected;
+
         public FigureView Selected
         {
             get => _currentlySelected;
@@ -34,15 +36,40 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         // FIXME : Implement this class, and also possibly restrict this to more specific views for data-renderers
-        public PlayerGridLayout() { }
+        public PlayerGridLayout()
+        {
+            DatapointAdded += (sender, args) =>
+            {
+                var (datapoint, context) = args;
+                _contexts[datapoint] = context;
+            };
+        }
 
-        public async void TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        private Dictionary<IDataPoint, DataViewerContext> _contexts = new Dictionary<IDataPoint, DataViewerContext>();
+
+        public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
             if (Selected != null)
             {
                 try
                 {
-                   await Selected.ToggleDataPoint(datapoint, timeContext);
+                   var result = await Selected.ToggleDataPoint(datapoint, timeContext);
+                   switch (result)
+                   {
+                       case ToggleResult.Added:
+                           DatapointAdded?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Removed:
+                           DatapointRemoved?.Invoke(this, (datapoint, timeContext));
+                           break;
+                       case ToggleResult.Cancelled:
+                           break;
+                       default:
+                           throw new ArgumentOutOfRangeException();
+                   }
+                   return result;
                 }
                 catch (Exception ex)
                 {
@@ -54,9 +81,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                             "Ok");
                     }
                 }
-                
 
-                return;
+                return ToggleResult.Cancelled;
             }
             var view = await FigureView.GetView(datapoint, timeContext);
             {
@@ -71,18 +97,15 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             Children.Add(view);
-        }
+            DatapointAdded?.Invoke(this, (datapoint, timeContext));
 
-        private void UseInTimelineClicked(object sender, EventArgs e)
-        {
-            var dataPointItem = BindingContext as DataPointItem;
-            dataPointItem?.OnUseInTimelineTapped();
+            return ToggleResult.Added;
         }
 
         /* -- Grid layout operations -- */
         protected override SizeRequest OnMeasure(double widthConstraint, double heightConstraint)
         {
-            Debug.WriteLine("GRID: OnMeasure");
+            //Debug.WriteLine("GRID: OnMeasure");
             // We want to use the full size available
             var size = new Size(widthConstraint, heightConstraint);
 
@@ -93,7 +116,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         protected override void LayoutChildren(double x, double y, double width, double height)
         {
-            Debug.WriteLine("GRID: LayoutChildren");
+            //Debug.WriteLine("GRID: LayoutChildren");
             // Leave spacing equal to one free cell
 
             const int cellSpacingX = 10;
@@ -153,13 +176,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         protected override void InvalidateLayout()
         {
-            Debug.WriteLine("GRID: InvalidateLayout");
+            //Debug.WriteLine("GRID: InvalidateLayout");
             // When children are added or removed
         }
 
         protected override void OnChildMeasureInvalidated()
         {
-            Debug.WriteLine("GRID: OnChildMeasureInvalidated");
+            //Debug.WriteLine("GRID: OnChildMeasureInvalidated");
             // When a child's size changes
         }
 
@@ -167,8 +190,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (Selected == figureView)
                 Selected = null;
-            
+
             Children.Remove(figureView);
+            foreach(var datapoint in figureView.DataPoints)
+            {
+                DatapointRemoved?.Invoke(this, (datapoint, _contexts[datapoint]));
+                _contexts.Remove(datapoint);
+            }
         }
 
         public JObject SerializeView(JObject root = null)

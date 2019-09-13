@@ -15,7 +15,7 @@ namespace UI.UWP.Tests
         {
             var mime = MimeUtility.GetMimeMapping(path);
             var videoStream = File.OpenRead(path);
-            var decoder = new VideoLengthExtractor(videoStream.AsRandomAccessStream(), mime);
+            var decoder = new VideoLengthExtractor(videoStream.AsRandomAccessStream(), mime, 0L);
             return decoder;
         }
 

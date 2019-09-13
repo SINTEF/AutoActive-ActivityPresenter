@@ -14,9 +14,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     public partial class PlaybarView : ContentView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
+        public static readonly GridLength DefaultTimelineHeight = 100;
 
-        private DataViewerContext _viewerContext;
-        public DataViewerContext ViewerContext
+        private SingleSetDataViewerContext _viewerContext;
+        public SingleSetDataViewerContext ViewerContext
         {
             get => _viewerContext;
             set
@@ -40,7 +41,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public double PlaybackSpeed { get; private set; } = 1;
         public uint PlayUpdateRate = 30;
         public long WindowSize = 1000000 * 30; // 30s
-
+        private DateTime _playStartTime;
+        private DateTime _lastTime;
         private bool _playTaskRunning;
 
         private long PlayDelayUs => 1000000L / PlayUpdateRate;
@@ -67,25 +69,39 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private void PlayButtonLoop()
         {
             _playTaskRunning = false;
+            _playStartTime = DateTime.Now;
+            _lastTime = DateTime.Now;
 
             while (true)
             {
                 Thread.Sleep(PlayDelayMs);
                 if (!_playTaskRunning)
                 {
+                    _lastTime = DateTime.Now;
                     continue;
                 }
-
+                
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
+                    var now = DateTime.Now;
+                    //var offset = (long) (PlayDelayUs * PlaybackSpeed);
+                    var offsetDiff = TimeFormatter.TimeFromTimeSpan(now - _lastTime);
 
-                    var offset = (long) (PlayDelayUs * PlaybackSpeed);
+                    if (offsetDiff > 2 * PlayDelayUs)
+                    {
+                        offsetDiff = PlayDelayUs;
+                    }
+
+                    var offset = (long)(offsetDiff * PlaybackSpeed);
                     var newStart = timeContext.SelectedTimeFrom + offset;
                     TimeSlider.Value = TimeToSliderValue(newStart);
 
                     timeContext.SetSelectedTimeRange(newStart, timeContext.SelectedTimeTo + offset);
+                    _lastTime = now;
                 });
+
+                //Debug.WriteLine((DateTime.Now - _playStartTime).TotalMilliseconds);
             }
         }
 
@@ -156,17 +172,27 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 RowDataPreview.Height = DefaultPreviewHeight;
             }
-            PreviewDataPoint = datapoint;
 
             if (_previewView != null)
             {
                 ContentGrid.Children.Remove(_previewView);
             }
 
+            // This implements toggling
+            if (PreviewDataPoint == datapoint)
+            {
+                PreviewDataPoint = null;
+                return;
+            }
+
+
+            PreviewDataPoint = datapoint;
+
             _previewView = await LinePlot.Create(datapoint, _previewContext);
+
             if (_previewView == null)
             {
-                //TODO: add Warning;
+                //TODO: add warning
                 return;
             }
             _previewView.ContextButtonIsVisible = false;
@@ -177,10 +203,28 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
         }
 
+        private void TimelineExpand_OnClickedExpand_OnClicked(object sender, EventArgs e)
+        {
+            var wasVisible = RowTimelineView.Height.Value == 0d;
+            if (wasVisible)
+            {
+                RowTimelineView.Height = DefaultTimelineHeight;
+                DataTrackline.IsVisible = true;
+            }
+            else
+            {
+                RowTimelineView.Height = 0;
+                DataTrackline.IsVisible = false;
+            }
+
+            TimelineExpand.Text = wasVisible ? "^" : "v";
+        }
+
         private void PlayButton_Clicked(object sender, EventArgs e)
         {
             if (PlayButton.Text == ">")
             {
+                _playStartTime = DateTime.Now;
                 _playTaskRunning = true;
                 PlayButton.Text = "II";
                 _viewerContext.IsPlaying = true;

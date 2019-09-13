@@ -1,6 +1,8 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
+using System.Diagnostics;
+using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -13,14 +15,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
 	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
-
-        public PlayerPage ()
-		{
-			InitializeComponent ();
+        public PlayerPage()
+        {
+            InitializeComponent();
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
-            //PageGrid.Children.Add(Playbar, 0, 3, 2, 3);
+            Appearing += OnAppearing;
+            Disappearing += OnDisappearing;
+        }
+
+        private void OnAppearing(object sender, EventArgs e)
+        {
             Playbar.ViewerContext = ViewerContext;
 
             Splitter.DragStart += Splitter_DragStart;
@@ -30,6 +36,19 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
+
+            Playbar.DataTrackline.RegisterFigureContainer(PlayerGrid);
+        }
+
+        private void OnDisappearing(object sender, EventArgs e)
+        {
+            Splitter.DragStart -= Splitter_DragStart;
+            Splitter.Dragged -= Splitter_Dragged;
+
+            NavigationBar.MenuButtonClicked -= NavigationBar_MenuButtonClicked;
+
+            TreeView.DataPointTapped -= TreeView_DataPointTapped;
+            TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -56,7 +75,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             // Hide or show the menu button
             NavigationBar.MenuButtonShown = nextTreeViewState != TreeViewState.SplitMode;
-            
+
             // Deal with the tree
             if (nextTreeViewState == TreeViewState.SplitMode)
             {

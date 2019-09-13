@@ -2,6 +2,7 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
+             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.SynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -29,7 +30,7 @@
             </Grid>
             <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
 
-            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar"/>
+            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
             <StackLayout Grid.Column="1" Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft">
                 <Button Text="Save" Clicked ="Save_OnClicked"/>
                 <Button Text="Cancel" Clicked="Cancel_OnClicked"/>

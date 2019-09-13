@@ -139,6 +139,7 @@ namespace SINTEF.AutoActive.Archive
         /* ---------- Create a new archive from scratch ---------- */
         private Archive(ZipFile zipFile)
         {
+            zipFile.UseZip64 = UseZip64.On;
             _zipFile = zipFile;
         }
 

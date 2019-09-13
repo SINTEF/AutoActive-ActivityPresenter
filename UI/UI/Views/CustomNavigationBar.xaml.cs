@@ -83,40 +83,50 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
-	    private async void OpenImportButton_OnClicked(object sender, EventArgs e)
-	    {
-	        var browser = DependencyService.Get<IFileBrowser>();
-	        if (browser == null)
-	        {
-	            await Application.Current.MainPage.DisplayAlert("Open error", "Could get file browser.", "OK");
-	            return;
-	        }
+        private async void DoImportFiles(IReadOnlyList<IReadSeekStreamFactory> files)
+        {
+            foreach (var file in files)
+            {
+                try
+                {
+                    // FIXME: This should probably be handled somewhere else?
+                    // FIXME: This should also handle a case where multiple importers are possible
+                    // TODO: Should probably be run on a background thread...
 
-	        var file = await browser.BrowseForImportFile();
-	        if (file == null) return;
+                    // Find the proper import plugin to use
+                    var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
 
-	        try
-	        {
-	            // FIXME: This should probably be handled somewhere else?
-	            // FIXME: This should also handle a case where multiple importers are possible
-	            // TODO: Should probably be run on a background thread...
+                    var provider = await plugins[0].Import(file);
 
-	            // Find the proper import plugin to use
-                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension);
+                    provider?.Register();
 
-	            var provider = await plugins[0].Import(file);
-
-	            provider?.Register();
-
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
+                    await Application.Current.MainPage.DisplayAlert("Open error",
+                        $"Could not import file:\n{ex.Message}", "OK");
+                }
             }
-	        catch (Exception ex)
-	        {
-	            Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
-	            await Application.Current.MainPage.DisplayAlert("Open error", $"Could not open archive:\n{ex.Message}", "OK");
-	        }
+        }
+        private async void OpenImportButton_OnClicked(object sender, EventArgs e)
+        {
+            var browser = DependencyService.Get<IFileBrowser>();
+            if (browser == null)
+            {
+                await Application.Current.MainPage.DisplayAlert("Open error", "Could get file browser.", "OK");
+                return;
+            }
+
+            var files = await browser.BrowseForImportFiles();
+
+            if (files == null) return;
+
+            var task = new Task(() => DoImportFiles(files));
+            task.Start();
         }
 
-	    private void SaveArchiveButton_OnClicked(object sender, EventArgs e)
+        private void SaveArchiveButton_OnClicked(object sender, EventArgs e)
         {
             var dataPoints = new List<IDataStructure>(DataRegistry.Providers);
             //var sessions = new List<ArchiveSession>(OpenSessions);
@@ -190,9 +200,8 @@ namespace SINTEF.AutoActive.UI.Views
 	                {
 	                    session.AddChild(child);
                     }
-                    if (dataPoint is Archive.Plugin.ArchiveSession)
+                    if (dataPoint is ArchiveSession locArch)
                     {
-                        var locArch = dataPoint as Archive.Plugin.ArchiveSession;
                         session.AddBasedOnSession(locArch); 
                     }
                 }

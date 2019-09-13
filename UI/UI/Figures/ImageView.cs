@@ -31,8 +31,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
             if (viewer.DataPoint.Time is ArchiveVideoTime time)
             {
-                view.TimeOffset = time.Offset;
-                time.OffsetChanged += (s, offset) => view.TimeOffset = offset;
+                view.StartTime = time.Offset;
+                time.OffsetChanged += (s, offset) => view.StartTime = offset;
             }
 
             context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
@@ -44,7 +44,7 @@ namespace SINTEF.AutoActive.UI.Figures
             return view;
         }
 
-        public long TimeOffset { get; set; }
+        public long StartTime { get; set; }
 
         private void IsPlayingChanged(object sender, bool isPlaying)
         {
@@ -56,9 +56,9 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.PlaybackRate = playbackRate;
         }
 
-        private void OnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long from, long to)
+        private void OnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long currentStart, long to)
         {
-            var diff = TimeFormatter.SecondsFromTime(from - TimeOffset);
+            var diff = TimeFormatter.SecondsFromTime(currentStart - StartTime);
             try
             {
                 _player.Position = TimeSpan.FromSeconds(diff);
@@ -88,6 +88,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         protected ImageView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
+        }
+
+        /// Remove datapoint (by removing this image view) if present here.
+        protected override void RemoveDataPoint(IDataPoint datapoint)
+        {
+            if (DataPoints.Contains(datapoint))
+                RemoveThisView();
         }
     }
 }

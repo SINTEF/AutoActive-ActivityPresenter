@@ -1,4 +1,6 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using System;
+using System.Collections.Generic;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using System.Threading.Tasks;
 
@@ -17,9 +19,7 @@ namespace SINTEF.AutoActive.Plugins.Import
 
     public static class ImportPlugins
     {
-        public static string[] SupportedExtensions
-        {
-            get => PluginService.GetKinds<IImportPlugin>();
-        }
+        public static Dictionary<string, List<Type>> ExtensionTypes => PluginService.GetExtensionTypes<IImportPlugin>();
+        public static Dictionary<Type, List<string>> TypeExtensions => PluginService.GetTypeExtensions<IImportPlugin>();
     }
 }

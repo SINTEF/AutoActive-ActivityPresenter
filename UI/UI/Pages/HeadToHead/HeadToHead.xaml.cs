@@ -44,18 +44,24 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             _dictionary[LeftButton] = (masterContext, LeftGrid);
 
             var slaveContext = new SynchronizationContext(masterContext);
-            OffsetSlider.OffsetChanged += (sender, args) => slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
+            OffsetSlider.OffsetChanged += (sender, args) =>
+            {
+                slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
+                Playbar.DataTrackline.InvalidateSurface();
+            };
             _dictionary[RightButton] = (slaveContext, RightGrid);
 
             SelectButton_Clicked(LeftButton, new EventArgs());
 
             Playbar.ViewerContext = masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(LeftGrid);
+            Playbar.DataTrackline.RegisterFigureContainer(RightGrid);
         }
 
-        private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
+        private async void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
             var (context, grid) = _dictionary[SelectedButton];
-            grid.TogglePlotFor(dataPoint, context);
+            await grid.TogglePlotFor(dataPoint, context);
         }
 
         private void SelectButton_Clicked(object sender, EventArgs e)
@@ -73,7 +79,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         {
             await LoadView();
         }
-
 
         private async Task SaveView()
         {
@@ -167,5 +172,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             return root;
         }
+
     }
 }

@@ -18,9 +18,11 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         private long? _videoLength;
         private readonly TaskCompletionSource<long> _videoLengthTask = new TaskCompletionSource<long>();
 
-        public VideoLengthExtractor(IRandomAccessStream stream, string mime)
+        public VideoLengthExtractor(IRandomAccessStream stream, string mime, long reportedLength)
         {
             if(_videoLength.HasValue) _videoLengthTask.SetResult(_videoLength.Value);
+
+            ReportedLength = reportedLength;
 
             var source = MediaSource.CreateFromStream(stream, mime);
 
@@ -39,7 +41,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         {
             var videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
             sender.MediaOpened -= MediaPlayerOnMediaOpened;
-
+            
             if (videoLength == 0)
             {
                 sender.CurrentStateChanged += CurrentStateChanged;
@@ -69,13 +71,15 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         {
             return _videoLengthTask.Task;
         }
+
+        public long ReportedLength { get; }
     }
 
     public class VideoLengthExtractorFactory : IVideoLengthExtractorFactory
     {
-        public async Task<IVideoLengthExtractor> CreateVideoDecoder(IReadSeekStreamFactory file, string mime)
+        public async Task<IVideoLengthExtractor> CreateVideoDecoder(IReadSeekStreamFactory file, string mime, long suggestedLength)
         {
-            return new VideoLengthExtractor(await VideoPlayerRenderer.GetVideoStream(file), mime);
+            return new VideoLengthExtractor(await VideoPlayerRenderer.GetVideoStream(file), mime, suggestedLength);
         }
     }
 }

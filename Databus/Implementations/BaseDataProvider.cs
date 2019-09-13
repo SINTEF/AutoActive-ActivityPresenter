@@ -1,5 +1,4 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
-using System;
 using System.IO;
 
 namespace SINTEF.AutoActive.Databus.Implementations

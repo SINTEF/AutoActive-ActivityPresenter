@@ -23,6 +23,10 @@ namespace SINTEF.AutoActive.UI.Helpers
 
             return $"{hours:D2}:{minutes:D2}:{seconds:D2}.{millis:D3}";
         }
+        public static long TimeFromDateTime(DateTime dateTime)
+        {
+            return TimeFromTimeSpan(dateTime - new DateTime(1970, 1, 1, 0, 0, 0, 0));
+        }
         public static long TimeFromTimeSpan(TimeSpan timeSpan)
         {
             return (long)(MicrosPerSecond * timeSpan.TotalSeconds);

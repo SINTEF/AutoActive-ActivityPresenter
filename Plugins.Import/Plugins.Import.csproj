@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
@@ -7,6 +7,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="CsvHelper" Version="12.1.2" />
+    <PackageReference Include="MetadataExtractor" Version="2.1.0" />
     <PackageReference Include="System.Net.Mqtt" Version="0.5.42-beta" />
     <PackageReference Include="System.Xml.ReaderWriter" Version="4.3.1" />
   </ItemGroup>
@@ -14,7 +16,9 @@
   <ItemGroup>
     <ProjectReference Include="..\Databus\Databus.csproj" />
     <ProjectReference Include="..\FileSystem\FileSystem.csproj" />
+    <ProjectReference Include="..\Plugins.Archive\Plugins.Archive.csproj" />
     <ProjectReference Include="..\Plugins\Plugins.csproj" />
+    <ProjectReference Include="..\UI\Helpers\UI.Helpers.csproj" />
   </ItemGroup>
 
 </Project>
