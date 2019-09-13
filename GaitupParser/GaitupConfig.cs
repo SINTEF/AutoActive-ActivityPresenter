@@ -23,6 +23,9 @@ namespace GaitupParser
         public ushort Frequency;
         public ushort MeasureId;
         public ButtonConfig Button;
+
+        public string Name;
+        public string FileName;
     }
 
     public struct GaitupBleConfig

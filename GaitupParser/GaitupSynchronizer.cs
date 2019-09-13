@@ -45,7 +45,21 @@ namespace GaitupParser
 
         public void AddDataSets(IReadOnlyList<GaitupData> dataSets)
         {
-            _master = dataSets.Single(el => el.Config.Radio.Mode == 0);
+            if (dataSets.Count == 1)
+            {
+                _master = dataSets.First();
+            }
+            else
+            {
+                try
+                {
+                    _master = dataSets.Single(el => el.Config.Radio.Mode == 0);
+                }
+                catch (InvalidOperationException ex)
+                {
+                    throw new InvalidOperationException("Cannot find any master with mode = 0");
+                }
+            }
 
             // All except the master are slaves
             foreach (var slave in dataSets.Where(el => el != _master))
@@ -56,7 +70,11 @@ namespace GaitupParser
 
         public void Synchronize(bool doCrop = true)
         {
-            var startTime = _slaves.Max(ds => ds.Timestamps.First() + CalcOffset(ds));
+            long startTime = 0;
+            if (_slaves.Count > 0)
+            {
+                startTime = _slaves.Max(ds => ds.Timestamps.First() + CalcOffset(ds));
+            }
             startTime = Math.Max(startTime, _master.Timestamps.First());
             
             foreach (var slave in _slaves)

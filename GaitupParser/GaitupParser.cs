@@ -10,13 +10,17 @@ namespace GaitupParser
     {
         private readonly Stream _stream;
         private readonly BinaryReader _reader;
+        private readonly string _name;
+        private readonly string _fileName;
         private GaitupData _data;
         public bool PrintProgress { get; set; }
 
-        public GaitupParser(Stream stream)
+        public GaitupParser(Stream stream, string name, string fileName)
         {
             _stream = stream;
             _reader = new BigEndianBinaryReader(_stream);
+            _name = name;
+            _fileName = fileName;
         }
 
         internal GaitupConfigFrame GetConfigFrame(GaitupConfig config)
@@ -115,6 +119,8 @@ namespace GaitupParser
             {
                 config = GetConfig();
             }
+            config.Name = _name;
+            config.FileName = _fileName;
 
             var fileLength = _stream.Length;
 
@@ -127,6 +133,12 @@ namespace GaitupParser
             {
                 while (true)
                 {
+                    if(_stream.Length == _stream.Position)
+                    {
+                        // End of file
+                        break;
+                    }
+
                     ParseSector(config);
 
                     if (!PrintProgress) continue;
