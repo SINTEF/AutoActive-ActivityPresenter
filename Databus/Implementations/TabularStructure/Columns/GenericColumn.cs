@@ -65,7 +65,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
                     data = new Span<T1>(pin.Pointer, elements.Length);
             }
 
-            return new SpanPair<T1>(Index.Data.AsSpan(StartIndex, Length), data);
+            return new SpanPair<T1>(StartIndex, Index.Data.AsSpan(StartIndex, Length), data);
         }
     }
 }
