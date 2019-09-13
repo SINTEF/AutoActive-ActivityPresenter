@@ -179,7 +179,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 var column = tableInformation.Columns[index];
                 string unit = null;
-                if (tableInformation.Units?.Count < index)
+                if (index < tableInformation.Units?.Count)
                 {
                     unit = tableInformation.Units[index];
                 }
