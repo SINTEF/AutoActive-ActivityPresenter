@@ -10,8 +10,12 @@ namespace SINTEF.AutoActive.UI.Figures
 
         float MinY { get; }
         float MaxY { get; }
+
+        (float, float) GetVisibleYMinMax();
+
         ITimeSeriesViewer Viewer { get; }
         LinePlot Parent { get; set; }
+
         string Legend { get; set; }
     }
 
@@ -52,7 +56,9 @@ namespace SINTEF.AutoActive.UI.Figures
                     plotX = width;
                     done = true;
                 }
-                plot.LineTo(plotX, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+
+                var valY = LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY);
+                plot.LineTo(plotX, valY);
             }
         }
 
@@ -79,6 +85,22 @@ namespace SINTEF.AutoActive.UI.Figures
                 _maxYValue = value;
                 Parent?.InvalidateSurface();
             }
+        }
+
+
+
+        public (float,float) GetVisibleYMinMax()
+        {
+            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems*10);
+            var (min, max) = (float.MaxValue, float.MinValue);
+            while (en.MoveNext())
+            {
+                var el = Convert.ToSingle(en.Current.y);
+                min = Math.Min(el, min);
+                max = Math.Max(el, max);
+            }
+
+            return (min, max);
         }
     }
 }

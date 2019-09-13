@@ -112,13 +112,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public new static float ScaleX(long v, long offset, float scale)
+        public static float ScaleX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public new static float ScaleY(float v, float offset, float scale)
+        public static float ScaleY(float v, float offset, float scale)
         {
             return (v - offset) * scale;
         }
@@ -180,6 +180,11 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int TickLength = 3;
         private const int TickMargin = 3;
 
+        public bool AutoScale = true;
+
+        private const int SmoothScalingQueueSize = 10;
+        private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             // Clear background and draw frame
@@ -217,11 +222,57 @@ namespace SINTEF.AutoActive.UI.Figures
             if(AxisValuesVisible)
                 startX -= (long) (TickBoxMargin / scaleX);
 
-            foreach (var line in _lines)
+            var minYValue = _minYValue;
+            var maxYValue = _maxYValue;
+
+            if (AutoScale)
             {
-                line.OffsetX = startX;
-                line.ScaleX = scaleX;
-                line.ScaleY = -info.Height / (line.YDelta);
+                var curMin = float.MaxValue;
+                var curMax = float.MinValue;
+                foreach (var line in _lines)
+                {
+                    var (cMin, cMax) = line.Drawer.GetVisibleYMinMax();
+                    curMin = Math.Min(curMin, cMin);
+                    curMax = Math.Max(curMax, cMax);
+                }
+
+                if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+                {
+                    _smoothScalingQueue.Dequeue();
+                }
+
+                _smoothScalingQueue.Enqueue((curMin, curMax));
+
+                curMin = _smoothScalingQueue.Min(el => el.Item1);
+                curMax = _smoothScalingQueue.Max(el => el.Item2);
+
+                minYValue = curMin;
+                maxYValue = curMax;
+
+                var yDelta = curMax - curMin;
+                if (yDelta <= 0)
+                {
+                    yDelta = 1;
+                    curMax -= yDelta / 2;
+                }
+                foreach (var line in _lines)
+                {
+                    line.OffsetY = curMax;
+                    line.ScaleY = -info.Height / yDelta;
+                    line.OffsetX = startX;
+                    line.ScaleX = scaleX;
+                }
+            }
+            else
+            {
+                foreach (var line in _lines)
+                {
+                    if (_maxYValue.HasValue)
+                        line.OffsetY = _maxYValue.Value;
+                    line.OffsetX = startX;
+                    line.ScaleX = scaleX;
+                    line.ScaleY = -info.Height / (line.YDelta);
+                }
             }
 
             if (CurrentTimeVisible)
@@ -235,9 +286,9 @@ namespace SINTEF.AutoActive.UI.Figures
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
 
-            if (AxisValuesVisible && _minYValue.HasValue && _maxYValue.HasValue)
+            if (AxisValuesVisible && minYValue.HasValue && maxYValue.HasValue)
             {
-                DrawTicks(canvas, info, _minYValue.Value, _maxYValue.Value);
+                DrawTicks(canvas, info, minYValue.Value, maxYValue.Value);
             }
 
             foreach (var lineConfig in _lines)
