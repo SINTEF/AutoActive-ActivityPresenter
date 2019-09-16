@@ -168,11 +168,11 @@ namespace SINTEF.AutoActive.UI.Figures
             IsAntialias = true,
         };
 
-        private void DrawLine(SKCanvas canvas, SKImageInfo info, LineConfiguration lineConfig)
+        private void DrawLine(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig)
         {
             // Create path
             var plot = new SKPath();
-            lineConfig.Drawer.CreatePath(plot, info, lineConfig);
+            lineConfig.Drawer.CreatePath(plot, drawRect, lineConfig);
 
             // Draw the data
             canvas.DrawPath(plot, lineConfig.LinePaint);
@@ -187,6 +187,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int TickBoxMargin = 45;
         private const int TickLength = 3;
         private const int TickMargin = 3;
+        private const int PlotHeightMargin = 4;
 
         public bool AutoScale = true;
 
@@ -195,15 +196,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
-            // Clear background and draw frame
-            canvas.Clear(SKColors.White);
-
-            var plotWidth = AxisValuesVisible  ? info.Width - TickBoxMargin : info.Width;
-
-            canvas.DrawRect(AxisValuesVisible ? TickBoxMargin : 0, 0, plotWidth - 1, info.Height - 1, FramePaint);
+            var plotRect = new SKRect(AxisValuesVisible ? TickBoxMargin : 0, 0, info.Width, info.Height);
+           
+            canvas.DrawRect(plotRect, FramePaint);
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
+            var xEnd = 0L;
             foreach (var line in _lines)
             {
                 var viewer = line.Drawer.Viewer;
@@ -211,24 +210,26 @@ namespace SINTEF.AutoActive.UI.Figures
                 xDiff = viewer.CurrentTimeRangeTo - viewer.CurrentTimeRangeFrom;
                 if (xDiff == 0) continue;
 
+                xEnd = viewer.CurrentTimeRangeTo;
                 break;
             }
+
             if (xDiff == 0) return; // No data selected -> avoid divide-by-zero
 
             var earliestStartTime = _lines.Min(line => line.Drawer.Viewer.CurrentTimeRangeFrom);
 
-            var scaleX = (float)plotWidth / xDiff;
-
             //TODO: make the percentage selectable
             var startX = earliestStartTime - xDiff * PreviewPercentage / 100;
 
+            canvas.Save();
+            canvas.ClipRect(plotRect);
+            
             if (startX < _context.AvailableTimeFrom)
             {
                 startX = _context.AvailableTimeFrom;
             }
 
-            if(AxisValuesVisible)
-                startX -= (long) (TickBoxMargin / scaleX);
+            var scaleX = plotRect.Width / xDiff;
 
             var minYValue = _minYValue;
             var maxYValue = _maxYValue;
@@ -254,57 +255,65 @@ namespace SINTEF.AutoActive.UI.Figures
                 curMin = _smoothScalingQueue.Min(el => el.Item1);
                 curMax = _smoothScalingQueue.Max(el => el.Item2);
 
-                minYValue = curMin;
-                maxYValue = curMax;
-
                 var yDelta = curMax - curMin;
                 if (yDelta <= 0)
                 {
                     yDelta = 1;
                     curMax -= yDelta / 2;
                 }
+
+                var scaleY = -(info.Height - PlotHeightMargin*2) / yDelta;
+                curMax -= PlotHeightMargin / scaleY;
                 foreach (var line in _lines)
                 {
                     line.OffsetY = curMax;
-                    line.ScaleY = -info.Height / yDelta;
-                    line.OffsetX = startX;
-                    line.ScaleX = scaleX;
+                    line.ScaleY = scaleY;
                 }
+
+                minYValue = curMin;
+                maxYValue = curMax;
             }
             else
             {
                 foreach (var line in _lines)
                 {
-                    if (_maxYValue.HasValue)
-                        line.OffsetY = _maxYValue.Value;
-                    line.OffsetX = startX;
-                    line.ScaleX = scaleX;
                     line.ScaleY = -info.Height / (line.YDelta);
                 }
+            }
+
+            foreach (var line in _lines)
+            {
+                if (maxYValue.HasValue)
+                    line.OffsetY = maxYValue.Value;
+                line.OffsetX = startX;
+                line.ScaleX = scaleX;
             }
 
             if (CurrentTimeVisible)
             {
                 // Draw current time axis
                 var zeroX = ScaleX(earliestStartTime, startX, scaleX);
-                canvas.DrawLine(zeroX, 0, zeroX, info.Height, _currentLinePaint);
+                canvas.DrawLine(zeroX, 0, zeroX, plotRect.Height, _currentLinePaint);
             }
 
             // Draw zero-x axis
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
-            canvas.DrawLine(0, zeroY, info.Width, zeroY, _zeroLinePaint);
-
-            if (AxisValuesVisible && minYValue.HasValue && maxYValue.HasValue)
-            {
-                DrawTicks(canvas, info, minYValue.Value, maxYValue.Value);
-            }
+            canvas.DrawLine(0, zeroY, plotRect.Width, zeroY, _zeroLinePaint);
 
             foreach (var lineConfig in _lines)
             {
-                DrawLine(canvas, info, lineConfig);
+                DrawLine(canvas, plotRect, lineConfig);
             }
 
-            DrawLegends(canvas, info, _lines);
+            DrawLegends(canvas, plotRect, _lines);
+
+            if (!AxisValuesVisible || !minYValue.HasValue || !maxYValue.HasValue)
+                return;
+                
+            var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
+            canvas.Restore();
+            canvas.ClipRect(axisValueRect);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
         }
 
 
@@ -349,7 +358,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        private void DrawTicks(SKCanvas canvas, SKImageInfo info, float minY, float maxY)
+        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             var diffY = maxY - minY;
             const uint nTicks = 8;
@@ -362,7 +371,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 tickStart = SmartRound(tickStart, diffY);
 
             var tickDelta = SmartRound(diffY / nTicks, diffY);
-            var scale = -info.Height/diffY;
+            var scale = -drawRect.Height/diffY;
 
             var (valueFormat, yOffset) = GetFormat(minY, maxY);
 
@@ -385,15 +394,15 @@ namespace SINTEF.AutoActive.UI.Figures
                 //var offsetTextSize = TextPaint.MeasureText(offsetText);
 
                 //TODO: instead of drawing this, skip drawing the text in the first place
-                canvas.DrawRect(0, info.Height - TextPaint.TextSize -1, TickBoxMargin-1, info.Height, _legendFill);
-                canvas.DrawText(offsetText, TickMargin, info.Height - TextPaint.TextSize, TextPaint);
+                canvas.DrawRect(0, drawRect.Height - TextPaint.TextSize -1, TickBoxMargin-1, drawRect.Height, _legendFill);
+                canvas.DrawText(offsetText, TickMargin, drawRect.Height - TextPaint.TextSize, TextPaint);
             }
 
         }
 
-        private void DrawLegends(SKCanvas canvas, SKImageInfo info, IReadOnlyCollection<LineConfiguration> configs)
+        private void DrawLegends(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<LineConfiguration> configs)
         {
-            var frameStartX = info.Width - 1;
+            var frameStartX = drawRect.Width - 1;
             var frameStartY = 1;
 
             const int legendLineWidth = 10;
@@ -421,7 +430,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var legendLineX0 = legendLineX1 - legendLineWidth;
 
             var legendFrameStartX = legendLineX0 - legendPadding;
-            var legendFrameWidth = info.Width - legendMargin - legendFrameStartX;
+            var legendFrameWidth = drawRect.Width - legendMargin - legendFrameStartX;
             var legendEndY = legendTextStartY + legendPadding;
 
             var legendYDelta = multipleLegendSpacing + textHeight;
@@ -538,8 +547,6 @@ namespace SINTEF.AutoActive.UI.Figures
                     return;
                 case RemoveText:
                     _lines.Clear();
-                    break;
-                default:
                     break;
             }
             base.OnHandleMenuResult(page, action);
