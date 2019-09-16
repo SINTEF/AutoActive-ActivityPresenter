@@ -71,12 +71,8 @@ namespace GaitupParser
         public void Synchronize(bool doCrop = true)
         {
             long startTime = 0;
-            if (_slaves.Count > 0)
-            {
-                startTime = _slaves.Max(ds => ds.Timestamps.First() + CalcOffset(ds));
-            }
-            startTime = Math.Max(startTime, _master.Timestamps.First());
-            
+            startTime = _master.Timestamps.First();
+
             foreach (var slave in _slaves)
             {
                 Synchronize(slave, startTime);

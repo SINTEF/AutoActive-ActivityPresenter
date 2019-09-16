@@ -85,51 +85,58 @@ namespace SINTEF.AutoActive.UI.Views
 
         private static async void DoImportFiles(IReadOnlyCollection<IReadSeekStreamFactory> files)
         {
-            var isFirst = true;
             var tasks = new List<(string, Task<IDataProvider>)>();
 
-            var filesLeft = files.Count;
-            foreach (var file in files)
+            var pluginDict = new Dictionary<IImportPlugin, List<IReadSeekStreamFactory>>();
+            // Group the files on plugin
+            foreach(var file in files)
             {
-                try
+                // Find the proper import plugin to use
+                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
+                var plugin = plugins[0];
+
+                if(!pluginDict.ContainsKey(plugin))
                 {
-                    // FIXME: This should probably be handled somewhere else?
-                    // FIXME: This should also handle a case where multiple importers are possible
+                    pluginDict[plugin] = new List<IReadSeekStreamFactory>();
+                }
+                pluginDict[plugin].Add(file);
+            }
 
-                    // Find the proper import plugin to use
-                    var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
-                    var plugin = plugins[0];
-
-                    var bip = plugin as IBatchImportPlugin;
-                    if (bip != null)
+            // Start import for each plugin and signal batch import if implemented
+            var pluginDictKeys = pluginDict.Keys;
+            foreach(var plugin in pluginDictKeys)
+            {
+                var fileList = pluginDict[plugin];
+                var bip = plugin as IBatchImportPlugin;
+                if (bip != null)
+                {
+                    bip.StartTransaction(fileList.Count);
+                }
+                foreach (var file in fileList)
+                {
+                    try
                     {
-                        if (isFirst)
-                        {
-                            bip.StartTransaction(files.Count);
-                            isFirst = false;
-                        }
+                        // FIXME: This should probably be handled somewhere else?
+                        var provider = plugin.Import(file);
+                        tasks.Add((file.Name, provider));
                     }
-
-                    var provider = plugin.Import(file);
-                    tasks.Add((file.Name, provider));
-
-                    filesLeft--;
-
-                    if (bip != null && filesLeft == 0)
+                    catch (Exception ex)
                     {
-                        bip.EndTransaction();
+                        await ShowError(file.Name, ex);
                     }
                 }
-                catch (Exception ex)
+                if (bip != null)
                 {
-                    await ShowError(file.Name, ex);
+                    bip.EndTransaction();
                 }
+                
             }
 
             foreach (var nameTask in tasks)
             {
                 var (name, task) = nameTask;
-                try {
+                try
+                {
                     (await task)?.Register();
                 }
                 catch (Exception ex)
