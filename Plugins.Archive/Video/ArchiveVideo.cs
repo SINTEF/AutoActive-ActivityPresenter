@@ -120,7 +120,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public string Name { get; set; }
         public ArchiveVideoTime VideoTime { get; }
         public ITimePoint Time => VideoTime;
-        
+        public string Unit { get; set; }
         private readonly IReadSeekStreamFactory _streamFactory;
 
         public ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime, long videoLength)

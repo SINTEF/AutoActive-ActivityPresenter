@@ -198,17 +198,20 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
+            //TODO: implement these
             var uri = "LIVE";
+            string unit = null;
+
             // Create the time index
-            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true, uri);
+            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true, uri, "t");
 
             // Add other columns
-            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol, uri);
-            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol, uri);
-            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol, uri);
-            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol, uri);
-            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol, uri);
-            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol, uri);
+            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol, uri, unit);
+            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol, uri, unit);
+            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol, uri, unit);
+            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol, uri, unit);
+            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol, uri, unit);
+            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol, uri, unit);
         }
 
         private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)

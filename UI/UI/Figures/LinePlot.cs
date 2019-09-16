@@ -100,7 +100,15 @@ namespace SINTEF.AutoActive.UI.Figures
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
             if (lineDrawer != null)
             {
-                lineDrawer.Legend = dataPoint.Name;
+                //TODO: add unit here, if it exists + $"({datapoint.Unit})" (this will break remove line)
+                if (dataPoint.Unit == null)
+                {
+                    lineDrawer.Legend = dataPoint.Name;
+                }
+                else
+                {
+                    lineDrawer.Legend = $"{dataPoint.Name} [{dataPoint.Unit}]";
+                }
             }
             return lineDrawer;
         }
