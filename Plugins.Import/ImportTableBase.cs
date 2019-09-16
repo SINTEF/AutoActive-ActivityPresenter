@@ -10,6 +10,18 @@ using SINTEF.AutoActive.Databus.Interfaces;
 namespace SINTEF.AutoActive.Plugins.Import
 {
 
+    public class ColInfo
+    {
+        public string Name { get; }
+        public string Unit { get; }
+
+        public ColInfo(string name, string unit)
+        {
+            Name = name;
+            Unit = unit;
+        }
+    }
+
     public class RememberingFullTableReader
     {
         private readonly ImportTableBase _reader;
@@ -64,6 +76,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     {
         protected readonly RememberingFullTableReader _reader;
         protected TableTimeIndex _timeIndex = null;
+        protected List<ColInfo> _colInfos = new List<ColInfo>();
 
         public ImportTableBase()
         {
@@ -77,9 +90,10 @@ namespace SINTEF.AutoActive.Plugins.Import
             return Task.FromResult(_reader.LoadColumn<T>(columnName));
         }
 
-        protected Task<T[]> GenerateLoader<T>(string columnName)
+        protected Task<T[]> GenerateLoader<T>(ColInfo colInfo)
         {
-            return new Task<T[]>(() => LoadColumn<T>(columnName).Result);
+            _colInfos.Add(colInfo);
+            return new Task<T[]>(() => LoadColumn<T>(colInfo.Name).Result);
         }
 
         protected DataColumnAndSchema makeDataColumnAndSchema()
@@ -94,10 +108,12 @@ namespace SINTEF.AutoActive.Plugins.Import
             List<Field> fields = new List<Field>();
             List<DataColumn> datacols = new List<DataColumn>();
 
-            foreach (KeyValuePair<string, Array> dataEntry in dataDict)
+            var numCol = _colInfos.Count;
+            for (var i = 0; i < numCol; i++)
             {
-                var dataArr = dataEntry.Value;
-                var dataName = dataEntry.Key;
+                var colInfo = _colInfos[i];
+                var dataName = colInfo.Name;
+                var dataArr = dataDict[dataName];
                 DataColumn column = null;
 
                 switch (dataArr)
@@ -133,18 +149,20 @@ namespace SINTEF.AutoActive.Plugins.Import
         public async Task<bool> WriteTable(string fileId, ISessionWriter writer)
         {
 
+            var unitList = new List<string>();
+
             // This stream will be disposed by the sessionWriter
             var ms = new MemoryStream();
 
             var dataColAndSchema = makeDataColumnAndSchema();
 
-            using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.schema, ms))
+            using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.Schema, ms))
             {
                 //tableWriter.CompressionMethod = Parquet.CompressionMethod.Gzip;
 
                 using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
                 {
-                    foreach (var dataCol in dataColAndSchema.dataColumns)
+                    foreach (var dataCol in dataColAndSchema.DataColumns)
                     {
                         rowGroup.WriteColumn(dataCol);
                     }
@@ -157,16 +175,28 @@ namespace SINTEF.AutoActive.Plugins.Import
             return true;
         }
 
-    }
+        protected string[] GetUnitArr()
+        {
+            // Make unit table
+            var numCol = _colInfos.Count;
+            string[] units = new string[numCol];
+            for (var i = 0; i < numCol; i++)
+            {
+                units[i] = _colInfos[i].Unit;
+            }
 
-    public class DataColumnAndSchema
+            return units;
+        }
+}
+
+public class DataColumnAndSchema
     {
-        public readonly List<DataColumn> dataColumns;
-        public readonly Schema schema;
+        public readonly List<DataColumn> DataColumns;
+        public readonly Schema Schema;
         public DataColumnAndSchema(List<DataColumn> dataCols, Schema sch)
         {
-            dataColumns = dataCols;
-            schema = sch;
+            DataColumns = dataCols;
+            Schema = sch;
         }
     }
 

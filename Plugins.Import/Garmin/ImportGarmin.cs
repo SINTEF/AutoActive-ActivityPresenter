@@ -52,6 +52,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
     }
 
+
     public class GarminTable : ImportTableBase, ISaveable
     {
         public bool IsSaved { get; }
@@ -66,34 +67,27 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
             bool isWorldSynchronized = true;
 
-            string columnName = "time";
-            string uri = Name + "/" + columnName;
+            var timeColInfo = new ColInfo("time", "us");
+            string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
+            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
-            columnName = "altitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+            var stringUnits = new[]
+            {
+                new ColInfo("altitude", "m"),
+                new ColInfo("dist", "m"),
+                new ColInfo("speed", "ms"),
+                new ColInfo("HR", "bpm"),
+                new ColInfo("latitude", "deg"),
+                new ColInfo("longitude", "deg"),
+            };
 
-            columnName = "dist";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
+            foreach (var colInfo in stringUnits)
+            {
+                uri = Name + "/" + colInfo.Name;
+                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), _timeIndex, uri, colInfo.Unit);
+            }
 
-            columnName = "speed";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
-
-            columnName = "HR";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
-
-            columnName = "latitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
-
-            columnName = "longitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<double>(columnName), _timeIndex, uri);
 
         }
 
@@ -114,7 +108,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(new object[] { });
+            metaTable["units"] = new JArray(GetUnitArr());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -286,34 +280,29 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
-            Dictionary<string, (Array, string)> locData = new Dictionary<string, (Array, string)>();
-            string unit = null;
-
+            Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
             // Wrap up and store result
-            locData.Add("time", (GenerateColumnArray(tpList, entry => entry.TimeWorldClock), unit));
-            locData.Add("altitude", (GenerateColumnArray(tpList, entry => entry.AltitudeMeters), unit));
-            locData.Add("dist", (GenerateColumnArray(tpList, entry => entry.DistanceMeters), unit));
-            locData.Add("speed", (GenerateColumnArray(tpList, entry => entry.SpeedMS), unit));
-            locData.Add("HR", (GenerateColumnArray(tpList, entry => entry.HeartRateBpm), unit));
-            locData.Add("latitude", (GenerateColumnArray(tpList, entry => entry.LatitudeDegrees), unit));
-            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees), unit));
+            locData.Add("time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
+            locData.Add("altitude", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
+            locData.Add("dist", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
+            locData.Add("speed", GenerateColumnArray(tpList, entry => entry.SpeedMS));
+            locData.Add("HR", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
+            locData.Add("latitude", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
+            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
 
             return locData;
         }
 
-        private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
+        private T[] GenerateColumnArray<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
         {
-            return new Task<T[]>(() =>
+            T[] data = new T[trackPoints.Count];
+            var i = 0;
+            foreach (var trackPoint in trackPoints)
             {
-                T[] data = new T[trackPoints.Count];
-                var i = 0;
-                foreach (var trackPoint in trackPoints)
-                {
-                    data[i++] = fetchValue(trackPoint);
-                }
-                return data;
-            });
+                data[i++] = fetchValue(trackPoint);
+            }
+            return data;
         }
 
     }

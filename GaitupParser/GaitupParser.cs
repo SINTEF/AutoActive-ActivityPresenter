@@ -100,8 +100,8 @@ namespace GaitupParser
                 {
                     throw new NotImplementedException("BLE sync not implemented yet");
                     // This looks really weird, as i+7 could be outside the buffer.
-                    var val = BitConverter.ToDouble(_buffer, i + 7);
-                    _data.AddBle((timestamp, val));
+                    //var val = BitConverter.ToDouble(_buffer, i + 7);
+                    //_data.AddBle((timestamp, val));
                 }
                 else
                 {

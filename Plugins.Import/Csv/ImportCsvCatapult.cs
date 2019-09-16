@@ -52,36 +52,35 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             _fileName = fileName;
 
             bool isWorldSynchronized = false;
-            var timeColumnName = "Time";
-            var uri = Name + "/" + timeColumnName;
-            var time = new TableTimeIndex(timeColumnName, GenerateLoader<long>(timeColumnName), isWorldSynchronized, uri,
-                "s");
+            var timeColInfo = new ColInfo("Time", "us");
+            var uri = Name + "/" + timeColInfo.Name;
+            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
 
             var stringUnits = new[]
             {
-                ("Forward", "?"),
-                ("Sideways", "?"),
-                ("Up", "?"),
-                ("Dpr", "?"),
-                ("Gyr1", "?"),
-                ("Gyr2", "?"),
-                ("Gyr2", "?"),
-                ("Altitude", "?"),
-                ("Vel", "?"),
-                ("HDOP", "?"),
-                ("VDOP", "?"),
-                ("Longitude", "?"),
-                ("Latitude", "?"),
-                ("Heartrate", "bps"),
-                ("Acc", "?"),
-                ("Rawvel", "?"),
+                new ColInfo("Forward", "?"),
+                new ColInfo("Sideways", "?"),
+                new ColInfo("Up", "?"),
+                new ColInfo("VelDpr", "dpr"),
+                new ColInfo("Gyr1", "d/s"),
+                new ColInfo("Gyr2", "d/s"),
+                new ColInfo("Gyr2", "d/s"),
+                new ColInfo("Altitude", "?"),
+                new ColInfo("VelAv", "?"),
+                new ColInfo("HDOP", "?"),
+                new ColInfo("VDOP", "?"),
+                new ColInfo("Longitude", "deg"),
+                new ColInfo("Latitude", "deg"),
+                new ColInfo("Heartrate", "bps"),
+                new ColInfo("Acc", "?"),
+                new ColInfo("Rawvel", "?"),
             };
 
-            foreach (var (columnName, unit) in stringUnits)
+            foreach (var colInfo in stringUnits)
             {
-                uri = Name + "/" + columnName;
-                this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri, unit);
+                uri = Name + "/" + colInfo.Name;
+                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), _timeIndex, uri, colInfo.Unit);
             }
         }
 
@@ -102,7 +101,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(new object[] {});
+            metaTable["units"] = new JArray(GetUnitArr());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -132,12 +131,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
         private List<float> forwardData = new List<float>();
         private List<float> sidewaysData = new List<float>();
         private List<float> upData = new List<float>();
-        private List<float> dprData = new List<float>();
+        private List<float> velDprData = new List<float>();
         private List<float> gyr1Data = new List<float>();
         private List<float> gyr2Data = new List<float>();
         private List<float> gyr3Data = new List<float>();
         private List<float> altitudeData = new List<float>();
-        private List<float> velData = new List<float>();
+        private List<float> velAvData = new List<float>();
         private List<float> hdopData = new List<float>();
         private List<float> vdopData = new List<float>();
         private List<float> logitudeData = new List<float>();
@@ -186,12 +185,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             forwardData.Add(rec.Forward);
             sidewaysData.Add(rec.Sideways);
             upData.Add(rec.Up);
-            dprData.Add(rec.Dpr);
+            velDprData.Add(rec.Vel_dpr);
             gyr1Data.Add(rec.Gyr1);
             gyr2Data.Add(rec.Gyr2);
             gyr3Data.Add(rec.Gyr3);
             altitudeData.Add(rec.Altitude);
-            velData.Add(rec.Vel);
+            velAvData.Add(rec.Vel_av);
             hdopData.Add(rec.HDOP);
             vdopData.Add(rec.VDOP);
             logitudeData.Add(rec.Longitude);
@@ -210,12 +209,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             locData.Add("Forward", forwardData.ToArray());
             locData.Add("Sideways", sidewaysData.ToArray());
             locData.Add("Up", upData.ToArray());
-            locData.Add("Dpr", dprData.ToArray());
+            locData.Add("VelDpr", velDprData.ToArray());
             locData.Add("Gyr1", gyr1Data.ToArray());
             locData.Add("Gyr2", gyr2Data.ToArray());
             locData.Add("Gyr3", gyr3Data.ToArray());
             locData.Add("Altitude", altitudeData.ToArray());
-            locData.Add("Vel", velData.ToArray());
+            locData.Add("VelAv", velAvData.ToArray());
             locData.Add("HDOP", hdopData.ToArray());
             locData.Add("VDOP", vdopData.ToArray());
             locData.Add("Longitude", logitudeData.ToArray());
@@ -244,6 +243,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
     }
 
+
     public class CatapultRecord
     {
 
@@ -260,7 +260,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
         public float Up { get; set; }
 
         [Name("Vel(Dpr)")]
-        public float Dpr { get; set; }
+        public float Vel_dpr { get; set; }
 
         [Name("Gyr1(d/s)")]
         public float Gyr1 { get; set; }
@@ -275,7 +275,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
         public float Altitude { get; set; }
 
         [Name("Vel(av)")]
-        public float Vel { get; set; }
+        public float Vel_av { get; set; }
 
         [Name("HDOP")]
         public float HDOP { get; set; }
