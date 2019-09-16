@@ -19,8 +19,10 @@ namespace SINTEF.AutoActive.Databus.Common
     /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
     public readonly ref struct SpanPair<T>
     {
-        public SpanPair(Span<long> x, Span<T> y)
+        private readonly int _startOffset;
+        public SpanPair(int startOffset, Span<long> x, Span<T> y)
         {
+            _startOffset = startOffset;
             X = x;
             Y = y;
         }
@@ -28,7 +30,7 @@ namespace SINTEF.AutoActive.Databus.Common
         public readonly Span<long> X;
         public readonly Span<T> Y;
 
-        public Enumerator GetEnumerator(int maxItems) => new Enumerator(X, Y, maxItems);
+        public Enumerator GetEnumerator(int maxItems) => new Enumerator(_startOffset, X, Y, maxItems);
 
         public ref struct Enumerator
         {
@@ -38,7 +40,7 @@ namespace SINTEF.AutoActive.Databus.Common
             private readonly int _decimator;
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]
-            internal Enumerator(Span<long> x, Span<T> y, int maxItems)
+            internal Enumerator(int startOffset, Span<long> x, Span<T> y, int maxItems)
             {
                 _x = x;
                 _y = y;
@@ -46,8 +48,12 @@ namespace SINTEF.AutoActive.Databus.Common
                 if (_decimator < 1)
                 {
                     _decimator = 1;
+                    _index = -_decimator;
                 }
-                _index = -_decimator;
+                else
+                {
+                    _index = -(startOffset % _decimator);
+                }
             }
 
             [MethodImpl(MethodImplOptions.AggressiveInlining)]

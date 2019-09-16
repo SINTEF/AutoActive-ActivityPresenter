@@ -286,29 +286,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
-            Dictionary<string, Array> locData = new Dictionary<string, Array>();
+            Dictionary<string, (Array, string)> locData = new Dictionary<string, (Array, string)>();
+            string unit = null;
+
 
             // Wrap up and store result
-            locData.Add("time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
-            locData.Add("altitude", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
-            locData.Add("dist", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
-            locData.Add("speed", GenerateColumnArray(tpList, entry => entry.SpeedMS));
-            locData.Add("HR", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
-            locData.Add("latitude", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
-            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
+            locData.Add("time", (GenerateColumnArray(tpList, entry => entry.TimeWorldClock), unit));
+            locData.Add("altitude", (GenerateColumnArray(tpList, entry => entry.AltitudeMeters), unit));
+            locData.Add("dist", (GenerateColumnArray(tpList, entry => entry.DistanceMeters), unit));
+            locData.Add("speed", (GenerateColumnArray(tpList, entry => entry.SpeedMS), unit));
+            locData.Add("HR", (GenerateColumnArray(tpList, entry => entry.HeartRateBpm), unit));
+            locData.Add("latitude", (GenerateColumnArray(tpList, entry => entry.LatitudeDegrees), unit));
+            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees), unit));
 
             return locData;
         }
 
-        private T[] GenerateColumnArray<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
+        private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
         {
-            T[] data = new T[trackPoints.Count];
-            var i = 0;
-            foreach (var trackPoint in trackPoints)
+            return new Task<T[]>(() =>
             {
-                data[i++] = fetchValue(trackPoint);
-            }
-            return data;
+                T[] data = new T[trackPoints.Count];
+                var i = 0;
+                foreach (var trackPoint in trackPoints)
+                {
+                    data[i++] = fetchValue(trackPoint);
+                }
+                return data;
+            });
         }
 
     }

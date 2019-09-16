@@ -52,74 +52,37 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             _fileName = fileName;
 
             bool isWorldSynchronized = false;
-            string columnName = "Time";
-            string uri = Name + "/" + columnName;
+            var timeColumnName = "Time";
+            var uri = Name + "/" + timeColumnName;
+            var time = new TableTimeIndex(timeColumnName, GenerateLoader<long>(timeColumnName), isWorldSynchronized, uri,
+                "s");
 
-            _timeIndex = new TableTimeIndex(columnName, GenerateLoader<long>(columnName), isWorldSynchronized, uri);
 
-            columnName = "Forward";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
+            var stringUnits = new[]
+            {
+                ("Forward", "?"),
+                ("Sideways", "?"),
+                ("Up", "?"),
+                ("Dpr", "?"),
+                ("Gyr1", "?"),
+                ("Gyr2", "?"),
+                ("Gyr2", "?"),
+                ("Altitude", "?"),
+                ("Vel", "?"),
+                ("HDOP", "?"),
+                ("VDOP", "?"),
+                ("Longitude", "?"),
+                ("Latitude", "?"),
+                ("Heartrate", "bps"),
+                ("Acc", "?"),
+                ("Rawvel", "?"),
+            };
 
-            columnName = "Sideways";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Up";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Dpr";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Gyr1";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Gyr2";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Gyr3";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Altitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Vel";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "HDOP";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "VDOP";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Longitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Latitude";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Heartrate";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Acc";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
-
-            columnName = "Rawvel";
-            uri = Name + "/" + columnName;
-            this.AddColumn(columnName, GenerateLoader<float>(columnName), _timeIndex, uri);
+            foreach (var (columnName, unit) in stringUnits)
+            {
+                uri = Name + "/" + columnName;
+                this.AddColumn(columnName, GenerateLoader<float>(columnName), time, uri, unit);
+            }
         }
 
         public override Dictionary<string, Array> ReadData()
@@ -160,9 +123,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             return result;
 
         }
-
-
-
     }
 
     public class CatapultParser : ICsvParser<CatapultRecord>
