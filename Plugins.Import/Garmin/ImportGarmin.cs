@@ -16,41 +16,17 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.Plugins.Import.Garmin
 {
-
-    public class TrackPoint
-    {
-        public string TimeString { set; get; }
-        public long TimeWorldClock { set; get; }
-        public double AltitudeMeters { get; set; }
-        public double DistanceMeters { get; set; }
-        public double SpeedMS { get; set; }
-        public byte HeartRateBpm { get; set; }
-        public double LatitudeDegrees { set; get; }
-        public double LongitudeDegrees { set; get; }
-        public IEnumerable<Speed> SpeedList { get; set; }
-        public IEnumerable<Position> PositionList { get; set; }
-    }
-
-    public class Speed
-    {
-        public double SpeedMS { get; set; }
-    }
-
-    public class Position
-    {
-        public double LatitudeDegrees { set; get; }
-        public double LongitudeDegrees { set; get; }
-    }
 
     [ImportPlugin(".tcx")]
     public class GarminImportPlugin : IImportPlugin
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
-            var importer = new GarminImporter(readerFactory.Name);
+            var importer = new GarminImporter(readerFactory);
             importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
         }
@@ -64,14 +40,128 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
     public class GarminImporter : BaseDataProvider
     {
-        internal GarminImporter(string name)
-        {
-            Name = name;
-        }
+        internal IReadSeekStreamFactory _readerFactory;
 
+        internal GarminImporter(IReadSeekStreamFactory readerFactory)
+        {
+            Name = readerFactory.Name;
+            _readerFactory = readerFactory;
+        }
 
         protected override void DoParseFile(Stream s)
         {
+            AddChild(new GarminTable(Name + "_table", _readerFactory, Name + _readerFactory.Extension));
+        }
+
+    }
+
+
+    public class GarminTable : ImportTableBase, ISaveable
+    {
+        public bool IsSaved { get; }
+        private IReadSeekStreamFactory _readerFactory;
+        private string _fileName;
+        internal GarminTable(string name, IReadSeekStreamFactory readerFactory, string fileName)
+        {
+            Name = name;
+            _readerFactory = readerFactory;
+            IsSaved = false;
+            _fileName = fileName;
+
+            bool isWorldSynchronized = true;
+
+            var timeColInfo = new ColInfo("time", "us");
+            string uri = Name + "/" + timeColInfo.Name;
+
+            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+
+            var stringUnits = new[]
+            {
+                new ColInfo("altitude", "m"),
+                new ColInfo("dist", "m"),
+                new ColInfo("speed", "ms"),
+                new ColInfo("HR", "bpm"),
+                new ColInfo("latitude", "deg"),
+                new ColInfo("longitude", "deg"),
+            };
+
+            foreach (var colInfo in stringUnits)
+            {
+                uri = Name + "/" + colInfo.Name;
+                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), _timeIndex, uri, colInfo.Unit);
+            }
+
+
+        }
+
+        public override Dictionary<string, Array> ReadData()
+        {
+            GarminParser gp = new GarminParser(_readerFactory);
+            return gp.ReadData();
+        }
+
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+
+            string fileId;
+
+            // TODO: give a better name?
+            fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
+
+            // Make table object
+            var metaTable = new JObject { ["type"] = "no.sintef.table" };
+            metaTable["attachments"] = new JArray(new object[] { fileId });
+            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["version"] = 1;
+
+            var userTable = new JObject { };
+
+            var rootTable = new JObject { ["meta"] = metaTable, ["user"] = userTable };
+
+            // Make folder object
+            var metaFolder = new JObject { ["type"] = "no.sintef.garmin" };
+            var userFolder = new JObject { ["full_table"] = rootTable };
+            userFolder["filename"] = _fileName;
+
+            // Place objects into root
+            root["meta"] = metaFolder;
+            root["user"] = userFolder;
+
+            bool result = await WriteTable(fileId, writer);
+            return result;
+
+        }
+    }
+
+    public class GarminParser
+    {
+        IReadSeekStreamFactory _readerFactory;
+
+        internal GarminParser(IReadSeekStreamFactory readerFactory)
+        {
+            _readerFactory = readerFactory;
+
+        }
+
+        internal Dictionary<string, Array> ReadData()
+        {
+            Dictionary<string, Array> dataList = null;
+
+            using (var s = Task.Run(() => _readerFactory.GetReadStream()).GetAwaiter().GetResult())
+            {
+                var tpList = ParseFile(s);
+                dataList = ConvertTrackpoints(tpList);
+            }
+            return dataList;
+            
+        }
+
+
+        private List<TrackPoint> ParseFile(Stream s)
+        {
+            List<TrackPoint> parseList = null;
+
             XNamespace ns1 = "http://www.garmin.com/xmlschemas/TrainingCenterDatabase/v2";
             XNamespace ns3 = "http://www.garmin.com/xmlschemas/ActivityExtension/v2";
 
@@ -151,21 +241,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 // Debug.WriteLine("tp.LongitudeDegrees(): " + tp.LongitudeDegrees);
                 // }
 
-                AddChild(new GarminTable(id, trackpointList));
+                parseList = trackpointList;
             }
+            return parseList;
         }
-    }
-
-    public class GarminTable : BaseDataStructure
-    {
-        internal GarminTable(string id, List<TrackPoint> tpList)
-        {
-            Name = id;
-            ConvertTrackpoints(tpList);
-        }
-
-        /* Open an existing gamin file */
-        private void ConvertTrackpoints(List<TrackPoint> tpList)
+        private Dictionary<string, Array> ConvertTrackpoints(List<TrackPoint> tpList)
         {
             var faultyEntries = new List<TrackPoint>();
 
@@ -174,10 +254,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             string[] dateFormatArr = { "yyyy-MM-ddTHH:mm:ss.fffK", "yyyy-MM-ddTHH:mm:ssK" };
             foreach (TrackPoint entry in tpList)
             {
-
-                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS, DateTimeStyles.None, out var dt))
+                var epochZero = new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+                if (DateTime.TryParseExact(entry.TimeString, dateFormatArr, enUS, DateTimeStyles.AssumeLocal, out var dt))
                 {
-                    entry.TimeWorldClock = dt.Ticks / 10;
+                    var dtUtc = TimeZoneInfo.ConvertTimeToUtc(dt);
+                    var epdt = dtUtc.Ticks - epochZero.Ticks;
+                    entry.TimeWorldClock = epdt / 10;
                 }
                 else
                 {
@@ -201,34 +283,56 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 tpList.Remove(entry);
 
 
-            //TODO: implement these
-            var uri = "LIVE";
-            string unit = null;
+            Dictionary<string, Array> locData = new Dictionary<string, Array>();
 
-            // Create the time index
-            var timeCol = new TableTimeIndex("Time", GenerateLoader(tpList, entry => entry.TimeWorldClock), true, uri, "t");
+            // Wrap up and store result
+            locData.Add("time", GenerateColumnArray(tpList, entry => entry.TimeWorldClock));
+            locData.Add("altitude", GenerateColumnArray(tpList, entry => entry.AltitudeMeters));
+            locData.Add("dist", GenerateColumnArray(tpList, entry => entry.DistanceMeters));
+            locData.Add("speed", GenerateColumnArray(tpList, entry => entry.SpeedMS));
+            locData.Add("HR", GenerateColumnArray(tpList, entry => entry.HeartRateBpm));
+            locData.Add("latitude", GenerateColumnArray(tpList, entry => entry.LatitudeDegrees));
+            locData.Add("longitude", GenerateColumnArray(tpList, entry => entry.LongitudeDegrees));
 
-            // Add other columns
-            this.AddColumn("AltitudeMeters", GenerateLoader(tpList, entry => entry.AltitudeMeters), timeCol, uri, unit);
-            this.AddColumn("DistanceMeters", GenerateLoader(tpList, entry => entry.DistanceMeters), timeCol, uri, unit);
-            this.AddColumn("SpeedMS", GenerateLoader(tpList, entry => entry.SpeedMS), timeCol, uri, unit);
-            this.AddColumn("HeartRateBpm", GenerateLoader(tpList, entry => entry.HeartRateBpm), timeCol, uri, unit);
-            this.AddColumn("LatitudeDegrees", GenerateLoader(tpList, entry => entry.LatitudeDegrees), timeCol, uri, unit);
-            this.AddColumn("LongitudeDegrees", GenerateLoader(tpList, entry => entry.LongitudeDegrees), timeCol, uri, unit);
+            return locData;
         }
 
-        private Task<T[]> GenerateLoader<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
+        private T[] GenerateColumnArray<T>(List<TrackPoint> trackPoints, Func<TrackPoint, T> fetchValue)
         {
-            return new Task<T[]>(() =>
+            T[] data = new T[trackPoints.Count];
+            var i = 0;
+            foreach (var trackPoint in trackPoints)
             {
-                T[] data = new T[trackPoints.Count];
-                var i = 0;
-                foreach (var trackPoint in trackPoints)
-                {
-                    data[i++] = fetchValue(trackPoint);
-                }
-                return data;
-            });
+                data[i++] = fetchValue(trackPoint);
+            }
+            return data;
         }
+
     }
+
+    public class TrackPoint
+    {
+        public string TimeString { set; get; }
+        public long TimeWorldClock { set; get; }
+        public double AltitudeMeters { get; set; }
+        public double DistanceMeters { get; set; }
+        public double SpeedMS { get; set; }
+        public double HeartRateBpm { get; set; }
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+        public IEnumerable<Speed> SpeedList { get; set; }
+        public IEnumerable<Position> PositionList { get; set; }
+    }
+
+    public class Speed
+    {
+        public double SpeedMS { get; set; }
+    }
+
+    public class Position
+    {
+        public double LatitudeDegrees { set; get; }
+        public double LongitudeDegrees { set; get; }
+    }
+
 }

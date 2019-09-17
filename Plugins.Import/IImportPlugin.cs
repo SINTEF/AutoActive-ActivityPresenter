@@ -13,6 +13,12 @@ namespace SINTEF.AutoActive.Plugins.Import
         void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters);
     }
 
+    public interface IBatchImportPlugin : IImportPlugin
+    {
+        void StartTransaction(List<IReadSeekStreamFactory> streamFactories);
+        void EndTransaction();
+    }
+
     public class ImportPluginAttribute : PluginAttribute
     {
         public ImportPluginAttribute(string extension) : base(typeof(IImportPlugin), extension) { }
