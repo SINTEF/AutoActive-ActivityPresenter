@@ -22,7 +22,16 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
         {
-            var importer = new VideoImporter(readerFactory);
+            VideoImporter importer;
+            if (parameters["CreatedAtStart"].Item1 is bool createdAtStart)
+            {
+                importer = new VideoImporter(readerFactory, createdAtStart);
+            }
+            else
+            {
+                importer = new VideoImporter(readerFactory, true);
+            }
+
             var stream = await readerFactory.GetReadStream();
             importer.ParseFile(stream);
             return importer;
@@ -36,8 +45,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
 
     public class VideoImporter : BaseDataProvider
     {
-        public VideoImporter(IReadSeekStreamFactory readerFactory)
+        private bool _createdTimeIsAtStart;
+        public VideoImporter(IReadSeekStreamFactory readerFactory, bool createdTimeIsAtStart)
         {
+            _createdTimeIsAtStart = createdTimeIsAtStart;
             _readerFactory = readerFactory;
 
             Name = "Imported Video";
@@ -53,6 +64,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
                     where el.Name.Contains("Created")
                     select el.Description).FirstOrDefault();
         }
+
+        public string GetLengthProperty(Stream stream)
+        {
+            var metaData = ImageMetadataReader.ReadMetadata(stream);
+
+            return (from data in metaData
+                from el in data.Tags
+                where el.Name.Contains("Length")
+                select el.Description).FirstOrDefault();
+        }
+
         public static bool TryParseDateTime(string dateTimeStr, out DateTime date)
         {
             var culture = CultureInfo.GetCultureInfo("en-US");
@@ -67,9 +89,21 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
             return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
         }
 
+        public long GetVideoLength(Stream stream)
+        {
+            var property = GetCreatedProperty(stream);
+            return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
+        }
+
         protected override void DoParseFile(Stream stream)
         {
             var startTime = GetCreatedTime(stream);
+
+            if (!_createdTimeIsAtStart)
+            {
+                var length = GetVideoLength(stream);
+                startTime -= length;
+            }
 
             var jsonRoot = new JObject
             {
