@@ -79,36 +79,80 @@ namespace SINTEF.AutoActive.UI.Views
 	        catch (Exception ex)
 	        {
 	            Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
-	            await Application.Current.MainPage.DisplayAlert("Open error", $"Could not open archive:\n{ex.Message}", "OK");
+                await XamarinHelpers.GetCurrentPage().DisplayAlert("Open error", $"Could not open archive:\n{ex.Message}", "OK");
 	        }
         }
 
-        private async void DoImportFiles(IReadOnlyList<IReadSeekStreamFactory> files)
+        private static async void DoImportFiles(IReadOnlyCollection<IReadSeekStreamFactory> files)
         {
-            foreach (var file in files)
+            var tasks = new List<(string, Task<IDataProvider>)>();
+
+            var pluginDict = new Dictionary<IImportPlugin, List<IReadSeekStreamFactory>>();
+            // Group the files on plugin
+            foreach(var file in files)
             {
+                // Find the proper import plugin to use
+                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
+                var plugin = plugins[0];
+
+                if(!pluginDict.ContainsKey(plugin))
+                {
+                    pluginDict[plugin] = new List<IReadSeekStreamFactory>();
+                }
+                pluginDict[plugin].Add(file);
+            }
+
+            // Start import for each plugin and signal batch import if implemented
+            var pluginDictKeys = pluginDict.Keys;
+            foreach(var plugin in pluginDictKeys)
+            {
+                var fileList = pluginDict[plugin];
+                var bip = plugin as IBatchImportPlugin;
+                if (bip != null)
+                {
+                    bip.StartTransaction(fileList.Count);
+                }
+                foreach (var file in fileList)
+                {
+                    try
+                    {
+                        // FIXME: This should probably be handled somewhere else?
+                        var provider = plugin.Import(file);
+                        tasks.Add((file.Name, provider));
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowError(file.Name, ex);
+                    }
+                }
+                if (bip != null)
+                {
+                    bip.EndTransaction();
+                }
+                
+            }
+
+            foreach (var nameTask in tasks)
+            {
+                var (name, task) = nameTask;
                 try
                 {
-                    // FIXME: This should probably be handled somewhere else?
-                    // FIXME: This should also handle a case where multiple importers are possible
-                    // TODO: Should probably be run on a background thread...
-
-                    // Find the proper import plugin to use
-                    var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
-
-                    var provider = await plugins[0].Import(file);
-
-                    provider?.Register();
-
+                    (await task)?.Register();
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
-                    await Application.Current.MainPage.DisplayAlert("Open error",
-                        $"Could not import file:\n{ex.Message}", "OK");
+                    await ShowError(name, ex);
                 }
             }
         }
+
+        private static async Task ShowError(string filename, Exception ex)
+        {
+            Debug.WriteLine($"Could not import file {filename}: {ex.Message}");
+            await Application.Current.MainPage.DisplayAlert("Open error",
+                $"Could not import file \"${filename}\":\n{ex.Message}", "OK");
+        }
+
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)
         {
             var browser = DependencyService.Get<IFileBrowser>();
