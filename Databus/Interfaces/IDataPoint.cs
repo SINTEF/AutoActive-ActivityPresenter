@@ -12,6 +12,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         string Name { get; set; }
 
         ITimePoint Time { get; }
+        string Unit { get; set; }
 
         // Other metadata?
 

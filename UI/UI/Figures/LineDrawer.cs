@@ -6,12 +6,16 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public interface ILineDrawer
     {
-        void CreatePath(SKPath plot, SKImageInfo info, LineConfiguration lineConfig);
+        void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig);
 
         float MinY { get; }
         float MaxY { get; }
+
+        (float, float) GetVisibleYMinMax();
+
         ITimeSeriesViewer Viewer { get; }
         LinePlot Parent { get; set; }
+
         string Legend { get; set; }
     }
 
@@ -29,7 +33,7 @@ namespace SINTEF.AutoActive.UI.Figures
             if (viewer.MaxValueHint.HasValue) _maxYValue = (float)viewer.MaxValueHint.Value;
         }
 
-        public void CreatePath(SKPath plot, SKImageInfo info, LineConfiguration lineConfig)
+        public void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig)
         {
             var offsetX = lineConfig.OffsetX;
             var scaleX = lineConfig.ScaleX;
@@ -37,12 +41,13 @@ namespace SINTEF.AutoActive.UI.Figures
             var scaleY = lineConfig.ScaleY;
 
             var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems);
+
             if (!en.MoveNext()) return;
 
-            var width = info.Width;
+            var width = drawRect.Width;
 
-            var startX = Math.Max(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), LinePlot.ScaleX(offsetX, offsetX, scaleX));
-            plot.MoveTo(startX, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+            var startX = Math.Max(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), 0);
+            plot.MoveTo(startX + drawRect.Left, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
             var done = false;
             while (en.MoveNext() && !done)
             {
@@ -52,7 +57,9 @@ namespace SINTEF.AutoActive.UI.Figures
                     plotX = width;
                     done = true;
                 }
-                plot.LineTo(plotX, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+
+                var valY = LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY);
+                plot.LineTo(plotX + drawRect.Left, valY);
             }
         }
 
@@ -79,6 +86,22 @@ namespace SINTEF.AutoActive.UI.Figures
                 _maxYValue = value;
                 Parent?.InvalidateSurface();
             }
+        }
+
+
+
+        public (float,float) GetVisibleYMinMax()
+        {
+            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems*10);
+            var (min, max) = (float.MaxValue, float.MinValue);
+            while (en.MoveNext())
+            {
+                var el = Convert.ToSingle(en.Current.y);
+                min = Math.Min(el, min);
+                max = Math.Max(el, max);
+            }
+
+            return (min, max);
         }
     }
 }

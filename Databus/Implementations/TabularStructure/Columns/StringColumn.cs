@@ -11,9 +11,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal string[] data;
         private Task<string[]> loader;
 
-        public StringColumn(string name, Task<string[]> loader, TableTimeIndex index, string uri) : base(typeof(string), name, loader, index, uri)
+        public StringColumn(string name, Task<string[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(string), name, loader, index, uri)
         {
             this.loader = loader;
+            Unit = unit;
         }
 
         protected override int CheckLoaderResultLength()
@@ -44,7 +45,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         public override SpanPair<string> GetCurrentStrings()
         {
-            return new SpanPair<string>(Index.Data.AsSpan(StartIndex, Length), column.data.AsSpan(StartIndex, Length));
+            return new SpanPair<string>(StartIndex, Index.Data.AsSpan(StartIndex, Length), column.data.AsSpan(StartIndex, Length));
         }
     }
 }

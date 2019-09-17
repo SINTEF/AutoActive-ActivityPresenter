@@ -134,6 +134,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void Canvas_PaintSurface(object sender, SkiaSharp.Views.Forms.SKPaintSurfaceEventArgs e)
         {
+            // Clear background and draw frame
+            e.Surface.Canvas.Clear(SKColors.White);
+
             // \todo Investigate why a \c Debug.WriteLine() output here makes
             // the GUI sluggish and unresponsive at large windows length.
             // Why is it correlated with the data window length?

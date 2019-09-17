@@ -58,7 +58,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt.Columns
         {
             //Debug.WriteLine("GetCurrentDoubles " + this.Column.Name + " " + startIndex + " " + length);
 
-            return new SpanPair<double>(index.data.AsSpan(startIndex, length), column.data.AsSpan(startIndex, length));
+            return new SpanPair<double>(startIndex, index.data.AsSpan(startIndex, length), column.data.AsSpan(startIndex, length));
         }
     }
 

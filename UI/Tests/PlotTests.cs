@@ -15,8 +15,8 @@ namespace Tests
         {
             Assert.Equal(timeArray.Length, dataArray.Length);
 
-            var time = new TableTimeIndex("time", new Task<long[]>(() => timeArray), true, "test:/time");
-            var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time, "test/acc");
+            var time = new TableTimeIndex("time", new Task<long[]>(() => timeArray), true, "test:/time", "t");
+            var data = new GenericColumn<double>("acc_x", new Task<double[]>(() => dataArray), time, "test/acc", "a");
 
             var tsc = new TimeSynchronizedContext();
             tsc.SetSynchronizedToWorldClock(false);
@@ -83,6 +83,6 @@ namespace Tests
             }
             TestDataSet(time, data, maxNum);
         }
-        
+
     }
 }

@@ -10,9 +10,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal T[] Data;
         private readonly Task<T[]> _loader;
         // private float[] _floatData; Buffer data?
-        public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri) : base(typeof(T), name, loader, index, uri)
+        public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(T), name, loader, index, uri)
         {
             _loader = loader;
+            Unit = unit;
         }
 
         protected override int CheckLoaderResultLength()
@@ -65,7 +66,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
                     data = new Span<T1>(pin.Pointer, elements.Length);
             }
 
-            return new SpanPair<T1>(Index.Data.AsSpan(StartIndex, Length), data);
+            return new SpanPair<T1>(StartIndex, Index.Data.AsSpan(StartIndex, Length), data);
         }
     }
 }
