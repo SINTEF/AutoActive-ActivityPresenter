@@ -18,6 +18,7 @@
                     </Grid.ColumnDefinitions>
                 </Grid>
             </Frame>
+            <Button Text="OK" HorizontalOptions="Center" MinimumWidthRequest="60"  Clicked="Ok_OnClicked"/>
         </StackLayout>
     </ContentPage.Content>
 </ContentPage>

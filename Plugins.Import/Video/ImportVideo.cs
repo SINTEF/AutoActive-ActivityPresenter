@@ -11,6 +11,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Helpers;
+using Directory = MetadataExtractor.Directory;
 
 namespace SINTEF.AutoActive.Plugins.Import.Video
 {
@@ -20,18 +21,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".mp4")]
     public class ImportVideoPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
-        {
-            VideoImporter importer;
-            if (parameters["CreatedAtStart"].Item1 is bool createdAtStart)
-            {
-                importer = new VideoImporter(readerFactory, createdAtStart);
-            }
-            else
-            {
-                importer = new VideoImporter(readerFactory, true);
-            }
 
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
+            Dictionary<string, object> parameters)
+        {
+            var importer = new VideoImporter(readerFactory, parameters);
             var stream = await readerFactory.GetReadStream();
             importer.ParseFile(stream);
             return importer;
@@ -45,33 +39,29 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
 
     public class VideoImporter : BaseDataProvider
     {
-        private bool _createdTimeIsAtStart;
-        public VideoImporter(IReadSeekStreamFactory readerFactory, bool createdTimeIsAtStart)
+        private readonly Dictionary<string, object> _parameters;
+        private readonly IReadSeekStreamFactory _readerFactory;
+        private IReadOnlyList<Directory> _metaData = null;
+
+        private IReadOnlyList<Directory> GetMetaData(Stream stream)
         {
-            _createdTimeIsAtStart = createdTimeIsAtStart;
+            
+            if (_metaData == null) _metaData = ImageMetadataReader.ReadMetadata(stream);
+            return _metaData;
+            
+        }
+
+        public VideoImporter(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
+        {
             _readerFactory = readerFactory;
-
-            Name = "Imported Video";
+            _parameters = parameters;
         }
 
-        private IReadSeekStreamFactory _readerFactory;
-        public string GetCreatedProperty(Stream stream)
+        public string GetProperty(Stream stream, string name)
         {
-            var metaData = ImageMetadataReader.ReadMetadata(stream);
-
-            return (from data in metaData
-                    from el in data.Tags
-                    where el.Name.Contains("Created")
-                    select el.Description).FirstOrDefault();
-        }
-
-        public string GetLengthProperty(Stream stream)
-        {
-            var metaData = ImageMetadataReader.ReadMetadata(stream);
-
-            return (from data in metaData
+            return (from data in GetMetaData(stream)
                 from el in data.Tags
-                where el.Name.Contains("Length")
+                where el.Name.Contains(name)
                 select el.Description).FirstOrDefault();
         }
 
@@ -83,23 +73,31 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
                 DateTimeStyles.None, out date);
         }
 
+
         public long GetCreatedTime(Stream stream)
         {
-            var property = GetCreatedProperty(stream);
+            var property = GetProperty(stream, "Created");
             return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
         }
 
         public long GetVideoLength(Stream stream)
         {
-            var property = GetCreatedProperty(stream);
-            return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
+            var property = GetProperty(stream, "Duration");
+            return property != null && TimeSpan.TryParse(property, out var date) ? TimeFormatter.TimeFromTimeSpan(date) : 0L;
         }
 
         protected override void DoParseFile(Stream stream)
         {
+            Name = _parameters["Name"] as string;
+
+            if (string.IsNullOrEmpty(Name))
+            {
+                Name = "Imported Video";
+            }
+
             var startTime = GetCreatedTime(stream);
 
-            if (!_createdTimeIsAtStart)
+            if (!(bool)_parameters["CreatedAtStart"])
             {
                 var length = GetVideoLength(stream);
                 startTime -= length;

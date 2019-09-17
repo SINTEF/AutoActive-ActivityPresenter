@@ -83,10 +83,25 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
+        private static async void DoImportFileWithParameters(IImportPlugin plugin, IReadSeekStreamFactory file, Dictionary<string, object> parameters)
+        {
+            try
+            {
+                var provider = await plugin.Import(file, parameters);
+                provider?.Register();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
+                await Application.Current.MainPage.DisplayAlert("Open error",
+                    $"Could not import file:\n{ex.Message}", "OK");
+            }
+        }
+
         private static async void DoImportFiles(IEnumerable<IReadSeekStreamFactory> files)
         {
-            IImportPlugin prevPlugin = null;
-            Dictionary<string, (object, string)> prevParameters = null;
+            var pluginPages = new Dictionary<IImportPlugin, ImportParametersPage>();
+
             foreach (var file in files)
             {
                 var ext = file.Extension.ToLower();
@@ -99,7 +114,7 @@ namespace SINTEF.AutoActive.UI.Views
 
                 var plugin = plugins[0];
 
-                if (prevPlugin == null || plugin != prevPlugin)
+                if (!pluginPages.TryGetValue(plugin, out var page))
                 {
                     var parameters = new Dictionary<string, (object, string)>
                     {
@@ -107,23 +122,12 @@ namespace SINTEF.AutoActive.UI.Views
                     };
 
                     plugin.GetExtraConfigurationParameters(parameters);
-                    prevParameters = parameters;
-                    prevPlugin = plugin;
-
-                    await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: new ImportParametersPage(file.Name, prevParameters));
+                    page = new ImportParametersPage(file.Name, parameters);
+                    await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: page);
+                    pluginPages[plugin] = page;
                 }
-
-                try
-                {
-                    var provider = await plugin.Import(file, prevParameters);
-                    provider?.Register();
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Could not import file: {ex.Message} \n{ex}");
-                    await Application.Current.MainPage.DisplayAlert("Open error",
-                        $"Could not import file:\n{ex.Message}", "OK");
-                }
+                
+                page.Disappearing += (sender, args) => DoImportFileWithParameters(plugin, file, page.Parameters);
             }
         }
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)

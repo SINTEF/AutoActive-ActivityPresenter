@@ -19,7 +19,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
     [ImportPlugin(".csv")]
     public class CatapultImportPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
             var importer = new CatapultImporter(readerFactory);
             importer.ParseFile(await readerFactory.GetReadStream());

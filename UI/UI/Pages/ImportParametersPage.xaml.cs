@@ -9,6 +9,30 @@ namespace SINTEF.AutoActive.UI.Pages
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class ImportParametersPage : ContentPage
     {
+        public Dictionary<string, object> Parameters
+        {
+            get
+            {
+                var parameters = new Dictionary<string, object>();
+                var childIndex = 0;
+
+                foreach (var _ in _parameters)
+                {
+                    var element = (ParameterGrid.Children[childIndex++] as StackLayout)?.Children[0];
+                    var name = (element as Label)?.Text;
+                    if (name == null)
+                    {
+                        Debug.WriteLine("Could not find name");
+                        continue;
+                    }
+                    var value = ParameterGrid.Children[childIndex++];
+                    parameters[name] = GetValueFromView(value);
+                }
+
+                return parameters;
+            }
+        }
+
         private readonly Dictionary<string, (object, string)> _parameters;
 
         public ImportParametersPage()
@@ -24,12 +48,6 @@ namespace SINTEF.AutoActive.UI.Pages
             Title.Text = $"Import properties for {filename}";
 
             PopulateParameters();
-        }
-
-        protected override void OnDisappearing()
-        {
-            base.OnDisappearing();
-            PopulateDictionary();
         }
 
         private void PopulateParameters()
@@ -79,24 +97,6 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        private void PopulateDictionary()
-        {
-            var childIndex = 0;
-
-            foreach (var _ in _parameters)
-            {
-                var name = (ParameterGrid.Children[childIndex++] as Label)?.Text;
-                if (name == null)
-                {
-                    Debug.WriteLine("Could not find name");
-                    continue;
-                }
-                var description = (ParameterGrid.Children[childIndex++] as Label)?.Text;
-                var value = ParameterGrid.Children[childIndex++];
-                _parameters[name] = (GetValueFromView(value), description);
-            }
-        }
-
         private static View GetViewFromValue(object obj)
         {
             switch (obj)
@@ -130,6 +130,11 @@ namespace SINTEF.AutoActive.UI.Pages
                 default:
                     return null;
             }
+        }
+
+        private async void Ok_OnClicked(object sender, EventArgs e)
+        {
+            await Navigation.PopAsync();
         }
     }
 }

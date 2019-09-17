@@ -48,7 +48,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
     [ImportPlugin(".tcx")]
     public class GarminImportPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, (object, string)> parameters)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
             var importer = new GarminImporter(readerFactory.Name);
             importer.ParseFile(await readerFactory.GetReadStream());

@@ -51,9 +51,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
         }
 
-        private void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
+        private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
-            PlayerGrid.TogglePlotFor(datapoint, ViewerContext);
+            await PlayerGrid.TogglePlotFor(datapoint, ViewerContext);
         }
 
         private void TreeView_UseInTimelineTapped(object sender, IDataPoint datapoint)
