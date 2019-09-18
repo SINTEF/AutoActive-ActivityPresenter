@@ -9,6 +9,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
@@ -152,7 +153,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 _reader = new RememberingParquetReader(reader);
             }
-            
+
             AddColumns(tableInformation);
         }
 
@@ -172,10 +173,16 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             var timeInfo = tableInformation.Time;
             var tableFile = _sessionId + "://" + tableInformation.Uri;
             var uri2 = tableFile + "/" + timeInfo.Name;
-            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), tableInformation.IsWorldSynchronized, uri2);
+            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), tableInformation.IsWorldSynchronized, uri2, "t");
 
-            foreach (var column in tableInformation.Columns)
+            for (var index = 0; index < tableInformation.Columns.Count; index++)
             {
+                var column = tableInformation.Columns[index];
+                string unit = null;
+                if (index < tableInformation.Units?.Count)
+                {
+                    unit = tableInformation.Units[index];
+                }
                 if (column.HasNulls)
                 {
                     throw new NotImplementedException("Nullable columns are not yet implemented.");
@@ -186,22 +193,22 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 switch (column.DataType)
                 {
                     case DataType.Boolean:
-                        this.AddColumn(column.Name, GenerateLoader<bool>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<bool>(_reader, column), time, uri, unit);
                         break;
                     case DataType.Byte:
-                        this.AddColumn(column.Name, GenerateLoader<byte>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<byte>(_reader, column), time, uri, unit);
                         break;
                     case DataType.Int32:
-                        this.AddColumn(column.Name, GenerateLoader<int>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<int>(_reader, column), time, uri, unit);
                         break;
                     case DataType.Int64:
-                        this.AddColumn(column.Name, GenerateLoader<long>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<long>(_reader, column), time, uri, unit);
                         break;
                     case DataType.Float:
-                        this.AddColumn(column.Name, GenerateLoader<float>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<float>(_reader, column), time, uri, unit);
                         break;
                     case DataType.Double:
-                        this.AddColumn(column.Name, GenerateLoader<double>(_reader, column), time, uri);
+                        this.AddColumn(column.Name, GenerateLoader<double>(_reader, column), time, uri, unit);
                         break;
 
                     default:
@@ -312,6 +319,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 }
             }
 
+            if (meta.ContainsKey("units"))
+                tableInformation.Units = meta["units"].Select(unit => unit.Value<string>()).ToList();
+
             if (meta.ContainsKey("is_world_clock"))
                 tableInformation.IsWorldSynchronized = meta["is_world_clock"].Value<bool>();
 
@@ -333,6 +343,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
         public DataField Time;
         public string Uri;
         public List<DataField> Columns;
+        public List<string> Units;
         public bool IsWorldSynchronized;
     }
 }

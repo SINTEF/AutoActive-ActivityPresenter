@@ -108,6 +108,9 @@ namespace SINTEF.AutoActive.UI.Views
 
             if (yHeight > maxTrackHeight) yHeight = maxTrackHeight;
 
+
+            var boldFont = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold);
+
             var paint = new SKPaint
             {
                 Color = SKColors.Red,
@@ -115,8 +118,6 @@ namespace SINTEF.AutoActive.UI.Views
                 Style = SKPaintStyle.Fill,
                 IsAntialias = true
             };
-
-            var boldFont = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold);
 
             var textPaint = new SKPaint
             {
@@ -145,7 +146,7 @@ namespace SINTEF.AutoActive.UI.Views
             foreach (var (start, end, label) in times)
             {
                 var xPos = (start - xMin) * xScale;
-                var width = (end - start) * xScale;
+                var width = Math.Max((end - start) * xScale, 1f);
                 canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, paint);
                 canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, textPaint);
 
@@ -155,7 +156,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
-            if (_dataTimeDict.Count == 0)
+            if (!_dataTimeDict.Any())
             {
                 context.AvailableTimeRangeChanged += ContextOnAvailableTimeRangeChanged;
             }

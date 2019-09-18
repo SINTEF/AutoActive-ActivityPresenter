@@ -3,10 +3,8 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
@@ -40,14 +38,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             DatapointAdded += (sender, args) =>
             {
-                var (datapoint, context) = args;
-                _contexts[datapoint] = context;
+                _contexts.Add(args);
             };
         }
 
         public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
         public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
-        private Dictionary<IDataPoint, DataViewerContext> _contexts = new Dictionary<IDataPoint, DataViewerContext>();
+        private readonly List<(IDataPoint, DataViewerContext)> _contexts = new List<(IDataPoint, DataViewerContext)>();
 
         public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)
         {
@@ -194,8 +191,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             Children.Remove(figureView);
             foreach(var datapoint in figureView.DataPoints)
             {
-                DatapointRemoved?.Invoke(this, (datapoint, _contexts[datapoint]));
-                _contexts.Remove(datapoint);
+                var elIx = _contexts.FindLastIndex(s => s.Item1 == datapoint);
+                var el = _contexts[elIx];
+                DatapointRemoved?.Invoke(this, el);
+                _contexts.RemoveAt(elIx);
             }
         }
 

@@ -16,6 +16,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Databus\Databus.csproj" />
     <ProjectReference Include="..\FileSystem\FileSystem.csproj" />
+    <ProjectReference Include="..\GaitupParser\GaitupParser.csproj" />
     <ProjectReference Include="..\Plugins.Archive\Plugins.Archive.csproj" />
     <ProjectReference Include="..\Plugins\Plugins.csproj" />
     <ProjectReference Include="..\UI\Helpers\UI.Helpers.csproj" />
