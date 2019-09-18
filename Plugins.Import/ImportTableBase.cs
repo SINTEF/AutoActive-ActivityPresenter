@@ -78,7 +78,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         protected TableTimeIndex _timeIndex = null;
         protected List<ColInfo> _colInfos = new List<ColInfo>();
 
-        public ImportTableBase()
+        protected ImportTableBase()
         {
             _reader = new RememberingFullTableReader(this);
         }
@@ -105,8 +105,8 @@ namespace SINTEF.AutoActive.Plugins.Import
 
             var dataDict = fullReader.getData();
 
-            List<Field> fields = new List<Field>();
-            List<DataColumn> datacols = new List<DataColumn>();
+            var fields = new List<Field>();
+            var datacols = new List<DataColumn>();
 
             var numCol = _colInfos.Count;
             for (var i = 0; i < numCol; i++)
@@ -114,8 +114,7 @@ namespace SINTEF.AutoActive.Plugins.Import
                 var colInfo = _colInfos[i];
                 var dataName = colInfo.Name;
                 var dataArr = dataDict[dataName];
-                DataColumn column = null;
-
+                DataColumn column;
                 switch (dataArr)
                 {
                     case bool[] arr:
@@ -136,21 +135,18 @@ namespace SINTEF.AutoActive.Plugins.Import
                     case double[] arr:
                         column = new DataColumn(new DataField<double>(dataName), dataArr);
                         break;
+                    default:
+                        continue;
                 }
                 fields.Add(column.Field);
                 datacols.Add(column);
             }
 
-            var schema = new Schema(fields);
-            var dcas = new DataColumnAndSchema(datacols, schema);
-            return dcas;
+            return new DataColumnAndSchema(datacols, new Schema(fields));
         }
 
-        public async Task<bool> WriteTable(string fileId, ISessionWriter writer)
+        public Task<bool> WriteTable(string fileId, ISessionWriter writer)
         {
-
-            var unitList = new List<string>();
-
             // This stream will be disposed by the sessionWriter
             var ms = new MemoryStream();
 
@@ -172,14 +168,14 @@ namespace SINTEF.AutoActive.Plugins.Import
             ms.Position = 0;
             writer.StoreFileId(ms, fileId);
 
-            return true;
+            return Task.FromResult(true);
         }
 
         protected string[] GetUnitArr()
         {
             // Make unit table
             var numCol = _colInfos.Count;
-            string[] units = new string[numCol];
+            var units = new string[numCol];
             for (var i = 0; i < numCol; i++)
             {
                 units[i] = _colInfos[i].Unit;

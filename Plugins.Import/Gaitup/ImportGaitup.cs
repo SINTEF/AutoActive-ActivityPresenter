@@ -19,72 +19,89 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
     [ImportPlugin(".bin")]
     public class ImportGaitupPlugin : IBatchImportPlugin
     {
-        public List<GaitupData> SessionData = new List<GaitupData>();
+        private List<GaitupData> _sessionData;
 
-        private Barrier _transactionBarrier;
-        private readonly Mutex _transactionMutex = new Mutex();
         private bool _isFirst;
+        private Dictionary<IReadSeekStreamFactory, Task> _gaitupMap  = new Dictionary<IReadSeekStreamFactory, Task>();
+        private Barrier _barrier;
+        private Mutex _transactionMutex;
+        private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
 
-        public void StartTransaction(int numFiles)
+        public void StartTransaction(List<IReadSeekStreamFactory> streamFactories)
         {
-            SessionData.Clear();
-            _isFirst = true;
-            _transactionBarrier = new Barrier(numFiles);
+            _sessionData = new List<GaitupData>();
+            _waitHandle.Reset();
 
+            _transactionMutex = new Mutex();
+            _isFirst = true;
+            _barrier = new Barrier(streamFactories.Count);
+
+            foreach (var readerFactory in streamFactories)
+            {
+                var task = ParseFile(readerFactory);
+                _gaitupMap[readerFactory] = task;
+                task.Start();
+            }
+        }
+
+        private Task ParseFile(IReadSeekStreamFactory readerFactory)
+        {
+            return new Task(() =>
+            {
+                var streamTask = readerFactory.GetReadStream();
+                streamTask.Wait();
+                var stream = streamTask.Result;
+                var name = readerFactory.Name;
+                var fileName = name + readerFactory.Extension;
+                var parser = new GaitupParser.GaitupParser(stream, name, fileName);
+
+                parser.ParseFile();
+                lock (_transactionMutex)
+                {
+                    _sessionData.Add(parser.GetData());
+                }
+
+                _barrier.SignalAndWait(TimeSpan.FromSeconds(5));
+
+                _waitHandle.Set();
+            });
         }
 
         public void EndTransaction()
         {
         }
 
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+        public Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
-            var stream = await readerFactory.GetReadStream();
-            var name = readerFactory.Name;
-            var fileName = name + readerFactory.Extension;
-            var parser = new GaitupParser.GaitupParser(stream, name, fileName);
-            GaitupSessionImporter sessionImporter = null;
-
-            parser.ParseFile();
-
-            stream.Close();
-
-            var data = parser.GetData();
-
-            lock (_transactionMutex)
-            {
-                SessionData.Add(data);
-            }
-
-            if (!_transactionBarrier.SignalAndWait(5000))
+            if (!_waitHandle.WaitOne(TimeSpan.FromSeconds(5)))
             {
                 throw new TimeoutException("Could not find all gaitup files in session.");
             }
-
+            
             lock (_transactionMutex)
             {
-                if (_isFirst)
-                {
-                    Debug.WriteLine($"Start GaitUpSync {name}: {SessionData.Count}");
-                    var synchronizer = new GaitupSynchronizer(SessionData);
-                    synchronizer.Synchronize();
-                    synchronizer.CropSets();
-                    sessionImporter = new GaitupSessionImporter(SessionData);
+                if (!_isFirst) return Task.FromResult<IDataProvider>(null);
 
-                }
                 _isFirst = false;
+                Debug.WriteLine($"Start GaitUpSync {readerFactory.Name}: {_sessionData.Count}");
+                var synchronizer = new GaitupSynchronizer(_sessionData);
+                synchronizer.Synchronize();
+                synchronizer.CropSets();
+                return Task.FromResult<IDataProvider>(new GaitupSessionImporter(_sessionData, parameters["Name"] as string));
             }
+        }
 
-            return sessionImporter;
+        public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
+        {
         }
     }
 
     public class GaitupSessionImporter : BaseDataProvider
     {
-        public GaitupSessionImporter(List<GaitupData> sessionData)
+        public GaitupSessionImporter(List<GaitupData> sessionData, string name)
         {
-            Name = "GaitupSessionImport";
+            Name = name;
             AddChild(new GaitupTop(sessionData));
         }
 
@@ -133,7 +150,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
     public class GaitupFolder : BaseDataStructure, ISaveable
     {
         public bool IsSaved { get; }
-        private GaitupData _data;
+        private readonly GaitupData _data;
         public GaitupFolder(GaitupData data)
         {
             _data = data;
@@ -149,15 +166,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
         public JObject MakeDate(DateTime date)
         {
-            var jdate = new JObject {
+            return new JObject
+            {
                 ["Year"] = date.Year,
                 ["Month"] = date.Month,
                 ["Day"] = date.Day,
                 ["Hour"] = date.Hour,
                 ["Minute"] = date.Minute,
-                ["Seconds"] = date.Second };
-
-            return jdate;
+                ["Seconds"] = date.Second
+            };
         }
 
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
@@ -167,53 +184,63 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var accConf = _data.Config.Accelerometer;
             var gyroConf = _data.Config.Gyro;
             var baroConf = _data.Config.Barometer;
-            var gaitupInfo = new JObject { };
-            gaitupInfo["deviceId"] = sensorConf.DeviceId;
-            gaitupInfo["deviceType"] = sensorConf.DeviceType;
-            gaitupInfo["bodyLocation"] = sensorConf.BodyLocation;
-            gaitupInfo["firmawareVersion"] = "" + sensorConf.Version + "." + sensorConf.MajorVersion + "." + sensorConf.MinorVersion;
-            gaitupInfo["baseFrequency"] = conf.Frequency;
-            gaitupInfo["measureID"] = conf.MeasureId;
-            gaitupInfo["filename"] = conf.FileName;
-            gaitupInfo["startDate"] = MakeDate(conf.StartDate);
-            gaitupInfo["stopDate"] = MakeDate(conf.StopDate);
-            gaitupInfo["sensor"] = new JObject { };
-            gaitupInfo["sensor"]["accel"] = new JObject { };
-            var accelInfo = gaitupInfo["sensor"]["accel"];
-            accelInfo["scale"] = accConf.Scale;
-            accelInfo["sensorId"] = accConf.Id;
-            accelInfo["FS"] = accConf.SamplingFrequency;
-            accelInfo["dataPayload"] = accConf.PayloadLength;
-            accelInfo["nbSamples"] = accConf.NumberOfSamples;
-            gaitupInfo["sensor"]["gyro"] = new JObject { };
-            var gyroInfo = gaitupInfo["sensor"]["gyro"];
-            gyroInfo["scale"] = gyroConf.Scale;
-            gyroInfo["sensorId"] = gyroConf.Id;
-            gyroInfo["FS"] = gyroConf.SamplingFrequency;
-            gyroInfo["dataPayload"] = gyroConf.PayloadLength;
-            gyroInfo["nbSamples"] = gyroConf.NumberOfSamples;
-            gaitupInfo["sensor"]["baro"] = new JObject { };
-            var baroInfo = gaitupInfo["sensor"]["baro"];
-            baroInfo["sensorId"] = baroConf.Id;
-            baroInfo["FS"] = baroConf.SamplingFrequency;
-            baroInfo["dataPayload"] = baroConf.PayloadLength;
-            baroInfo["nbSamples"] = baroConf.NumberOfSamples;
+            var gaitupInfo = new JObject
+            {
+                ["deviceId"] = sensorConf.DeviceId,
+                ["deviceType"] = sensorConf.DeviceType,
+                ["bodyLocation"] = sensorConf.BodyLocation,
+                ["firmawareVersion"] = "" + sensorConf.Version + "." + sensorConf.MajorVersion + "." +
+                                       sensorConf.MinorVersion,
+                ["baseFrequency"] = conf.Frequency,
+                ["measureID"] = conf.MeasureId,
+                ["filename"] = conf.FileName,
+                ["startDate"] = MakeDate(conf.StartDate),
+                ["stopDate"] = MakeDate(conf.StopDate),
+                ["sensor"] = new JObject { },
+                ["sensor"] =
+                {
+                    ["accel"] = new JObject
+                    {
+                        ["scale"] = accConf.Scale,
+                        ["sensorId"] = accConf.Id,
+                        ["FS"] = accConf.SamplingFrequency,
+                        ["dataPayload"] = accConf.PayloadLength,
+                        ["nbSamples"] = accConf.NumberOfSamples
+                    }
+                },
+                ["sensor"] =
+                {
+                    ["gyro"] = new JObject
+                    {
+                        ["scale"] = gyroConf.Scale,
+                        ["sensorId"] = gyroConf.Id,
+                        ["FS"] = gyroConf.SamplingFrequency,
+                        ["dataPayload"] = gyroConf.PayloadLength,
+                        ["nbSamples"] = gyroConf.NumberOfSamples
+                    }
+                },
+                ["sensor"] =
+                {
+                    ["baro"] = new JObject
+                    {
+                        ["sensorId"] = baroConf.Id,
+                        ["FS"] = baroConf.SamplingFrequency,
+                        ["dataPayload"] = baroConf.PayloadLength,
+                        ["nbSamples"] = baroConf.NumberOfSamples
+                    }
+                }
+            };
 
             // Make folder object
-            var metaFolder = new JObject { ["type"] = "no.sintef.folder" };
-            metaFolder["version"] = 1;
-            var userFolder = new JObject { };
-            userFolder["info"] = gaitupInfo;
-
+            var metaFolder = new JObject {["type"] = "no.sintef.folder", ["version"] = 1};
+            var userFolder = new JObject {["info"] = gaitupInfo};
 
             // Place objects into root
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
             return true;
-
         }
-
     }
 
 
@@ -229,9 +256,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             Name = "accel";
             IsSaved = false;
 
-            bool isWorldSynchronized = false;
-            ColInfo timeColInfo = new ColInfo("time", "us");
-            string uri = Name + "/" + timeColInfo.Name;
+            var isWorldSynchronized = false;
+            var timeColInfo = new ColInfo("time", "us");
+            var uri = Name + "/" + timeColInfo.Name;
 
             _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 

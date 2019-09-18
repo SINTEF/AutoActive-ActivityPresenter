@@ -83,65 +83,74 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
-        private static async void DoImportFiles(IReadOnlyCollection<IReadSeekStreamFactory> files)
+        private static async void DoImportFiles(IEnumerable<IReadSeekStreamFactory> files)
         {
-            var tasks = new List<(string, Task<IDataProvider>)>();
+            var pluginPages = new Dictionary<IImportPlugin, (List<IReadSeekStreamFactory>, ImportParametersPage)>();
 
-            var pluginDict = new Dictionary<IImportPlugin, List<IReadSeekStreamFactory>>();
-            // Group the files on plugin
-            foreach(var file in files)
+            foreach (var file in files)
             {
-                // Find the proper import plugin to use
-                var plugins = PluginService.GetAll<IImportPlugin>(file.Extension.ToLower());
-                var plugin = plugins[0];
+                var ext = file.Extension.ToLower();
+                // FIXME: This should probably be handled somewhere else?
+                // FIXME: This should also handle a case where multiple importers are possible
+                // TODO: Should probably be run on a background thread...
 
-                if(!pluginDict.ContainsKey(plugin))
+                // Find the proper import plugin to use
+                var plugins = PluginService.GetAll<IImportPlugin>(ext);
+
+                var plugin = plugins[0];
+                List<IReadSeekStreamFactory> streamFactoryList;
+
+                if (!pluginPages.TryGetValue(plugin, out var listPage))
                 {
-                    pluginDict[plugin] = new List<IReadSeekStreamFactory>();
+                    var parameters = new Dictionary<string, (object, string)>
+                    {
+                        ["Name"] = ("Imported File", "Name of the imported session file")
+                    };
+
+                    plugin.GetExtraConfigurationParameters(parameters);
+                    var page = new ImportParametersPage(file.Name, parameters);
+                    await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: page);
+
+                    streamFactoryList = new List<IReadSeekStreamFactory>();
+                    pluginPages[plugin] = (streamFactoryList, page);
                 }
-                pluginDict[plugin].Add(file);
+                else
+                {
+                    streamFactoryList = listPage.Item1;
+                }
+
+                streamFactoryList.Add(file);
             }
 
             // Start import for each plugin and signal batch import if implemented
-            var pluginDictKeys = pluginDict.Keys;
-            foreach(var plugin in pluginDictKeys)
+            foreach (var pluginItem in pluginPages)
             {
-                var fileList = pluginDict[plugin];
+                var plugin = pluginItem.Key;
+                var fileList = pluginItem.Value.Item1;
+                var page = pluginItem.Value.Item2;
                 var bip = plugin as IBatchImportPlugin;
-                if (bip != null)
-                {
-                    bip.StartTransaction(fileList.Count);
-                }
+
+                bip?.StartTransaction(fileList);
+
                 foreach (var file in fileList)
                 {
-                    try
+                    page.Disappearing += async (s, a) =>
                     {
-                        // FIXME: This should probably be handled somewhere else?
-                        var provider = plugin.Import(file);
-                        tasks.Add((file.Name, provider));
-                    }
-                    catch (Exception ex)
-                    {
-                        await ShowError(file.Name, ex);
-                    }
+                        try
+                        {
+                            var provider = await plugin.Import(file, page.Parameters);
+                            provider?.Register();
+                        }
+                        catch (Exception ex)
+                        {
+                            ShowError(file.Name, ex);
+                        }
+                    };
                 }
+
                 if (bip != null)
                 {
-                    bip.EndTransaction();
-                }
-                
-            }
-
-            foreach (var nameTask in tasks)
-            {
-                var (name, task) = nameTask;
-                try
-                {
-                    (await task)?.Register();
-                }
-                catch (Exception ex)
-                {
-                    await ShowError(name, ex);
+                    page.Disappearing += (s, a) => bip.EndTransaction();
                 }
             }
         }
@@ -166,8 +175,8 @@ namespace SINTEF.AutoActive.UI.Views
 
             if (files == null) return;
 
-            var task = new Task(() => DoImportFiles(files));
-            task.Start();
+            
+            XamarinHelpers.EnsureMainThread(() => DoImportFiles(files));
         }
 
         private void SaveArchiveButton_OnClicked(object sender, EventArgs e)

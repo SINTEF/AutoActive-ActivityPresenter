@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -10,6 +11,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Helpers;
+using Directory = MetadataExtractor.Directory;
 
 namespace SINTEF.AutoActive.Plugins.Import.Video
 {
@@ -19,34 +21,50 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".mp4")]
     public class ImportVideoPlugin : IImportPlugin
     {
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory)
+
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
+            Dictionary<string, object> parameters)
         {
-            var importer = new VideoImporter(readerFactory);
+            var importer = new VideoImporter(readerFactory, parameters);
             var stream = await readerFactory.GetReadStream();
             importer.ParseFile(stream);
             return importer;
+        }
+
+        public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
+        {
+            parameters["CreatedAtStart"] = (true, "Created time is at the start of the video file");
         }
     }
 
     public class VideoImporter : BaseDataProvider
     {
-        public VideoImporter(IReadSeekStreamFactory readerFactory)
+        private readonly Dictionary<string, object> _parameters;
+        private readonly IReadSeekStreamFactory _readerFactory;
+        private IReadOnlyList<Directory> _metaData = null;
+
+        private IReadOnlyList<Directory> GetMetaData(Stream stream)
+        {
+            
+            if (_metaData == null) _metaData = ImageMetadataReader.ReadMetadata(stream);
+            return _metaData;
+            
+        }
+
+        public VideoImporter(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
             _readerFactory = readerFactory;
-
-            Name = "Imported Video";
+            _parameters = parameters;
         }
 
-        private IReadSeekStreamFactory _readerFactory;
-        public string GetCreatedProperty(Stream stream)
+        public string GetProperty(Stream stream, string name)
         {
-            var metaData = ImageMetadataReader.ReadMetadata(stream);
-
-            return (from data in metaData
-                    from el in data.Tags
-                    where el.Name.Contains("Created")
-                    select el.Description).FirstOrDefault();
+            return (from data in GetMetaData(stream)
+                from el in data.Tags
+                where el.Name.Contains(name)
+                select el.Description).FirstOrDefault();
         }
+
         public static bool TryParseDateTime(string dateTimeStr, out DateTime date)
         {
             var culture = CultureInfo.GetCultureInfo("en-US");
@@ -55,21 +73,35 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
                 DateTimeStyles.None, out date);
         }
 
+
         public long GetCreatedTime(Stream stream)
         {
-            var property = GetCreatedProperty(stream);
+            var property = GetProperty(stream, "Created");
             return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
         }
 
-
-        public void Close()  // Todo Hides inherited member - check if this is needed - Steffend
+        public long GetVideoLength(Stream stream)
         {
-            _readerFactory?.Close();
+            var property = GetProperty(stream, "Duration");
+            return property != null && TimeSpan.TryParse(property, out var date) ? TimeFormatter.TimeFromTimeSpan(date) : 0L;
         }
 
         protected override void DoParseFile(Stream stream)
         {
+            Name = _parameters["Name"] as string;
+
+            if (string.IsNullOrEmpty(Name))
+            {
+                Name = "Imported Video";
+            }
+
             var startTime = GetCreatedTime(stream);
+
+            if (!(bool)_parameters["CreatedAtStart"])
+            {
+                var length = GetVideoLength(stream);
+                startTime -= length;
+            }
 
             var jsonRoot = new JObject
             {

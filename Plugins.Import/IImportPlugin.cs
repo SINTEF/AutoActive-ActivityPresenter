@@ -9,12 +9,13 @@ namespace SINTEF.AutoActive.Plugins.Import
     [PluginType(AllowMultipleImplementations = true, UseSingletonInstance = true)]
     public interface IImportPlugin
     {
-        Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory);
+        Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters);
+        void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters);
     }
 
     public interface IBatchImportPlugin : IImportPlugin
     {
-        void StartTransaction(int numFiles);
+        void StartTransaction(List<IReadSeekStreamFactory> streamFactories);
         void EndTransaction();
     }
 
