@@ -293,12 +293,12 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 // Draw current time axis
                 var zeroX = ScaleX(earliestStartTime, startX, scaleX);
-                canvas.DrawLine(zeroX, 0, zeroX, plotRect.Height, _currentLinePaint);
+                canvas.DrawLine(zeroX, plotRect.Top, zeroX, plotRect.Bottom, _currentLinePaint);
             }
 
             // Draw zero-x axis
             var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
-            canvas.DrawLine(0, zeroY, plotRect.Width, zeroY, _zeroLinePaint);
+            canvas.DrawLine(plotRect.Left, zeroY,  plotRect.Right, zeroY, _zeroLinePaint);
 
             foreach (var lineConfig in _lines)
             {
@@ -436,8 +436,8 @@ namespace SINTEF.AutoActive.UI.Figures
             var legendYDelta = multipleLegendSpacing + textHeight;
             var legendFrameHeight = legendEndY - (frameStartY + legendMargin) + (nLegends - 1) * legendYDelta;
 
-            canvas.DrawRect(legendFrameStartX, legendFrameStartY, legendFrameWidth, legendFrameHeight, _legendFill);
-            canvas.DrawRect(legendFrameStartX, legendFrameStartY, legendFrameWidth, legendFrameHeight, _legendStroke);
+            canvas.DrawRect(legendFrameStartX + drawRect.Left, legendFrameStartY, legendFrameWidth, legendFrameHeight, _legendFill);
+            canvas.DrawRect(legendFrameStartX + drawRect.Left, legendFrameStartY, legendFrameWidth, legendFrameHeight, _legendStroke);
 
             var legendIx = 0;
             foreach (var config in configs)
@@ -451,8 +451,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
                 var legendLineY = yPos - textHeight / 2;
 
-                canvas.DrawText(text, legendTextStartX, yPos, TextPaint);
-                canvas.DrawLine(legendLineX0, legendLineY, legendLineX1, legendLineY, config.LinePaint);
+                canvas.DrawText(text, legendTextStartX + drawRect.Left, yPos, TextPaint);
+                canvas.DrawLine(legendLineX0 + drawRect.Left, legendLineY, legendLineX1 + drawRect.Left, legendLineY, config.LinePaint);
                 legendIx++;
             }
         }
