@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
@@ -9,8 +10,9 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.UI.Helpers;
 
-namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
+namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
 
     [ImportPlugin(".csv")]
@@ -55,7 +57,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             IsSaved = false;
             _fileName = fileName;
 
-            bool isWorldSynchronized = false;
+            var isWorldSynchronized = false;
             var timeColInfo = new ColInfo("Time", "us");
             var uri = Name + "/" + timeColInfo.Name;
             _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
@@ -90,17 +92,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
         public override Dictionary<string, Array> ReadData()
         {
-            return GenericReadData<CatapultRecord>(new CatapultParser(), _readerFactory);
+            return GenericReadData(new CatapultParser(), _readerFactory);
         }
 
 
-        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-
-            string fileId;
-
             // TODO: give a better name?
-            fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
+            var fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
 
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
@@ -122,32 +121,30 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
-            bool result = await WriteTable(fileId, writer);
-            return result;
-
+            return WriteTable(fileId, writer);
         }
     }
 
     public class CatapultParser : ICsvParser<CatapultRecord>
     {
         // Make all the arrays needed
-        private List<long> timeData = new List<long>();
-        private List<float> forwardData = new List<float>();
-        private List<float> sidewaysData = new List<float>();
-        private List<float> upData = new List<float>();
-        private List<float> velDprData = new List<float>();
-        private List<float> gyr1Data = new List<float>();
-        private List<float> gyr2Data = new List<float>();
-        private List<float> gyr3Data = new List<float>();
-        private List<float> altitudeData = new List<float>();
-        private List<float> velAvData = new List<float>();
-        private List<float> hdopData = new List<float>();
-        private List<float> vdopData = new List<float>();
-        private List<float> logitudeData = new List<float>();
-        private List<float> latitudeData = new List<float>();
-        private List<float> heartrateData = new List<float>();
-        private List<float> accData = new List<float>();
-        private List<float> rawvelData = new List<float>();
+        private readonly List<long> _timeData = new List<long>();
+        private readonly List<float> _forwardData = new List<float>();
+        private readonly List<float> _sidewaysData = new List<float>();
+        private readonly List<float> _upData = new List<float>();
+        private readonly List<float> _velDprData = new List<float>();
+        private readonly List<float> _gyr1Data = new List<float>();
+        private readonly List<float> _gyr2Data = new List<float>();
+        private readonly List<float> _gyr3Data = new List<float>();
+        private readonly List<float> _altitudeData = new List<float>();
+        private readonly List<float> _velAvData = new List<float>();
+        private readonly List<float> _hdopData = new List<float>();
+        private readonly List<float> _vdopData = new List<float>();
+        private readonly List<float> _logitudeData = new List<float>();
+        private readonly List<float> _latitudeData = new List<float>();
+        private readonly List<float> _heartrateData = new List<float>();
+        private readonly List<float> _accData = new List<float>();
+        private readonly List<float> _rawvelData = new List<float>();
 
         public void ConfigureCsvReader(CsvReader csvReader)
         {
@@ -159,90 +156,69 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv.Catapult
 
         private long ConvHmssToEpochUs(string timeString)
         {
-            long epochUs = 0;
-            int h, m;
-            float s;
-            // Expected character format 'M:S.SS' or 'H:M:S.SS'
-            string[] c_split = timeString.Split(':');
-
-            if(c_split.Length == 2)
-            {
-                h = 0;
-                Int32.TryParse(c_split[0], out m);
-                Single.TryParse(c_split[1], out s);
-            }
-            else
-            {
-                Int32.TryParse(c_split[0], out h);
-                Int32.TryParse(c_split[1], out m);
-                Single.TryParse(c_split[2], out s);
-            }
-            epochUs = (long)(((h * 3600) + (m * 60) + s) * 1000000);
-            return epochUs;
+            return TimeFormatter.TimeFromTimeSpan(TimeSpan.Parse(timeString));
         }
 
         public void ParseRecord(int rowIdx, CatapultRecord rec)
         {
             var time = rec.Stringtime;
-            timeData.Add(ConvHmssToEpochUs(time));
+            _timeData.Add(ConvHmssToEpochUs(time));
 
-            forwardData.Add(rec.Forward);
-            sidewaysData.Add(rec.Sideways);
-            upData.Add(rec.Up);
-            velDprData.Add(rec.Vel_dpr);
-            gyr1Data.Add(rec.Gyr1);
-            gyr2Data.Add(rec.Gyr2);
-            gyr3Data.Add(rec.Gyr3);
-            altitudeData.Add(rec.Altitude);
-            velAvData.Add(rec.Vel_av);
-            hdopData.Add(rec.HDOP);
-            vdopData.Add(rec.VDOP);
-            logitudeData.Add(rec.Longitude);
-            latitudeData.Add(rec.Latitude);
-            heartrateData.Add(rec.Heartrate);
-            accData.Add(rec.Acc);
-            rawvelData.Add(rec.Rawvel);
+            _forwardData.Add(rec.Forward);
+            _sidewaysData.Add(rec.Sideways);
+            _upData.Add(rec.Up);
+            _velDprData.Add(rec.Vel_dpr);
+            _gyr1Data.Add(rec.Gyr1);
+            _gyr2Data.Add(rec.Gyr2);
+            _gyr3Data.Add(rec.Gyr3);
+            _altitudeData.Add(rec.Altitude);
+            _velAvData.Add(rec.Vel_av);
+            _hdopData.Add(rec.HDOP);
+            _vdopData.Add(rec.VDOP);
+            _logitudeData.Add(rec.Longitude);
+            _latitudeData.Add(rec.Latitude);
+            _heartrateData.Add(rec.Heartrate);
+            _accData.Add(rec.Acc);
+            _rawvelData.Add(rec.Rawvel);
         }
 
         public Dictionary<string, Array> GetParsedData()
         {
-            Dictionary<string, Array> locData = new Dictionary<string, Array>();
-
             // Wrap up and store result
-            locData.Add("Time", timeData.ToArray());
-            locData.Add("Forward", forwardData.ToArray());
-            locData.Add("Sideways", sidewaysData.ToArray());
-            locData.Add("Up", upData.ToArray());
-            locData.Add("VelDpr", velDprData.ToArray());
-            locData.Add("Gyr1", gyr1Data.ToArray());
-            locData.Add("Gyr2", gyr2Data.ToArray());
-            locData.Add("Gyr3", gyr3Data.ToArray());
-            locData.Add("Altitude", altitudeData.ToArray());
-            locData.Add("VelAv", velAvData.ToArray());
-            locData.Add("HDOP", hdopData.ToArray());
-            locData.Add("VDOP", vdopData.ToArray());
-            locData.Add("Longitude", logitudeData.ToArray());
-            locData.Add("Latitude", latitudeData.ToArray());
-            locData.Add("Heartrate", heartrateData.ToArray());
-            locData.Add("Acc", accData.ToArray());
-            locData.Add("Rawvel", rawvelData.ToArray());
+            var locData = new Dictionary<string, Array>
+            {
+                {"Time", _timeData.ToArray()},
+                {"Forward", _forwardData.ToArray()},
+                {"Sideways", _sidewaysData.ToArray()},
+                {"Up", _upData.ToArray()},
+                {"Dpr", _velDprData.ToArray()},
+                {"Gyr1", _gyr1Data.ToArray()},
+                {"Gyr2", _gyr2Data.ToArray()},
+                {"Gyr3", _gyr3Data.ToArray()},
+                {"Altitude", _altitudeData.ToArray()},
+                {"Vel", _velAvData.ToArray()},
+                {"HDOP", _hdopData.ToArray()},
+                {"VDOP", _vdopData.ToArray()},
+                {"Longitude", _logitudeData.ToArray()},
+                {"Latitude", _latitudeData.ToArray()},
+                {"Heartrate", _heartrateData.ToArray()},
+                {"Acc", _accData.ToArray()},
+                {"Rawvel", _rawvelData.ToArray()}
+            };
 
+            
             return locData;
         }
 
-        private List<string> _preHeaderItems = new List<string>();
+        private readonly List<string> _preHeaderItems = new List<string>();
         private readonly string[] _preHeaderSignatures = { "Logan", "rawFileName=", "From=", "Date=", "Time=", "Athlete=", "EventDescription=" };
-        internal bool CheckLine(string[] l)
+        internal bool CheckLine(string[] lines)
         {
-            foreach (string signature in _preHeaderSignatures)
-            {
-                if (l[0].StartsWith(signature))
-                {
-                    _preHeaderItems.Add(l[0]);
-                    return true;
-                }
-            }
-            return false;
+            if (!_preHeaderSignatures.Any(signature => lines[0].StartsWith(signature))) return false;
+
+            _preHeaderItems.Add(lines[0]);
+            return true;
+
         }
 
     }
