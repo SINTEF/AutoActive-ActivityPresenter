@@ -150,7 +150,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
     public class GaitupFolder : BaseDataStructure, ISaveable
     {
         public bool IsSaved { get; }
-        private GaitupData _data;
+        private readonly GaitupData _data;
         public GaitupFolder(GaitupData data)
         {
             _data = data;
@@ -166,15 +166,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
         public JObject MakeDate(DateTime date)
         {
-            var jdate = new JObject {
+            return new JObject
+            {
                 ["Year"] = date.Year,
                 ["Month"] = date.Month,
                 ["Day"] = date.Day,
                 ["Hour"] = date.Hour,
                 ["Minute"] = date.Minute,
-                ["Seconds"] = date.Second };
-
-            return jdate;
+                ["Seconds"] = date.Second
+            };
         }
 
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
@@ -184,53 +184,63 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var accConf = _data.Config.Accelerometer;
             var gyroConf = _data.Config.Gyro;
             var baroConf = _data.Config.Barometer;
-            var gaitupInfo = new JObject();
-            gaitupInfo["deviceId"] = sensorConf.DeviceId;
-            gaitupInfo["deviceType"] = sensorConf.DeviceType;
-            gaitupInfo["bodyLocation"] = sensorConf.BodyLocation;
-            gaitupInfo["firmawareVersion"] = "" + sensorConf.Version + "." + sensorConf.MajorVersion + "." + sensorConf.MinorVersion;
-            gaitupInfo["baseFrequency"] = conf.Frequency;
-            gaitupInfo["measureID"] = conf.MeasureId;
-            gaitupInfo["filename"] = conf.FileName;
-            gaitupInfo["startDate"] = MakeDate(conf.StartDate);
-            gaitupInfo["stopDate"] = MakeDate(conf.StopDate);
-            gaitupInfo["sensor"] = new JObject { };
-            gaitupInfo["sensor"]["accel"] = new JObject { };
-            var accelInfo = gaitupInfo["sensor"]["accel"];
-            accelInfo["scale"] = accConf.Scale;
-            accelInfo["sensorId"] = accConf.Id;
-            accelInfo["FS"] = accConf.SamplingFrequency;
-            accelInfo["dataPayload"] = accConf.PayloadLength;
-            accelInfo["nbSamples"] = accConf.NumberOfSamples;
-            gaitupInfo["sensor"]["gyro"] = new JObject { };
-            var gyroInfo = gaitupInfo["sensor"]["gyro"];
-            gyroInfo["scale"] = gyroConf.Scale;
-            gyroInfo["sensorId"] = gyroConf.Id;
-            gyroInfo["FS"] = gyroConf.SamplingFrequency;
-            gyroInfo["dataPayload"] = gyroConf.PayloadLength;
-            gyroInfo["nbSamples"] = gyroConf.NumberOfSamples;
-            gaitupInfo["sensor"]["baro"] = new JObject { };
-            var baroInfo = gaitupInfo["sensor"]["baro"];
-            baroInfo["sensorId"] = baroConf.Id;
-            baroInfo["FS"] = baroConf.SamplingFrequency;
-            baroInfo["dataPayload"] = baroConf.PayloadLength;
-            baroInfo["nbSamples"] = baroConf.NumberOfSamples;
+            var gaitupInfo = new JObject
+            {
+                ["deviceId"] = sensorConf.DeviceId,
+                ["deviceType"] = sensorConf.DeviceType,
+                ["bodyLocation"] = sensorConf.BodyLocation,
+                ["firmawareVersion"] = "" + sensorConf.Version + "." + sensorConf.MajorVersion + "." +
+                                       sensorConf.MinorVersion,
+                ["baseFrequency"] = conf.Frequency,
+                ["measureID"] = conf.MeasureId,
+                ["filename"] = conf.FileName,
+                ["startDate"] = MakeDate(conf.StartDate),
+                ["stopDate"] = MakeDate(conf.StopDate),
+                ["sensor"] = new JObject { },
+                ["sensor"] =
+                {
+                    ["accel"] = new JObject
+                    {
+                        ["scale"] = accConf.Scale,
+                        ["sensorId"] = accConf.Id,
+                        ["FS"] = accConf.SamplingFrequency,
+                        ["dataPayload"] = accConf.PayloadLength,
+                        ["nbSamples"] = accConf.NumberOfSamples
+                    }
+                },
+                ["sensor"] =
+                {
+                    ["gyro"] = new JObject
+                    {
+                        ["scale"] = gyroConf.Scale,
+                        ["sensorId"] = gyroConf.Id,
+                        ["FS"] = gyroConf.SamplingFrequency,
+                        ["dataPayload"] = gyroConf.PayloadLength,
+                        ["nbSamples"] = gyroConf.NumberOfSamples
+                    }
+                },
+                ["sensor"] =
+                {
+                    ["baro"] = new JObject
+                    {
+                        ["sensorId"] = baroConf.Id,
+                        ["FS"] = baroConf.SamplingFrequency,
+                        ["dataPayload"] = baroConf.PayloadLength,
+                        ["nbSamples"] = baroConf.NumberOfSamples
+                    }
+                }
+            };
 
             // Make folder object
-            var metaFolder = new JObject { ["type"] = "no.sintef.folder" };
-            metaFolder["version"] = 1;
-            var userFolder = new JObject { };
-            userFolder["info"] = gaitupInfo;
-
+            var metaFolder = new JObject {["type"] = "no.sintef.folder", ["version"] = 1};
+            var userFolder = new JObject {["info"] = gaitupInfo};
 
             // Place objects into root
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
             return true;
-
         }
-
     }
 
 
@@ -246,9 +256,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             Name = "accel";
             IsSaved = false;
 
-            bool isWorldSynchronized = false;
-            ColInfo timeColInfo = new ColInfo("time", "us");
-            string uri = Name + "/" + timeColInfo.Name;
+            var isWorldSynchronized = false;
+            var timeColInfo = new ColInfo("time", "us");
+            var uri = Name + "/" + timeColInfo.Name;
 
             _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
