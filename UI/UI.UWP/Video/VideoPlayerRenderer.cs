@@ -94,12 +94,11 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         private const double OffsetEqualComp = 0.1d;
         private readonly Queue<double> _offsetQueue = new Queue<double>(OffsetQueueElements);
 
-
         private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
         {
             if (!_currentlyPlaying)
             {
-                _videoPlayer.SetOffsetLabel(0);
+                _videoPlayer.CurrentOffset = 0;
                 _mediaElement.Position = wantedPosition;
                 return;
             }
@@ -109,6 +108,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             var expectedDiff = now - _lastUpdate;
             var diff = (_mediaElement.Position - wantedPosition).TotalSeconds - expectedDiff.TotalSeconds;
 
+            _videoPlayer.CurrentOffset = diff;
+
             var offset = Math.Abs(diff);
 
             if (_offsetQueue.Count >= OffsetQueueElements)
@@ -117,7 +118,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             }
             _offsetQueue.Enqueue(offset);
 
-            bool offsetChanged = false;
+            var offsetChanged = false;
 
             if(_offsetQueue.Count == OffsetQueueElements)
             {
@@ -141,8 +142,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     }
                 }
             }
-            
-            _videoPlayer.SetOffsetLabel(diff);
 
             // A possibility here would be to estimate the expected offset and compensate for it
             if (offsetChanged || offset > allowedOffset * _mediaElement.DefaultPlaybackRate)

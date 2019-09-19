@@ -196,6 +196,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         }
 
         public bool IsSynchronizedToWorldClock => false; // FIXME: How do we store the sync?
+        public long VideoPlaybackOffset { get; set; }
 
         private readonly List<ArchiveVideoTimeViewer> _viewers = new List<ArchiveVideoTimeViewer>();
 
@@ -209,8 +210,11 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public void TransformTime(long offset, double scale)
         {
-            // TODO: Trigger TimeViewers' TimeChanged
             Offset += offset;
+#if VIDEO_TIME_COMPENSATION
+            //TODO: Check sign of videoplayblackoffset
+            Offset += VideoPlaybackOffset;
+#endif
             Scale = scale;
             foreach (var viewer in _viewers)
             {

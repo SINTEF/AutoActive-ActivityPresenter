@@ -33,6 +33,7 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 view.StartTime = time.Offset;
                 time.OffsetChanged += (s, offset) => view.StartTime = offset;
+                view._player.OffsetChanged += (s, offset) => time.VideoPlaybackOffset = TimeFormatter.TimeFromSeconds(offset);
             }
 
             context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
