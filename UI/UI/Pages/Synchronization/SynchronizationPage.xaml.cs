@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
@@ -93,7 +94,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 //TODO(sigurdal): Only allow adding of datasets with the same Time? If so: how to get selected time?
             }
-
             if (!_dataContextDictionary.TryGetValue(datapoint.Time, out var contextSliders))
             {
                 contextSliders = (new SynchronizationContext(_masterContext), new List<RelativeSlider>());
@@ -101,6 +101,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
 
             var (context, sliders) = contextSliders;
+
 
             if (Selected != null)
             {
@@ -221,12 +222,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void Save_OnClicked(object sender, EventArgs e)
         {
+            var extraOffset = 0L;
+#if VIDEO_TIME_COMPENSATION
+            if (_masterTime is ArchiveVideoTime videoTime)
+            {
+                //TODO: Check sign of this
+                extraOffset = videoTime.VideoPlaybackOffset;
+            }
+#endif
             foreach (var syncItem in _dataContextDictionary)
             {
                 var (context, _) = syncItem.Value;
                 if (context is SynchronizationContext syncContext)
                 {
-                    syncItem.Key.TransformTime(syncContext.Offset, syncContext.Scale);
+                    syncItem.Key.TransformTime(syncContext.Offset + extraOffset, syncContext.Scale);
                 }
             }
 

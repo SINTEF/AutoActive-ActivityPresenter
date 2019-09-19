@@ -33,6 +33,7 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 view.StartTime = time.Offset;
                 time.OffsetChanged += (s, offset) => view.StartTime = offset;
+                view._player.OffsetChanged += (s, offset) => time.VideoPlaybackOffset = TimeFormatter.TimeFromSeconds(offset);
             }
 
             context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
@@ -73,13 +74,30 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             Canvas.IsVisible = false;
 
-            _player = new VideoPlayer();
+            _player = new VideoPlayer
+            {
+                Label = new Label
+                {
+                    Text = "Test",
+                    TextColor = Color.Lime,
+                    HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false),
+                    VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false)
+                }
+            };
 
-            GridLayout.Children.Add(_player);
+            Grid.SetColumn(_player.Label, Grid.GetColumn(Canvas));
+            Grid.SetRow(_player.Label, Grid.GetRow(Canvas));
+            Grid.SetRowSpan(_player.Label, Grid.GetRowSpan(Canvas));
+            Grid.SetColumnSpan(_player.Label, Grid.GetColumnSpan(Canvas));
+
+
             Grid.SetColumn(_player, Grid.GetColumn(Canvas));
             Grid.SetRow(_player, Grid.GetRow(Canvas));
             Grid.SetRowSpan(_player, Grid.GetRowSpan(Canvas));
             Grid.SetColumnSpan(_player, Grid.GetColumnSpan(Canvas));
+
+            GridLayout.Children.Add(_player);
+            GridLayout.Children.Add(_player.Label);
 
             _player.Source = streamFactory;
             _player.MimeType = mime;
