@@ -173,7 +173,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             var timeInfo = tableInformation.Time;
             var tableFile = _sessionId + "://" + tableInformation.Uri;
             var uri2 = tableFile + "/" + timeInfo.Name;
-            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), tableInformation.IsWorldSynchronized, uri2, "t");
+            var time = new TableTimeIndex(timeInfo.Name, GenerateLoader<long>(_reader, timeInfo), tableInformation.IsWorldSynchronized, uri2, tableInformation.TimeUnit);
 
             for (var index = 0; index < tableInformation.Columns.Count; index++)
             {
@@ -296,7 +296,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             {
                 ZipEntry = zipEntry,
                 Columns = new List<DataField>(),
-                Uri = path
+                Uri = path,
+                Units = new List<string>(),
+                TimeUnit = "",
             };
 
             // Open the table file
@@ -304,23 +306,36 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             using (var reader = new ParquetReader(stream))
             {
                 var fields = reader.Schema.GetDataFields();
+                var rawUnits = new string[0];
+                if (meta.ContainsKey("units"))
+                {
+                    rawUnits = meta["units"].Select(unit => unit.Value<string>()).ToArray();
+                }
 
                 // Find all the column information
+                int idx = 0;
                 foreach (var field in fields)
                 {
+                    // Fetch unit for current column
+                    string currUnit = "";
+                    if(idx < rawUnits.Length)
+                    {
+                        currUnit = rawUnits[idx];
+                    }
+                    idx++;
+
                     if (field.Name.Equals("time", StringComparison.OrdinalIgnoreCase))
                     {
                         tableInformation.Time = field;
+                        tableInformation.TimeUnit = currUnit;
                     }
                     else
                     {
                         tableInformation.Columns.Add(field);
+                        tableInformation.Units.Add(currUnit);
                     }
                 }
             }
-
-            if (meta.ContainsKey("units"))
-                tableInformation.Units = meta["units"].Select(unit => unit.Value<string>()).ToList();
 
             if (meta.ContainsKey("is_world_clock"))
                 tableInformation.IsWorldSynchronized = meta["is_world_clock"].Value<bool>();
@@ -341,6 +356,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
     {
         public ZipEntry ZipEntry;
         public DataField Time;
+        public string TimeUnit;
         public string Uri;
         public List<DataField> Columns;
         public List<string> Units;
