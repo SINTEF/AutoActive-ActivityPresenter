@@ -92,7 +92,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public (float,float) GetVisibleYMinMax()
         {
-            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems*10);
+            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems);
             var (min, max) = (float.MaxValue, float.MinValue);
             while (en.MoveNext())
             {
