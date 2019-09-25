@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
@@ -10,8 +11,8 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
 using Newtonsoft.Json.Linq;
-using SINTEF.AutoActive.UI.Helpers;
 
+[assembly: InternalsVisibleTo("Plugins.Tests")]
 namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
 
@@ -154,9 +155,33 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
         }
 
-        private long ConvHmssToEpochUs(string timeString)
+        internal static long ConvHmssToEpochUs(string timeString)
         {
-            return TimeFormatter.TimeFromTimeSpan(TimeSpan.Parse(timeString));
+            long hours = 0;
+            long minutes;
+            long seconds;
+            long centiSeconds;
+            // Expected character format 'M:S.SS' or 'H:M:S.SS'
+            var timeSplit = timeString.Split(':');
+
+            var secondsSplit = timeSplit.Last().Split('.');
+
+            if (timeSplit.Length == 2)
+            {
+                minutes = long.Parse(timeSplit[0]);
+                seconds = long.Parse(secondsSplit[0]);
+                centiSeconds = long.Parse(secondsSplit[1]);
+            }
+            else
+            {
+                hours = long.Parse(timeSplit[0]);
+                minutes = long.Parse(timeSplit[1]);
+                seconds = long.Parse(secondsSplit[0]);
+                centiSeconds = long.Parse(secondsSplit[1]);
+            }
+
+            var epochUs = ((hours * 3600L + minutes * 60L + seconds)* 100L + centiSeconds) * 10000L;
+            return epochUs;
         }
 
         public void ParseRecord(int rowIdx, CatapultRecord rec)
