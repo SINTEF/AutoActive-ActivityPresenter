@@ -223,8 +223,9 @@ namespace SINTEF.AutoActive.UI.Figures
 
             canvas.Save();
             canvas.ClipRect(plotRect);
-            
-            if (startX < _context.AvailableTimeFrom)
+
+            // TODO: fix this for SynchronizationContext by floating the line to the right
+            if (startX < _context.AvailableTimeFrom && ! (_context is SynchronizationContext))
             {
                 startX = _context.AvailableTimeFrom;
             }
