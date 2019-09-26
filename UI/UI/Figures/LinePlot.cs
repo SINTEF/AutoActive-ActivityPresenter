@@ -191,7 +191,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public bool AutoScale = true;
 
-        private const int SmoothScalingQueueSize = 10;
+        private const int SmoothScalingQueueSize = 30;
         private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
 
         internal static int MaxPointsFromWidth(float width)
