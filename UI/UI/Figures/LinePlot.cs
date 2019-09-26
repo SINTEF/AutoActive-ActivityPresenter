@@ -298,7 +298,7 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 // Draw current time axis
                 var zeroX = ScaleX(earliestStartTime, startX, scaleX);
-                canvas.DrawLine(zeroX, plotRect.Top, zeroX, plotRect.Bottom, _currentLinePaint);
+                canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
             // Draw zero-x axis

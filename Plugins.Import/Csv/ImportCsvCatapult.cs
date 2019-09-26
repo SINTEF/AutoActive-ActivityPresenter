@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using CsvHelper;
 using CsvHelper.Configuration.Attributes;
@@ -10,8 +11,8 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
 using Newtonsoft.Json.Linq;
-using SINTEF.AutoActive.UI.Helpers;
 
+[assembly: InternalsVisibleTo("Plugins.Tests")]
 namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
 
@@ -65,22 +66,22 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
             var stringUnits = new[]
             {
-                new ColInfo("Forward", "?"),
-                new ColInfo("Sideways", "?"),
-                new ColInfo("Up", "?"),
+                new ColInfo("Forward", null),
+                new ColInfo("Sideways", null),
+                new ColInfo("Up", null),
                 new ColInfo("VelDpr", "dpr"),
                 new ColInfo("Gyr1", "d/s"),
                 new ColInfo("Gyr2", "d/s"),
-                new ColInfo("Gyr2", "d/s"),
-                new ColInfo("Altitude", "?"),
-                new ColInfo("VelAv", "?"),
-                new ColInfo("HDOP", "?"),
-                new ColInfo("VDOP", "?"),
+                new ColInfo("Gyr3", "d/s"),
+                new ColInfo("Altitude", null),
+                new ColInfo("VelAv", null),
+                new ColInfo("HDOP", null),
+                new ColInfo("VDOP", null),
                 new ColInfo("Longitude", "deg"),
                 new ColInfo("Latitude", "deg"),
                 new ColInfo("Heartrate", "bps"),
-                new ColInfo("Acc", "?"),
-                new ColInfo("Rawvel", "?"),
+                new ColInfo("Acc", null),
+                new ColInfo("Rawvel", null),
             };
 
             foreach (var colInfo in stringUnits)
@@ -154,9 +155,33 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
         }
 
-        private long ConvHmssToEpochUs(string timeString)
+        internal static long ConvHmssToEpochUs(string timeString)
         {
-            return TimeFormatter.TimeFromTimeSpan(TimeSpan.Parse(timeString));
+            long hours = 0;
+            long minutes;
+            long seconds;
+            long centiSeconds;
+            // Expected character format 'M:S.SS' or 'H:M:S.SS'
+            var timeSplit = timeString.Split(':');
+
+            var secondsSplit = timeSplit.Last().Split('.');
+
+            if (timeSplit.Length == 2)
+            {
+                minutes = long.Parse(timeSplit[0]);
+                seconds = long.Parse(secondsSplit[0]);
+                centiSeconds = long.Parse(secondsSplit[1]);
+            }
+            else
+            {
+                hours = long.Parse(timeSplit[0]);
+                minutes = long.Parse(timeSplit[1]);
+                seconds = long.Parse(secondsSplit[0]);
+                centiSeconds = long.Parse(secondsSplit[1]);
+            }
+
+            var epochUs = ((hours * 3600L + minutes * 60L + seconds)* 100L + centiSeconds) * 10000L;
+            return epochUs;
         }
 
         public void ParseRecord(int rowIdx, CatapultRecord rec)
@@ -191,12 +216,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 {"Forward", _forwardData.ToArray()},
                 {"Sideways", _sidewaysData.ToArray()},
                 {"Up", _upData.ToArray()},
-                {"Dpr", _velDprData.ToArray()},
+                {"VelDpr", _velDprData.ToArray()},
                 {"Gyr1", _gyr1Data.ToArray()},
                 {"Gyr2", _gyr2Data.ToArray()},
                 {"Gyr3", _gyr3Data.ToArray()},
                 {"Altitude", _altitudeData.ToArray()},
-                {"Vel", _velAvData.ToArray()},
+                {"VelAv", _velAvData.ToArray()},
                 {"HDOP", _hdopData.ToArray()},
                 {"VDOP", _vdopData.ToArray()},
                 {"Longitude", _logitudeData.ToArray()},
