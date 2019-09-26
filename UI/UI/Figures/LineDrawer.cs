@@ -11,7 +11,7 @@ namespace SINTEF.AutoActive.UI.Figures
         float MinY { get; }
         float MaxY { get; }
 
-        (float, float) GetVisibleYMinMax();
+        (float, float) GetVisibleYMinMax(int maxPoints);
 
         ITimeSeriesViewer Viewer { get; }
         LinePlot Parent { get; set; }
@@ -40,7 +40,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var offsetY = lineConfig.OffsetY;
             var scaleY = lineConfig.ScaleY;
 
-            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems);
+            var en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
 
             if (!en.MoveNext()) return;
 
@@ -63,7 +63,6 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
-        public int MaxItems = LinePlot.MaxPlotPoints;
         // ---- Scaling ----
         private float _minYValue = -1;
         private float _maxYValue = 1;
@@ -90,9 +89,9 @@ namespace SINTEF.AutoActive.UI.Figures
 
 
 
-        public (float,float) GetVisibleYMinMax()
+        public (float,float) GetVisibleYMinMax(int maxPoints)
         {
-            var en = Viewer.GetCurrentData<T>().GetEnumerator(MaxItems);
+            var en = Viewer.GetCurrentData<T>().GetEnumerator(maxPoints);
             var (min, max) = (float.MaxValue, float.MinValue);
             while (en.MoveNext())
             {
