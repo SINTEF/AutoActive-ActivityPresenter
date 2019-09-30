@@ -168,6 +168,16 @@ namespace SINTEF.AutoActive.UI.Figures
             IsAntialias = true,
         };
 
+        protected readonly SKPaint TickTextPaint = new SKPaint
+        {
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
+            SubpixelText = true,
+            TextSize = 10,
+        };
+
+
         private void DrawLine(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig)
         {
             // Create path
@@ -390,8 +400,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 {
                     continue;
                 }
-                var textSize = TextPaint.MeasureText(valueText);
-                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TextPaint);
+                var textSize = TickTextPaint.MeasureText(valueText);
+                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TickTextPaint);
                 canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
 
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
@@ -400,8 +410,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 //var offsetTextSize = TextPaint.MeasureText(offsetText);
 
                 //TODO: instead of drawing this, skip drawing the text in the first place
-                canvas.DrawRect(0, drawRect.Height - TextPaint.TextSize -1, TickBoxMargin-1, drawRect.Height, _legendFill);
-                canvas.DrawText(offsetText, TickMargin, drawRect.Height - TextPaint.TextSize, TextPaint);
+                canvas.DrawRect(0, drawRect.Height - TickTextPaint.TextSize -1, TickBoxMargin-1, drawRect.Height, _legendFill);
+                canvas.DrawText(offsetText, TickMargin, drawRect.Height - TickTextPaint.TextSize, TickTextPaint);
             }
 
         }
