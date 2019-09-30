@@ -179,7 +179,7 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
         public bool AxisValuesVisible = true;
-        public static int MaxPlotPoints { get; } = 1000;
+        public static int MaxPlotPoints { get; } = 500;
         public bool CurrentTimeVisible { get; set; } = true;
 
         public long PreviewPercentage = 30;
@@ -191,8 +191,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public bool AutoScale = true;
 
-        private const int SmoothScalingQueueSize = 10;
+        private const int SmoothScalingQueueSize = 30;
         private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+
+        internal static int MaxPointsFromWidth(float width)
+        {
+            return Math.Min((int) width / 2, MaxPlotPoints);
+        }
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
@@ -240,7 +245,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 var curMax = float.MinValue;
                 foreach (var line in _lines)
                 {
-                    var (cMin, cMax) = line.Drawer.GetVisibleYMinMax();
+                    var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
                     curMin = Math.Min(curMin, cMin);
                     curMax = Math.Max(curMax, cMax);
                 }
