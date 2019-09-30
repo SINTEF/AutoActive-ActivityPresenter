@@ -49,6 +49,16 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public SynchronizationContext(SingleSetDataViewerContext masterContext)
         {
             SetSynchronizedToWorldClock(true);
+
+            InternalSetAvailableTimeRange(masterContext.AvailableTimeFrom, masterContext.AvailableTimeTo);
+            InternalSetSelectedTimeRange(masterContext.SelectedTimeFrom, masterContext.SelectedTimeTo);
+            IsPlaying = masterContext.IsPlaying;
+            PlaybackRate = masterContext.PlaybackRate;
+
+            masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
+            masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
+            masterContext.SelectedTimeRangeChanged += (sender, from, to) => InternalSetSelectedTimeRange(from, to);
+
             masterContext.SelectedTimeRangeChanged +=
                 (sender, from, to) =>
                 {
@@ -56,15 +66,9 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
                     _selectedTo = to;
                     TransformSelectedTime();
                 };
-            masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
-            masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
 
             _selectedFrom = masterContext.SelectedTimeFrom;
             _selectedTo = masterContext.SelectedTimeTo;
-
-            IsPlaying = masterContext.IsPlaying;
-            PlaybackRate = masterContext.PlaybackRate;
         }
-
     }
 }
