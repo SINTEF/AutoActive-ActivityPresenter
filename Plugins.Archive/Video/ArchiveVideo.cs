@@ -176,7 +176,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             if (_videoLengthExtractor != null)
             {
-                if (_videoLengthExtractor.ReportedLength != 0)
+                var task = _videoLengthExtractor.GetLengthAsync();
+                if (task.IsCompleted && task.Result != 0)
                 {
                     return _videoLengthExtractor;
                 }
