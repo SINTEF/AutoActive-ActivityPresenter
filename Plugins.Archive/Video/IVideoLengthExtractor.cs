@@ -10,6 +10,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     {
         Task<long> GetLengthAsync();
         long ReportedLength { get; }
+        void Restart();
     }
 
     public interface IVideoLengthExtractorFactory

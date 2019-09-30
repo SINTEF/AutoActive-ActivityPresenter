@@ -174,7 +174,16 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private IVideoLengthExtractor _videoLengthExtractor;
         private async Task<IVideoLengthExtractor> GetVideoLengthExtractor()
         {
-            if (_videoLengthExtractor != null) return _videoLengthExtractor;
+            if (_videoLengthExtractor != null)
+            {
+                if (_videoLengthExtractor.ReportedLength != 0)
+                {
+                    return _videoLengthExtractor;
+                }
+
+                _videoLengthExtractor.Restart();
+                return _videoLengthExtractor;
+            }
 #if DEBUG
             var factory = DependencyHandler.GetInstance<IVideoLengthExtractorFactory>();
 #else

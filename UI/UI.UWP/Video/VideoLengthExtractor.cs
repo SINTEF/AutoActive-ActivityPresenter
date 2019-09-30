@@ -17,6 +17,8 @@ namespace SINTEF.AutoActive.UI.UWP.Video
     {
         private long? _videoLength;
         private readonly TaskCompletionSource<long> _videoLengthTask = new TaskCompletionSource<long>();
+        private readonly MediaSource _source;
+        private readonly MediaPlayer _mediaPlayer;
 
         public VideoLengthExtractor(IRandomAccessStream stream, string mime, long reportedLength)
         {
@@ -24,17 +26,17 @@ namespace SINTEF.AutoActive.UI.UWP.Video
 
             ReportedLength = reportedLength;
 
-            var source = MediaSource.CreateFromStream(stream, mime);
+            _source = MediaSource.CreateFromStream(stream, mime);
 
-            var item = new MediaPlaybackItem(source);
+            var item = new MediaPlaybackItem(_source);
 
-            var mediaPlayer = new MediaPlayer
+            _mediaPlayer = new MediaPlayer
             {
                 AutoPlay = false,
                 IsMuted = true,
                 Source = item,
             };
-            mediaPlayer.MediaOpened += MediaPlayerOnMediaOpened;
+            _mediaPlayer.MediaOpened += MediaPlayerOnMediaOpened;
         }
 
         private void MediaPlayerOnMediaOpened(MediaPlayer sender, object args)
@@ -42,7 +44,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
             var videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
             sender.MediaOpened -= MediaPlayerOnMediaOpened;
             
-            if (videoLength == 0)
+            if (videoLength <= 0)
             {
                 sender.CurrentStateChanged += CurrentStateChanged;
                 return;
@@ -57,7 +59,7 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         private void CurrentStateChanged(MediaPlayer sender, object args)
         {
             var videoLength = TimeFormatter.TimeFromTimeSpan(sender.PlaybackSession.NaturalDuration);
-            if (videoLength == 0)
+            if (videoLength <= 0)
                 return;
             sender.CurrentStateChanged -= CurrentStateChanged;
 
@@ -73,6 +75,10 @@ namespace SINTEF.AutoActive.UI.UWP.Video
         }
 
         public long ReportedLength { get; }
+        public void Restart()
+        {
+            _mediaPlayer.Source = _source;
+        }
     }
 
     public class VideoLengthExtractorFactory : IVideoLengthExtractorFactory
