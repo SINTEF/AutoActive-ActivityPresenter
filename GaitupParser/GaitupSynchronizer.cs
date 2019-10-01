@@ -71,7 +71,7 @@ namespace GaitupParser
         public void Synchronize(bool doCrop = true)
         {
             long startTime = 0;
-            startTime = _master.Timestamps.First();
+            startTime = _master.MinTime;
 
             foreach (var slave in _slaves)
             {
@@ -89,7 +89,7 @@ namespace GaitupParser
         public void CropSets()
         {
             var dataSets = new List<GaitupData>(_slaves) {_master};
-            var endTime = dataSets.Min(ds => ds.Timestamps.Last());
+            var endTime = dataSets.Min(ds => ds.MaxTime);
             foreach (var dataSet in dataSets)
             {
                 dataSet.Crop(0, endTime);

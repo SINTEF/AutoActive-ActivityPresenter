@@ -31,8 +31,9 @@ namespace GaitupParser
 
         public GaitupConfig Config { get; }
 
-        private readonly SortedSet<long> _timestamps;
-        public IReadOnlyCollection<long> Timestamps => _timestamps;
+        public long MinTime { get; private set; }
+        public long MaxTime { get; private set; }
+        private bool _firstTime;
         public GaitupData(GaitupConfig config)
         {
             Config = config;
@@ -40,12 +41,22 @@ namespace GaitupParser
             _accelerometer = new List<(long, double, double, double)>((int)config.Accelerometer.NumberOfSamples);
             _gyro = new List<(long, double, double, double)>((int)config.Gyro.NumberOfSamples);
             _barometer = new List<(long, double, double)>((int)config.Barometer.NumberOfSamples);
-            _timestamps = new SortedSet<long>();
+            _firstTime = true;
         }
 
         private void AddTimestamp(long time)
         {
-            _timestamps.Add(time);
+            if(_firstTime)
+            {
+                _firstTime = false;
+                MaxTime = time;
+                MinTime = time;
+            }
+            else
+            {
+                if (MaxTime < time) MaxTime = time;
+                if (MinTime > time) MinTime = time;
+            }
         }
 
         public void AddAccel((long, double, double, double) data)
@@ -84,6 +95,7 @@ namespace GaitupParser
             _ble.Add(data);
         }
 
+#if false
         public void Write(string path)
         {
             using (var file = File.CreateText(path))
@@ -155,17 +167,18 @@ namespace GaitupParser
                 btnIt.Dispose();
             }
         }
+#endif
 
         public void OffsetTime(long offset)
         {
-            _timestamps.Clear();
+            _firstTime = true;
 
             for (var i = 0; i < _accelerometer.Count; i++)
             {
                 var point = _accelerometer[i];
                 point.Item1 += offset;
                 _accelerometer[i] = point;
-                _timestamps.Add(point.Item1);
+                AddTimestamp(point.Item1);
             }
 
             for (var i = 0; i < _gyro.Count; i++)
@@ -173,7 +186,7 @@ namespace GaitupParser
                 var point = _gyro[i];
                 point.Item1 += offset;
                 _gyro[i] = point;
-                _timestamps.Add(point.Item1);
+                AddTimestamp(point.Item1);
             }
 
             for (var i = 0; i < _barometer.Count; i++)
@@ -181,28 +194,38 @@ namespace GaitupParser
                 var point = _barometer[i];
                 point.Item1 += offset;
                 _barometer[i] = point;
-                _timestamps.Add(point.Item1);
+                AddTimestamp(point.Item1);
             }
 
             for (var i = 0; i < _button.Count; i++)
             {
                 _button[i] += offset;
-                _timestamps.Add(_button[i]);
+                AddTimestamp(_button[i]);
             }
+        }
+
+        private void CropList<T>(int startTime, long endTime, List<T> listToCrop, Func<T, long> time)
+        {
+            var endIndex = listToCrop.FindIndex(p => time(p) > endTime);
+            var startIndex = listToCrop.FindLastIndex(p => time(p) < startTime);
+            if (endIndex > 0) listToCrop.RemoveRange(endIndex, listToCrop.Count - 1 - endIndex);
+            if (startIndex > 0) listToCrop.RemoveRange(0, startIndex + 1);
+            listToCrop.TrimExcess();
         }
 
         public void Crop(int startTime, long endTime)
         {
+            //var memoryStart = System.GC.GetTotalMemory(true);
+            CropList(startTime, endTime, _accelerometer, (p => p.Item1));
+            CropList(startTime, endTime, _gyro, (p => p.Item1));
+            CropList(startTime, endTime, _barometer, (p => p.Item1));
+            CropList(startTime, endTime, _button, (p => p));
+            //var memoryEnd = System.GC.GetTotalMemory(true);
 
-            _accelerometer = _accelerometer.FindAll(p => p.Item1 >= startTime && p.Item1 <= endTime);
-            _gyro = _gyro.FindAll(p => p.Item1 >= startTime && p.Item1 <= endTime);
-            _barometer = _barometer.FindAll(p => p.Item1 >= startTime && p.Item1 <= endTime);
-            _button = _button.FindAll(p => p >= startTime && p <= endTime);
-
-            _timestamps.Clear();
+            _firstTime = true;
             foreach (var point in _accelerometer)
             {
-                _timestamps.Add(point.Item1);
+                AddTimestamp(point.Item1);
             }
         }
     }
