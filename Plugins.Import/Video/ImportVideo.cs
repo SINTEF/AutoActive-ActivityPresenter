@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -19,6 +20,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".avi")]
     [ImportPlugin(".mkv")]
     [ImportPlugin(".mp4")]
+    [ImportPlugin(".mts")]
     public class ImportVideoPlugin : IImportPlugin
     {
 
@@ -41,14 +43,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     {
         private readonly Dictionary<string, object> _parameters;
         private readonly IReadSeekStreamFactory _readerFactory;
-        private IReadOnlyList<Directory> _metaData = null;
+        private IReadOnlyList<Directory> _metaData;
 
         private IReadOnlyList<Directory> GetMetaData(Stream stream)
         {
-            
-            if (_metaData == null) _metaData = ImageMetadataReader.ReadMetadata(stream);
-            return _metaData;
-            
+            return _metaData ?? (_metaData = ImageMetadataReader.ReadMetadata(stream));
         }
 
         public VideoImporter(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
@@ -95,12 +94,20 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
                 Name = "Imported Video";
             }
 
-            var startTime = GetCreatedTime(stream);
-
-            if (!(bool)_parameters["CreatedAtStart"])
+            var startTime = 0L;
+            try
             {
-                var length = GetVideoLength(stream);
-                startTime -= length;
+                startTime = GetCreatedTime(stream);
+
+                if (!(bool) _parameters["CreatedAtStart"])
+                {
+                    var length = GetVideoLength(stream);
+                    startTime -= length;
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Could not extract created time from {Name}: {ex}");
             }
 
             var jsonRoot = new JObject
