@@ -88,7 +88,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
             }
 
 
@@ -194,7 +194,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                                       PositionList = from elp in el.Descendants(ns1+"Position")
                                                    select new Position
                                                    {
-                                                        LatitudeDegrees = Convert.ToDouble(elp.Element(ns1 + "LongitudeDegrees")?.Value),
+                                                        LatitudeDegrees = Convert.ToDouble(elp.Element(ns1 + "LatitudeDegrees")?.Value),
                                                         LongitudeDegrees = Convert.ToDouble(elp.Element(ns1 + "LongitudeDegrees")?.Value),
                                                    },
 
