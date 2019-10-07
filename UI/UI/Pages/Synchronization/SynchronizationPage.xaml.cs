@@ -82,6 +82,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             DatapointAdded?.Invoke(this, (dataPoint, _masterContext));
         }
 
+        public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
+        {
+            DatapointRemoved?.Invoke(this, (dataPoint, context));
+        }
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
             if (!_masterSet)

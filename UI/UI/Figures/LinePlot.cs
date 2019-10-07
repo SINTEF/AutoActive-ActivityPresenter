@@ -9,6 +9,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 using ITimeSeriesViewer = SINTEF.AutoActive.Databus.Common.ITimeSeriesViewer;
 
@@ -530,15 +531,19 @@ namespace SINTEF.AutoActive.UI.Figures
             return _lines.FindAll(lp => lp.Drawer.Viewer.DataPoint == datapoint);
         }
 
+
         /// Remove lines from plot, and remove plot if the last line is removed.
         private void RemoveLines(IReadOnlyCollection<LineConfiguration> linesToRemove)
         {
             if (linesToRemove.Count == 0)
                 return;
 
+            var container = XamarinHelpers.GetFigureContainerFromParents(Parent);
             foreach (var line in linesToRemove)
             {
-                DataPoints.Remove(line.Drawer.Viewer.DataPoint);
+                var dataPoint = line.Drawer.Viewer.DataPoint;
+                DataPoints.Remove(dataPoint);
+                container?.InvokeDatapointRemoved(dataPoint, _context);
                 RemoveViewer(line.Drawer.Viewer);
                 _lines.Remove(line);
             }
@@ -561,9 +566,6 @@ namespace SINTEF.AutoActive.UI.Figures
 
                     RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
                     return;
-                case RemoveText:
-                    _lines.Clear();
-                    break;
             }
             base.OnHandleMenuResult(page, action);
         }
