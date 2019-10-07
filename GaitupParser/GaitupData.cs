@@ -95,45 +95,33 @@ namespace GaitupParser
             _ble.Add(data);
         }
 
-#if false
         public void Write(string path)
         {
             using (var file = File.CreateText(path))
             {
                 file.WriteLine("time, acc_x, acc_y, acc_z, gyr_x, gyr_y, gyr_z, bar_pressure, bar_temp, btn");
 
-                var accIt = Accelerometer.GetEnumerator();
                 var gyrIt = Gyro.GetEnumerator();
                 var barIt = Barometer.GetEnumerator();
                 var btnIt = Button.GetEnumerator();
 
-                accIt.MoveNext();
                 gyrIt.MoveNext();
                 barIt.MoveNext();
                 btnIt.MoveNext();
 
-                foreach (var t in Timestamps)
+                foreach (var acc in Accelerometer)
                 {
-                    var (accT, accX, accY, accZ) = accIt.Current;
+                    var (t, accX, accY, accZ) = acc;
                     var (gyrT, gyrX, gyrY, gyrZ) = gyrIt.Current;
                     var (barT, barPressure, barTemp) = barIt.Current;
 
                     file.Write($"{t / (double)Config.Frequency},");
+                    file.Write($"{accX},{accY},{accZ},");
 
                     if (gyrT == t)
                     {
                         file.Write($"{gyrX},{gyrY},{gyrZ},");
                         gyrIt.MoveNext();
-                    }
-                    else
-                    {
-                        file.Write(",,,");
-                    }
-
-                    if (accT == t)
-                    {
-                        file.Write($"{accX},{accY},{accZ},");
-                        accIt.MoveNext();
                     }
                     else
                     {
@@ -161,13 +149,11 @@ namespace GaitupParser
                     }
                     
                 }
-                accIt.Dispose();
                 gyrIt.Dispose();
                 barIt.Dispose();
                 btnIt.Dispose();
             }
         }
-#endif
 
         public void OffsetTime(long offset)
         {
