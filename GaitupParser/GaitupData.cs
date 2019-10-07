@@ -164,10 +164,7 @@ namespace GaitupParser
 
         private static void CropList<T>(long startTime, long endTime, List<T> listToCrop, Func<T, long> time)
         {
-            var endIndex = listToCrop.FindIndex(p => time(p) > endTime);
-            var startIndex = listToCrop.FindLastIndex(p => time(p) < startTime);
-            if (endIndex > 0) listToCrop.RemoveRange(endIndex, listToCrop.Count - endIndex);
-            if (startIndex > 0) listToCrop.RemoveRange(0, startIndex + 1);
+            listToCrop.RemoveAll(p => time(p) < startTime || time(p) > endTime);
             listToCrop.TrimExcess();
         }
 
