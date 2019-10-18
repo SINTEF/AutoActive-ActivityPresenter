@@ -26,11 +26,22 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         public SynchronizationPage()
         {
             InitializeComponent();
+        }
 
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
             Playbar.ViewerContext = _masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(this);
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            TreeView.DataPointTapped -= TreeView_DataPointTapped;
+            Playbar.DataTrackline.DeregisterFigureContainer(this);
         }
 
         private FigureView _selected;
@@ -165,7 +176,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SyncGrid.Children.Add(frame);
             DatapointAdded?.Invoke(sender, (datapoint, context));
         }
-
 
         public void RemoveChild(FigureView figureView)
         {

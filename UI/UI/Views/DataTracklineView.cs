@@ -198,21 +198,29 @@ namespace SINTEF.AutoActive.UI.Views
             return Task.CompletedTask;
         }
 
+        private async void DataPointAddedHandler(object sender, (IDataPoint, DataViewerContext) args)
+        {
+            var (datapoint, context) = args;
+            if (context is TimeSynchronizedContext timeContext)
+                await AddDataPoint(datapoint, timeContext);
+        }
+        private async void DataPointRemovedHandler(object sender, (IDataPoint, DataViewerContext) args)
+        {
+            var (datapoint, context) = args;
+            if (context is TimeSynchronizedContext timeContext)
+                await RemoveDataPoint(datapoint, timeContext);
+        }
 
         public void RegisterFigureContainer(IFigureContainer container)
         {
-            container.DatapointAdded += async (_, args) =>
-            {
-                var (datapoint, context) = args;
-                if (context is TimeSynchronizedContext timeContext)
-                    await AddDataPoint(datapoint, timeContext);
-            };
-            container.DatapointRemoved += (_, args) =>
-            {
-                var (datapoint, context) = args;
-                if (context is TimeSynchronizedContext timeContext)
-                    RemoveDataPoint(datapoint, timeContext);
-            };
+            container.DatapointAdded += DataPointAddedHandler;
+            container.DatapointRemoved += DataPointRemovedHandler;
+        }
+
+        public void DeregisterFigureContainer(IFigureContainer container)
+        {
+            container.DatapointAdded -= DataPointAddedHandler;
+            container.DatapointRemoved -= DataPointRemovedHandler;
         }
     }
 }

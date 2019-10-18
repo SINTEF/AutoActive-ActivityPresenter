@@ -38,6 +38,12 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         public HeadToHead()
         {
             InitializeComponent();
+        }
+
+        protected override void OnAppearing()
+        {
+            base.OnAppearing();
+
             TreeView.DataPointTapped += TreeViewOnDataPointTapped;
 
             var masterContext = new TimeSynchronizedContext();
@@ -56,6 +62,15 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             Playbar.ViewerContext = masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(LeftGrid);
             Playbar.DataTrackline.RegisterFigureContainer(RightGrid);
+        }
+
+        protected override void OnDisappearing()
+        {
+            base.OnDisappearing();
+            TreeView.DataPointTapped -= TreeViewOnDataPointTapped;
+
+            Playbar.DataTrackline.DeregisterFigureContainer(LeftGrid);
+            Playbar.DataTrackline.DeregisterFigureContainer(RightGrid);
         }
 
         private async void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)

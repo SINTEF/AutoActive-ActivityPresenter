@@ -49,6 +49,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
+
+            Playbar.DataTrackline.DeregisterFigureContainer(PlayerGrid);
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
