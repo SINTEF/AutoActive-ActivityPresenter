@@ -10,7 +10,6 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
-using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -209,7 +208,7 @@ namespace SINTEF.AutoActive.UI.Views
         /// Remove this view from the selecting view that contains it.
         protected void RemoveThisView()
         {
-            var figureContainer = GetFigureContainerFromParents(Parent);
+            var figureContainer = XamarinHelpers.GetFigureContainerFromParents(Parent);
             figureContainer.RemoveChild(this);
 
             foreach (var viewer in _viewers)
@@ -227,20 +226,6 @@ namespace SINTEF.AutoActive.UI.Views
 	        DefaultOnHandleMenuResult(page, action);
         }
 
-        protected static IFigureContainer GetFigureContainerFromParents(Element element)
-        {
-            while (element != null)
-            {
-                if (element is IFigureContainer container)
-                {
-                    return container;
-                }
-                element = element.Parent;
-            }
-
-            throw new ArgumentException("Layout not recognized");
-        }
-
         /// Handle menu action.
 	    protected void DefaultOnHandleMenuResult(Page page, string action)
 	    {
@@ -250,10 +235,10 @@ namespace SINTEF.AutoActive.UI.Views
 	            case CancelText:
 	                return;
                 case SelectText:
-                    GetFigureContainerFromParents(Parent).Selected = this;
+                    XamarinHelpers.GetFigureContainerFromParents(Parent).Selected = this;
                     break;
                 case DeselectText:
-                    GetFigureContainerFromParents(Parent).Selected = null;
+                    XamarinHelpers.GetFigureContainerFromParents(Parent).Selected = null;
                     break;
                 case RemoveText:
                     RemoveThisView();

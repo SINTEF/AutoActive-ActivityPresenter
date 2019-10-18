@@ -18,7 +18,7 @@ namespace SINTEF.AutoActive.UI.Views
     {
 
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
-        private readonly Dictionary<IDataPoint, ITimeViewer> _dataTimeDict = new Dictionary<IDataPoint, ITimeViewer>();
+        private readonly List<(IDataPoint, ITimeViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer)>();
 
         public void AddTimeViewer(ITimeViewer viewer, TimeSynchronizedContext context, string label)
         {
@@ -156,18 +156,14 @@ namespace SINTEF.AutoActive.UI.Views
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
-            if (!_dataTimeDict.Any())
+            if (!_dataTimeList.Any())
             {
                 context.AvailableTimeRangeChanged += ContextOnAvailableTimeRangeChanged;
-            }
-            if (_dataTimeDict.ContainsKey(dataPoint))
-            {
-                return;
             }
 
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
-            _dataTimeDict[dataPoint] = timeViewer;
+            _dataTimeList.Add((dataPoint, timeViewer));
             AddTimeViewer(timeViewer, context, dataPoint.Name);
             timeViewer.TimeChanged += TimeViewer_TimeChanged;
         }
@@ -184,13 +180,14 @@ namespace SINTEF.AutoActive.UI.Views
 
         public Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
-            if (!_dataTimeDict.TryGetValue(dataPoint, out var timeViewer))
-            {
-                //TODO: add warning
+            var index = _dataTimeList.FindIndex(el => el.Item1 == dataPoint);
+
+            if (index == -1)
                 return Task.CompletedTask;
-            }
-            _dataTimeDict.Remove(dataPoint);
-            if (_dataTimeDict.Count == 0)
+
+            var (_, timeViewer) = _dataTimeList[index];
+            _dataTimeList.RemoveAt(index);
+            if (_dataTimeList.Count == 0)
             {
                 context.AvailableTimeRangeChanged -= ContextOnAvailableTimeRangeChanged;
             }
