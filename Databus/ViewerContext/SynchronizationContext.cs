@@ -57,7 +57,6 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
             masterContext.IsPlayingChanged += (s, playing) => IsPlaying = playing;
             masterContext.PlaybackRateChanged += (s, rate) => PlaybackRate = rate;
-            masterContext.SelectedTimeRangeChanged += (sender, from, to) => InternalSetSelectedTimeRange(from, to);
 
             masterContext.SelectedTimeRangeChanged +=
                 (sender, from, to) =>
