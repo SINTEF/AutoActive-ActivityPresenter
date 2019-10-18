@@ -98,18 +98,10 @@ namespace SINTEF.AutoActive.UI.Figures
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             viewer.PreviewPercentage = PreviewPercentage;
             var lineDrawer = (ILineDrawer) genericConstructor.Invoke(new object[] { viewer });
-            if (lineDrawer != null)
-            {
-                //TODO: add unit here, if it exists + $"({datapoint.Unit})" (this will break remove line)
-                if (dataPoint.Unit == null)
-                {
-                    lineDrawer.Legend = dataPoint.Name;
-                }
-                else
-                {
-                    lineDrawer.Legend = $"{dataPoint.Name} [{dataPoint.Unit}]";
-                }
-            }
+            if (lineDrawer == null) return null;
+
+            lineDrawer.Legend = string.IsNullOrEmpty(dataPoint.Unit) ? dataPoint.Name : $"{dataPoint.Name} [{dataPoint.Unit}]";
+
             return lineDrawer;
         }
 
