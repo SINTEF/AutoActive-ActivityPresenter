@@ -7,21 +7,21 @@ namespace SINTEF.AutoActive.UI.Helpers
         public const long MicrosPerSecond = 1000000L;
         public static string FormatTime(long time, long offset = 0)
         {
-
             var remTime = time - offset;
+            var sign = "";
+            if (remTime < 0)
+            {
+                remTime = -remTime;
+                sign = "-";
+            }
 
             var hours = remTime / (3600L * MicrosPerSecond);
-            remTime -= hours * 3600L * MicrosPerSecond;
 
-            var minutes = remTime / (60L * MicrosPerSecond);
-            remTime -= minutes * 60L * MicrosPerSecond;
+            var dateTime = DateTimeFromTime(remTime);
 
-            var seconds = remTime / MicrosPerSecond;
-            remTime -= seconds * MicrosPerSecond;
-
-            var millis = remTime / 1000;
-
-            return $"{hours:D2}:{minutes:D2}:{seconds:D2}.{millis:D3}";
+            return hours <= 24 ? 
+                dateTime.ToString($"{sign}HH:mm:ss.fff") :
+                dateTime.ToString($"{sign}yyyy-MM-dd\nHH:mm:ss.fff");
         }
         public static long TimeFromDateTime(DateTime dateTime)
         {
@@ -37,7 +37,12 @@ namespace SINTEF.AutoActive.UI.Helpers
         }
         public static double SecondsFromTime(long time)
         {
-            return ((double) time) / MicrosPerSecond;
+            return (double) time / MicrosPerSecond;
+        }
+
+        public static DateTime DateTimeFromTime(long time)
+        {
+            return new DateTime(1970, 1, 1, 0, 0, 0, 0).AddTicks(time * 10);
         }
     }
 }
