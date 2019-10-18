@@ -77,6 +77,10 @@ namespace SINTEF.AutoActive.UI.Droid.Video
         }
 
         public long ReportedLength { get; }
+        public void Restart()
+        {
+            throw new NotImplementedException();
+        }
 
 
         public Task<double> SeekToAsync(double time, CancellationToken cancellationToken)

@@ -66,9 +66,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
 
         public static bool TryParseDateTime(string dateTimeStr, out DateTime date)
         {
-            var culture = CultureInfo.GetCultureInfo("en-US");
-
-            return DateTime.TryParseExact(dateTimeStr, "ddd MMM dd HH:mm:ss yyyy", culture,
+            return DateTime.TryParseExact(dateTimeStr, "ddd MMM dd HH:mm:ss yyyy", CultureInfo.CurrentCulture,
                 DateTimeStyles.None, out date);
         }
 

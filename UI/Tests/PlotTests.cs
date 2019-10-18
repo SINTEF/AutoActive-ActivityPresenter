@@ -79,7 +79,7 @@ namespace Tests
             for (var i = 0; i < size; i++)
             {
                 data[i] = r.NextDouble();
-                time[i] = 1000 * i + r.Next(0,750);
+                time[i] = 1000 * i + r.Next(0, 750);
             }
             TestDataSet(time, data, maxNum);
         }
