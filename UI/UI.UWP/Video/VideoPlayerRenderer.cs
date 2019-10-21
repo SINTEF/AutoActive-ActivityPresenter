@@ -19,7 +19,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
     {
         public static async Task<IRandomAccessStream> GetVideoStream(IReadSeekStreamFactory factory)
         {
-
             var stream = await factory.GetReadStream();
             return stream.AsRandomAccessStream();
         }
@@ -31,6 +30,14 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         protected override async void OnElementChanged(ElementChangedEventArgs<VideoPlayer> args)
         {
             base.OnElementChanged(args);
+
+            if (args.OldElement != null)
+            {
+                var oldVideoPlayer = args.OldElement;
+                oldVideoPlayer.PositionChanged -= VideoPlayerOnPositionChanged;
+                oldVideoPlayer.PlayingChanged -= VideoPlayerOnPlayingChanged;
+                oldVideoPlayer.PlaybackRateChanged -= PlaybackRateChanged;
+            }
 
             if (args.NewElement != null)
             {
@@ -61,14 +68,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                     _mediaElement.Play();
                 }
 
-            }
-
-            if (args.OldElement != null)
-            {
-                var oldVideoPlayer = args.OldElement;
-                oldVideoPlayer.PositionChanged -= VideoPlayerOnPositionChanged;
-                oldVideoPlayer.PlayingChanged -= VideoPlayerOnPlayingChanged;
-                oldVideoPlayer.PlaybackRateChanged -= PlaybackRateChanged;
             }
         }
 
