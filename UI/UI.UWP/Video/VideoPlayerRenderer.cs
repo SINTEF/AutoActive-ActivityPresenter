@@ -39,35 +39,33 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 oldVideoPlayer.PlaybackRateChanged -= PlaybackRateChanged;
             }
 
-            if (args.NewElement != null)
+            if (args.NewElement == null) return;
+
+            if (Control == null)
             {
-                if (Control == null)
-                {
-                    _mediaElement = new MediaElement();
-                    SetNativeControl(_mediaElement);
+                _mediaElement = new MediaElement();
+                SetNativeControl(_mediaElement);
 
-                    _mediaElement.PlaybackRate = 1d;
-                    _mediaElement.AutoPlay = false;
-                    _mediaElement.IsMuted = true;
-                    _mediaElement.Volume = 0d;
-                }
+                _mediaElement.PlaybackRate = 1d;
+                _mediaElement.AutoPlay = false;
+                _mediaElement.IsMuted = true;
+                _mediaElement.Volume = 0d;
+            }
 
-                _videoPlayer = args.NewElement;
+            _videoPlayer = args.NewElement;
 
-                _mediaElement.AutoPlay = _videoPlayer.IsPlaying;
-                Control.SetSource(await GetVideoStream(_videoPlayer.Source), _videoPlayer.MimeType);
+            _mediaElement.AutoPlay = _videoPlayer.IsPlaying;
+            Control.SetSource(await GetVideoStream(_videoPlayer.Source), _videoPlayer.MimeType);
 
 
-                _videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
-                _videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
-                _videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
-                PlaybackRateChanged(this, _videoPlayer.PlaybackRate);
+            _videoPlayer.PositionChanged += VideoPlayerOnPositionChanged;
+            _videoPlayer.PlayingChanged += VideoPlayerOnPlayingChanged;
+            _videoPlayer.PlaybackRateChanged += PlaybackRateChanged;
+            PlaybackRateChanged(this, _videoPlayer.PlaybackRate);
 
-                if (_videoPlayer.IsPlaying)
-                {
-                    _mediaElement.Play();
-                }
-
+            if (_videoPlayer.IsPlaying)
+            {
+                _mediaElement.Play();
             }
         }
 
