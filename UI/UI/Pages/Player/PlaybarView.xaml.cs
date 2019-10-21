@@ -217,7 +217,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 DataTrackline.IsVisible = false;
             }
 
-            TimelineExpand.Text = wasVisible ? "^" : "v";
+            TimelineExpand.Text = wasVisible ? "v" : "^";
         }
 
         private void PlayButton_Clicked(object sender, EventArgs e)

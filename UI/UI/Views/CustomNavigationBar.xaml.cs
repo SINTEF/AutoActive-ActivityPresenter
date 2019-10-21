@@ -97,29 +97,45 @@ namespace SINTEF.AutoActive.UI.Views
                 // Find the proper import plugin to use
                 var plugins = PluginService.GetAll<IImportPlugin>(ext);
 
-                var plugin = plugins[0];
-                List<IReadSeekStreamFactory> streamFactoryList;
-
-                if (!pluginPages.TryGetValue(plugin, out var listPage))
+                if (!plugins.Any())
                 {
-                    var parameters = new Dictionary<string, (object, string)>
+                    await XamarinHelpers.GetCurrentPage().DisplayAlert("Import error", $"Could not find a plugin for extension \"{ext}\" files", "OK");
+                    continue;
+                }
+
+                foreach (var plugin in plugins)
+                {
+
+                    try
                     {
-                        ["Name"] = ("Imported File", "Name of the imported session file")
-                    };
+                        List<IReadSeekStreamFactory> streamFactoryList;
 
-                    plugin.GetExtraConfigurationParameters(parameters);
-                    var page = new ImportParametersPage(file.Name, parameters);
-                    await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: page);
+                        if (!pluginPages.TryGetValue(plugin, out var listPage))
+                        {
+                            var parameters = new Dictionary<string, (object, string)>
+                            {
+                                ["Name"] = ("Imported File", "Name of the imported session file")
+                            };
 
-                    streamFactoryList = new List<IReadSeekStreamFactory>();
-                    pluginPages[plugin] = (streamFactoryList, page);
+                            plugin.GetExtraConfigurationParameters(parameters);
+                            var page = new ImportParametersPage(file.Name, parameters);
+                            await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: page);
+
+                            streamFactoryList = new List<IReadSeekStreamFactory>();
+                            pluginPages[plugin] = (streamFactoryList, page);
+                        }
+                        else
+                        {
+                            streamFactoryList = listPage.Item1;
+                        }
+
+                        streamFactoryList.Add(file);
+                    }
+                    catch (Exception ex)
+                    {
+                        await ShowError(file.Name, ex);
+                    }
                 }
-                else
-                {
-                    streamFactoryList = listPage.Item1;
-                }
-
-                streamFactoryList.Add(file);
             }
 
             // Start import for each plugin and signal batch import if implemented
@@ -159,7 +175,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             Debug.WriteLine($"Could not import file {filename}: {ex.Message}");
             await Application.Current.MainPage.DisplayAlert("Open error",
-                $"Could not import file \"${filename}\":\n{ex.Message}", "OK");
+                $"Could not import file \"{filename}\":\n{ex.Message}", "OK");
         }
 
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)

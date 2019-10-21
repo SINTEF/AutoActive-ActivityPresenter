@@ -44,6 +44,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
         public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
+        {
+            DatapointRemoved?.Invoke(this, (dataPoint, context));
+        }
+
         private readonly List<(IDataPoint, DataViewerContext)> _contexts = new List<(IDataPoint, DataViewerContext)>();
 
         public async Task<ToggleResult> TogglePlotFor(IDataPoint datapoint, TimeSynchronizedContext timeContext)

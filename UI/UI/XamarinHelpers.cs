@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Linq;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI
@@ -27,6 +28,20 @@ namespace SINTEF.AutoActive.UI
                 Device.BeginInvokeOnMainThread(action);
             else
                 action();
+        }
+
+        public static IFigureContainer GetFigureContainerFromParents(Element element)
+        {
+            while (element != null)
+            {
+                if (element is IFigureContainer container)
+                {
+                    return container;
+                }
+                element = element.Parent;
+            }
+
+            throw new ArgumentException("Layout not recognized");
         }
     }
 }

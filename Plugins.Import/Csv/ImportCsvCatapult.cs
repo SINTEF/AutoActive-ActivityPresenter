@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -11,6 +13,7 @@ using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.UI.Helpers;
 
 [assembly: InternalsVisibleTo("Plugins.Tests")]
 namespace SINTEF.AutoActive.Plugins.Import.Csv
@@ -42,7 +45,44 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         protected override void DoParseFile(Stream s)
         {
-            AddChild(new CatapultTable(Name+"_table", _readerFactory, Name + _readerFactory.Extension));
+            var lines = new List<string>(10);
+            using (var sr = new StreamReader(s))
+            {
+                for (var i = 0; i < lines.Capacity; i++)
+                {
+                    if (sr.EndOfStream) break;
+                    lines.Add(sr.ReadLine());
+                }
+            }
+
+            var parameters = new Dictionary<string, string>();
+            foreach(var line in lines)
+            {
+                if (!line.Contains("=")) continue;
+                var lineSplit = line.Split(new[] {'='}, 2);
+                parameters[lineSplit[0]] = lineSplit[1];
+            }
+
+            var startTime = 0L;
+            if (parameters.TryGetValue("Date", out var date) && parameters.TryGetValue("Time", out var time))
+            {
+                try
+                {
+                    startTime = ParseDateTime(date, time);
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Could not parse start time: {ex}");
+                }
+            }
+
+            AddChild(new CatapultTable(Name+"_table", startTime, _readerFactory, Name + _readerFactory.Extension));
+        }
+
+        private long ParseDateTime(string date, string time)
+        {
+            var dateTime = DateTime.Parse(date + " " + time, CultureInfo.InvariantCulture);
+            return TimeFormatter.TimeFromDateTime(dateTime);
         }
     }
 
@@ -51,17 +91,19 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public bool IsSaved { get; }
         private IReadSeekStreamFactory _readerFactory;
         private string _fileName;
-        internal CatapultTable(string name, IReadSeekStreamFactory readerFactory, string fileName)
+        internal CatapultTable(string name, long startTime, IReadSeekStreamFactory readerFactory, string fileName)
         {
             Name = name;
             _readerFactory = readerFactory;
             IsSaved = false;
             _fileName = fileName;
 
-            var isWorldSynchronized = false;
+            var isWorldSynchronized = startTime != 0L;
             var timeColInfo = new ColInfo("Time", "us");
             var uri = Name + "/" + timeColInfo.Name;
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeLoadTask = GenerateLoader<long>(timeColInfo);
+            _timeIndex = new TableTimeIndex(timeColInfo.Name, timeLoadTask, isWorldSynchronized, uri, timeColInfo.Unit);
+            timeLoadTask.ContinueWith(t => _timeIndex.TransformTime(startTime, 1d));
 
 
             var stringUnits = new[]

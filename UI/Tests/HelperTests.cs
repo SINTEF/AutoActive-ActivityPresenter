@@ -1,6 +1,5 @@
 using System;
 using Xunit;
-using SINTEF.AutoActive.UI;
 using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Tests
@@ -28,7 +27,10 @@ namespace SINTEF.AutoActive.Tests
             Assert.Equal("00:00:00.111", TimeFormatter.FormatTime(111000));
             Assert.Equal("00:00:00.000", TimeFormatter.FormatTime(000100));
 
-            Assert.Equal("300:00:00.000", TimeFormatter.FormatTime(oneHour*300));
+            var testDate = TimeFormatter.TimeFromDateTime(new DateTime(2010, 10, 20, 8, 13, 37, 125));
+            Assert.Equal("2010-10-20\n08:13:37.125", TimeFormatter.FormatTime(testDate));
+
+            Assert.Equal("-01:01:01.000", TimeFormatter.FormatTime(-oneHourOneMinuteOneSecond));
         }
     }
 }
