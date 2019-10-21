@@ -96,10 +96,28 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
         private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
         {
+            var duration = _mediaElement.NaturalDuration.TimeSpan;
+            if (wantedPosition > duration)
+            {
+                _mediaElement.Pause();
+                if (_mediaElement.Position < duration)
+                {
+                    _mediaElement.Position = duration;
+                }
+                return;
+            }
+
+            if (wantedPosition.TotalSeconds < 0)
+            {
+                _mediaElement.Position = TimeSpan.Zero;
+                _mediaElement.Pause();
+                return;
+            }
+
             if (!_currentlyPlaying)
             {
-                _videoPlayer.CurrentOffset = 0;
                 _mediaElement.Position = wantedPosition;
+                _videoPlayer.CurrentOffset = (_mediaElement.Position - wantedPosition).TotalSeconds;
                 return;
             }
 
@@ -157,7 +175,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _mediaElement.Play();
             } else
             {
-                _mediaElement.Stop();
+                _mediaElement.Pause();
             }
 
             _lastUpdate = DateTime.Now;
