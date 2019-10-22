@@ -32,16 +32,22 @@ namespace SINTEF.AutoActive.UI
 
         public static IFigureContainer GetFigureContainerFromParents(Element element)
         {
+            var container = GetTypedElementFromParents<IFigureContainer>(element);
+            return container ?? throw new ArgumentException("Layout not recognized");
+        }
+
+        public static T GetTypedElementFromParents<T>(Element element)
+        {
             while (element != null)
             {
-                if (element is IFigureContainer container)
+                if (element is T container)
                 {
                     return container;
                 }
                 element = element.Parent;
             }
 
-            throw new ArgumentException("Layout not recognized");
+            return default(T);
         }
     }
 }
