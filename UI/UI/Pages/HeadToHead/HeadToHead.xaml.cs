@@ -17,7 +17,7 @@ using Xamarin.Forms.Xaml;
 namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class HeadToHead : ContentPage, ISerializableView
+    public partial class HeadToHead : ISerializableView
     {
         public string ViewType => "no.sintef.ui.head2head";
         private const string SelectedText = "x";
@@ -91,6 +91,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             LeftGrid.DatapointAdded += OnDatapointAdded;
             RightGrid.DatapointAdded += OnDatapointAdded;
+            KeyDown += Playbar.KeyDown;
         }
 
         protected override void OnDisappearing()
@@ -103,6 +104,8 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             Playbar.DataTrackline.DeregisterFigureContainer(LeftGrid);
             Playbar.DataTrackline.DeregisterFigureContainer(RightGrid);
+
+            KeyDown -= Playbar.KeyDown;
         }
 
         private void OnDatapointAdded(object sender, (IDataPoint point, DataViewerContext context) args)

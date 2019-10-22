@@ -489,5 +489,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             throw new NotImplementedException();
         }
+
+        public void KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.Key == "Space")
+            {
+                PlayButton_Clicked(null, null);
+            }
+        }
     }
 }

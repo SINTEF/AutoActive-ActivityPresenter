@@ -1,7 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<pages:KeypressPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
+	     xmlns:pages="clr-namespace:SINTEF.AutoActive.UI.Pages;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
              BackgroundColor="#1D2637"
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage">
