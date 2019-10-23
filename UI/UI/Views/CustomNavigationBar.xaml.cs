@@ -293,7 +293,7 @@ namespace SINTEF.AutoActive.UI.Views
 
 	    private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
-	        Navigation.PushAsync(new SynchronizationPage());
+	        Navigation.PushAsync(new PointSynchronizationPage());
 	    }
 
         private void Head2Head_OnClicked(object sender, EventArgs e)

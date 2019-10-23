@@ -2,7 +2,8 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
-             x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.SynchronizationPage">
+             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
+             x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
@@ -13,19 +14,26 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Column="0" Grid.Row="0" x:Name="SyncGrid" VerticalOptions="FillAndExpand">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="2*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+            <Grid Grid.Column="0" Grid.Row="0" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Text="Master" Grid.Column="0" Grid.Row="0" HorizontalTextAlignment="Center"/>
+                <Frame Grid.Column="0" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightSalmon">
+                    <StackLayout x:Name="MasterLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
+                </Frame>
+                <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="0" Grid.Row="2"  HorizontalOptions="Center"/>
+                <Label Text="Slave" Grid.Column="1" Grid.Row="0" HorizontalTextAlignment="Center" />
+                <Frame Grid.Column="1" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightBlue">
+                    <StackLayout x:Name="SlaveLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
+                </Frame>
+                <views:TimeStepper x:Name="SlaveTimeStepper" Grid.Column="1" Grid.Row="2" HorizontalOptions="Center"/>
             </Grid>
             <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
 
