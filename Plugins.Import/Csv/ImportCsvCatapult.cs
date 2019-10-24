@@ -14,6 +14,7 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Implementations;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Helpers;
+using SINTEF.AutoActive.Databus.AllocCheck;
 
 [assembly: InternalsVisibleTo("Plugins.Tests")]
 namespace SINTEF.AutoActive.Plugins.Import.Csv
@@ -22,6 +23,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     [ImportPlugin(".csv")]
     public class CatapultImportPlugin : IImportPlugin
     {
+        private AllocTrack mt;
+        public CatapultImportPlugin()
+        {
+            mt = new AllocTrack(this);
+        }
+
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
             var importer = new CatapultImporter(readerFactory);
@@ -36,9 +43,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     public class CatapultImporter : BaseDataProvider
     {
+        private AllocTrack mt;
         internal IReadSeekStreamFactory _readerFactory;
         internal CatapultImporter(IReadSeekStreamFactory readerFactory)
         {
+            mt = new AllocTrack(this);
             Name = readerFactory.Name;
             _readerFactory = readerFactory;
         }
@@ -91,8 +100,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public bool IsSaved { get; }
         private IReadSeekStreamFactory _readerFactory;
         private string _fileName;
+
+        private AllocTrack mt;
         internal CatapultTable(string name, long startTime, IReadSeekStreamFactory readerFactory, string fileName)
         {
+            mt = new AllocTrack(this);
             Name = name;
             _readerFactory = readerFactory;
             IsSaved = false;
@@ -189,12 +201,20 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private readonly List<float> _accData = new List<float>();
         private readonly List<float> _rawvelData = new List<float>();
 
+        private AllocTrack mt;
+        public CatapultParser()
+        {
+            mt = new AllocTrack(this);
+        }
+
         public void ConfigureCsvReader(CsvReader csvReader)
         {
             // Configure csv reader
             csvReader.Configuration.ShouldSkipRecord = CheckLine;
             csvReader.Configuration.BadDataFound = null;
             csvReader.Configuration.TrimOptions = CsvHelper.Configuration.TrimOptions.Trim;
+            csvReader.Configuration.Delimiter = ",";
+            csvReader.Configuration.CultureInfo = new CultureInfo("en-US");
         }
 
         internal static long ConvHmssToEpochUs(string timeString)

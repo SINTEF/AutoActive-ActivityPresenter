@@ -6,6 +6,7 @@ using Parquet.Data;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using System.IO;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.AllocCheck;
 
 namespace SINTEF.AutoActive.Plugins.Import
 {
@@ -27,13 +28,16 @@ namespace SINTEF.AutoActive.Plugins.Import
         private readonly ImportTableBase _reader;
         internal Dictionary<string, Array> _data = null;
 
+        private AllocTrack mt;
         public RememberingFullTableReader(ImportTableBase reader)
         {
+            mt = new AllocTrack(this);
             _reader = reader;
         }
 
         public RememberingFullTableReader(RememberingFullTableReader rftr)
         {
+            mt = new AllocTrack(this);
             // Make a copy of existing data and reader
             _reader = rftr._reader;
 

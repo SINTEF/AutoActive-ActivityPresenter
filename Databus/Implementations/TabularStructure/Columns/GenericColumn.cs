@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.AllocCheck;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 
@@ -10,8 +11,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal T[] Data;
         private readonly Task<T[]> _loader;
         // private float[] _floatData; Buffer data?
+
+        private AllocTrack mt;
         public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(T), name, loader, index, uri)
         {
+            mt = new AllocTrack(this, name);
             _loader = loader;
             Unit = unit;
         }
@@ -45,8 +49,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     public class GenericColumnViewer<T> : TableColumnViewer where T : IConvertible
     {
         private readonly GenericColumn<T> _column;
+
+        private AllocTrack mt;
         public GenericColumnViewer(TableTimeIndex index, GenericColumn<T> column) : base(index, column)
         {
+            mt = new AllocTrack(this, column.Name);
             _column = column;
         }
 
