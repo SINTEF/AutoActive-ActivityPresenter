@@ -1,4 +1,5 @@
-﻿using SINTEF.AutoActive.Databus.Common;
+﻿using SINTEF.AutoActive.Databus.AllocCheck;
+using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
@@ -11,8 +12,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal string[] data;
         private Task<string[]> loader;
 
+        private readonly AllocTrack mt;
         public StringColumn(string name, Task<string[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(string), name, loader, index, uri)
         {
+            mt = new AllocTrack(this, Name);
             this.loader = loader;
             Unit = unit;
         }

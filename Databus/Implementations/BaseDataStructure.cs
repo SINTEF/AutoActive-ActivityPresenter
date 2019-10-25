@@ -1,4 +1,5 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.AllocCheck;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
 
 namespace SINTEF.AutoActive.Databus.Implementations
@@ -8,6 +9,12 @@ namespace SINTEF.AutoActive.Databus.Implementations
     {
         private readonly List<IDataStructure> children = new List<IDataStructure>();
         private readonly List<IDataPoint> datapoints = new List<IDataPoint>();
+
+        private readonly AllocTrack mt;
+        public BaseDataStructure()
+        {
+            mt = new AllocTrack(this, Name);
+        }
 
         // Recursive searches to try to prevent creating loops in the tree of data
         private bool Contains(IDataStructure datastructure)

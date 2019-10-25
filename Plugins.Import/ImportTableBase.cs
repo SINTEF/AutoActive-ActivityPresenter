@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         private readonly ImportTableBase _reader;
         internal Dictionary<string, Array> _data = null;
 
-        private AllocTrack mt;
+        private readonly AllocTrack mt;
         public RememberingFullTableReader(ImportTableBase reader)
         {
             mt = new AllocTrack(this);
