@@ -25,21 +25,21 @@ namespace SINTEF.AutoActive.Plugins.Import
 
     public class RememberingFullTableReader
     {
-        private readonly ImportTableBase _reader;
+        private readonly ImportTableBase _importBase;
         internal Dictionary<string, Array> _data = null;
 
         private readonly AllocTrack mt;
-        public RememberingFullTableReader(ImportTableBase reader)
+        public RememberingFullTableReader(ImportTableBase importBase)
         {
             mt = new AllocTrack(this);
-            _reader = reader;
+            _importBase = importBase;
         }
 
         public RememberingFullTableReader(RememberingFullTableReader rftr)
         {
             mt = new AllocTrack(this);
             // Make a copy of existing data and reader
-            _reader = rftr._reader;
+            _importBase = rftr._importBase;
 
             if (rftr._data != null)
             {
@@ -56,7 +56,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         {
             if (_data == null)
             {
-                _data = _reader.ReadData();
+                _data = _importBase.ReadData();
             }
         }
 
@@ -78,13 +78,20 @@ namespace SINTEF.AutoActive.Plugins.Import
     
     public abstract class ImportTableBase : BaseDataStructure
     {
-        protected readonly RememberingFullTableReader _reader;
+        protected RememberingFullTableReader _reader;
         protected TableTimeIndex _timeIndex = null;
         protected List<ColInfo> _colInfos = new List<ColInfo>();
 
         protected ImportTableBase()
         {
             _reader = new RememberingFullTableReader(this);
+        }
+
+        // Close all children and datapoints
+        public override void Close()
+        {
+            base.Close();
+            _reader = null; // Release reader to break cyclic reference blocking GC.
         }
 
         public abstract Dictionary<string, Array> ReadData();

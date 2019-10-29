@@ -47,9 +47,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         internal IReadSeekStreamFactory _readerFactory;
         internal CatapultImporter(IReadSeekStreamFactory readerFactory)
         {
-            mt = new AllocTrack(this);
             Name = readerFactory.Name;
             _readerFactory = readerFactory;
+            mt = new AllocTrack(this, Name);
         }
 
         protected override void DoParseFile(Stream s)
@@ -104,7 +104,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private AllocTrack mt;
         internal CatapultTable(string name, long startTime, IReadSeekStreamFactory readerFactory, string fileName)
         {
-            mt = new AllocTrack(this);
+            mt = new AllocTrack(this, name);
             Name = name;
             _readerFactory = readerFactory;
             IsSaved = false;

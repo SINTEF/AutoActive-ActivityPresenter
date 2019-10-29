@@ -2,68 +2,105 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 
 namespace SINTEF.AutoActive.Databus.AllocCheck
 {
     public class AllocTrack
     {
-        private int hash;
+        private readonly int hash;
 
         public AllocTrack(object obj, String instInfo = "")
         {
-            String name = obj.GetType().Namespace + "." + obj.GetType().Name;
+            String name = obj.GetType().Namespace + "." + obj.GetType().Name + "<" + instInfo + ">";
             hash = obj.GetHashCode();
 
-            AllocLogger.RegConstruct(hash, name, instInfo);
+            AllocLogger.RegConstruct(hash, name);
         }
 
         ~AllocTrack()
         {
             AllocLogger.RegDealloc(hash);
         }
-
     }
 
     public static class AllocLogger
     {
         private static readonly Dictionary<int, String> _memItems = new Dictionary<int, String>();
+        private static Mutex _transactionMutex = new Mutex();
 
-        public static void RegConstruct(int hash, String name, String instInfo = "")
+        public static void ResetAll()
         {
-            String instName = name + "<" + instInfo + ">";
-            if (_memItems.ContainsKey(hash))
+            lock (_transactionMutex)
             {
-                Debug.WriteLine($"Multiple regs of {instName}");
+                _memItems.Clear();
             }
-            else
+        }
+
+        public static int GetTotalRegs()
+        {
+            lock (_transactionMutex)
             {
-                _memItems.Add(hash, instName);
+                return _memItems.Count;
+            }
+        }
+
+        public static void RegConstruct(int hash, String name)
+        {
+            String locName = String.Copy(name);
+
+            lock (_transactionMutex)
+            {
+                if (_memItems.ContainsKey(hash))
+                {
+                    var prevName = _memItems[hash];
+                    if (prevName.Length < locName.Length)
+                    {
+                        _memItems[hash] = locName;
+                    }
+                }
+                else
+                {
+                    _memItems.Add(hash, locName);
+                }
             }
 
         }
 
         public static void RegDealloc(int hash)
         {
-            if (_memItems.ContainsKey(hash))
+            lock (_transactionMutex)
             {
-                _memItems.Remove(hash);
-            }
-            else
-            {
-                Debug.WriteLine($"Unknown reg");
+                if (_memItems.ContainsKey(hash))
+                {
+                    _memItems.Remove(hash);
+                }
             }
         }
 
         public static void PrintRegs()
         {
-            Debug.WriteLine($"+++++++++++++ Active regs");
-            var keys = _memItems.Keys;
-            foreach(var key in keys)
+            lock (_transactionMutex)
             {
-                var name = _memItems[key];
-                Debug.WriteLine($"{name} ");
+                Debug.WriteLine($"+++++++++++++ Active regs <{GetTotalRegs()}>");
+                var keys = _memItems.Keys;
+                foreach (var key in keys)
+                {
+                    var name = _memItems[key];
+                    Debug.WriteLine($"{name} ");
+                }
+                Debug.WriteLine($"------------- End regs <{GetTotalRegs()}>");
             }
-            Debug.WriteLine($"------------- End regs");
         }
+
+        public static long GetTotalMemory()
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+            return GC.GetTotalMemory(true);
+        }
+
     }
 }

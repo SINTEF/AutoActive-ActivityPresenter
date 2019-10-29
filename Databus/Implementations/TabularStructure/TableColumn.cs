@@ -10,7 +10,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
     {
         protected TableTimeIndex Index;
 
-        private readonly Task _loader;
+        private Task _loader;
 
         public string URI { get; }
         public Type DataType { get; private set; }
@@ -71,6 +71,13 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
                     await EnsureIndexAndDataIsLoaded();
                     return CreateGenericViewer(Index);
             }
+        }
+
+        public void Close()
+        {
+            // Release loader to break cyclic reference blocking GC.
+            _loader = null;
+            Index?.Close();
         }
 
         protected abstract int CheckLoaderResultLength();

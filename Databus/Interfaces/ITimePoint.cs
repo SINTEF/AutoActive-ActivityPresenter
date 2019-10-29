@@ -10,5 +10,8 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         Task<ITimeViewer> CreateViewer();
 
         void TransformTime(long offset, double scale);
+
+        // Release data, loaders ...
+        void Close();
     }
 }

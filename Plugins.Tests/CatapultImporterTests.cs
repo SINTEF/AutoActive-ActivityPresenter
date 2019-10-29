@@ -89,47 +89,73 @@ namespace Plugins.Tests
         }
 
 
-        [Fact]
-        public async void CheckMemFree()
+        private int CheckMemFreeStuff()
         {
-            double mid1MemM = 0;
-            double mid2MemM = 0;
+            var csvName = "C:\\Users\\steffend\\Documents\\repos\\autoactive_repos\\examples\\import_catapult\\73220 2 7684 201811071247.csv";
+            var at = new AllocTrack(csvName, "csvName");
 
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            var startMem = GC.GetTotalMemory(true);
-            var startMemM = startMem / 1024.0 / 1024.0;
-            {
-                var csvName = "C:\\Users\\steffend\\Documents\\repos\\autoactive_repos\\examples\\import_catapult\\73220 2 7684 201811071247.csv";
+            var fr = new FileReader(csvName);
 
-                var fr = new FileReader(csvName);
+            var importer = new CatapultImportPlugin();
+            var importTask = importer.Import(fr, null);
+            importTask.Wait();
+            var provider = importTask.Result;
+            var childEnum = provider.Children.GetEnumerator();
+            childEnum.MoveNext();
+            var table = childEnum.Current;
+            var dataEnum = table.DataPoints.GetEnumerator();
+            dataEnum.MoveNext();
+            var data = dataEnum.Current;
 
-                var importer = new CatapultImportPlugin();
-                var provider = await importer.Import(fr, null);
-                var childEnum = provider.Children.GetEnumerator();
-                childEnum.MoveNext();
-                var table = childEnum.Current;
-                var dataEnum = table.DataPoints.GetEnumerator();
-                dataEnum.MoveNext();
-                var data = dataEnum.Current;
-                var viewer = await data.CreateViewer();
+            //var viewerTask = data.CreateViewer();
+            //viewerTask.Wait();
+            //var viewer = viewerTask.Result;
 
-                mid1MemM = GC.GetTotalMemory(true) / 1024.0 / 1024.0;
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
-                GC.Collect();
-                mid2MemM = GC.GetTotalMemory(true) / 1024.0 / 1024.0;
+            provider.Close();
 
-                AllocLogger.PrintRegs();
-            }
-            GC.Collect();
-            GC.WaitForPendingFinalizers();
-            GC.Collect();
-            var endMem = GC.GetTotalMemory(true);
-            var endMemM = endMem / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
+            Assert.True(AllocLogger.GetTotalRegs() > 0, "No allocations registered");
+
+            return AllocLogger.GetTotalRegs();
         }
 
+        [Fact]
+        public void CheckMemFree()
+        {
+            AllocLogger.ResetAll();
+            var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+
+            int numAlloc = CheckMemFreeStuff();
+
+            var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+            AllocLogger.PrintRegs();
+            Assert.True(AllocLogger.GetTotalRegs() == 0, $"Not all allocations removed {AllocLogger.GetTotalRegs()} remains");
+
+        }
+
+        private void TestAllocLoggerStuff()
+        {
+            var csvName = "C:\\Users\\steffend\\Documents\\repos\\autoactive_repos\\examples\\import_catapult\\73220 2 7684 201811071247.csv";
+            var at = new AllocTrack(csvName, "csvName");
+            var buff = new long[1000000];
+            var at2 = new AllocTrack(buff);
+
+            AllocLogger.PrintRegs();
+            Assert.True(AllocLogger.GetTotalRegs() > 0, "No allocations registered");
+        }
+
+
+        [Fact]
+        public async void TestAllocLogger()
+        {
+            AllocLogger.ResetAll();
+            var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+
+            TestAllocLoggerStuff();
+
+            var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+            AllocLogger.PrintRegs();
+            Assert.True(AllocLogger.GetTotalRegs() == 0, "Not all allocations removed");
+        }
     }
 }

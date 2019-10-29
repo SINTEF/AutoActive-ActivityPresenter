@@ -43,6 +43,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
             children.Add(datastructure);
             OnChildAdded(this, datastructure);
         }
+
         protected virtual void OnChildAdded(IDataStructure sender, IDataStructure datastructure)
         {
             ChildAdded?.Invoke(sender, datastructure);
@@ -78,6 +79,28 @@ namespace SINTEF.AutoActive.Databus.Implementations
         }
 
         /* -- Public API -- */
+
+        // Close all children and datapoints
+        public virtual void Close()
+        {
+            foreach(var child in children)
+            {
+                child.Close();
+            }
+            foreach(var datapoint in datapoints)
+            {
+                datapoint.Close();
+            }
+            while (children.Count > 0)
+            {
+                RemoveChild(children[0]);
+            }
+            while (datapoints.Count > 0)
+            {
+                RemoveDataPoint(datapoints[0]);
+            }
+        }
+
         public virtual string Name { get; protected set; }
 
         public IEnumerable<IDataStructure> Children => children.AsReadOnly();
