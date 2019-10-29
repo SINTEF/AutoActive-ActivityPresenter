@@ -20,22 +20,37 @@ namespace SINTEF.AutoActive.UI.Views
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
         private readonly List<(IDataPoint, ITimeViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer)>();
 
+        private readonly SKPaint _currentLinePaint = new SKPaint
+        {
+            Color = SKColors.Lime,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = true
+        };
+
         public void AddTimeViewer(ITimeViewer viewer, TimeSynchronizedContext context, string label)
         {
             _timeViewers.Add((viewer, context, label));
             viewer.TimeChanged += ViewerOnTimeChanged;
+            context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
+            InvalidateSurface();
+        }
+        private void RemoveTimeViewer(ITimeViewer timeViewer)
+        {
+            _timeViewers.ForEach(el => el.Item1.TimeChanged -= ViewerOnTimeChanged);
+            _timeViewers.ForEach(el => el.Item2.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged);
+            _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
+        }
+
+        private void ContextOnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long @from, long to)
+        {
             InvalidateSurface();
         }
 
         private void ViewerOnTimeChanged(ITimeViewer sender, long start, long end)
         {
             InvalidateSurface();
-        }
-
-        private void RemoveTimeViewer(ITimeViewer timeViewer)
-        {
-            _timeViewers.ForEach(el => el.Item1.TimeChanged -= ViewerOnTimeChanged);
-            _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
         }
 
         public DataTracklineView()
@@ -76,12 +91,21 @@ namespace SINTEF.AutoActive.UI.Views
             var trans = SKMatrix.MakeTranslation(drawRect.Left, drawRect.Top);
             canvas.SetMatrix(trans);
 
-            DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            if (!_timeViewers.Any()) return;
+            canvas.SetMatrix(SKMatrix.MakeIdentity());
+
+            var timeViewerItem = _timeViewers.First();
+            var currentTimePos = timeViewerItem.Item2.SelectedTimeFrom;
+
+            var xPos = (currentTimePos - xMin) * xScale;
+            canvas.DrawLine(xPos, 0, xPos, height, _currentLinePaint);
+
         }
 
-        private void DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        private (long, float) DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
         {
-            if (timeViewers.Count == 0) return;
+            if (timeViewers.Count == 0) return (0,0);
 
             const float labelXMargin = 4f;
             const float boxRoundnessX = 5f;
@@ -152,6 +176,8 @@ namespace SINTEF.AutoActive.UI.Views
 
                 yPos += yHeight + yMargin;
             }
+
+            return (xMin, xScale);
         }
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
