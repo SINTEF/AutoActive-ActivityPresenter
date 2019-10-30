@@ -126,6 +126,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
 
 
         public event DataViewerContextSelectedRangeChangedHandler SelectedTimeRangeChanged;
+
         protected void InternalSetSelectedTimeRange(long from, long to)
         {
             var nViewers = _viewers.Count;
@@ -147,41 +148,22 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         }
 
         // --- Available time range based on current time _viewers ---
-        protected void GetAvailableTimeMinMax(bool useWorldClock, out ITimeViewer minViewer, out long min, out ITimeViewer maxViewer, out long max)
+        protected (long, long) GetAvailableTimeMinMax(bool useWorldClock)
         {
             if (_viewers.Count == 0)
             {
-                minViewer = maxViewer = null;
-                min = max = 0;
-                return;
+                return (0L, 0L);
             }
 
-            // Calculate the min max of current timeviewers
-            minViewer = maxViewer = null;
-            min = long.MaxValue;
-            max = long.MinValue;
-
-            foreach (var timeDataViewers in _viewers)
-            {
-                var timeViewer = timeDataViewers.Key;
-                var start = useWorldClock ? timeViewer.Start : 0;
-                var end = useWorldClock ? timeViewer.End : timeViewer.End - timeViewer.Start;
-                if (start < min)
-                {
-                    min = start;
-                    minViewer = timeViewer;
-                }
-                if (end > max)
-                {
-                    max = end;
-                    maxViewer = timeViewer;
-                }
-            }
+            // If we are using world clock, take the min start and max end. If not, return zero and longest data set.
+            return useWorldClock
+                ? (_viewers.Min(viewer => viewer.Key.Start), _viewers.Max(viewer => viewer.Key.End))
+                : (0L, _viewers.Max(viewer => viewer.Key.End - viewer.Key.Start));
         }
 
         private void UpdateSetAvailableTimeRange()
         {
-            GetAvailableTimeMinMax(IsSynchronizedToWorldClock, out _, out var min, out _, out var max);
+            var (min, max) = GetAvailableTimeMinMax(IsSynchronizedToWorldClock);
             InternalSetAvailableTimeRange(min, max);
         }
 
