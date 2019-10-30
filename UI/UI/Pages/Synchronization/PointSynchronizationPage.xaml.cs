@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Resources;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -19,14 +20,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private readonly TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
         private bool _masterSet;
         private bool _slaveSet;
-        private FigureView _masterFigure;
         private ITimePoint _masterTime;
         private ITimePoint _slaveTime;
         private RelativeSlider _slaveSlider;
         private SynchronizationContext _slaveContext;
 
-        private long _selectedMasterTime;
-        private long _selectedSlaveTime;
+        private long? _selectedMasterTime;
+        private long? _selectedSlaveTime;
 
         public PointSynchronizationPage()
         {
@@ -38,7 +38,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             base.OnAppearing();
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
-            _slaveSlider = new RelativeSlider();
+            _slaveSlider = new RelativeSlider {MinimumHeightRequest = 30};
             _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
 
             Playbar.ViewerContext = _masterContext;
@@ -53,22 +53,72 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
         }
 
+        private static IEnumerable<FigureView> GetFigureViewChildren(StackLayout masterLayout)
+        {
+            foreach (var child in masterLayout.Children)
+            {
+                if (child is FigureView figure)
+                {
+                    yield return figure;
+                }
+            }
+        }
+
+        private void Reset()
+        {
+            _masterSet = false;
+            _masterTime = null;
+            _selectedMasterTime = 0L;
+            MasterTimeButton.Text = "Unset";
+
+            foreach (var figure in GetFigureViewChildren(MasterLayout))
+            {
+                foreach (var datapoint in figure.DataPoints)
+                {
+                    DatapointRemoved?.Invoke(this, (datapoint, _masterContext));
+                }
+                MasterLayout.Children.Clear();
+            }
+        }
+
+        private void ResetSlave()
+        {
+            _slaveSet = false;
+            _slaveTime = null;
+            _selectedSlaveTime = 0L;
+            SlaveTimeButton.Text = "Unset";
+
+            foreach (var figure in GetFigureViewChildren(SlaveLayout))
+            {
+                foreach (var datapoint in figure.DataPoints)
+                {
+                    DatapointRemoved?.Invoke(this, (datapoint, _slaveContext));
+                }
+                SlaveLayout.Children.Clear();
+            }
+        }
+
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
             if (_slaveContext == null) return;
             _selectedSlaveTime = _slaveContext.SelectedTimeFrom;
-            SlaveTimeButton.Text = TimeFormatter.FormatTime(_selectedSlaveTime, dateSeparator:' ');
+            SlaveTimeButton.Text = TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator:' ');
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
             _selectedMasterTime = _masterContext.SelectedTimeFrom;
-            MasterTimeButton.Text = TimeFormatter.FormatTime(_selectedMasterTime, dateSeparator: ' ');
+            MasterTimeButton.Text = TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ');
         }
 
-        private void Sync_OnClicked(object sender, EventArgs e)
+        private async void Sync_OnClicked(object sender, EventArgs e)
         {
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_selectedSlaveTime - _selectedMasterTime);
+            if (!_selectedMasterTime.HasValue || !_selectedSlaveTime.HasValue)
+            {
+                await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
+                return;
+            }
+            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_selectedSlaveTime.Value - _selectedMasterTime.Value);
         }
 
         private FigureView _selected;
@@ -88,9 +138,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private async void SetMaster(IDataPoint dataPoint)
         {
-            _masterFigure = await FigureView.GetView(dataPoint, _masterContext);
-            _masterFigure.ContextButtonIsVisible = true;
-            MasterLayout.Children.Add(_masterFigure);
+            var masterFigure = await FigureView.GetView(dataPoint, _masterContext);
+            masterFigure.ContextButtonIsVisible = true;
+            MasterLayout.Children.Add(masterFigure);
 
             _masterTime = dataPoint.Time;
             _masterSet = true;
@@ -157,7 +207,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                         DatapointAdded?.Invoke(sender, (datapoint, context));
                         break;
                     case ToggleResult.Removed:
-                        DatapointRemoved?.Invoke(sender, (datapoint, context)); ;
+                        DatapointRemoved?.Invoke(sender, (datapoint, context));
                         break;
                     case ToggleResult.Cancelled:
                         break;
@@ -256,6 +306,16 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var to = from + diff;
 
             context.SetSelectedTimeRange(from, to);
+        }
+
+        private void Reset_OnClicked(object sender, EventArgs e)
+        {
+            Reset();
+        }
+
+        private void ResetSlave_OnClicked(object sender, EventArgs e)
+        {
+            ResetSlave();
         }
     }
 }
