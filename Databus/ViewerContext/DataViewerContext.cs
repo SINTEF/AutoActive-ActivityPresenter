@@ -28,8 +28,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public event DataViewerContextWorldClockChangedHandler SynchronizedToWorldClockChanged;
 
         // --- Available time range ---
-        public long AvailableTimeFrom { get; private set; }
-        public long AvailableTimeTo { get; private set; }
+        public virtual long AvailableTimeFrom { get; protected set; }
+        public virtual long AvailableTimeTo { get; protected set; }
         public event DataViewerContextAvailableTimeRangeChangedHandler AvailableTimeRangeChanged;
         protected bool InternalSetAvailableTimeRange(long from, long to)
         {
