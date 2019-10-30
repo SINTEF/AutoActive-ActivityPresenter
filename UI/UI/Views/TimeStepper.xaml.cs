@@ -77,17 +77,18 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         public event EventHandler<TimeStepEvent> OnStep;
-
     }
 
     public enum TimeStepLength {
         Step, Short, Large
     }
+
     public enum TimeStepDirection
     {
         Backward = -1,
         Forward = 1
     }
+
     public struct TimeStepEvent
     {
         public TimeStepLength Length;

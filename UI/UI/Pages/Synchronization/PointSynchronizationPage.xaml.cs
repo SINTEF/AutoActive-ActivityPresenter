@@ -25,6 +25,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private RelativeSlider _slaveSlider;
         private SynchronizationContext _slaveContext;
 
+        private long _selectedMasterTime;
+        private long _selectedSlaveTime;
+
         public PointSynchronizationPage()
         {
             InitializeComponent();
@@ -35,6 +38,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             base.OnAppearing();
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             _masterContext.SetSynchronizedToWorldClock(true);
+            _slaveSlider = new RelativeSlider();
+            _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
+
             Playbar.ViewerContext = _masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(this);
         }
@@ -44,6 +50,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             base.OnDisappearing();
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             Playbar.DataTrackline.DeregisterFigureContainer(this);
+            _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
+        }
+
+        private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
+        {
+            if (_slaveContext == null) return;
+            _selectedSlaveTime = _slaveContext.SelectedTimeFrom;
+            SlaveTimeButton.Text = TimeFormatter.FormatTime(_selectedSlaveTime, dateSeparator:' ');
+        }
+
+        private void MasterTimeButton_OnClicked(object sender, EventArgs e)
+        {
+            _selectedMasterTime = _masterContext.SelectedTimeFrom;
+            MasterTimeButton.Text = TimeFormatter.FormatTime(_selectedMasterTime, dateSeparator: ' ');
+        }
+
+
+
+        private void Sync_OnClicked(object sender, EventArgs e)
+        {
+            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_selectedSlaveTime - _selectedMasterTime);
         }
 
         private FigureView _selected;
@@ -65,14 +92,18 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             _masterFigure = await FigureView.GetView(dataPoint, _masterContext);
             _masterFigure.ContextButtonIsVisible = true;
-            _masterFigure.HorizontalOptions = LayoutOptions.FillAndExpand;
-            _masterFigure.VerticalOptions = LayoutOptions.FillAndExpand;
             MasterLayout.Children.Add(_masterFigure);
 
             _masterTime = dataPoint.Time;
             _masterSet = true;
 
             DatapointAdded?.Invoke(this, (dataPoint, _masterContext));
+        }
+
+        private void SlaveSliderOnOffsetChanged(object sender, ValueChangedEventArgs args)
+        {
+            _slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
+            Playbar.DataTrackline.InvalidateSurface();
         }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
@@ -87,14 +118,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
 
-            if (!_slaveSet)
+            var isMaster = datapoint.Time == _masterTime;
+
+            if (!isMaster && !_slaveSet)
             {
+                _slaveSet = true;
                 _slaveTime = datapoint.Time;
                 _slaveContext = new SynchronizationContext(_masterContext);
-                _slaveSlider = new RelativeSlider();
-                _slaveSlider.OffsetChanged += (s, a) => _slaveContext.Offset = TimeFormatter.TimeFromSeconds(a.NewValue);
-                _slaveSlider.OffsetChanged += (s, a) => Playbar.DataTrackline.InvalidateSurface();
-                _slaveSet = true;
                 var offset =
                     TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - _slaveContext.AvailableTimeFrom);
                 if (Math.Abs(offset) > OffsetBeforeZeroing)
@@ -102,20 +132,15 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 SlaveLayout.Children.Add(_slaveSlider);
             }
 
-            if (Selected != null)
+            if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
             {
-                //TODO(sigurdal): Only allow adding of datasets with the same Time? If so: how to get selected time?
-            }
-
-            if (datapoint.Time != _masterTime && datapoint.Time != _slaveTime)
-            {
-                await DisplayAlert("Illegal time selected", "Can only show data sets with common time", "OK");
+                await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
                 return;
             }
 
-            TimeSynchronizedContext context = datapoint.Time == _masterTime ? _masterContext : _slaveContext;
+            TimeSynchronizedContext context;
             StackLayout layout;
-            if (datapoint.Time == _masterTime)
+            if (isMaster)
             {
                 context = _masterContext;
                 layout = MasterLayout;
@@ -145,9 +170,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
 
             var figure = await FigureView.GetView(datapoint, context);
-            figure.HorizontalOptions = LayoutOptions.FillAndExpand;
-            figure.VerticalOptions = LayoutOptions.FillAndExpand;
-
             layout.Children.Add(figure);
             DatapointAdded?.Invoke(sender, (datapoint, context));
         }
@@ -172,11 +194,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
             }
-        }
-
-        private void Cancel_OnClicked(object sender, EventArgs e)
-        {
-            Navigation.PopAsync();
         }
 
         private void Save_OnClicked(object sender, EventArgs e)
