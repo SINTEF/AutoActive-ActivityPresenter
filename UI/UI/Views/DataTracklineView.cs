@@ -103,13 +103,33 @@ namespace SINTEF.AutoActive.UI.Views
             var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
+            DrawCurrentTime(canvas, xMin, xScale);
+        }
 
+        private void DrawCurrentTime(SKCanvas canvas, long xMin, float xScale)
+        {
             var timeViewerItem = _timeViewers.First();
             var currentTimePos = timeViewerItem.Item2.SelectedTimeFrom;
 
             var xPos = (currentTimePos - xMin) * xScale;
-            canvas.DrawLine(xPos, 0, xPos, height, _currentLinePaint);
+            canvas.DrawLine(xPos, 0, xPos, canvas.LocalClipBounds.Height, _currentLinePaint);
+        }
 
+        private static (List<(long, long, string)>, long, float) GetMinTimeAndScale(IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers, SKRect drawRect)
+        {
+            var times = new List<(long, long, string)>();
+            foreach (var (viewer, context, label) in timeViewers)
+            {
+                var (start, end) = context.GetAvailableTimeInContext(viewer);
+                times.Add((start, end, label));
+            }
+
+            var xMin = times.Min(el => el.Item1);
+            var xMax = times.Max(el => el.Item2);
+            var xDiff = xMax - xMin;
+            var xScale = drawRect.Width / xDiff;
+
+            return (times, xMin, xScale);
         }
 
         private (long, float) DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
@@ -123,18 +143,7 @@ namespace SINTEF.AutoActive.UI.Views
             const float yMargin = 2f;
             const float maxTrackHeight = 30f;
 
-
-            var times = new List<(long, long, string)>();
-            foreach (var (viewer, context, label) in timeViewers)
-            {
-                var (start, end) = context.GetAvailableTimeInContext(viewer);
-                times.Add((start, end, label));
-            }
-
-            var xMin = times.Min(el => el.Item1);
-            var xMax = times.Max(el => el.Item2);
-            var xDiff = xMax - xMin;
-            var xScale = drawRect.Width / xDiff;
+            var (times, xMin, xScale) = GetMinTimeAndScale(timeViewers, drawRect);
 
             var nLines = _timeViewers.Count;
             var yHeight = (drawRect.Height) / nLines - yMargin;
