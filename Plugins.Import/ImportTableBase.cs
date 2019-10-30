@@ -79,7 +79,6 @@ namespace SINTEF.AutoActive.Plugins.Import
     public abstract class ImportTableBase : BaseDataStructure
     {
         protected RememberingFullTableReader _reader;
-        protected TableTimeIndex _timeIndex = null;
         protected List<ColInfo> _colInfos = new List<ColInfo>();
 
         protected ImportTableBase()
@@ -88,11 +87,11 @@ namespace SINTEF.AutoActive.Plugins.Import
         }
 
         // Close all children and datapoints
-        public override void Close()
-        {
-            base.Close();
-            _reader = null; // Release reader to break cyclic reference blocking GC.
-        }
+        //public override void Close()
+        //{
+        //    base.Close();
+        //    //_reader = null; // Release reader to break cyclic reference blocking GC.
+        //}
 
         public abstract Dictionary<string, Array> ReadData();
 

@@ -43,6 +43,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             }
         }
 
+        public void Close()
+        {
+
+        }
+
         public Task<IDataViewer> CreateViewer()
         {
             TableColumnDynViewer newViewer;
@@ -145,6 +150,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 Changed?.Invoke(this);
             }
         }
+
+        public void Close()
+        {
+        }
+
 
         public TableColumnDyn Column { get; private set; }
         public IDataPoint DataPoint => Column;

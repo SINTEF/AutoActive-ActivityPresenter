@@ -76,8 +76,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         public void Close()
         {
             // Release loader to break cyclic reference blocking GC.
-            _loader = null;
-            Index?.Close();
+            //_loader = null;
+            //Index?.Close();
         }
 
         protected abstract int CheckLoaderResultLength();

@@ -114,8 +114,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var timeColInfo = new ColInfo("Time", "us");
             var uri = Name + "/" + timeColInfo.Name;
             var timeLoadTask = GenerateLoader<long>(timeColInfo);
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, timeLoadTask, isWorldSynchronized, uri, timeColInfo.Unit);
-            timeLoadTask.ContinueWith(t => _timeIndex.TransformTime(startTime, 1d));
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, timeLoadTask, isWorldSynchronized, uri, timeColInfo.Unit, startTime);
+            timeLoadTask.ContinueWith(t => timeIndex.TransformTime(startTime, 1d));
 
 
             var stringUnits = new[]
@@ -141,7 +141,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<float>(colInfo), timeIndex, uri, colInfo.Unit);
             }
         }
 
@@ -160,7 +160,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };

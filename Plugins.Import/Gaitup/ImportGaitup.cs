@@ -260,7 +260,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var timeColInfo = new ColInfo("time", "us");
             var uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             var stringUnits = new[]
             {
@@ -272,7 +272,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), timeIndex, uri, colInfo.Unit);
             }
         }
 
@@ -305,7 +305,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -337,7 +337,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             ColInfo timeColInfo = new ColInfo("time", "us");
             string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             var stringUnits = new[]
             {
@@ -349,7 +349,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), timeIndex, uri, colInfo.Unit);
             }
 
         }
@@ -383,7 +383,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -415,7 +415,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             ColInfo timeColInfo = new ColInfo("time", "us");
             string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             var stringUnits = new[]
             {
@@ -426,7 +426,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), timeIndex, uri, colInfo.Unit);
             }
 
         }
@@ -459,7 +459,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -491,11 +491,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             ColInfo timeColInfo = new ColInfo("time", "us");
             string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             timeColInfo = new ColInfo("data_events1", "");
             uri = Name + "/" + timeColInfo.Name;
-            this.AddColumn(timeColInfo.Name, GenerateLoader<double>(timeColInfo), _timeIndex, uri, timeColInfo.Unit);
+            this.AddColumn(timeColInfo.Name, GenerateLoader<double>(timeColInfo), timeIndex, uri, timeColInfo.Unit);
 
         }
 
@@ -526,7 +526,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
@@ -558,15 +558,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             ColInfo timeColInfo = new ColInfo("time", "us");
             string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             timeColInfo = new ColInfo("data_radio1", "");
             uri = Name + "/" + timeColInfo.Name;
-            this.AddColumn(timeColInfo.Name, GenerateLoader<long>(timeColInfo), _timeIndex, uri, timeColInfo.Unit);
+            this.AddColumn(timeColInfo.Name, GenerateLoader<long>(timeColInfo), timeIndex, uri, timeColInfo.Unit);
 
             timeColInfo = new ColInfo("data_radio2", "");
             uri = Name + "/" + timeColInfo.Name;
-            this.AddColumn(timeColInfo.Name, GenerateLoader<double>(timeColInfo), _timeIndex, uri, timeColInfo.Unit);
+            this.AddColumn(timeColInfo.Name, GenerateLoader<double>(timeColInfo), timeIndex, uri, timeColInfo.Unit);
 
         }
 
@@ -598,7 +598,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };
