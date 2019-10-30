@@ -181,7 +181,13 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.DrawPath(plot, lineConfig.LinePaint);
         }
 
-        public bool AxisValuesVisible = true;
+        private bool _axisValuesVisible = true;
+
+        public bool AxisValuesVisible
+        {
+            get => _axisValuesVisible && !_autoScaleIndependent;
+            set => _axisValuesVisible = value;
+        }
         public static int MaxPlotPoints { get; } = 500;
         public bool CurrentTimeVisible { get; set; } = true;
 
@@ -193,6 +199,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int PlotHeightMargin = 4;
 
         public bool AutoScale = true;
+        private bool _autoScaleIndependent;
 
         private const int SmoothScalingQueueSize = 30;
         private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
@@ -210,15 +217,12 @@ namespace SINTEF.AutoActive.UI.Figures
 
             //TODO: choose first x and last x instead?
             var xDiff = 0L;
-            var xEnd = 0L;
             foreach (var line in _lines)
             {
                 var viewer = line.Drawer.Viewer;
                 // To achieve a constant line width, we need to scale the data when drawing the path, not scale the whole canvas
                 xDiff = viewer.CurrentTimeRangeTo - viewer.CurrentTimeRangeFrom;
                 if (xDiff == 0) continue;
-
-                xEnd = viewer.CurrentTimeRangeTo;
                 break;
             }
 
@@ -245,55 +249,86 @@ namespace SINTEF.AutoActive.UI.Figures
 
             if (AutoScale)
             {
-                var curMin = float.MaxValue;
-                var curMax = float.MinValue;
-                foreach (var line in _lines)
+                if (!_autoScaleIndependent)
                 {
-                    var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
-                    curMin = Math.Min(curMin, cMin);
-                    curMax = Math.Max(curMax, cMax);
-                }
+                    var curMin = float.MaxValue;
+                    var curMax = float.MinValue;
+                    foreach (var line in _lines)
+                    {
+                        var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
+                        curMin = Math.Min(curMin, cMin);
+                        curMax = Math.Max(curMax, cMax);
+                    }
 
-                if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+                    if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+                    {
+                        _smoothScalingQueue.Dequeue();
+                    }
+
+                    _smoothScalingQueue.Enqueue((curMin, curMax));
+
+                    curMin = _smoothScalingQueue.Min(el => el.Item1);
+                    curMax = _smoothScalingQueue.Max(el => el.Item2);
+
+                    var yDelta = curMax - curMin;
+                    if (yDelta <= 0)
+                    {
+                        yDelta = 1;
+                        curMax -= yDelta / 2;
+                    }
+
+                    var scaleY = -(info.Height - PlotHeightMargin * 2) / yDelta;
+                    curMax -= PlotHeightMargin / scaleY;
+                    foreach (var line in _lines)
+                    {
+                        line.OffsetY = curMax;
+                        line.ScaleY = scaleY;
+                    }
+
+                    minYValue = curMin;
+                    maxYValue = curMax;
+                }
+                else
                 {
-                    _smoothScalingQueue.Dequeue();
+                    maxYValue = null;
+                    foreach (var line in _lines)
+                    {
+                        var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
+
+                        if (line.SmoothScalingQueue == null)
+                        {
+                            line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+                        }
+
+                        if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
+                        {
+                            line.SmoothScalingQueue.Dequeue();
+                        }
+
+                        line.SmoothScalingQueue.Enqueue((cMin, cMax));
+
+                        var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
+                        var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
+
+                        var yDelta = curMax - curMin;
+                        var scaleY = -(info.Height - PlotHeightMargin * 2) / yDelta;
+                        line.OffsetY = curMax - PlotHeightMargin / scaleY;
+                        line.ScaleY = scaleY;
+                    }
                 }
-
-                _smoothScalingQueue.Enqueue((curMin, curMax));
-
-                curMin = _smoothScalingQueue.Min(el => el.Item1);
-                curMax = _smoothScalingQueue.Max(el => el.Item2);
-
-                var yDelta = curMax - curMin;
-                if (yDelta <= 0)
-                {
-                    yDelta = 1;
-                    curMax -= yDelta / 2;
-                }
-
-                var scaleY = -(info.Height - PlotHeightMargin*2) / yDelta;
-                curMax -= PlotHeightMargin / scaleY;
-                foreach (var line in _lines)
-                {
-                    line.OffsetY = curMax;
-                    line.ScaleY = scaleY;
-                }
-
-                minYValue = curMin;
-                maxYValue = curMax;
             }
             else
             {
                 foreach (var line in _lines)
                 {
                     line.ScaleY = -info.Height / (line.YDelta);
+                    if (maxYValue.HasValue)
+                        line.OffsetY = maxYValue.Value;
                 }
             }
 
             foreach (var line in _lines)
             {
-                if (maxYValue.HasValue)
-                    line.OffsetY = maxYValue.Value;
                 line.OffsetX = startX;
                 line.ScaleX = scaleX;
             }
@@ -472,11 +507,37 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
         protected const string RemoveLineText = "Remove Line";
+        protected const string AutoScaleIndependentText = "AutoScale Independent";
+        protected const string AutoScaleCommonText = "AutoScale Common";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
+            parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
+
             if(_lines.Count > 1) parameters.Add(RemoveLineText);
             return true;
+        }
+
+        protected override async void OnHandleMenuResult(Page page, string action)
+        {
+            switch (action)
+            {
+                case AutoScaleCommonText:
+                    _autoScaleIndependent = false;
+                    return;
+                case AutoScaleIndependentText:
+                    _autoScaleIndependent = true;
+                    return;
+                case RemoveLineText:
+                    var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
+                        _lines.Select(line => line.Drawer.Legend).ToArray());
+                    if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
+                        return;
+
+                    RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
+                    return;
+            }
+            base.OnHandleMenuResult(page, action);
         }
 
         private List<IDataPoint> GetAllDataPoints(IEnumerable<IDataStructure> dataStructures)
@@ -545,22 +606,6 @@ namespace SINTEF.AutoActive.UI.Figures
                 UpdateLineData();
             InvalidateSurface();
         }
-
-        protected override async void OnHandleMenuResult(Page page, string action)
-        {
-            switch (action)
-            {
-                case RemoveLineText:
-                    var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
-                        _lines.Select(line => line.Drawer.Legend).ToArray());
-                    if (lineToRemoveAction == null || lineToRemoveAction == CancelText)
-                        return;
-
-                    RemoveLines(_lines.FindAll(line => line.Drawer.Legend == lineToRemoveAction));
-                    return;
-            }
-            base.OnHandleMenuResult(page, action);
-        }
     }
 
     public class LineConfiguration
@@ -574,5 +619,7 @@ namespace SINTEF.AutoActive.UI.Figures
         public float OffsetY { get; set; }
         public float ScaleY { get; set; }
         public SKPaint LinePaint { get; set; }
+
+        public Queue<(float, float)> SmoothScalingQueue;
     }
 }
