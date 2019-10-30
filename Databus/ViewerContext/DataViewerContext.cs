@@ -78,7 +78,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         private readonly List<SingleSetDataViewerContext> AssociatedContext = new List<SingleSetDataViewerContext>();
 
         // ---- Data _viewers ----
-        private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
+        private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers =
+            new Dictionary<ITimeViewer, List<IDataViewer>>();
 
         private void SetTimeRangeForViewer(ITimeViewer timeviewer, IDataViewer dataviewer, long from, long to)
         {
@@ -90,27 +91,28 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         {
             foreach (var timeDataViewers in _viewers)
             {
-                var timeviewer = timeDataViewers.Key;
-                if (timeviewer.TimePoint != datapoint.Time) continue;
+                var timeViewer = timeDataViewers.Key;
+                if (timeViewer.TimePoint != datapoint.Time) continue;
 
                 // We already have a time viewer for this datapoint, check if we also have a dataviewer
-                foreach (var dataviewer in timeDataViewers.Value)
+                foreach (var dataViewer in timeDataViewers.Value)
                 {
-                    if (dataviewer.DataPoint == datapoint)
-                    {
-                        return dataviewer;
-                    }
+                    if (dataViewer.DataPoint != datapoint) continue;
+                    timeDataViewers.Value.Add(dataViewer);
+                    return dataViewer;
                 }
+
                 // If not, create one
                 var newViewer = await datapoint.CreateViewer();
                 timeDataViewers.Value.Add(newViewer);
-                SetTimeRangeForViewer(timeviewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
+                SetTimeRangeForViewer(timeViewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
+                return newViewer;
             }
 
             // If we don't have a timeviewer, we need to create both
             var newDataViewer = await datapoint.CreateViewer();
             var newTimeViewer = await datapoint.Time.CreateViewer();
-            _viewers.Add(newTimeViewer, new List<IDataViewer> { newDataViewer });
+            _viewers.Add(newTimeViewer, new List<IDataViewer> {newDataViewer});
             newTimeViewer.TimeChanged += OnTimeViewerAvailableChanged;
             OnTimeViewerAvailableChanged(newTimeViewer, newTimeViewer.Start, newTimeViewer.End);
 

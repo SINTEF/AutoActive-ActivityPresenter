@@ -18,7 +18,7 @@ namespace SINTEF.AutoActive.UI.Views
     {
 
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
-        private readonly List<(IDataPoint, ITimeViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer)>();
+        private readonly List<(IDataPoint, ITimeViewer, IDataViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer, IDataViewer)>();
 
         private readonly SKPaint _currentLinePaint = new SKPaint
         {
@@ -36,11 +36,20 @@ namespace SINTEF.AutoActive.UI.Views
             context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
             InvalidateSurface();
         }
-        private void RemoveTimeViewer(ITimeViewer timeViewer)
+
+        private void RemoveItem(ITimeViewer timeViewer, IDataViewer dataViewer)
         {
-            _timeViewers.ForEach(el => el.Item1.TimeChanged -= ViewerOnTimeChanged);
-            _timeViewers.ForEach(el => el.Item2.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged);
+            timeViewer.TimeChanged -= ViewerOnTimeChanged;
+
+            foreach(var (viewer, context, _) in _timeViewers)
+            {
+                if (viewer != timeViewer) continue;
+
+                context.Remove(dataViewer);
+                context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
+            }
             _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
+
         }
 
         private void ContextOnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long @from, long to)
@@ -189,17 +198,11 @@ namespace SINTEF.AutoActive.UI.Views
 
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
-            _dataTimeList.Add((dataPoint, timeViewer));
+            _dataTimeList.Add((dataPoint, timeViewer, dataViewer));
             AddTimeViewer(timeViewer, context, dataPoint.Name);
-            timeViewer.TimeChanged += TimeViewer_TimeChanged;
         }
 
         private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
-        {
-            InvalidateSurface();
-        }
-
-        private void TimeViewer_TimeChanged(ITimeViewer sender, long start, long end)
         {
             InvalidateSurface();
         }
@@ -211,15 +214,14 @@ namespace SINTEF.AutoActive.UI.Views
             if (index == -1)
                 return Task.CompletedTask;
 
-            var (_, timeViewer) = _dataTimeList[index];
+            var(_, timeViewer, dataViewer) = _dataTimeList[index];
             _dataTimeList.RemoveAt(index);
             if (_dataTimeList.Count == 0)
             {
                 context.AvailableTimeRangeChanged -= ContextOnAvailableTimeRangeChanged;
             }
 
-            timeViewer.TimeChanged -= TimeViewer_TimeChanged;
-            RemoveTimeViewer(timeViewer);
+            RemoveItem(timeViewer, dataViewer);
             InvalidateSurface();
             return Task.CompletedTask;
         }
