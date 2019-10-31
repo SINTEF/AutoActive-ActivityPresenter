@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             x:Class="SINTEF.AutoActive.UI.Views.TimeStepper">
+  <ContentView.Content>
+        <StackLayout Orientation="Horizontal">
+            <Button Text="&lt;&lt;&lt;" Clicked="StepClicked"/>
+            <Button Text="&lt;&lt;" Clicked="StepClicked"/>
+            <Button Text="&lt;" Clicked="StepClicked"/>
+            <Button Text="&gt;" Clicked="StepClicked"/>
+            <Button Text="&gt;&gt;" Clicked="StepClicked"/>
+            <Button Text="&gt;&gt;&gt;" Clicked="StepClicked"/>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>

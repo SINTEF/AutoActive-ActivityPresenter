@@ -5,7 +5,7 @@ namespace SINTEF.AutoActive.UI.Helpers
     public static class TimeFormatter
     {
         public const long MicrosPerSecond = 1000000L;
-        public static string FormatTime(long time, long offset = 0)
+        public static string FormatTime(long time, long offset = 0, char dateSeparator='\n')
         {
             var remTime = time - offset;
             var sign = "";
@@ -21,7 +21,7 @@ namespace SINTEF.AutoActive.UI.Helpers
 
             return hours <= 24 ? 
                 dateTime.ToString($"{sign}HH:mm:ss.fff") :
-                dateTime.ToString($"{sign}yyyy-MM-dd\nHH:mm:ss.fff");
+                dateTime.ToString($"{sign}yyyy-MM-dd{dateSeparator}HH:mm:ss.fff");
         }
         public static long TimeFromDateTime(DateTime dateTime)
         {

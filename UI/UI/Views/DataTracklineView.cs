@@ -18,24 +18,48 @@ namespace SINTEF.AutoActive.UI.Views
     {
 
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
-        private readonly List<(IDataPoint, ITimeViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer)>();
+        private readonly List<(IDataPoint, ITimeViewer, IDataViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer, IDataViewer)>();
+
+        private readonly SKPaint _currentLinePaint = new SKPaint
+        {
+            Color = SKColors.Lime,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = true
+        };
 
         public void AddTimeViewer(ITimeViewer viewer, TimeSynchronizedContext context, string label)
         {
             _timeViewers.Add((viewer, context, label));
             viewer.TimeChanged += ViewerOnTimeChanged;
+            context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
+            InvalidateSurface();
+        }
+
+        private void RemoveItem(ITimeViewer timeViewer, IDataViewer dataViewer)
+        {
+            timeViewer.TimeChanged -= ViewerOnTimeChanged;
+
+            foreach(var (viewer, context, _) in _timeViewers)
+            {
+                if (viewer != timeViewer) continue;
+
+                context.Remove(dataViewer);
+                context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
+            }
+            _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
+
+        }
+
+        private void ContextOnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long @from, long to)
+        {
             InvalidateSurface();
         }
 
         private void ViewerOnTimeChanged(ITimeViewer sender, long start, long end)
         {
             InvalidateSurface();
-        }
-
-        private void RemoveTimeViewer(ITimeViewer timeViewer)
-        {
-            _timeViewers.ForEach(el => el.Item1.TimeChanged -= ViewerOnTimeChanged);
-            _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
         }
 
         public DataTracklineView()
@@ -76,21 +100,23 @@ namespace SINTEF.AutoActive.UI.Views
             var trans = SKMatrix.MakeTranslation(drawRect.Left, drawRect.Top);
             canvas.SetMatrix(trans);
 
-            DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            if (!_timeViewers.Any()) return;
+            canvas.SetMatrix(SKMatrix.MakeIdentity());
+            DrawCurrentTime(canvas, xMin, xScale);
         }
 
-        private void DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        private void DrawCurrentTime(SKCanvas canvas, long xMin, float xScale)
         {
-            if (timeViewers.Count == 0) return;
+            var timeViewerItem = _timeViewers.First();
+            var currentTimePos = timeViewerItem.Item2.SelectedTimeFrom;
 
-            const float labelXMargin = 4f;
-            const float boxRoundnessX = 5f;
-            const float boxRoundnessY = boxRoundnessX;
-            const float minTextSize = 10f;
-            const float yMargin = 2f;
-            const float maxTrackHeight = 30f;
+            var xPos = (currentTimePos - xMin) * xScale;
+            canvas.DrawLine(xPos, 0, xPos, canvas.LocalClipBounds.Height, _currentLinePaint);
+        }
 
-
+        private static (List<(long, long, string)>, long, float) GetMinTimeAndScale(IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers, SKRect drawRect)
+        {
             var times = new List<(long, long, string)>();
             foreach (var (viewer, context, label) in timeViewers)
             {
@@ -102,6 +128,22 @@ namespace SINTEF.AutoActive.UI.Views
             var xMax = times.Max(el => el.Item2);
             var xDiff = xMax - xMin;
             var xScale = drawRect.Width / xDiff;
+
+            return (times, xMin, xScale);
+        }
+
+        private (long, float) DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        {
+            if (timeViewers.Count == 0) return (0,0);
+
+            const float labelXMargin = 4f;
+            const float boxRoundnessX = 5f;
+            const float boxRoundnessY = boxRoundnessX;
+            const float minTextSize = 10f;
+            const float yMargin = 2f;
+            const float maxTrackHeight = 30f;
+
+            var (times, xMin, xScale) = GetMinTimeAndScale(timeViewers, drawRect);
 
             var nLines = _timeViewers.Count;
             var yHeight = (drawRect.Height) / nLines - yMargin;
@@ -152,6 +194,8 @@ namespace SINTEF.AutoActive.UI.Views
 
                 yPos += yHeight + yMargin;
             }
+
+            return (xMin, xScale);
         }
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
@@ -163,17 +207,11 @@ namespace SINTEF.AutoActive.UI.Views
 
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
-            _dataTimeList.Add((dataPoint, timeViewer));
+            _dataTimeList.Add((dataPoint, timeViewer, dataViewer));
             AddTimeViewer(timeViewer, context, dataPoint.Name);
-            timeViewer.TimeChanged += TimeViewer_TimeChanged;
         }
 
         private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
-        {
-            InvalidateSurface();
-        }
-
-        private void TimeViewer_TimeChanged(ITimeViewer sender, long start, long end)
         {
             InvalidateSurface();
         }
@@ -185,15 +223,14 @@ namespace SINTEF.AutoActive.UI.Views
             if (index == -1)
                 return Task.CompletedTask;
 
-            var (_, timeViewer) = _dataTimeList[index];
+            var(_, timeViewer, dataViewer) = _dataTimeList[index];
             _dataTimeList.RemoveAt(index);
             if (_dataTimeList.Count == 0)
             {
                 context.AvailableTimeRangeChanged -= ContextOnAvailableTimeRangeChanged;
             }
 
-            timeViewer.TimeChanged -= TimeViewer_TimeChanged;
-            RemoveTimeViewer(timeViewer);
+            RemoveItem(timeViewer, dataViewer);
             InvalidateSurface();
             return Task.CompletedTask;
         }
