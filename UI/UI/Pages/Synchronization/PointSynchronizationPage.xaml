@@ -8,13 +8,14 @@
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
+                <ColumnDefinition x:Name="ColumnSplitter2" Width="Auto" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Column="0" Grid.Row="0" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+            <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
@@ -47,10 +48,12 @@
                     </StackLayout>
                 </StackLayout>
             </Grid>
-            <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
+            <player:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
 
             <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
-            <StackLayout Grid.Column="1" Grid.Row="1" Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
+            <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
+                <Button Text="Reset" Clicked ="Reset_OnClicked"/>
+                <Button Text="Remove Slave" Clicked ="ResetSlave_OnClicked"/>
                 <Button Text="Sync" Clicked ="Sync_OnClicked"/>
                 <Button Text="Save" Clicked ="Save_OnClicked"/>
             </StackLayout>
