@@ -70,7 +70,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             UpdateLineData();
 
-	    // Trigger TimeViewer selected time for the new line
+            // Trigger TimeViewer selected time for the new line
             _context.SetSelectedTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
 
             InvalidateSurface();
