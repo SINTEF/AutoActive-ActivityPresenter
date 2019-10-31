@@ -6,9 +6,6 @@ namespace SINTEF.AutoActive.UI.Views
 {
     public class DeltaSlider : Slider
     {
-        public static readonly BindableProperty OffsetProperty =
-            BindableProperty.Create("Offset", typeof(double), typeof(DeltaSlider), 0.0);
-
         private bool _manipulating;
         private double _updateRate = 25;
         private int _updateDelay = 1000 / 25;
@@ -32,14 +29,15 @@ namespace SINTEF.AutoActive.UI.Views
             (new Thread(UpdateOffset)).Start();
         }
 
+        private double _offset;
         public double Offset
         {
-            get => (double)GetValue(OffsetProperty);
+            get => _offset;
             set
             {
-                var offset = Offset;
-                SetValue(OffsetProperty, value);
-                OffsetChanged?.Invoke(this, new ValueChangedEventArgs(offset, value));
+                var oldValue = _offset;
+                _offset = value;
+                OffsetChanged?.Invoke(this, new ValueChangedEventArgs(oldValue, value));
             }
         }
 
