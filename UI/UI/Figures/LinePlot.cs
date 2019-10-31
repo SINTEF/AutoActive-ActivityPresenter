@@ -70,6 +70,9 @@ namespace SINTEF.AutoActive.UI.Figures
 
             UpdateLineData();
 
+            // Trigger TimeViewer selected time for the new line
+            _context.SetSelectedTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
+
             InvalidateSurface();
         }
 
@@ -524,9 +527,11 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 case AutoScaleCommonText:
                     _autoScaleIndependent = false;
+                    InvalidateSurface();
                     return;
                 case AutoScaleIndependentText:
                     _autoScaleIndependent = true;
+                    InvalidateSurface();
                     return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
