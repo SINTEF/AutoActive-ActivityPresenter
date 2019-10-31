@@ -55,13 +55,15 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private static IEnumerable<FigureView> GetFigureViewChildren(StackLayout masterLayout)
         {
+            var list = new List<FigureView>();
             foreach (var child in masterLayout.Children)
             {
                 if (child is FigureView figure)
                 {
-                    yield return figure;
+                    list.Add(figure);
                 }
             }
+            return list;
         }
 
         private void Reset()
