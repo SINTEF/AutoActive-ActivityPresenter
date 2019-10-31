@@ -35,7 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.UWP.Tests", "UI.UWP.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GaitupParser", "GaitupParser\GaitupParser.csproj", "{43471623-F77F-4EBE-B3E1-B80815D17E4A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Plugins.Tests", "Plugins.Tests\Plugins.Tests.csproj", "{C423FFB0-B7B0-4632-A677-0B4D5591B202}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Tests", "Plugins.Tests\Plugins.Tests.csproj", "{C423FFB0-B7B0-4632-A677-0B4D5591B202}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
