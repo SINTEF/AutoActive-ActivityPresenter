@@ -81,6 +81,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 }
                 MasterLayout.Children.Clear();
             }
+
+            ResetSlave();
         }
 
         private void ResetSlave()
