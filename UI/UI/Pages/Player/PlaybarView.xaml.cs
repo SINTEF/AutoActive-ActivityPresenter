@@ -1,7 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures;
-using SINTEF.AutoActive.UI.Views;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -48,12 +47,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private long PlayDelayUs => 1000000L / PlayUpdateRate;
         private int PlayDelayMs => (int)(PlayDelayUs / 1000);
 
-        private long? _lastFrom;
-        private long? _lastTo;
-
         private bool _fromTimeIsCurrent = true;
 
-        private readonly TimeSynchronizedContext _previewContext = new TimeSynchronizedContext();
+        private readonly ManualTimeSynchronizedContext _previewContext = new ManualTimeSynchronizedContext();
         private LinePlot _previewView;
 
         public PlaybarView()
@@ -142,13 +138,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
+        private (long, long) _availableTime;
+
         private void ViewerContext_AvailableTimeRangeChanged(DataViewerContext sender, long from, long to)
         {
             Device.BeginInvokeOnMainThread(() =>
             {
-                _lastFrom = from;
-                _lastTo = to;
-
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
                 if (!_fromTimeIsCurrent)
                 {
@@ -156,10 +151,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 }
 
                 LabelTimeTo.Text = TimeFormatter.FormatTime(to);
+                _availableTime = (from, to);
+                _previewContext.SetAvailableTime(from, to);
                 _previewContext?.SetSelectedTimeRange(from, to);
 
                 // Check if this is the first time data is added to the screen
-                if(ViewerContext.SelectedTimeTo == 0)
+                if (ViewerContext.SelectedTimeTo == 0)
                 {
                     SetSliderTime(SliderValueToTime(0));
                 }
@@ -182,9 +179,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (PreviewDataPoint == datapoint)
             {
                 PreviewDataPoint = null;
+                RowDataPreview.Height = 0;
                 return;
             }
-
 
             PreviewDataPoint = datapoint;
 
@@ -200,7 +197,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewView.CurrentTimeVisible = false;
 
             ContentGrid.Children.Add(_previewView, 1, 0);
-            _previewContext.SetSelectedTimeRange(_lastFrom, _lastTo);
+            _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
+            _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
 
         private void TimelineExpand_OnClickedExpand_OnClicked(object sender, EventArgs e)
