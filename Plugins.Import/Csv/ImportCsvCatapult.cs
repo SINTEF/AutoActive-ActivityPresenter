@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -71,12 +72,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Could not parse start time \"{startTime}\": {ex}");
+                    Debug.WriteLine($"Could not parse start time \"{startTime}\": {ex}");
                 }
             }
             else
             {
-                Console.WriteLine("Start time not found.");
+                Debug.WriteLine("Start time not found.");
             }
 
             AddChild(new CatapultTable(Name+"_table", startTime, _readerFactory, Name + _readerFactory.Extension));
