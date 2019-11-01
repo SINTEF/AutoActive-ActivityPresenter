@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Xamarin.Forms;
 
@@ -6,6 +7,8 @@ namespace SINTEF.AutoActive.UI.Views
 {
     public class DeltaSlider : Slider
     {
+        public event PropertyChangedEventHandler PropertyChanged;
+
         private bool _manipulating;
         private double _updateRate = 25;
         private int _updateDelay = 1000 / 25;
@@ -35,8 +38,10 @@ namespace SINTEF.AutoActive.UI.Views
             get => _offset;
             set
             {
+                if (_offset == value) return;
                 var oldValue = _offset;
                 _offset = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Offset"));
                 OffsetChanged?.Invoke(this, new ValueChangedEventArgs(oldValue, value));
             }
         }
