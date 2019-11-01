@@ -1,8 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Resources;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -302,14 +300,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void SlaveTimeStepper_OnOnStep(object sender, TimeStepEvent e)
         {
-            var context = _slaveContext;
-            var diff = context.SelectedTimeTo - context.SelectedTimeFrom;
-
-            var offset = GetOffsetFromTimeStep(e);
-            var from = context.SelectedTimeFrom + offset;
-            var to = from + diff;
-
-            context.SetSelectedTimeRange(from, to);
+            _slaveSlider.Offset += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
         }
 
         private void Reset_OnClicked(object sender, EventArgs e)
