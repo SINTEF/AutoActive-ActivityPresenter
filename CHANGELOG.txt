@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.3.1] - 2019-10-31
+ - Minor bugfixes
+
+
 ## [0.3.0] - 2019-10-31
 ### Added
  - Line showing current time to DataTrackline
