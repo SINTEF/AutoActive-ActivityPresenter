@@ -248,6 +248,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             Remove(item);
             item.HideChildItems();
+            item.Dispose();
             _providerItems.Remove(dataProvider);
         }
 
@@ -292,7 +293,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public IDataProvider DataProvider { get; private set; }
     }
 
-    internal class DataStructureItem : DataItem
+    internal class DataStructureItem : DataItem, IDisposable
     {
         internal DataStructureItem(IDataStructure dataStructure, DataRegistryTree tree) : base(tree)
         {
@@ -305,6 +306,19 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             foreach (var child in dataStructure.Children) ChildAdded(dataStructure, child);
             foreach (var point in dataStructure.DataPoints) DataPointAdded(dataStructure, point);
+        }
+
+        public void Dispose()
+        {
+            DataStructure.ChildAdded -= ChildAdded;
+            DataStructure.ChildRemoved -= ChildRemoved;
+            DataStructure.DataPointAdded -= DataPointAdded;
+            DataStructure.DataPointRemoved -= DataPointRemoved;
+
+            foreach (var child in DataStructure.Children) ChildRemoved(DataStructure, child);
+            foreach (var point in DataStructure.DataPoints) DataPointRemoved(DataStructure, point);
+
+            DataStructure = null;
         }
 
         public IDataStructure DataStructure { get; private set; }
@@ -321,7 +335,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         // --- Keep track of the children and datapoints ---
-        private readonly Dictionary<IDataStructure, DataItem> _structureItems = new Dictionary<IDataStructure, DataItem>();
+        private readonly Dictionary<IDataStructure, DataStructureItem> _structureItems = new Dictionary<IDataStructure, DataStructureItem>();
         private readonly Dictionary<IDataPoint, DataItem> _pointItems = new Dictionary<IDataPoint, DataItem>();
         public List<DataItem> ChildItems { get; private set; } = new List<DataItem>();
 
@@ -336,8 +350,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void ChildRemoved(IDataStructure sender, IDataStructure dataStructure)
         {
-            if (!_structureItems.TryGetValue(DataStructure, out var item)) return;
+            if (!_structureItems.TryGetValue(dataStructure, out var item)) return;
 
+            item.Dispose();
             _structureItems.Remove(dataStructure);
             ChildItems.Remove(item);
         }
