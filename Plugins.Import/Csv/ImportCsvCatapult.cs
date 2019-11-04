@@ -119,8 +119,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var uri = Name + "/" + timeColInfo.Name;
             var timeLoadTask = GenerateLoader<long>(timeColInfo);
             var timeIndex = new TableTimeIndex(timeColInfo.Name, timeLoadTask, isWorldSynchronized, uri, timeColInfo.Unit, startTime);
-            timeLoadTask.ContinueWith(t => timeIndex.TransformTime(startTime, 1d));
-
 
             var stringUnits = new[]
             {

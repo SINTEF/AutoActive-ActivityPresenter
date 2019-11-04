@@ -71,7 +71,6 @@ namespace Plugins.Tests
             var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
             Assert.True(AllocLogger.GetTotalRegs() == 0, $"Not all allocations removed {AllocLogger.GetTotalRegs()} remains");
-            Assert.False(true, "Shall fail");
 
         }
 
@@ -86,8 +85,6 @@ namespace Plugins.Tests
             var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
             Assert.True(AllocLogger.GetTotalRegs() == 0, $"Not all allocations removed {AllocLogger.GetTotalRegs()} remains");
-            Assert.False(true, "Shall fail");
-
         }
 
         private void TestAllocLoggerStuff()
@@ -103,7 +100,7 @@ namespace Plugins.Tests
 
 
         [Fact]
-        public async void TestAllocLogger()
+        public async void TestAllocLoggerFree()
         {
             AllocLogger.ResetAll();
             var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
@@ -113,6 +110,20 @@ namespace Plugins.Tests
             var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
             Assert.True(AllocLogger.GetTotalRegs() == 0, "Not all allocations removed");
+        }
+
+        [Fact]
+        public async void TestAllocLoggerHold()
+        {
+            AllocLogger.ResetAll();
+            var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+
+            var csvName = "C:\\Users\\steffend\\Documents\\repos\\autoactive_repos\\examples\\import_catapult\\73220 2 7684 201811071247.csv";
+            var at = new AllocTrack(csvName, "csvName");
+
+            var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+            AllocLogger.PrintRegs();
+            Assert.True(AllocLogger.GetTotalRegs() > 0, "No allocations registered");
         }
     }
 }
