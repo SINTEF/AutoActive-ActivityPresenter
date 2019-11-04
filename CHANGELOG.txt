@@ -1,0 +1,64 @@
+# Changelog
+
+## [0.3.1] - 2019-10-31
+ - Minor bugfixes
+
+
+## [0.3.0] - 2019-10-31
+### Added
+ - Line showing current time to DataTrackline
+ - New synchronization page - select a point in each set
+ - Buttons for accurately stepping when synchronizing data
+ - Seeking to first or last frame of video when playing data outside
+ - Added option to scale lines in a plot independently
+
+### Changed
+ - Improved and simplified method for calculating available time
+ - Fixed timeline plot starting position
+ - Fixed plots showing correct time when added
+
+
+## [0.2.3] - 2019-10-21
+### Added
+ - Time extracted from Catapult .csv files
+ - Added date to time shown in playbar
+
+### Changed
+ - Stability fixes to video synchronization
+ - Gaitup import memory usage
+ - Empty legend no longer shown
+ - Removed duplicate entries in DataTrackline
+ - Fixed crash on import of file with illegal extension
+ - Fixed wrong synchronization direction
+ - Fixed video attempting to play when outside playable area
+
+
+## [0.2.2] - 2019-09-30
+### Changed
+ - Reduced tick font size to improve readability
+
+
+## [0.2.1] - 2019-09-30
+### Changed
+ - Plot performance improvements
+ - Synchronization plot: when at beginning, data is correctly displayed
+
+
+## [0.2.0] - 2019-09-19
+### Added
+ - Data trackline - visualization of data start/end points
+ - Video import, including extracting timestamp from Media Created
+ - Gaitup binary import
+ - Generic csv import
+ - Import parameter page
+ - Smooth auto scaling of y axis to visible data
+ - Multi-file import (select multiple at import)
+ - Support for large video files (Zip64)
+
+### Changed
+ - Improved timestep tick rate - playback should update closely to real time
+ - Improved plot point selection - data should no longer "dance" when playing
+
+
+## [0.1.0]
+ - Initial release

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -8,10 +9,29 @@ namespace SINTEF.AutoActive.UI.Views
 		public RelativeSlider ()
 		{
 			InitializeComponent ();
-		    Slider.OffsetChanged += (s, e) => OffsetChanged?.Invoke(s, e);
-		}
+            Slider.OffsetChanged += SliderOnOffsetChanged;
+        }
 
-	    public double Offset
+        private void SliderOnOffsetChanged(object sender, ValueChangedEventArgs e)
+        {
+            OffsetChanged?.Invoke(sender, e);
+            if (sender != SliderEntry)
+            {
+                XamarinHelpers.EnsureMainThread(() => { SliderEntry.Text = e.NewValue.ToString(CultureInfo.InvariantCulture); });
+            }
+        }
+
+        private void SliderEntryOnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (!double.TryParse(e.NewTextValue, out var offset)) return;
+
+            if (Offset != offset)
+            {
+                Offset = offset;
+            }
+        }
+
+        public double Offset
 	    {
 	        get => Slider.Offset;
 	        set => Slider.Offset = value;

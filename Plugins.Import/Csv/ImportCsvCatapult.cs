@@ -81,8 +81,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 }
                 catch (Exception ex)
                 {
-                    Debug.WriteLine($"Could not parse start time: {ex}");
+                    Debug.WriteLine($"Could not parse start time \"{startTime}\": {ex}");
                 }
+            }
+            else
+            {
+                Debug.WriteLine("Start time not found.");
             }
 
             AddChild(new CatapultTable(Name+"_table", startTime, _readerFactory, Name + _readerFactory.Extension));

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.ComponentModel;
 using System.Threading;
 using Xamarin.Forms;
 
@@ -6,8 +7,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
     public class DeltaSlider : Slider
     {
-        public static readonly BindableProperty OffsetProperty =
-            BindableProperty.Create("Offset", typeof(double), typeof(DeltaSlider), 0.0);
+        public event PropertyChangedEventHandler PropertyChanged;
 
         private bool _manipulating;
         private double _updateRate = 25;
@@ -32,14 +32,17 @@ namespace SINTEF.AutoActive.UI.Views
             (new Thread(UpdateOffset)).Start();
         }
 
+        private double _offset;
         public double Offset
         {
-            get => (double)GetValue(OffsetProperty);
+            get => _offset;
             set
             {
-                var offset = Offset;
-                SetValue(OffsetProperty, value);
-                OffsetChanged?.Invoke(this, new ValueChangedEventArgs(offset, value));
+                if (_offset == value) return;
+                var oldValue = _offset;
+                _offset = value;
+                PropertyChanged?.Invoke(this, new PropertyChangedEventArgs("Offset"));
+                OffsetChanged?.Invoke(this, new ValueChangedEventArgs(oldValue, value));
             }
         }
 

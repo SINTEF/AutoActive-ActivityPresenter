@@ -19,7 +19,7 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Entry Grid.Column="0" BindingContext="{x:Reference Slider}" HorizontalTextAlignment="End" Text="{Binding Offset}" VerticalOptions="Center" HorizontalOptions="FillAndExpand" />
+                    <Entry x:Name="SliderEntry" Grid.Column="0" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="FillAndExpand" TextChanged="SliderEntryOnTextChanged"/>
                     <Label Grid.Column="1" Text="s" HorizontalOptions="Start" VerticalOptions="Center" />
                 </Grid>
             </Grid>

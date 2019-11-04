@@ -15,7 +15,7 @@
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
-                <RowDefinition x:Name="RowTimelineView" Height="0"/>
+                <RowDefinition x:Name="RowTimelineView" Height="100"/>
                 <RowDefinition x:Name="RowPlaybarSettings" Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
@@ -36,7 +36,7 @@
                     Clicked="TimelineExpand_OnClickedExpand_OnClicked"
                     HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
             />
-            <Button x:Name="ButtonUpExpand" Grid.Row="3" Grid.Column="3" Text="^"
+            <Button x:Name="ButtonUpExpand" Grid.Row="3" Grid.Column="3" Text="v"
                     Clicked="ButtonUpExpand_OnClicked"
                     HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
             />

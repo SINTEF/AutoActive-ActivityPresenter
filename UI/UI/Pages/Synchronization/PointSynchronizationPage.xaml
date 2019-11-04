@@ -1,0 +1,63 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
+             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
+             x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage">
+    <ContentPage.Content>
+        <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
+                <ColumnDefinition x:Name="ColumnSplitter2" Width="Auto" />
+                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto" />
+                    <RowDefinition Height="*" />
+                    <RowDefinition Height="Auto" />
+                </Grid.RowDefinitions>
+                <Label Text="Master" Grid.Column="0" Grid.Row="0" HorizontalTextAlignment="Center"/>
+                <Frame Grid.Column="0" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightSalmon">
+                    <StackLayout x:Name="MasterLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
+                </Frame>
+                <StackLayout Grid.Column="0" Grid.Row="2" >
+                    <views:TimeStepper x:Name="MasterTimeStepper" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep"/>
+                    <StackLayout  HorizontalOptions="Center" Orientation="Horizontal">
+                        <Label Text="Sync point:"  VerticalOptions="Center"/>
+                        <Button x:Name="MasterTimeButton" Text="Unset" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="Center"/>
+                    </StackLayout>
+                </StackLayout>
+                <Label Text="Slave" Grid.Column="1" Grid.Row="0" HorizontalTextAlignment="Center" />
+                <Frame Grid.Column="1" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightBlue">
+                    <StackLayout x:Name="SlaveLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
+                </Frame>
+                <StackLayout Grid.Column="1" Grid.Row="2">
+                    <views:TimeStepper x:Name="SlaveTimeStepper" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
+                    <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
+                        <Label Text="Sync point:" VerticalOptions="Center"/>
+                        <Button x:Name="SlaveTimeButton" Text="Unset" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="Center"/>
+                    </StackLayout>
+                </StackLayout>
+            </Grid>
+            <player:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
+
+            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
+            <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
+                <Button Text="Reset" Clicked ="Reset_OnClicked"/>
+                <Button Text="Remove Slave" Clicked ="ResetSlave_OnClicked"/>
+                <Button Text="Sync" Clicked ="Sync_OnClicked"/>
+                <Button Text="Save" Clicked ="Save_OnClicked"/>
+            </StackLayout>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>
+    

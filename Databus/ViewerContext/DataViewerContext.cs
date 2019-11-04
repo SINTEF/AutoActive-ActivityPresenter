@@ -28,8 +28,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         public event DataViewerContextWorldClockChangedHandler SynchronizedToWorldClockChanged;
 
         // --- Available time range ---
-        public long AvailableTimeFrom { get; private set; }
-        public long AvailableTimeTo { get; private set; }
+        public virtual long AvailableTimeFrom { get; protected set; }
+        public virtual long AvailableTimeTo { get; protected set; }
         public event DataViewerContextAvailableTimeRangeChangedHandler AvailableTimeRangeChanged;
         protected bool InternalSetAvailableTimeRange(long from, long to)
         {
@@ -78,7 +78,8 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         private readonly List<SingleSetDataViewerContext> AssociatedContext = new List<SingleSetDataViewerContext>();
 
         // ---- Data _viewers ----
-        private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers = new Dictionary<ITimeViewer, List<IDataViewer>>();
+        private readonly Dictionary<ITimeViewer, List<IDataViewer>> _viewers =
+            new Dictionary<ITimeViewer, List<IDataViewer>>();
 
         private void SetTimeRangeForViewer(ITimeViewer timeviewer, IDataViewer dataviewer, long from, long to)
         {
@@ -90,27 +91,28 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         {
             foreach (var timeDataViewers in _viewers)
             {
-                var timeviewer = timeDataViewers.Key;
-                if (timeviewer.TimePoint != datapoint.Time) continue;
+                var timeViewer = timeDataViewers.Key;
+                if (timeViewer.TimePoint != datapoint.Time) continue;
 
                 // We already have a time viewer for this datapoint, check if we also have a dataviewer
-                foreach (var dataviewer in timeDataViewers.Value)
+                foreach (var dataViewer in timeDataViewers.Value)
                 {
-                    if (dataviewer.DataPoint == datapoint)
-                    {
-                        return dataviewer;
-                    }
+                    if (dataViewer.DataPoint != datapoint) continue;
+                    timeDataViewers.Value.Add(dataViewer);
+                    return dataViewer;
                 }
+
                 // If not, create one
                 var newViewer = await datapoint.CreateViewer();
                 timeDataViewers.Value.Add(newViewer);
-                SetTimeRangeForViewer(timeviewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
+                SetTimeRangeForViewer(timeViewer, newViewer, SelectedTimeFrom, SelectedTimeTo);
+                return newViewer;
             }
 
             // If we don't have a timeviewer, we need to create both
             var newDataViewer = await datapoint.CreateViewer();
             var newTimeViewer = await datapoint.Time.CreateViewer();
-            _viewers.Add(newTimeViewer, new List<IDataViewer> { newDataViewer });
+            _viewers.Add(newTimeViewer, new List<IDataViewer> {newDataViewer});
             newTimeViewer.TimeChanged += OnTimeViewerAvailableChanged;
             OnTimeViewerAvailableChanged(newTimeViewer, newTimeViewer.Start, newTimeViewer.End);
 
@@ -120,15 +122,10 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         protected abstract void OnTimeViewerAvailableChanged(ITimeViewer sender, long start, long end);
 
         // --- Selected time range ---
-        private int _lastViewers = -1;
-
-
         public event DataViewerContextSelectedRangeChangedHandler SelectedTimeRangeChanged;
+
         protected void InternalSetSelectedTimeRange(long from, long to)
         {
-            var nViewers = _viewers.Count;
-            if (SelectedTimeFrom == from && SelectedTimeTo == to && _lastViewers == nViewers) return;
-
             SelectedTimeFrom = from;
             SelectedTimeTo = to;
 
@@ -141,45 +138,25 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             }
 
             SelectedTimeRangeChanged?.Invoke(this, from, to);
-            _lastViewers = nViewers;
         }
 
         // --- Available time range based on current time _viewers ---
-        protected void GetAvailableTimeMinMax(bool useWorldClock, out ITimeViewer minViewer, out long min, out ITimeViewer maxViewer, out long max)
+        protected (long, long) GetAvailableTimeMinMax(bool useWorldClock)
         {
             if (_viewers.Count == 0)
             {
-                minViewer = maxViewer = null;
-                min = max = 0;
-                return;
+                return (0L, 0L);
             }
 
-            // Calculate the min max of current timeviewers
-            minViewer = maxViewer = null;
-            min = long.MaxValue;
-            max = long.MinValue;
-
-            foreach (var timeDataViewers in _viewers)
-            {
-                var timeViewer = timeDataViewers.Key;
-                var start = useWorldClock ? timeViewer.Start : 0;
-                var end = useWorldClock ? timeViewer.End : timeViewer.End - timeViewer.Start;
-                if (start < min)
-                {
-                    min = start;
-                    minViewer = timeViewer;
-                }
-                if (end > max)
-                {
-                    max = end;
-                    maxViewer = timeViewer;
-                }
-            }
+            // If we are using world clock, take the min start and max end. If not, return zero and longest data set.
+            return useWorldClock
+                ? (_viewers.Min(viewer => viewer.Key.Start), _viewers.Max(viewer => viewer.Key.End))
+                : (0L, _viewers.Max(viewer => viewer.Key.End - viewer.Key.Start));
         }
 
         private void UpdateSetAvailableTimeRange()
         {
-            GetAvailableTimeMinMax(IsSynchronizedToWorldClock, out _, out var min, out _, out var max);
+            var (min, max) = GetAvailableTimeMinMax(IsSynchronizedToWorldClock);
             InternalSetAvailableTimeRange(min, max);
         }
 

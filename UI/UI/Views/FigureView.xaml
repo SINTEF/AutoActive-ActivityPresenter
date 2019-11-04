@@ -2,7 +2,8 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
-             x:Class="SINTEF.AutoActive.UI.Views.FigureView">
+             x:Class="SINTEF.AutoActive.UI.Views.FigureView"
+             HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
     <ContentView.Content>
         <Frame x:Name="SelectionFrame" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"
                 Padding="0" BorderColor="Black">
