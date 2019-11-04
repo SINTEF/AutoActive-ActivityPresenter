@@ -1,10 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.AllocCheck;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins.Import.Csv;
 using SINTEF.AutoActive.UI.Helpers;
 using Xunit;
@@ -100,7 +96,7 @@ namespace Plugins.Tests
 
 
         [Fact]
-        public async void TestAllocLoggerFree()
+        public void TestAllocLoggerFree()
         {
             AllocLogger.ResetAll();
             var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
@@ -113,7 +109,7 @@ namespace Plugins.Tests
         }
 
         [Fact]
-        public async void TestAllocLoggerHold()
+        public void TestAllocLoggerHold()
         {
             AllocLogger.ResetAll();
             var startMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;

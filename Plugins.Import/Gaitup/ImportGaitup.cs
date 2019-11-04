@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using GaitupParser;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.AllocCheck;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
@@ -19,6 +20,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
     [ImportPlugin(".bin")]
     public class ImportGaitupPlugin : IBatchImportPlugin
     {
+        private AllocTrack mt;
         private List<GaitupData> _sessionData;
 
         private bool _isFirst;
@@ -26,6 +28,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
         private Barrier _barrier;
         private Mutex _transactionMutex;
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
+
+        public ImportGaitupPlugin()
+        {
+            mt = new AllocTrack(this);
+        }
 
 
         public void StartTransaction(List<IReadSeekStreamFactory> streamFactories)
@@ -99,8 +106,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class GaitupSessionImporter : BaseDataProvider
     {
+        private AllocTrack mt;
         public GaitupSessionImporter(List<GaitupData> sessionData, string name)
         {
+            mt = new AllocTrack(this, name);
             Name = name;
             AddChild(new GaitupTop(sessionData));
         }
@@ -114,11 +123,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class GaitupTop : BaseDataStructure, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         private List<GaitupData> _sessionData = null;
         public GaitupTop(List<GaitupData> sessionData)
         {
             Name = "Gaitup";
+            mt = new AllocTrack(this, Name);
             _sessionData = sessionData;
             IsSaved = false;
 
@@ -149,12 +160,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class GaitupFolder : BaseDataStructure, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         private readonly GaitupData _data;
         public GaitupFolder(GaitupData data)
         {
             _data = data;
             Name = "sensor" + data.Config.Name;
+            mt = new AllocTrack(this, Name);
 
             IsSaved = false;
             if(data.Accelerometer.Count > 0) AddChild(new AccTable(data.Accelerometer, data.Config.Frequency));
@@ -246,6 +259,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class AccTable : ImportTableBase, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         public IReadOnlyList<(long, double, double, double)> _data;
         private long _baseFreq;
@@ -254,6 +268,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             _data = data;
             _baseFreq = baseFreq;
             Name = "accel";
+            mt = new AllocTrack(this, Name);
             IsSaved = false;
 
             var isWorldSynchronized = false;
@@ -323,6 +338,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class GyrTable : ImportTableBase, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         public IReadOnlyList<(long, double, double, double)> _data;
         private long _baseFreq;
@@ -331,6 +347,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             _data = data;
             _baseFreq = baseFreq;
             Name = "gyro";
+            mt = new AllocTrack(this, Name);
             IsSaved = false;
 
             bool isWorldSynchronized = false;
@@ -401,6 +418,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class BaroTable : ImportTableBase, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         public IReadOnlyList<(long, double, double)> _data;
         private long _baseFreq;
@@ -409,6 +427,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             _data = data;
             _baseFreq = baseFreq;
             Name = "baro";
+            mt = new AllocTrack(this, Name);
             IsSaved = false;
 
             bool isWorldSynchronized = false;
@@ -477,6 +496,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class BleTable : ImportTableBase, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         public IReadOnlyList<(long, double)> _data;
         private long _baseFreq;
@@ -485,6 +505,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             _data = data;
             _baseFreq = baseFreq;
             Name = "events";
+            mt = new AllocTrack(this, Name);
             IsSaved = false;
 
             bool isWorldSynchronized = false;
@@ -544,6 +565,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
     public class RadioTable : ImportTableBase, ISaveable
     {
+        private AllocTrack mt;
         public bool IsSaved { get; }
         public IReadOnlyList<(long, long, double)> _data;
         private long _baseFreq;
@@ -552,6 +574,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             _data = data;
             _baseFreq = baseFreq;
             Name = "radio";
+            mt = new AllocTrack(this, Name);
             IsSaved = false;
 
             bool isWorldSynchronized = false;
@@ -581,7 +604,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
             dataDict.Add("time", _time);
             dataDict.Add("data_radio1", _data.Select(el => el.Item2).ToArray());
-            dataDict.Add("data_radio2", _data.Select(el => el.Item2).ToArray());
+            dataDict.Add("data_radio2", _data.Select(el => el.Item3).ToArray());
             return dataDict;
         }
 

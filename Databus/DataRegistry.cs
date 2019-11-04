@@ -1,4 +1,5 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.AllocCheck;
+using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
 
 namespace SINTEF.AutoActive.Databus
@@ -76,6 +77,9 @@ namespace SINTEF.AutoActive.Databus
             InvokeRemoveDataPointsOnAll(dataprovider);
             ProviderRemoved?.Invoke(dataprovider);
             dataprovider.Close();
+
+            var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+            AllocLogger.PrintRegs();
         }
     }
 }
