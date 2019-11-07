@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
@@ -11,6 +12,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected TableTimeIndex Index;
 
         private readonly Task _loader;
+        private Mutex loaderMutex = new Mutex();
 
         public string URI { get; }
         public Type DataType { get; private set; }
@@ -32,44 +34,47 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         }
 
         // FIXME: Thread safety of the loading functions!!
-        private async Task EnsureSelfIsLoaded()
+        private void EnsureSelfIsLoaded()
         {
-            if (!_loader.IsCompleted)
+            lock (loaderMutex)
             {
-                // Make sure the loading is done
-                _loader.Start();
-                await _loader;
-                // Get the actual implementation to check the loaded Data
-                var dataLength = CheckLoaderResultLength();
-                if (Index != null && Index.Data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
-                // Find the min and max values
-                var (min, max) = GetDataMinMax();
-                MinValueHint = min;
-                MaxValueHint = max;
+                if (!_loader.IsCompleted)
+                {
+                    // Make sure the loading is done
+                    _loader.RunSynchronously();
+                    // Get the actual implementation to check the loaded Data
+                    var dataLength = CheckLoaderResultLength();
+                    if (Index != null && Index.Data.Length != dataLength)
+                        throw new Exception($"Column {Name} is not the same length as Index");
+                    // Find the min and max values
+                    var (min, max) = GetDataMinMax();
+                    MinValueHint = min;
+                    MaxValueHint = max;
+                }
             }
         }
 
-        private async Task EnsureIndexAndDataIsLoaded()
+        private void EnsureIndexAndDataIsLoaded()
         {
             if (!_loader.IsCompleted)
             {
                 // Load the index Data
-                await Index.EnsureSelfIsLoaded();
+                Index.EnsureSelfIsLoaded();
                 // Load our own Data
-                await EnsureSelfIsLoaded();
+                EnsureSelfIsLoaded();
             }
         }
 
-        public async Task<IDataViewer> CreateViewer()
+        public Task<IDataViewer> CreateViewer()
         {
             switch (this)
             {
                 case StringColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateStringViewer(Index);
+                    EnsureIndexAndDataIsLoaded();
+                    return Task.FromResult(CreateStringViewer(Index));
                 default:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateGenericViewer(Index);
+                    EnsureIndexAndDataIsLoaded();
+                    return Task.FromResult(CreateGenericViewer(Index));
             }
         }
 
