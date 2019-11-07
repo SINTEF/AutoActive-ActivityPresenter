@@ -1,4 +1,5 @@
 ﻿using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.Databus.AllocCheck;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -171,9 +172,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderCell : DataStructureCell
     {
+        private static int instCount = 0;
+        private AllocTrack mt;
         public DataProviderCell()
         {
             Detail = "DataProvider";
+
+            instCount++;
+            mt = new AllocTrack(this, Detail+"    "+instCount);
 
             var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
             closeAction.Clicked += CloseClicked;
@@ -182,6 +188,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void CloseClicked(object sender, EventArgs e)
         {
+            var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
+            AllocLogger.PrintRegs();
+
             var dataProviderItem = BindingContext as DataProviderItem;
             dataProviderItem?.DataProvider.Unregister();
         }
@@ -189,17 +198,21 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureCell : DataItemCell
     {
+        private AllocTrack mt;
         public DataStructureCell()
         {
             Detail = "DataStructure";
+            mt = new AllocTrack(this, Detail);
         }
     }
 
     internal class DataPointCell : DataItemCell
     {
+        private AllocTrack mt;
         public DataPointCell()
         {
             Detail = "DataPoint";
+            mt = new AllocTrack(this, Detail);
 
             // FIXME: Only for compatible data item types
             var useInTimelineAction = new MenuItem { Text = "Timeline" };
@@ -284,8 +297,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderItem : DataStructureItem
     {
+        private AllocTrack mt;
         internal DataProviderItem(IDataProvider dataProvider, DataRegistryTree tree) : base(dataProvider, tree)
         {
+            mt = new AllocTrack(this, dataProvider.Name);
+
             DataProvider = dataProvider;
             IsShown = true;
         }
@@ -295,8 +311,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureItem : DataItem, IDisposable
     {
+        private AllocTrack mt;
         internal DataStructureItem(IDataStructure dataStructure, DataRegistryTree tree) : base(tree)
         {
+            mt = new AllocTrack(this, dataStructure.Name);
+
             DataStructure = dataStructure;
 
             dataStructure.ChildAdded += ChildAdded;
