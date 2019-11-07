@@ -1,8 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using System;
-using System.Diagnostics;
-using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -12,7 +10,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 	    private const double SplitViewWidthMin = 1000;
 	    private const double OverlayModeWidth = 0.9;
 	    private const double OverlayModeShadeOpacity = 0.5;
-
 	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
         public PlayerPage()
@@ -37,7 +34,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
-            Playbar.DataTrackline.RegisterFigureContainer(PlayerGrid);
+            Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
         }
 
         private void OnDisappearing(object sender, EventArgs e)
@@ -50,12 +47,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
 
-            Playbar.DataTrackline.DeregisterFigureContainer(PlayerGrid);
+            Playbar.DataTrackline.DeregisterFigureContainer(PlayerContainer);
         }
 
-        private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
+        private void TreeView_DataPointTapped(object sender, IDataPoint dataPoint)
         {
-            await PlayerGrid.TogglePlotFor(datapoint, ViewerContext);
+            PlayerContainer.DataPointSelected(dataPoint, ViewerContext);
         }
 
         private void TreeView_UseInTimelineTapped(object sender, IDataPoint datapoint)

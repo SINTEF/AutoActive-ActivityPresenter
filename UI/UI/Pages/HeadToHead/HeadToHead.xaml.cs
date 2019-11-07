@@ -9,7 +9,7 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Interfaces;
-using SINTEF.AutoActive.UI.Pages.Player;
+using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -33,7 +33,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 if (value != null) XamarinHelpers.EnsureMainThread(() => value.Text = SelectedText);
             }
         }
-        private readonly Dictionary<Button, (TimeSynchronizedContext, PlayerGridLayout)> _dictionary = new Dictionary<Button, (TimeSynchronizedContext, PlayerGridLayout)>();
+        private readonly Dictionary<Button, (TimeSynchronizedContext, PlaceableContainer)> _dictionary = new Dictionary<Button, (TimeSynchronizedContext, PlaceableContainer)>();
 
         public HeadToHead()
         {
@@ -75,8 +75,9 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         private async void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
-            var (context, grid) = _dictionary[SelectedButton];
-            await grid.TogglePlotFor(dataPoint, context);
+            var (context, container) = _dictionary[SelectedButton];
+
+            container.SelectItem(dataPoint, context);
         }
 
         private void SelectButton_Clicked(object sender, EventArgs e)

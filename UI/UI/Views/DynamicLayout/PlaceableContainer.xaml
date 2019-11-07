@@ -1,0 +1,18 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
+             mc:Ignorable="d"
+             HorizontalOptions="Fill" VerticalOptions="Fill"
+             x:Class="SINTEF.AutoActive.UI.Views.DynamicLayout.PlaceableContainer">
+    <ContentView.Content>
+        <StackLayout x:Name="MainVerticalStackLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <StackLayout x:Name="MainHorizontalStackLayout" Orientation="Horizontal" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                <dynamicLayout:PlaceableItem
+                    LocationSelected="PlaceableItem_OnLocationSelected"/>
+            </StackLayout>
+        </StackLayout>
+    </ContentView.Content>
+</ContentView>
