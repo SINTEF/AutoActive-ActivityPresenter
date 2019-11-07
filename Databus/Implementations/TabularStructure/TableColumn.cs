@@ -12,10 +12,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         protected TableTimeIndex Index;
 
         private readonly Task _loader;
-        private Mutex loaderMutex = new Mutex();
+        private readonly Mutex _loaderMutex = new Mutex();
 
         public string URI { get; }
-        public Type DataType { get; private set; }
+        public Type DataType { get; }
         public string Name { get; set; }
 
         internal double? MinValueHint { get; private set; }
@@ -36,40 +36,38 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         // FIXME: Thread safety of the loading functions!!
         private void EnsureSelfIsLoaded()
         {
-            lock (loaderMutex)
+            lock (_loaderMutex)
             {
-                if (!_loader.IsCompleted)
-                {
-                    // Make sure the loading is done
-                    _loader.RunSynchronously();
-                    // Get the actual implementation to check the loaded Data
-                    var dataLength = CheckLoaderResultLength();
-                    if (Index != null && Index.Data.Length != dataLength)
-                        throw new Exception($"Column {Name} is not the same length as Index");
-                    // Find the min and max values
-                    var (min, max) = GetDataMinMax();
-                    MinValueHint = min;
-                    MaxValueHint = max;
-                }
+                if (_loader.IsCompleted) return;
+
+                // Make sure the loading is done
+                _loader.RunSynchronously();
+                // Get the actual implementation to check the loaded Data
+                var dataLength = CheckLoaderResultLength();
+                if (Index != null && Index.Data.Length != dataLength)
+                    throw new Exception($"Column {Name} is not the same length as Index");
+                // Find the min and max values
+                var (min, max) = GetDataMinMax();
+                MinValueHint = min;
+                MaxValueHint = max;
             }
         }
 
         private void EnsureIndexAndDataIsLoaded()
         {
-            if (!_loader.IsCompleted)
-            {
-                // Load the index Data
-                Index.EnsureSelfIsLoaded();
-                // Load our own Data
-                EnsureSelfIsLoaded();
-            }
+            if (_loader.IsCompleted) return;
+
+            // Load the index Data
+            Index.EnsureSelfIsLoaded();
+            // Load our own Data
+            EnsureSelfIsLoaded();
         }
 
         public Task<IDataViewer> CreateViewer()
         {
             switch (this)
             {
-                case StringColumn c:
+                case StringColumn _:
                     EnsureIndexAndDataIsLoaded();
                     return Task.FromResult(CreateStringViewer(Index));
                 default:
@@ -110,13 +108,13 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             var end = Index.FindIndex(EndIndex, endTime);
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
-            if (start != StartIndex || end != EndIndex)
-            {
-                StartIndex = start;
-                EndIndex = end;
-                Length = EndIndex - StartIndex + 1;
-                Changed?.Invoke(this);
-            }
+
+            if (start == StartIndex && end == EndIndex) return;
+
+            StartIndex = start;
+            EndIndex = end;
+            Length = EndIndex - StartIndex + 1;
+            Changed?.Invoke(this);
         }
 
         public TableColumn Column { get; private set; }

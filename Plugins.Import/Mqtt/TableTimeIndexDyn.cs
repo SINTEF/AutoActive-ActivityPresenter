@@ -72,8 +72,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public ITimePoint TimePoint => time;
         public long Start => time.data[0];
         public long End => time.data[time.length - 1];
-        // Will never happen, so no point in implementing it
-        //event TimeViewerWasChangedHandler ITimeViewer.TimeChanged { add { } remove { } }
+
         public event TimeViewerWasChangedHandler TimeChanged;
 
         public void UpdatedTimeIndex()

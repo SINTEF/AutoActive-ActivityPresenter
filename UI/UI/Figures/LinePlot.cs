@@ -116,13 +116,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ScaleX(long v, long offset, float scale)
+        public static float ScalePointX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ScaleY(float v, float offset, float scale)
+        public static float ScalePointY(float v, float offset, float scale)
         {
             return (v - offset) * scale;
         }
@@ -339,12 +339,12 @@ namespace SINTEF.AutoActive.UI.Figures
             if (CurrentTimeVisible)
             {
                 // Draw current time axis
-                var zeroX = ScaleX(earliestStartTime, startX, scaleX);
+                var zeroX = ScalePointX(earliestStartTime, startX, scaleX);
                 canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
             // Draw zero-x axis
-            var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
+            var zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             canvas.DrawLine(plotRect.Left, zeroY,  plotRect.Right, zeroY, _zeroLinePaint);
 
             foreach (var lineConfig in _lines)
@@ -425,7 +425,7 @@ namespace SINTEF.AutoActive.UI.Figures
             for (var i = -nTicks; i < nTicks; i++)
             {
                 var val = tickStart + i * tickDelta;
-                var drawVal = ScaleY(val, maxY, scale);
+                var drawVal = ScalePointY(val, maxY, scale);
                 var valueText = (val - yOffset).ToString(valueFormat);
                 if (valueText == "")
                 {

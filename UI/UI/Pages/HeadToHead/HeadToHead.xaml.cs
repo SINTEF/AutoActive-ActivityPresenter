@@ -73,7 +73,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             Playbar.DataTrackline.DeregisterFigureContainer(RightGrid);
         }
 
-        private async void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
+        private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
             var (context, container) = _dictionary[SelectedButton];
 
