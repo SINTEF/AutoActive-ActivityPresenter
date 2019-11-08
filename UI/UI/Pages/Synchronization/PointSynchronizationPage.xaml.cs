@@ -175,8 +175,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _slaveSet = true;
                 _slaveTime = datapoint.Time;
                 _slaveContext = new SynchronizationContext(_masterContext);
+
+                var (masterMin, _) = _masterContext.GetAvailableTimeMinMax(true);
+                var (slaveMin, _) = _slaveContext.GetAvailableTimeMinMax(true);
+
                 var offset =
-                    TimeFormatter.SecondsFromTime(_masterContext.AvailableTimeFrom - _slaveContext.AvailableTimeFrom);
+                    TimeFormatter.SecondsFromTime(masterMin - slaveMin);
                 if (Math.Abs(offset) > OffsetBeforeZeroing)
                     _slaveSlider.Offset = -offset;
                 SlaveLayout.Children.Add(_slaveSlider);
