@@ -203,7 +203,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public bool AutoScale = true;
         private bool _autoScaleIndependent;
-
+        private bool _scalingFrozen;
+        private (float? minYValue, float? maxYValue) _prevYValue;
         private const int SmoothScalingQueueSize = 30;
         private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
 
@@ -215,7 +216,7 @@ namespace SINTEF.AutoActive.UI.Figures
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             var plotRect = new SKRect(AxisValuesVisible ? TickBoxMargin : 0, 0, info.Width, info.Height);
-           
+
             canvas.DrawRect(plotRect, FramePaint);
 
             //TODO: choose first x and last x instead?
@@ -240,15 +241,62 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.ClipRect(plotRect);
 
             // TODO: fix this for SynchronizationContext by floating the line to the right
-            if (startX < _context.AvailableTimeFrom && ! (_context is SynchronizationContext))
+            if (startX < _context.AvailableTimeFrom && !(_context is SynchronizationContext))
             {
                 startX = _context.AvailableTimeFrom;
             }
 
             var scaleX = plotRect.Width / xDiff;
 
-            var minYValue = _minYValue;
-            var maxYValue = _maxYValue;
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
+
+            foreach (var line in _lines)
+            {
+                line.OffsetX = startX;
+                line.ScaleX = scaleX;
+            }
+
+            if (CurrentTimeVisible)
+            {
+                // Draw current time axis
+                var zeroX = ScaleX(earliestStartTime, startX, scaleX);
+                canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
+            }
+
+            // Draw zero-x axis
+            var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint);
+
+            foreach (var lineConfig in _lines)
+            {
+                DrawLine(canvas, plotRect, lineConfig);
+            }
+
+            DrawLegends(canvas, plotRect, _lines);
+
+            if (!AxisValuesVisible || !minYValue.HasValue || !maxYValue.HasValue)
+                return;
+
+            _prevYValue = (minYValue, maxYValue);
+
+            var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
+            canvas.Restore();
+            canvas.ClipRect(axisValueRect);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
+        }
+
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
+        {
+
+            if (_scalingFrozen)
+            {
+                minYValue = _prevYValue.minYValue;
+                maxYValue = _prevYValue.maxYValue;
+                return;
+            }
+
+            minYValue = _minYValue;
+            maxYValue = _maxYValue;
 
             if (AutoScale)
             {
@@ -329,40 +377,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = maxYValue.Value;
                 }
             }
-
-            foreach (var line in _lines)
-            {
-                line.OffsetX = startX;
-                line.ScaleX = scaleX;
-            }
-
-            if (CurrentTimeVisible)
-            {
-                // Draw current time axis
-                var zeroX = ScaleX(earliestStartTime, startX, scaleX);
-                canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
-            }
-
-            // Draw zero-x axis
-            var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
-            canvas.DrawLine(plotRect.Left, zeroY,  plotRect.Right, zeroY, _zeroLinePaint);
-
-            foreach (var lineConfig in _lines)
-            {
-                DrawLine(canvas, plotRect, lineConfig);
-            }
-
-            DrawLegends(canvas, plotRect, _lines);
-
-            if (!AxisValuesVisible || !minYValue.HasValue || !maxYValue.HasValue)
-                return;
-                
-            var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
-            canvas.Restore();
-            canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
         }
-
 
         private static float SmartRound(float num, float diff)
         {
@@ -512,12 +527,16 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string RemoveLineText = "Remove Line";
         protected const string AutoScaleIndependentText = "AutoScale Independent";
         protected const string AutoScaleCommonText = "AutoScale Common";
+        protected const string FreezeScalingText = "Freeze scaling";
+        protected const string UnfreezeScalingText = "Unfreeze scaling";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
-            parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
+            if (_lines.Count > 1) parameters.Add(RemoveLineText);
 
-            if(_lines.Count > 1) parameters.Add(RemoveLineText);
+            parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
+            parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
+
             return true;
         }
 
@@ -532,6 +551,12 @@ namespace SINTEF.AutoActive.UI.Figures
                 case AutoScaleIndependentText:
                     _autoScaleIndependent = true;
                     InvalidateSurface();
+                    return;
+                case FreezeScalingText:
+                    _scalingFrozen = true;
+                    return;
+                case UnfreezeScalingText:
+                    _scalingFrozen = false;
                     return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
