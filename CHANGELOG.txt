@@ -1,6 +1,18 @@
 # Changelog
 
+## [0.4.0] - ?
+### Added
+ - Plots can now be located as desired
+ - Added option to freeze scaling in plots
+
+### Changed
+ - Fixed default Offset in synchronization view
+ - Fixed race condition caused by await with synchronous loading
+ - Current time set to be inside available time when datasets are added
+
+
 ## [0.3.1] - 2019-10-31
+### Changes
  - Minor bugfixes
 
 
