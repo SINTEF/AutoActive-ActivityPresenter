@@ -1,11 +1,6 @@
-﻿using SINTEF.AutoActive.UI.Pages.Player;
+﻿using System.Diagnostics;
+using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.UWP.Views;
-using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Windows.UI;
 using Windows.UI.Core;
 using Windows.UI.Input;
@@ -26,31 +21,36 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         {
             base.OnElementChanged(e);
 
-            if (Control == null)
+            if (Control != null) return;
+
+            Debug.WriteLine($"{e.OldElement} -> {e.NewElement}");
+
+            element = new Rectangle
             {
-                element = new Rectangle();
-                element.Fill = new SolidColorBrush(Colors.White);
-                element.PointerPressed += PointerPressed;
-                element.PointerReleased += PointerReleased;
-                element.PointerEntered += PointerEntered;
-                element.PointerExited += PointerExited;
-                SetNativeControl(element);
-            }
+                Fill = new SolidColorBrush(Colors.Yellow),
+                Width =  2
+            };
+
+            element.PointerPressed += PointerPressed;
+            element.PointerReleased += PointerReleased;
+            element.PointerEntered += PointerEntered;
+            element.PointerExited += PointerExited;
+            SetNativeControl(element);
         }
 
         // Set cursor so that we see its draggable
-        static readonly CoreCursor draggableCursor = new CoreCursor(CoreCursorType.SizeWestEast, 0);
-        CoreCursor previousCursor;
+        private static readonly CoreCursor DraggableCursor = new CoreCursor(CoreCursorType.SizeWestEast, 0);
+        CoreCursor _previousCursor;
 
         private new void PointerEntered(object sender, PointerRoutedEventArgs e)
         {
-            previousCursor = Window.Current.CoreWindow.PointerCursor;
-            Window.Current.CoreWindow.PointerCursor = draggableCursor;
+            _previousCursor = Window.Current.CoreWindow.PointerCursor;
+            Window.Current.CoreWindow.PointerCursor = DraggableCursor;
         }
 
         private new void PointerExited(object sender, PointerRoutedEventArgs e)
         {
-            Window.Current.CoreWindow.PointerCursor = previousCursor;
+            Window.Current.CoreWindow.PointerCursor = _previousCursor;
         }
 
         // Track pointer movement throughout the window
@@ -59,33 +59,30 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
         private new void PointerPressed(object sender, PointerRoutedEventArgs e)
         {
-            if (capturedPointer == null && element.CapturePointer(e.Pointer))
-            {
-                capturedPointer = e.Pointer.PointerId;
-                startLocation = e.GetCurrentPoint(null);
-                element.PointerMoved += PointerMoved;
-                Element?.InvokeDragStart();
-            }
+            if (capturedPointer != null || !element.CapturePointer(e.Pointer)) return;
+
+            capturedPointer = e.Pointer.PointerId;
+            startLocation = e.GetCurrentPoint(null);
+            element.PointerMoved += PointerMoved;
+            Element?.InvokeDragStart();
         }
 
         private new void PointerReleased(object sender, PointerRoutedEventArgs e)
         {
-            if (e.Pointer.PointerId == capturedPointer)
-            {
-                capturedPointer = null;
-                startLocation = null;
-                element.ReleasePointerCapture(e.Pointer);
-                element.PointerMoved -= PointerMoved;
-            }
+            if (e.Pointer.PointerId != capturedPointer) return;
+
+            capturedPointer = null;
+            startLocation = null;
+            element.ReleasePointerCapture(e.Pointer);
+            element.PointerMoved -= PointerMoved;
         }
 
         private new void PointerMoved(object sender, PointerRoutedEventArgs e)
         {
-            if (e.Pointer.PointerId == capturedPointer)
-            {
-                var location = e.GetCurrentPoint(null);
-                Element?.InvokeDragged(location.Position.X - startLocation.Position.X, location.Position.Y - startLocation.Position.Y);
-            }
+            if (e.Pointer.PointerId != capturedPointer) return;
+
+            var location = e.GetCurrentPoint(null);
+            Element?.InvokeDragged(location.Position.X - startLocation.Position.X, location.Position.Y - startLocation.Position.Y);
         }
     }
 }

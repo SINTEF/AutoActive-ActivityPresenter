@@ -191,12 +191,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         GridLength _treeViewWidth = PlayerTreeView.DefaultWidth;
         GridLength _splitterStartDragWidth;
 
-        private void Splitter_DragStart()
+        private void Splitter_DragStart(PlayerSplitterView sender)
         {
             _splitterStartDragWidth = ColumnTree.Width;
         }
 
-        private void Splitter_Dragged(double x, double y)
+        private void Splitter_Dragged(PlayerSplitterView sender, double x, double y)
         {
             var newWidth = _splitterStartDragWidth.Value - x;
             if (newWidth >= 0 && newWidth + ColumnSplitter.Width.Value <= Width)
