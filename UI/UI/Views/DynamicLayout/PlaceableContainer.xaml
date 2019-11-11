@@ -8,11 +8,11 @@
              HorizontalOptions="Fill" VerticalOptions="Fill"
              x:Class="SINTEF.AutoActive.UI.Views.DynamicLayout.PlaceableContainer">
     <ContentView.Content>
-        <StackLayout x:Name="MainVerticalStackLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
-            <StackLayout x:Name="MainHorizontalStackLayout" Orientation="Horizontal" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+        <dynamicLayout:ResizableStackLayout x:Name="MainVerticalStackLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <dynamicLayout:ResizableStackLayout x:Name="MainHorizontalStackLayout" Orientation="Horizontal" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
                 <dynamicLayout:PlaceableItem
                     LocationSelected="PlaceableItem_OnLocationSelected"/>
-            </StackLayout>
-        </StackLayout>
+            </dynamicLayout:ResizableStackLayout>
+        </dynamicLayout:ResizableStackLayout>
     </ContentView.Content>
 </ContentView>

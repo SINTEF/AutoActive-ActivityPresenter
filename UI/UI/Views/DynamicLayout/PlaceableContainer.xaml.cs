@@ -162,7 +162,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             var placeableParent = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(container.Parent);
             placeableParent?.RemoveItem(container);
-            var layout = (StackLayout)container.Parent;
+            var layout = (ResizableStackLayout)container.Parent;
 
             {
                 var index = layout.Children.IndexOf(container);
@@ -205,7 +205,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             }
 
             // Hack to remove empty StackLayouts
-            if (!layout.Children.Any() && layout.Parent is StackLayout stackParent)
+            if (!layout.Children.Any() && layout.Parent is ResizableStackLayout stackParent)
             {
                 if (layout != MainHorizontalStackLayout && layout != MainVerticalStackLayout)
                 {

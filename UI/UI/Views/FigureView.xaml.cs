@@ -92,14 +92,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void FigureView_SizeChanged(object sender, EventArgs e)
         {
-            Debug.WriteLine("FigureView::FigureView_SizeChanged ");
             Canvas.InvalidateSurface();
         }
 
-        public void Viewer_Tapped(object sender, EventArgs e)
-        {
-            Debug.WriteLine("FigureView::Viewer_tapped");
-        }
 
         public void Viewer_Panned(object sender, PanUpdatedEventArgs e)
         {

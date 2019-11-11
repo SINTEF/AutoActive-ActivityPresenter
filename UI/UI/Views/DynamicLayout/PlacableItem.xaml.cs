@@ -147,7 +147,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return;
             }
 
-            var newLayout = new StackLayout
+            var newLayout = new ResizableStackLayout
             {
                 Orientation = StackOrientation.Horizontal,
                 HorizontalOptions = LayoutOptions.FillAndExpand,
