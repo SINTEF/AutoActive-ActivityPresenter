@@ -268,7 +268,7 @@ namespace SINTEF.AutoActive.UI.Figures
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
             {
-                var scaleY = YScaleFromDiff(maxYValue.Value, minYValue.Value, info.Height);
+                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height);
                  zeroY = ScalePointY(0, maxYValue.Value, scaleY);
             } else
             {
@@ -370,7 +370,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
                         var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
 
-                        var scaleY = YScaleFromDiff(curMax, curMin, info.Height);
+                        var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
                         line.OffsetY = curMax - PlotHeightMargin / scaleY;
                         line.ScaleY = scaleY;
                     }
@@ -389,7 +389,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
-            return -(height - PlotHeightMargin * 2) / (yMax - yMin);
+            return (height - PlotHeightMargin * 2) / (yMax - yMin);
         }
 
         private static float SmartRound(float num, float diff)
