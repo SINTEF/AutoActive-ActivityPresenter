@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
@@ -74,6 +75,15 @@ namespace SINTEF.AutoActive.UI
             }
 
             return list;
+        }
+
+        public static async Task ShowErrorMessage(string title, string message, Page page = null)
+        {
+            if (page == null)
+            {
+                page = Application.Current.MainPage;
+            }
+            await page.DisplayAlert(title, message, "OK");
         }
     }
 }

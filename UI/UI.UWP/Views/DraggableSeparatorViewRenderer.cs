@@ -1,4 +1,5 @@
-﻿using SINTEF.AutoActive.UI.UWP.Views;
+﻿using System;
+using SINTEF.AutoActive.UI.UWP.Views;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using Windows.UI;
 using Windows.UI.Core;
@@ -23,9 +24,18 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             base.OnElementChanged(e);
 
             if (e.OldElement != null)
+            {
                 e.OldElement.OrientationChanged -= OrientationChanged;
+                e.OldElement.ViewRemoved -= NewElementOnViewRemoved;
+
+            }
+
             if (e.NewElement != null)
+            {
                 e.NewElement.OrientationChanged += OrientationChanged;
+                e.NewElement.ViewRemoved += NewElementOnViewRemoved;
+            }
+
             Orientation = e.NewElement?.Orientation ?? StackOrientation.Vertical;
 
             if (Control != null) return;
@@ -44,6 +54,17 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             _element.PointerExited += PointerExited;
 
             SetNativeControl(_element);
+        }
+
+        private void NewElementOnViewRemoved(object sender, EventArgs e)
+        {
+            _element.PointerPressed -= PointerPressed;
+            _element.PointerReleased -= PointerReleased;
+            _element.PointerEntered -= PointerEntered;
+            _element.PointerExited -= PointerExited;
+
+            if (_previousCursor != null)
+                Window.Current.CoreWindow.PointerCursor = _previousCursor;
         }
 
         private void OrientationChanged(object sender, StackOrientation orientation)

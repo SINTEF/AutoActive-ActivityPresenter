@@ -85,8 +85,14 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             _selectedItem = null;
             _selectedContext = null;
-
-            await PlaceItem(placeableSender, item, context, e);
+            try
+            {
+                await PlaceItem(placeableSender, item, context, e);
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowErrorMessage("Error", $"Could not add figure: {ex.Message}", XamarinHelpers.GetCurrentPage(Navigation));
+            }
         }
 
         private async Task<FigureView> CreateFigureView(IDataPoint item, TimeSynchronizedContext context)
@@ -95,23 +101,26 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             return await FigureView.GetView(item, context);
         }
 
-        private async Task<PlaceableItem> PlaceItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context, PlaceableLocation e)
+        private async Task PlaceItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
+            PlaceableLocation e)
         {
             if (e != PlaceableLocation.Center)
             {
-                return await AddItem(placeableSender, item, context, e);
+                await AddItem(placeableSender, item, context, e);
+                return;
             }
 
             if (placeableSender.Item != null)
             {
-                return await ToggleDataPoint(placeableSender, item, context);
+                await ToggleDataPoint(placeableSender, item, context);
+                return;
             }
 
             placeableSender.SetItem(await CreateFigureView(item, context));
-            return placeableSender;
         }
 
-        private async Task<PlaceableItem> AddItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context, PlaceableLocation e)
+        private async Task AddItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
+            PlaceableLocation e)
         {
             var visualizer = await CreateFigureView(item, context);
             var placeableItem = new PlaceableItem();
@@ -121,30 +130,15 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             placeableItem.HorizontalOptions = LayoutOptions.FillAndExpand;
             placeableItem.VerticalOptions = LayoutOptions.FillAndExpand;
             placeableSender.PlaceRelative(placeableItem, e);
-            return placeableItem;
         }
 
-        private async Task<PlaceableItem> ToggleDataPoint(PlaceableItem container, IDataPoint item, TimeSynchronizedContext context)
+        private async Task ToggleDataPoint(PlaceableItem container, IDataPoint item, TimeSynchronizedContext context)
         {
-            var res = await container.Item.ToggleDataPoint(item, context);
-            switch (res)
-            {
-                case ToggleResult.Added:
-                    DatapointAdded?.Invoke(this, (item, context));
-                    break;
-                case ToggleResult.Removed:
-                    DatapointRemoved?.Invoke(this, (item, context));
-                    break;
-                case ToggleResult.Cancelled:
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
+            await container.Item.ToggleDataPoint(item, context);
+            
+            if (container.Item != null && container.Item.DataPoints.Any()) return;
 
-            if (container.Item != null && container.Item.DataPoints.Any())
-                return container;
-
-            return RemoveItem(container, context);
+            RemoveItem(container, context);
         }
 
         private PlaceableItem RemoveItem(PlaceableItem container, TimeSynchronizedContext context)
@@ -161,9 +155,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             _placeableItems.Remove(container);
 
             var placeableParent = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(container.Parent);
+            if (!(container.Parent is ResizableStackLayout layout))
+            {
+                return placeableParent;
+            }
             placeableParent?.RemoveItem(container);
-            var layout = (ResizableStackLayout)container.Parent;
-
+            
             {
                 var index = layout.Children.IndexOf(container);
                 layout.Children.RemoveAt(index);
@@ -190,9 +187,19 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                                 MainHorizontalStackLayout.Children.Insert(index, childItem);
                                 break;
                             case PlaceableLocation.Up:
+                                if (!MainHorizontalStackLayout.Children.Any())
+                                {
+                                    MainHorizontalStackLayout.Children.Add(childItem);
+                                    break;
+                                }
                                 MainVerticalStackLayout.Children.Insert(verticalIndex++, childItem);
                                 break;
                             case PlaceableLocation.Down:
+                                if (!MainHorizontalStackLayout.Children.Any())
+                                {
+                                    MainHorizontalStackLayout.Children.Add(childItem);
+                                    break;
+                                }
                                 MainVerticalStackLayout.Children.Insert(verticalIndex + 1, childItem);
                                 break;
                             case PlaceableLocation.Center:
@@ -238,6 +245,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
             DatapointRemoved?.Invoke(this, (dataPoint, context));
+        }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            DatapointAdded?.Invoke(this, (dataPoint, context));
         }
 
         public void DeserializeView(JObject root)

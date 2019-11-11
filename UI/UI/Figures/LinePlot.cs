@@ -57,8 +57,13 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             AddLine(line);
+
             DataPoints.Add(datapoint);
+
+            var container = XamarinHelpers.GetFigureContainerFromParents(Parent);
+            container?.InvokeDatapointAdded(datapoint, _context);
         }
+
         private void AddLine(ILineDrawer lineDrawer)
         {
             lineDrawer.Parent = this;
@@ -263,7 +268,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
-            // TODO(sigurdal) this scales weridly if frozen 
+            // TODO(sigurdal) this scales weirdly if frozen 
             // Draw zero-x axis
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
@@ -337,7 +342,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         curMax -= yDelta / 2;
                     }
 
-                    var scaleY = YScaleFromDiff(curMax, curMin, info.Height);
+                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
                     curMax -= PlotHeightMargin / scaleY;
                     foreach (var line in _lines)
                     {
@@ -389,7 +394,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
-            return (height - PlotHeightMargin * 2) / (yMax - yMin);
+            return -(height - PlotHeightMargin * 2) / (yMax - yMin);
         }
 
         private static float SmartRound(float num, float diff)

@@ -11,6 +11,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         public event DraggableSeparatorDragStartHandler DragStart;
         public event DraggableSeparatorDraggedHandler DragStop;
         public event DraggableSeparatorDraggedHandler Dragged;
+        public event EventHandler ViewRemoved;
 
         public StackOrientation Orientation
         {
@@ -39,6 +40,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         public void InvokeDragStop(double x, double y, double dx, double dy)
         {
             DragStop?.Invoke(this, x, y, dx, dy);
+        }
+
+        public void InvokeRemoved()
+        {
+            ViewRemoved?.Invoke(this, new EventArgs());
         }
     }
 }

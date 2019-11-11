@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using Xamarin.Forms;
 
@@ -84,11 +85,27 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             if (!Children.Any(child => child.IsVisible)) return;
 
-            if (_childAdded)
+            try
             {
-                InsertMissingSeparators();
-                _childAdded = false;
+                if (_childAdded)
+                {
+                    InsertMissingSeparators();
+                    _childAdded = false;
+                }
             }
+            catch (InvalidOperationException)
+            { }
+
+            try
+            {
+                if (_childRemoved)
+                {
+                    RemoveAdditionalSeparators();
+                    _childRemoved = false;
+                }
+            }
+            catch (InvalidOperationException)
+            { }
 
             var totalWeight = Children.Where(child => child.IsVisible && !(child is DraggableSeparator)).Sum(child => GetSizeWeight(child));
 
@@ -175,25 +192,39 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         private void RemoveAdditionalSeparators()
         {
-            while (Children.Last() is DraggableSeparator view) Children.Remove(view);
-            while (Children[0] is DraggableSeparator) Children.RemoveAt(0);
-
-
             var extraSeparators = new List<int>();
-            for (var i = 1; i < Children.Count - 1; i++)
+            var i = 0;
+            for (; i < Children.Count; i++)
             {
-                if (Children[i] is DraggableSeparator) continue;
-
-                if (Children[i+1] is DraggableSeparator)
+                if (Children[i] is DraggableSeparator) extraSeparators.Add(i);
+                else break;
+            }
+        
+            for (; i < Children.Count - 1; i++)
+            {
+                if (Children[i] is DraggableSeparator && Children[i + 1] is DraggableSeparator)
                 {
                     extraSeparators.Add(i);
+                }
+            }
+
+            if (Children.Last() is DraggableSeparator)
+            {
+                if (!extraSeparators.Any() || extraSeparators.Last() != Children.Count - 1)
+                {
+                    extraSeparators.Add(Children.Count - 1);
                 }
             }
 
             IEnumerable<int> en = extraSeparators;
             foreach (var index in en.Reverse())
             {
+                var el = Children[index];
                 Children.RemoveAt(index);
+                if (el is DraggableSeparator separator)
+                {
+                    separator.InvokeRemoved();
+                }
             }
             
         }
@@ -220,6 +251,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var diff = Math.Sign(newPos);
 
             var index = layout.Children.IndexOf(sender);
+            if (index <= 0 || index + 1 >= layout.Children.Count )
+            {
+                Debug.WriteLine("ResizableStackLayout: Illegal index - should never be here.");
+                return;
+            }
             var leftChild = layout.Children[index - 1];
             var rightChild = layout.Children[index + 1];
 

@@ -96,6 +96,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             DatapointRemoved?.Invoke(this, (dataPoint, context));
         }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            DatapointAdded?.Invoke(this, (dataPoint, context));
+        }
+
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
             if (!_masterSet)
@@ -119,20 +125,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             if (Selected != null)
             {
-                var result = await Selected.ToggleDataPoint(datapoint, context);
-                switch (result)
-                {
-                    case ToggleResult.Added:
-                        DatapointAdded?.Invoke(sender, (datapoint, context));
-                        break;
-                    case ToggleResult.Removed:
-                        DatapointRemoved?.Invoke(sender, (datapoint, context)); ;
-                        break;
-                    case ToggleResult.Cancelled:
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
+                await Selected.ToggleDataPoint(datapoint, context);
                 return;
             }
 

@@ -14,5 +14,6 @@ namespace SINTEF.AutoActive.UI.Interfaces
         event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
         event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
         void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context);
+        void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context);
     }
 }
