@@ -1,0 +1,22 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
+             xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
+             mc:Ignorable="d"
+             x:Class="UI.UWP.TestingApp.MainPage">
+
+    <dynamicLayout:ResizableStackLayout x:Name="ResizableStackLayout"  Orientation="Horizontal">
+        <!-- Place new controls here -->
+        <Label Text="A" BackgroundColor="Red" Padding="10"
+           HorizontalOptions="Center"
+           VerticalOptions="Center" />
+        <player:PlayerSplitterView x:Name="Splitter" dynamicLayout:ResizableStackLayout.SizeWeight="0.2" DragStart="Splitter_DragStart" Dragged="Splitter_Dragged"/>
+        <Label Text="B" BackgroundColor="Blue"  Padding="10"
+               HorizontalOptions="Center"
+               VerticalOptions="Center" />
+    </dynamicLayout:ResizableStackLayout>
+
+</ContentPage>

@@ -37,6 +37,12 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GaitupParser", "GaitupParse
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Plugins.Tests", "Plugins.Tests\Plugins.Tests.csproj", "{C423FFB0-B7B0-4632-A677-0B4D5591B202}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.UWP.TestingApp.UWP", "UI.UWP.TestingApp\UI.UWP.TestingApp.UWP\UI.UWP.TestingApp.UWP.csproj", "{BD3023BC-0517-4011-A325-2DFE526E6C16}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.UWP.TestingApp.Android", "UI.UWP.TestingApp\UI.UWP.TestingApp.Android\UI.UWP.TestingApp.Android.csproj", "{767A9F81-4AC8-4F3D-B1C1-E56CBB3AB88B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UI.UWP.TestingApp", "UI.UWP.TestingApp\UI.UWP.TestingApp\UI.UWP.TestingApp.csproj", "{DA707EB3-D12E-4BA6-BD4C-F142FBEB8953}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Ad-Hoc|Any CPU = Ad-Hoc|Any CPU
