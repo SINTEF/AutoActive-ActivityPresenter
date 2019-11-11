@@ -160,6 +160,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             DatapointRemoved?.Invoke(this, (dataPoint, context));
         }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            DatapointAdded?.Invoke(this, (dataPoint, context));
+        }
+
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
             if (!_masterSet)
@@ -172,17 +178,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             if (!isMaster && !_slaveSet)
             {
-                _slaveSet = true;
                 _slaveTime = datapoint.Time;
                 _slaveContext = new SynchronizationContext(_masterContext);
-
-                var (masterMin, _) = _masterContext.GetAvailableTimeMinMax(true);
-                var (slaveMin, _) = _slaveContext.GetAvailableTimeMinMax(true);
-
-                var offset =
-                    TimeFormatter.SecondsFromTime(masterMin - slaveMin);
-                if (Math.Abs(offset) > OffsetBeforeZeroing)
-                    _slaveSlider.Offset = -offset;
                 SlaveLayout.Children.Add(_slaveSlider);
             }
 
@@ -213,6 +210,22 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var figure = await FigureView.GetView(datapoint, context);
             layout.Children.Add(figure);
             DatapointAdded?.Invoke(sender, (datapoint, context));
+
+            if (_slaveSet || isMaster) return;
+            _slaveSet = true;
+
+            SetCommonStartTime(false);
+        }
+
+        private void SetCommonStartTime(bool force)
+        {
+            var (masterMin, _) = _masterContext.GetAvailableTimeMinMax(true);
+            var (slaveMin, _) = _slaveContext.GetAvailableTimeMinMax(true);
+
+            var offset =
+                TimeFormatter.SecondsFromTime(masterMin - slaveMin);
+            if (force || Math.Abs(offset) > OffsetBeforeZeroing)
+                _slaveSlider.Offset = -offset;
         }
 
         public void RemoveChild(FigureView figureView)
@@ -302,6 +315,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void ResetSlave_OnClicked(object sender, EventArgs e)
         {
             ResetSlave();
+        }
+
+        private void SetCommonStart_OnClicked(object sender, EventArgs e)
+        {
+            SetCommonStartTime(true);
         }
     }
 }
