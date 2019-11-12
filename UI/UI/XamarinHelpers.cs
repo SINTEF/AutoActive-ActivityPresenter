@@ -77,7 +77,7 @@ namespace SINTEF.AutoActive.UI
             return list;
         }
 
-        public static async Task ShowErrorMessage(string title, string message, Page page = null)
+        public static async Task ShowOkMessage(string title, string message, Page page = null)
         {
             if (page == null)
             {
