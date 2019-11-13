@@ -67,7 +67,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return Create(archive, name, basedOn);
         }
 
-        public new static ArchiveSession Create(Archive archive, string name)
+        public static ArchiveSession Create(Archive archive, string name)
         {
             return Create(archive, name, new List<BasedOnInfo>());
         }

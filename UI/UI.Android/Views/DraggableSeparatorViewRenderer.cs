@@ -12,26 +12,27 @@ using Android.Views;
 using Android.Widget;
 using SINTEF.AutoActive.UI.Droid.Views;
 using SINTEF.AutoActive.UI.Pages.Player;
+using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using Xamarin.Forms;
 using Xamarin.Forms.Platform.Android;
 
 using View = Android.Views.View;
 using Color = Android.Graphics.Color;
 
-[assembly: ExportRenderer(typeof(PlayerSplitterView), typeof(PlayerSplitterViewRenderer))]
+[assembly: ExportRenderer(typeof(DraggableSeparator), typeof(DraggableSeparatorViewRenderer))]
 namespace SINTEF.AutoActive.UI.Droid.Views
 {
-    public class PlayerSplitterViewRenderer : ViewRenderer<PlayerSplitterView, View>
+    public class DraggableSeparatorViewRenderer : ViewRenderer<DraggableSeparator, View>
     {
         readonly Context context;
         View element;
 
-        public PlayerSplitterViewRenderer(Context context) : base(context)
+        public DraggableSeparatorViewRenderer(Context context) : base(context)
         {
             this.context = context;
         }
 
-        protected override void OnElementChanged(ElementChangedEventArgs<PlayerSplitterView> e)
+        protected override void OnElementChanged(ElementChangedEventArgs<DraggableSeparator> e)
         {
             base.OnElementChanged(e);
             if (Control == null)
@@ -57,7 +58,7 @@ namespace SINTEF.AutoActive.UI.Droid.Views
                 capturedPointerId = e.Event.GetPointerId(0);
                 dragStartRawX = e.Event.RawX;
                 dragStartRawY = e.Event.RawY;
-                Element?.InvokeDragStart();
+                Element?.InvokeDragStart(dragStartRawX, dragStartRawY);
             }
             else if (capturedPointerId != null && (e.Event.Action == MotionEventActions.Move || e.Event.Action == MotionEventActions.Up))
             {
@@ -70,7 +71,7 @@ namespace SINTEF.AutoActive.UI.Droid.Views
                         var movedRawY = e.Event.RawY - dragStartRawY;
                         var scale = Resources.DisplayMetrics.Density;
 
-                        Element?.InvokeDragged(movedRawX / scale, movedRawY / scale);
+                        Element?.InvokeDragged(dragStartRawX, dragStartRawY, movedRawX / scale, movedRawY / scale);
                     }
                     else
                     {

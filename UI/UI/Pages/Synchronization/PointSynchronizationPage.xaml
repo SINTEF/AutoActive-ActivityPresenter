@@ -54,7 +54,8 @@
             <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
                 <Button Text="Reset" Clicked ="Reset_OnClicked"/>
                 <Button Text="Remove Slave" Clicked ="ResetSlave_OnClicked"/>
-                <Button Text="Sync" Clicked ="Sync_OnClicked"/>
+                <Button Text="Common Start" Clicked ="SetCommonStart_OnClicked"/>
+                <Button Text="Point Sync" Clicked ="Sync_OnClicked"/>
                 <Button Text="Save" Clicked ="Save_OnClicked"/>
             </StackLayout>
         </Grid>

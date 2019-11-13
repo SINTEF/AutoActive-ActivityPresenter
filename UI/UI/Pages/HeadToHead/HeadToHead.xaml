@@ -3,7 +3,7 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
-             xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
+             xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.HeadToHead.HeadToHead">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -19,7 +19,7 @@
             </Grid.RowDefinitions>
             <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red" MinimumHeightRequest="200">
                 <RelativeLayout>
-                    <player:PlayerGridLayout x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                    <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
                                              "{ConstraintExpression Type=RelativeToParent,
                                 Property=Width,
@@ -27,9 +27,7 @@
                                              RelativeLayout.HeightConstraint=
                                              "{ConstraintExpression Type=RelativeToParent,
                                 Property=Height,
-                                Factor=1}"
-                                             BigGridColumns="1"
-                                             GridColumns="2"/>
+                                Factor=1}"/>
                     <Button x:Name="LeftButton"
                             Text="[ ]" WidthRequest="40" HeightRequest="40"
                             BackgroundColor="LightSlateGray"
@@ -39,14 +37,11 @@
             </Frame>
             <Frame Grid.Column="1" Grid.Row="0" BorderColor="Blue">
                 <RelativeLayout VerticalOptions="StartAndExpand">
-                    <player:PlayerGridLayout x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                    <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
                                              "{ConstraintExpression Type=RelativeToParent, Property=Width, Factor=1}"
                                              RelativeLayout.HeightConstraint=
-                                             "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}"
-                                             BigGridColumns="1"
-                                             GridColumns="2"
-                                             />
+                                             "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}" />
                     <Button x:Name="RightButton"
                             Text="[ ]" WidthRequest="40" HeightRequest="40"
                             BackgroundColor="LightSlateGray"

@@ -55,7 +55,7 @@ namespace GaitupParser
                 {
                     _master = dataSets.Single(el => el.Config.Radio.Mode == 0);
                 }
-                catch (InvalidOperationException ex)
+                catch (InvalidOperationException)
                 {
                     throw new InvalidOperationException("Cannot find any master with mode = 0");
                 }

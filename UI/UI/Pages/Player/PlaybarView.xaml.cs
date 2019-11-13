@@ -155,10 +155,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _previewContext.SetAvailableTime(from, to);
                 _previewContext?.SetSelectedTimeRange(from, to);
 
-                // Check if this is the first time data is added to the screen
-                if (ViewerContext.SelectedTimeTo == 0)
+                // Ensure that the current selected time is in a valid range.
+                if (ViewerContext.SelectedTimeFrom < ViewerContext.AvailableTimeFrom)
                 {
-                    SetSliderTime(SliderValueToTime(0));
+                    SetSliderTime(ViewerContext.AvailableTimeFrom);
+                } else if(ViewerContext.SelectedTimeFrom > ViewerContext.AvailableTimeTo)
+                {
+                    SetSliderTime(ViewerContext.AvailableTimeTo - WindowSize);
                 }
             });
         }

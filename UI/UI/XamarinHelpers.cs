@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
@@ -48,6 +50,40 @@ namespace SINTEF.AutoActive.UI
             }
 
             return default(T);
+        }
+
+        public static List<T> GetAllChildElements<T>(Element element)
+        {
+            var list = new List<T>();
+            var elements = new Queue<Element>();
+            elements.Enqueue(element);
+
+            while (elements.Any())
+            {
+                var el = elements.Dequeue();
+
+                if (el is Layout layout)
+                {
+                    foreach (var child in layout.Children)
+                    {
+                        elements.Enqueue(child);
+                    }
+                }
+
+                if (el is T item)
+                    list.Add(item);
+            }
+
+            return list;
+        }
+
+        public static async Task ShowErrorMessage(string title, string message, Page page = null)
+        {
+            if (page == null)
+            {
+                page = Application.Current.MainPage;
+            }
+            await page.DisplayAlert(title, message, "OK");
         }
     }
 }

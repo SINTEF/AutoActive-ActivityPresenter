@@ -45,7 +45,7 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             InitializeComponent();
             _parameters = parameters;
-            Title.Text = $"Import properties for {filename}";
+            TitleLabel.Text = $"Import properties for {filename}";
 
             PopulateParameters();
         }

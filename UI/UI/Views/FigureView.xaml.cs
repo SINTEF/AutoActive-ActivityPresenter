@@ -92,14 +92,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void FigureView_SizeChanged(object sender, EventArgs e)
         {
-            Debug.WriteLine("FigureView::FigureView_SizeChanged ");
             Canvas.InvalidateSurface();
         }
 
-        public void Viewer_Tapped(object sender, EventArgs e)
-        {
-            Debug.WriteLine("FigureView::Viewer_tapped");
-        }
 
         public void Viewer_Panned(object sender, PanUpdatedEventArgs e)
         {
@@ -250,8 +245,14 @@ namespace SINTEF.AutoActive.UI.Views
 
 	    public virtual Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
 	    {
-	        throw new NotImplementedException();
-	    }
+            if (!DataPoints.Contains(datapoint))
+            {
+                throw new NotImplementedException();
+            }
+
+            RemoveThisView();
+            return Task.FromResult(ToggleResult.Removed);
+        }
 
         /// Remove datapoint from view if present here.
         protected virtual void RemoveDataPoint(IDataPoint datapoint)

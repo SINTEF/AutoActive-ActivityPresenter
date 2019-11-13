@@ -141,7 +141,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         }
 
         // --- Available time range based on current time _viewers ---
-        protected (long, long) GetAvailableTimeMinMax(bool useWorldClock)
+        public (long, long) GetAvailableTimeMinMax(bool useWorldClock)
         {
             if (_viewers.Count == 0)
             {

@@ -29,29 +29,6 @@ namespace SINTEF.AutoActive.UI.Views
             IsAntialias = true
         };
 
-        public void AddTimeViewer(ITimeViewer viewer, TimeSynchronizedContext context, string label)
-        {
-            _timeViewers.Add((viewer, context, label));
-            viewer.TimeChanged += ViewerOnTimeChanged;
-            context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
-            InvalidateSurface();
-        }
-
-        private void RemoveItem(ITimeViewer timeViewer, IDataViewer dataViewer)
-        {
-            timeViewer.TimeChanged -= ViewerOnTimeChanged;
-
-            foreach(var (viewer, context, _) in _timeViewers)
-            {
-                if (viewer != timeViewer) continue;
-
-                context.Remove(dataViewer);
-                context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
-            }
-            _timeViewers.RemoveAll(el => el.Item1 == timeViewer);
-
-        }
-
         private void ContextOnSelectedTimeRangeChanged(SingleSetDataViewerContext sender, long @from, long to)
         {
             InvalidateSurface();
@@ -198,6 +175,11 @@ namespace SINTEF.AutoActive.UI.Views
             return (xMin, xScale);
         }
 
+        private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
+        {
+            InvalidateSurface();
+        }
+
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             if (!_dataTimeList.Any())
@@ -208,19 +190,26 @@ namespace SINTEF.AutoActive.UI.Views
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
             _dataTimeList.Add((dataPoint, timeViewer, dataViewer));
-            AddTimeViewer(timeViewer, context, dataPoint.Name);
-        }
-
-        private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
-        {
+            _timeViewers.Add((timeViewer, context, dataPoint.Name));
+            timeViewer.TimeChanged += ViewerOnTimeChanged;
+            context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
             InvalidateSurface();
         }
 
         public Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
-            var index = _dataTimeList.FindIndex(el => el.Item1 == dataPoint);
+            var found = false;
+            int index;
+            for (index = 0; index < _dataTimeList.Count; index++)
+            {
+                if (_dataTimeList[index].Item1 != dataPoint) continue;
+                if (_timeViewers[index].Item2 != context) continue;
 
-            if (index == -1)
+                found = true;
+                break;
+            }
+
+            if (!found)
                 return Task.CompletedTask;
 
             var(_, timeViewer, dataViewer) = _dataTimeList[index];
@@ -230,7 +219,11 @@ namespace SINTEF.AutoActive.UI.Views
                 context.AvailableTimeRangeChanged -= ContextOnAvailableTimeRangeChanged;
             }
 
-            RemoveItem(timeViewer, dataViewer);
+            timeViewer.TimeChanged -= ViewerOnTimeChanged;
+            context.Remove(dataViewer);
+            context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
+            _timeViewers.RemoveAt(index);
+
             InvalidateSurface();
             return Task.CompletedTask;
         }

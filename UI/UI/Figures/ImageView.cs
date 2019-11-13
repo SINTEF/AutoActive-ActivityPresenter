@@ -77,7 +77,7 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 Label = new Label
                 {
-                    Text = "Test",
+                    Text = "0",
                     TextColor = Color.Lime,
                     HorizontalOptions = new LayoutOptions(LayoutAlignment.End, false),
                     VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false)

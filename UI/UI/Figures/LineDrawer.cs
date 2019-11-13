@@ -46,19 +46,19 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var width = drawRect.Width;
 
-            var startX = Math.Max(LinePlot.ScaleX(en.Current.x, offsetX, scaleX), 0);
-            plot.MoveTo(startX + drawRect.Left, LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
+            var startX = Math.Max(LinePlot.ScalePointX(en.Current.x, offsetX, scaleX), 0);
+            plot.MoveTo(startX + drawRect.Left, LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
             var done = false;
             while (en.MoveNext() && !done)
             {
-                var plotX = LinePlot.ScaleX(en.Current.x, offsetX, scaleX);
+                var plotX = LinePlot.ScalePointX(en.Current.x, offsetX, scaleX);
                 if (plotX > width)
                 {
                     plotX = width;
                     done = true;
                 }
 
-                var valY = LinePlot.ScaleY(Convert.ToSingle(en.Current.y), offsetY, scaleY);
+                var valY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), offsetY, scaleY);
                 plot.LineTo(plotX + drawRect.Left, valY);
             }
         }

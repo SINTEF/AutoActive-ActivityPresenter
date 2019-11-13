@@ -57,8 +57,13 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             AddLine(line);
+
             DataPoints.Add(datapoint);
+
+            var container = XamarinHelpers.GetFigureContainerFromParents(Parent);
+            container?.InvokeDatapointAdded(datapoint, _context);
         }
+
         private void AddLine(ILineDrawer lineDrawer)
         {
             lineDrawer.Parent = this;
@@ -116,13 +121,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
         // ---- Drawing ----
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ScaleX(long v, long offset, float scale)
+        public static float ScalePointX(long v, long offset, float scale)
         {
             return (v - offset) * scale;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static float ScaleY(float v, float offset, float scale)
+        public static float ScalePointY(float v, float offset, float scale)
         {
             return (v - offset) * scale;
         }
@@ -203,7 +208,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public bool AutoScale = true;
         private bool _autoScaleIndependent;
-
+        private bool _scalingFrozen;
+        private (float? minYValue, float? maxYValue) _prevYValue;
         private const int SmoothScalingQueueSize = 30;
         private readonly Queue<(float, float)> _smoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
 
@@ -215,7 +221,7 @@ namespace SINTEF.AutoActive.UI.Figures
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             var plotRect = new SKRect(AxisValuesVisible ? TickBoxMargin : 0, 0, info.Width, info.Height);
-           
+
             canvas.DrawRect(plotRect, FramePaint);
 
             //TODO: choose first x and last x instead?
@@ -240,15 +246,71 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.ClipRect(plotRect);
 
             // TODO: fix this for SynchronizationContext by floating the line to the right
-            if (startX < _context.AvailableTimeFrom && ! (_context is SynchronizationContext))
+            if (startX < _context.AvailableTimeFrom && !(_context is SynchronizationContext))
             {
                 startX = _context.AvailableTimeFrom;
             }
 
             var scaleX = plotRect.Width / xDiff;
 
-            var minYValue = _minYValue;
-            var maxYValue = _maxYValue;
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
+
+            foreach (var line in _lines)
+            {
+                line.OffsetX = startX;
+                line.ScaleX = scaleX;
+            }
+
+            if (CurrentTimeVisible)
+            {
+                // Draw current time axis
+                var zeroX = ScalePointX(earliestStartTime, startX, scaleX);
+                canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
+            }
+
+            // TODO(sigurdal) this scales weirdly if frozen 
+            // Draw zero-x axis
+            float zeroY;
+            if (maxYValue.HasValue && minYValue.HasValue)
+            {
+                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height);
+                 zeroY = ScalePointY(0, maxYValue.Value, scaleY);
+            } else
+            {
+                zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
+            }
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint);
+
+            foreach (var lineConfig in _lines)
+            {
+                DrawLine(canvas, plotRect, lineConfig);
+            }
+
+            DrawLegends(canvas, plotRect, _lines);
+
+            if (!AxisValuesVisible || !minYValue.HasValue || !maxYValue.HasValue)
+                return;
+
+            _prevYValue = (minYValue, maxYValue);
+
+            var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
+            canvas.Restore();
+            canvas.ClipRect(axisValueRect);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
+        }
+
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
+        {
+
+            if (_scalingFrozen)
+            {
+                minYValue = _prevYValue.minYValue;
+                maxYValue = _prevYValue.maxYValue;
+                return;
+            }
+
+            minYValue = _minYValue;
+            maxYValue = _maxYValue;
 
             if (AutoScale)
             {
@@ -280,7 +342,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         curMax -= yDelta / 2;
                     }
 
-                    var scaleY = -(info.Height - PlotHeightMargin * 2) / yDelta;
+                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
                     curMax -= PlotHeightMargin / scaleY;
                     foreach (var line in _lines)
                     {
@@ -313,8 +375,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
                         var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
 
-                        var yDelta = curMax - curMin;
-                        var scaleY = -(info.Height - PlotHeightMargin * 2) / yDelta;
+                        var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
                         line.OffsetY = curMax - PlotHeightMargin / scaleY;
                         line.ScaleY = scaleY;
                     }
@@ -329,40 +390,12 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = maxYValue.Value;
                 }
             }
-
-            foreach (var line in _lines)
-            {
-                line.OffsetX = startX;
-                line.ScaleX = scaleX;
-            }
-
-            if (CurrentTimeVisible)
-            {
-                // Draw current time axis
-                var zeroX = ScaleX(earliestStartTime, startX, scaleX);
-                canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
-            }
-
-            // Draw zero-x axis
-            var zeroY = ScaleY(0, _lines.First().OffsetY, _lines.First().ScaleY);
-            canvas.DrawLine(plotRect.Left, zeroY,  plotRect.Right, zeroY, _zeroLinePaint);
-
-            foreach (var lineConfig in _lines)
-            {
-                DrawLine(canvas, plotRect, lineConfig);
-            }
-
-            DrawLegends(canvas, plotRect, _lines);
-
-            if (!AxisValuesVisible || !minYValue.HasValue || !maxYValue.HasValue)
-                return;
-                
-            var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
-            canvas.Restore();
-            canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
         }
 
+        private static float YScaleFromDiff(float yMin, float yMax, int height)
+        {
+            return -(height - PlotHeightMargin * 2) / (yMax - yMin);
+        }
 
         private static float SmartRound(float num, float diff)
         {
@@ -425,7 +458,7 @@ namespace SINTEF.AutoActive.UI.Figures
             for (var i = -nTicks; i < nTicks; i++)
             {
                 var val = tickStart + i * tickDelta;
-                var drawVal = ScaleY(val, maxY, scale);
+                var drawVal = ScalePointY(val, maxY, scale);
                 var valueText = (val - yOffset).ToString(valueFormat);
                 if (valueText == "")
                 {
@@ -512,12 +545,16 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string RemoveLineText = "Remove Line";
         protected const string AutoScaleIndependentText = "AutoScale Independent";
         protected const string AutoScaleCommonText = "AutoScale Common";
+        protected const string FreezeScalingText = "Freeze scaling";
+        protected const string UnfreezeScalingText = "Unfreeze scaling";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
-            parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
+            if (_lines.Count > 1) parameters.Add(RemoveLineText);
 
-            if(_lines.Count > 1) parameters.Add(RemoveLineText);
+            parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
+            parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
+
             return true;
         }
 
@@ -532,6 +569,12 @@ namespace SINTEF.AutoActive.UI.Figures
                 case AutoScaleIndependentText:
                     _autoScaleIndependent = true;
                     InvalidateSurface();
+                    return;
+                case FreezeScalingText:
+                    _scalingFrozen = true;
+                    return;
+                case UnfreezeScalingText:
+                    _scalingFrozen = false;
                     return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
