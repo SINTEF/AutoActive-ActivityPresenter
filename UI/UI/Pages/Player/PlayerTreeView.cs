@@ -198,21 +198,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureCell : DataItemCell
     {
+        private static int instCount = 0;
         private AllocTrack mt;
         public DataStructureCell()
         {
             Detail = "DataStructure";
-            mt = new AllocTrack(this, Detail);
+            instCount++;
+            mt = new AllocTrack(this, Detail+" " + instCount);
         }
     }
 
     internal class DataPointCell : DataItemCell
     {
+        private static int instCount = 0;
         private AllocTrack mt;
         public DataPointCell()
         {
             Detail = "DataPoint";
-            mt = new AllocTrack(this, Detail);
+            instCount++;
+            mt = new AllocTrack(this, Detail + " " + instCount);
 
             // FIXME: Only for compatible data item types
             var useInTimelineAction = new MenuItem { Text = "Timeline" };
@@ -295,7 +299,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public abstract void OnTapped();
     }
 
-    internal class DataProviderItem : DataStructureItem
+    internal class DataProviderItem : DataStructureItem, IDisposable
     {
         private AllocTrack mt;
         internal DataProviderItem(IDataProvider dataProvider, DataRegistryTree tree) : base(dataProvider, tree)
@@ -304,6 +308,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             DataProvider = dataProvider;
             IsShown = true;
+        }
+        public override void Dispose()
+        {
+            base.Dispose();
+            DataProvider = null;
         }
 
         public IDataProvider DataProvider { get; private set; }
@@ -327,7 +336,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             foreach (var point in dataStructure.DataPoints) DataPointAdded(dataStructure, point);
         }
 
-        public void Dispose()
+        public virtual void Dispose()
         {
             DataStructure.ChildAdded -= ChildAdded;
             DataStructure.ChildRemoved -= ChildRemoved;
@@ -355,7 +364,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         // --- Keep track of the children and datapoints ---
         private readonly Dictionary<IDataStructure, DataStructureItem> _structureItems = new Dictionary<IDataStructure, DataStructureItem>();
-        private readonly Dictionary<IDataPoint, DataItem> _pointItems = new Dictionary<IDataPoint, DataItem>();
+        private readonly Dictionary<IDataPoint, DataPointItem> _pointItems = new Dictionary<IDataPoint, DataPointItem>();
         public List<DataItem> ChildItems { get; private set; } = new List<DataItem>();
 
         // FIXME: Update the following four methods to handle if the DataStructure IsExpanded
@@ -371,8 +380,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (!_structureItems.TryGetValue(dataStructure, out var item)) return;
 
-            item.Dispose();
             _structureItems.Remove(dataStructure);
+            item.Dispose();
             ChildItems.Remove(item);
         }
 
@@ -390,6 +399,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (!_pointItems.TryGetValue(datapoint, out var item)) return;
 
             _pointItems.Remove(datapoint);
+            item.Dispose();
             ChildItems.Remove(item);
         }
 
@@ -441,11 +451,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
-    internal class DataPointItem : DataItem
+    internal class DataPointItem : DataItem, IDisposable
     {
         internal DataPointItem(IDataPoint datapoint, DataRegistryTree tree) : base(tree)
         {
             DataPoint = datapoint;
+        }
+
+        public void Dispose()
+        {
+            DataPoint = null;
         }
 
         public IDataPoint DataPoint { get; private set; }

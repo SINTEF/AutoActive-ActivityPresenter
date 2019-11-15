@@ -77,6 +77,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
 
         public void EndTransaction()
         {
+            _sessionData = null;  // Remove reference to large data
         }
 
         public Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
