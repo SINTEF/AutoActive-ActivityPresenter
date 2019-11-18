@@ -140,11 +140,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             VideoTime = new ArchiveVideoTime(streamFactory, path, startTime, videoLength);
         }
 
-        public void Close()
-        {
-            // TODO Check if somthing needs to be cleared here
-        }
-
         public Task<IDataViewer> CreateViewer()
         {
             return Task.FromResult((IDataViewer)new ArchiveVideoVideoViewer(this));
@@ -214,11 +209,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public long VideoPlaybackOffset { get; set; }
 
         private readonly List<ArchiveVideoTimeViewer> _viewers = new List<ArchiveVideoTimeViewer>();
-
-        public void Close()
-        {
-            // No loader to release.
-        }
 
         public async Task<ITimeViewer> CreateViewer()
         {

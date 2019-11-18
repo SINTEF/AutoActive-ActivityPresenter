@@ -43,11 +43,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             }
         }
 
-        public void Close()
-        {
-
-        }
-
         public Task<IDataViewer> CreateViewer()
         {
             TableColumnDynViewer newViewer;
