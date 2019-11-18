@@ -11,7 +11,5 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
         void TransformTime(long offset, double scale);
 
-        // Release data, loaders ...
-        void Close();
     }
 }

@@ -80,17 +80,9 @@ namespace SINTEF.AutoActive.Databus.Implementations
 
         /* -- Public API -- */
 
-        // Close all children and datapoints
+        // Remove all children and datapoints
         public virtual void Close()
         {
-            //foreach(var child in children)
-            //{
-            //    child.Close();
-            //}
-            //foreach(var datapoint in datapoints)
-            //{
-            //    datapoint.Close();
-            //}
             while (children.Count > 0)
             {
                 RemoveChild(children[0]);

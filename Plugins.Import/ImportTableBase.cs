@@ -86,13 +86,6 @@ namespace SINTEF.AutoActive.Plugins.Import
             _reader = new RememberingFullTableReader(this);
         }
 
-        // Close all children and datapoints
-        //public override void Close()
-        //{
-        //    base.Close();
-        //    //_reader = null; // Release reader to break cyclic reference blocking GC.
-        //}
-
         public abstract Dictionary<string, Array> ReadData();
 
         protected Task<T[]> LoadColumn<T>(string columnName)
