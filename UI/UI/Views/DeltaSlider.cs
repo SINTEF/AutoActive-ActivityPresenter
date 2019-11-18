@@ -7,7 +7,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
     public class DeltaSlider : Slider
     {
-        public event PropertyChangedEventHandler PropertyChanged;
+        public new event PropertyChangedEventHandler PropertyChanged;
 
         private bool _manipulating;
         private double _updateRate = 25;

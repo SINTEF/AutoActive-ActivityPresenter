@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
@@ -10,10 +11,11 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
     {
         protected TableTimeIndex Index;
 
-        private Task _loader;
+        private readonly Task _loader;
+        private readonly Mutex _loaderMutex = new Mutex();
 
         public string URI { get; }
-        public Type DataType { get; private set; }
+        public Type DataType { get; }
         public string Name { get; set; }
 
         internal double? MinValueHint { get; private set; }
@@ -32,16 +34,18 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         }
 
         // FIXME: Thread safety of the loading functions!!
-        private async Task EnsureSelfIsLoaded()
+        private void EnsureSelfIsLoaded()
         {
-            if (!_loader.IsCompleted)
+            lock (_loaderMutex)
             {
+                if (_loader.IsCompleted) return;
+
                 // Make sure the loading is done
-                _loader.Start();
-                await _loader;
+                _loader.RunSynchronously();
                 // Get the actual implementation to check the loaded Data
                 var dataLength = CheckLoaderResultLength();
-                if (Index != null && Index.Data.Length != dataLength) throw new Exception($"Column {Name} is not the same length as Index");
+                if (Index != null && Index.Data.Length != dataLength)
+                    throw new Exception($"Column {Name} is not the same length as Index");
                 // Find the min and max values
                 var (min, max) = GetDataMinMax();
                 MinValueHint = min;
@@ -49,35 +53,27 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             }
         }
 
-        private async Task EnsureIndexAndDataIsLoaded()
+        private void EnsureIndexAndDataIsLoaded()
         {
-            if (!_loader.IsCompleted)
-            {
-                // Load the index Data
-                await Index.EnsureSelfIsLoaded();
-                // Load our own Data
-                await EnsureSelfIsLoaded();
-            }
+            if (_loader.IsCompleted) return;
+
+            // Load the index Data
+            Index.EnsureSelfIsLoaded();
+            // Load our own Data
+            EnsureSelfIsLoaded();
         }
 
-        public async Task<IDataViewer> CreateViewer()
+        public Task<IDataViewer> CreateViewer()
         {
             switch (this)
             {
-                case StringColumn c:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateStringViewer(Index);
+                case StringColumn _:
+                    EnsureIndexAndDataIsLoaded();
+                    return Task.FromResult(CreateStringViewer(Index));
                 default:
-                    await EnsureIndexAndDataIsLoaded();
-                    return CreateGenericViewer(Index);
+                    EnsureIndexAndDataIsLoaded();
+                    return Task.FromResult(CreateGenericViewer(Index));
             }
-        }
-
-        public void Close()
-        {
-            // Release loader to break cyclic reference blocking GC.
-            //_loader = null;
-            //Index?.Close();
         }
 
         protected abstract int CheckLoaderResultLength();
@@ -112,13 +108,13 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             var end = Index.FindIndex(EndIndex, endTime);
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
-            if (start != StartIndex || end != EndIndex)
-            {
-                StartIndex = start;
-                EndIndex = end;
-                Length = EndIndex - StartIndex + 1;
-                Changed?.Invoke(this);
-            }
+
+            if (start == StartIndex && end == EndIndex) return;
+
+            StartIndex = start;
+            EndIndex = end;
+            Length = EndIndex - StartIndex + 1;
+            Changed?.Invoke(this);
         }
 
         public TableColumn Column { get; private set; }

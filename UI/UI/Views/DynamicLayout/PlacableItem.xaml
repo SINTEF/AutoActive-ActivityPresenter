@@ -1,0 +1,101 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms" 
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
+             mc:Ignorable="d"
+             x:Class="SINTEF.AutoActive.UI.Views.DynamicLayout.PlaceableItem" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+    <ContentView.Content>
+        <dynamicLayout:ResizableStackLayout x:Name="VerticalLayout"  Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            <dynamicLayout:ResizableStackLayout x:Name="HorizontalLayout" Orientation="Horizontal" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                <AbsoluteLayout x:Name="MasterLayout" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                    <Grid x:Name="PlacementLocationsSides" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="60"/>
+                        </Grid.RowDefinitions>
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="0" FontSize="25" Text="&#x21E1;" Clicked="UpButton_OnClicked" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="4" Grid.Row="2" FontSize="25" Text="&#x21E2;" Clicked="RightButton_OnClicked" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="4" FontSize="25" Text="&#x21E3;" Clicked="DownButton_OnClicked" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="0" Grid.Row="2" FontSize="25" Text="&#x21E0;" Clicked="LeftButton_OnClicked" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="2" FontSize="25" Text="&#x25A2;" Clicked="CenterButton_OnClicked" />
+                    </Grid>
+                    <Grid x:Name="PlacementLocationsCenter" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" IsVisible="False" ColumnSpacing="5" RowSpacing="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="60"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="60"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="1" FontSize="25" Text="&#x21E1;" Clicked="UpButton_OnClicked" IsVisible="False"/>
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="3" Grid.Row="2" FontSize="25" Text="&#x21E2;" Clicked="RightButton_OnClicked" IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="3" FontSize="25" Text="&#x21E3;" Clicked="DownButton_OnClicked"  IsVisible="False" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="1" Grid.Row="2" FontSize="25" Text="&#x21E0;" Clicked="LeftButton_OnClicked"  IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="10" Grid.Column="2" Grid.Row="2" FontSize="25" Text="&#x25A2;" Clicked="CenterButton_OnClicked" />
+                    </Grid>
+                    <Grid x:Name="PlacementLocationsCenterSmall" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" IsVisible="False" ColumnSpacing="5" RowSpacing="5">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="30"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="30"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="1" FontSize="15" Text="&#x21E1;" Clicked="UpButton_OnClicked" IsVisible="False"/>
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="3" Grid.Row="2" FontSize="15" Text="&#x21E2;" Clicked="RightButton_OnClicked" IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="3" FontSize="15" Text="&#x21E3;" Clicked="DownButton_OnClicked"  IsVisible="False" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="1" Grid.Row="2" FontSize="15" Text="&#x21E0;" Clicked="LeftButton_OnClicked"  IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="2" FontSize="15" Text="&#x25A2;" Clicked="CenterButton_OnClicked" />
+                    </Grid>
+                    <Grid x:Name="PlacementLocationsCenterTiny" AbsoluteLayout.LayoutBounds="0,0,1,1" AbsoluteLayout.LayoutFlags="All" IsVisible="False">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="15"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                            <RowDefinition Height="15"/>
+                            <RowDefinition Height="15"/>
+                            <RowDefinition Height="15"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="1" FontSize="5" Text="&#x21E1;" Clicked="UpButton_OnClicked" IsVisible="True"/>
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="3" Grid.Row="2" FontSize="5" Text="&#x21E2;" Clicked="RightButton_OnClicked" IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="3" FontSize="5" Text="&#x21E3;" Clicked="DownButton_OnClicked"  IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="1" Grid.Row="2" FontSize="5" Text="&#x21E0;" Clicked="LeftButton_OnClicked"  IsVisible="True" />
+                        <Button BackgroundColor="Aquamarine" Padding="0" Grid.Column="2" Grid.Row="2" FontSize="5" Text="&#x25A2;" Clicked="CenterButton_OnClicked" />
+                    </Grid>
+                </AbsoluteLayout>
+            </dynamicLayout:ResizableStackLayout>
+        </dynamicLayout:ResizableStackLayout>
+    </ContentView.Content>
+</ContentView>

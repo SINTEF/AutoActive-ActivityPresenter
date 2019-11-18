@@ -302,7 +302,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public IDataPoint DataPoint => Video;
         public long CurrentTimeRangeFrom { get; }
         public long CurrentTimeRangeTo { get; }
-        public event DataViewerWasChangedHandler Changed;
 
         public long PreviewPercentage { get; set; }
         public void SetTimeRange(long from, long to)

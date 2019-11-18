@@ -159,7 +159,7 @@ namespace SINTEF.AutoActive.UI.Views
                         }
                         catch (Exception ex)
                         {
-                            ShowError(file.Name, ex);
+                            await ShowError(file.Name, ex);
                         }
                     };
                 }

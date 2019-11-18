@@ -142,7 +142,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
         }
 
 
-        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
 
             // Make folder object
@@ -154,7 +154,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
-            return true;
+            return Task.FromResult(true);
 
         }
     }
@@ -191,7 +191,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             };
         }
 
-        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             var sensorConf = _data.Config.Sensor;
             var conf = _data.Config;
@@ -253,7 +253,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             root["meta"] = metaFolder;
             root["user"] = userFolder;
 
-            return true;
+            return Task.FromResult(true);
         }
     }
 

@@ -7,7 +7,7 @@
              x:Class="SINTEF.AutoActive.UI.Pages.ImportParametersPage">
     <ContentPage.Content>
         <StackLayout Orientation="Vertical">
-            <Label x:Name="Title"  Text="Import properties for" VerticalOptions="Start" HorizontalOptions="CenterAndExpand"/>
+            <Label x:Name="TitleLabel"  Text="Import properties for" VerticalOptions="Start" HorizontalOptions="CenterAndExpand"/>
             <Frame>
                 <Grid x:Name="ParameterGrid" VerticalOptions="CenterAndExpand" 
                   HorizontalOptions="Center">
