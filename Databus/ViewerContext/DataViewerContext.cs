@@ -175,6 +175,7 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
             foreach (var viewer in toRemove)
             {
                 _viewers.Remove(viewer);
+                viewer.TimeChanged -= OnTimeViewerAvailableChanged;
             }
 
             UpdateSetAvailableTimeRange();

@@ -217,6 +217,11 @@ namespace SINTEF.AutoActive.UI.Views
             }
             DataPoints.Clear();
 
+            // Remove all callbacks registered in constructor
+            SizeChanged -= FigureView_SizeChanged;
+            Context.SelectedTimeRangeChanged -= Context_SelectedTimeRangeChanged;
+            Canvas.PaintSurface -= Canvas_PaintSurface;
+
             // Remove callback to this view when this view is removed.
             Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
         }
