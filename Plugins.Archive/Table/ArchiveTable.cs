@@ -60,15 +60,22 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             if (dataField == null) throw new ArgumentException($"Couldn't find column {column.Name} in table");
 
             T[] data = null;
-            // Read the data pages
-            for (var page = 0; page < _reader.RowGroupCount; page++)
+            try
             {
-                // TODO: Do this asynchronously?
-                var pageReader = _reader.OpenRowGroupReader(page);
-                var dataColumn = pageReader.ReadColumn(dataField);
-                var prevLength = data?.Length ?? 0;
-                Array.Resize(ref data, prevLength + dataColumn.Data.Length);
-                Array.Copy(dataColumn.Data, 0, data, prevLength, dataColumn.Data.Length);
+                // Read the data pages
+                for (var page = 0; page < _reader.RowGroupCount; page++)
+                {
+                    // TODO: Do this asynchronously?
+                    var pageReader = _reader.OpenRowGroupReader(page);
+                    var dataColumn = pageReader.ReadColumn(dataField);
+                    var prevLength = data?.Length ?? 0;
+                    Array.Resize(ref data, prevLength + dataColumn.Data.Length);
+                    Array.Copy(dataColumn.Data, 0, data, prevLength, dataColumn.Data.Length);
+                }
+            }
+            catch (ArrayTypeMismatchException ex)
+            {
+                throw new ArrayTypeMismatchException($"Could not load column {column.Name}. The expected data is {typeof(T)} but actual data was {dataField.DataType}. \n{ex.Message}");
             }
 
             _data[column] = data;

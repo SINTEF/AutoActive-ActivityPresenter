@@ -153,22 +153,24 @@ namespace SINTEF.AutoActive.UI.Views
         /// Create new view of the proper type to visualize datapoint.
 	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
 	    {
-	        FigureView view;
-	        switch (datapoint)
-	        {
-	            case ArchiveVideoVideo _:
-	                view = await ImageView.Create(datapoint, context);
-	                break;
-	            case TableColumn _:
-	            case TableColumnDyn _:
-	                view = await LinePlot.Create(datapoint, context);
-	                break;
-	            default:
-	                throw new NotSupportedException();
-	        }
-
-	        return view;
-	    }
+            try
+            {
+                switch (datapoint)
+                {
+                    case ArchiveVideoVideo _:
+                        return await ImageView.Create(datapoint, context);
+                    case TableColumn _:
+                    case TableColumnDyn _:
+                        return await LinePlot.Create(datapoint, context);
+                    default:
+                        throw new NotSupportedException();
+                }
+            }  catch(Exception ex)
+            {
+                await XamarinHelpers.ShowErrorMessage("Error", ex.Message);
+            }
+            return null;
+        }
 
 	    protected const string CancelText = "Cancel";
 	    protected const string RemoveText = "Remove";

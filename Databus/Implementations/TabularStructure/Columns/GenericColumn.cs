@@ -38,6 +38,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         protected override IDataViewer CreateGenericViewer(TableTimeIndex index)
         {
+            if (index == null)
+            {
+                throw new ArgumentException("Could not create viewer - time index is null");
+            }
             return new GenericColumnViewer<T>(index, this);
         }
     }

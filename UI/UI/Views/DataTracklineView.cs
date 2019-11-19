@@ -196,7 +196,7 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
-        public Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
+        public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             var found = false;
             int index;
@@ -210,7 +210,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
 
             if (!found)
-                return Task.CompletedTask;
+                return;
 
             var(_, timeViewer, dataViewer) = _dataTimeList[index];
             _dataTimeList.RemoveAt(index);
@@ -225,20 +225,28 @@ namespace SINTEF.AutoActive.UI.Views
             _timeViewers.RemoveAt(index);
 
             InvalidateSurface();
-            return Task.CompletedTask;
         }
 
         private async void DataPointAddedHandler(object sender, (IDataPoint, DataViewerContext) args)
         {
             var (datapoint, context) = args;
             if (context is TimeSynchronizedContext timeContext)
-                await AddDataPoint(datapoint, timeContext);
+            {
+                try
+                {
+                    await AddDataPoint(datapoint, timeContext);
+                }
+                catch (Exception ex)
+                {
+                    await XamarinHelpers.ShowErrorMessage("Error", ex.Message, XamarinHelpers.GetCurrentPage(Navigation));
+                }
+            }
         }
-        private async void DataPointRemovedHandler(object sender, (IDataPoint, DataViewerContext) args)
+        private void DataPointRemovedHandler(object sender, (IDataPoint, DataViewerContext) args)
         {
             var (datapoint, context) = args;
             if (context is TimeSynchronizedContext timeContext)
-                await RemoveDataPoint(datapoint, timeContext);
+                RemoveDataPoint(datapoint, timeContext);
         }
 
         public void RegisterFigureContainer(IFigureContainer container)
