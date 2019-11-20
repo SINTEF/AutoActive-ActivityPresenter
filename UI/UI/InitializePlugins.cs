@@ -27,7 +27,7 @@ namespace SINTEF.AutoActive.UI
             typeof(GarminImportPlugin),
             typeof(MqttImportPlugin),
             typeof(ImportVideoPlugin),
-            typeof(CatapultImportPlugin),
+            typeof(ImportGenericCsv),
             typeof(ImportGaitupPlugin),
         };
     }
