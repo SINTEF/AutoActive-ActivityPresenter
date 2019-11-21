@@ -15,6 +15,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     [ImportPlugin(".csv", 200)]
     public class ImportCsvCatapult : IImportPlugin
     {
+        public async Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            var stream = await readerFactory.GetReadStream();
+            using(var reader = new StreamReader(stream))
+            {
+                return reader.ReadLine().Contains("Logan");
+            }
+        }
+
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
 

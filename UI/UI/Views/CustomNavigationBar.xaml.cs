@@ -105,7 +105,16 @@ namespace SINTEF.AutoActive.UI.Views
 
                 foreach (var plugin in plugins)
                 {
-
+                    try
+                    {
+                        if(!(await plugin.CanParse(file)))
+                        {
+                            continue;
+                        }
+                    } catch(Exception ex)
+                    {
+                        await ShowError(file.Name, ex);
+                    }
                     try
                     {
                         List<IReadSeekStreamFactory> streamFactoryList;
@@ -130,6 +139,7 @@ namespace SINTEF.AutoActive.UI.Views
                         }
 
                         streamFactoryList.Add(file);
+                        break;
                     }
                     catch (Exception ex)
                     {
@@ -191,7 +201,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             if (files == null) return;
 
-            
+
             XamarinHelpers.EnsureMainThread(() => DoImportFiles(files));
         }
 
@@ -271,7 +281,7 @@ namespace SINTEF.AutoActive.UI.Views
                     }
                     if (dataPoint is ArchiveSession locArch)
                     {
-                        session.AddBasedOnSession(locArch); 
+                        session.AddBasedOnSession(locArch);
                     }
                 }
                 archive.AddSession(session);

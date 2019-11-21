@@ -20,6 +20,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     [ImportPlugin(".csv")]
     public class ImportGenericCsv : IImportPlugin
     {
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
+
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
 
