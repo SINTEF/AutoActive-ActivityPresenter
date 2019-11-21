@@ -27,7 +27,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
-            var importer = new GenericCsvImporter(parameters["Name"] as string);
+            var importer = new GenericCsvImporter(parameters, readerFactory.Name);
             importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
         }
@@ -35,39 +35,49 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     public class GenericCsvImporter : BaseDataProvider
     {
-        public GenericCsvImporter(string name)
+        string _filename;
+        public GenericCsvImporter(Dictionary<string, object> parameters, string filename)
         {
-            Name = name;
+            Name = parameters["Name"] as string;
+            _filename = filename;
         }
+
+        protected virtual string TableName { get => "CSV-data"; }
+
+        protected virtual void PreProcessStream(Stream stream) { }
+        protected virtual void PostProcessData(List<string> names, List<Type> types, List<Array> data) { }
 
         protected override void DoParseFile(Stream stream)
         {
-            try
+            PreProcessStream(stream);
+
+            var (names, types, data) = GenericCsvParser.Parse(stream);
+
+            names = names.Select(el => ReplaceIllegalNameCharacters(el)).ToList();
+
+            PostProcessData(names, types, data);
+
+            var dict = new Dictionary<string, Array>();
+
+            const string timeName = "time";
+
+            var timeIndex = FindTimeDataIndex(names);
+            dict[timeName] = EnsureTimeArray(data[timeIndex]);
+            names.RemoveAt(timeIndex);
+            types.RemoveAt(timeIndex);
+            data.RemoveAt(timeIndex);
+
+            for (var i = 0; i < names.Count; i++)
             {
-                var (names, types, data) = GenericCsvParser.Parse(stream);
-
-
-                var dict = new Dictionary<string, Array>();
-
-                const string timeName = "time";
-
-                var timeIndex = FindTimeDataIndex(names);
-                dict[timeName] = EnsureType<long[]>(data[timeIndex]);
-                names.RemoveAt(timeIndex);
-                types.RemoveAt(timeIndex);
-                data.RemoveAt(timeIndex);
-
-                for (var i = 0; i < names.Count; i++)
-                {
-                    dict[names[i]] = EnsureValidType(data[i]);
-                }
-
-                AddChild(new GenericCsvTable("CSV-data", names, types, dict));
+                dict[names[i]] = EnsureValidType(data[i]);
             }
-            catch (Exception ex)
-            {
-                throw;
-            }
+
+            AddChild(new GenericCsvTable(TableName, names, types, dict, _filename));
+        }
+
+        private static string ReplaceIllegalNameCharacters(string el)
+        {
+            return el.Replace(".", "");
         }
 
         private int FindTimeDataIndex(List<string> names)
@@ -107,10 +117,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return arr.Select(dt => TimeFormatter.TimeFromDateTime(dt)).ToArray();
         }
 
-        private Array EnsureType<T>(Array array)
+        private Array EnsureTimeArray(Array array)
         {
             if (array is long[])
                 return array;
+
+            if (array is double[] doubleArray)
+            {
+                return doubleArray.Select(val => TimeFormatter.TimeFromSeconds(val)).ToArray();
+            }
 
             if (array is DateTime[] dateTimeArray)
             {
@@ -124,16 +139,18 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     public class GenericCsvTable : ImportTableBase, ISaveable
     {
         private readonly Dictionary<string, Array> _data;
+        private string _fileName;
 
-        public GenericCsvTable(string tableName, List<string> names, List<Type> types, Dictionary<string, Array> data)
+        public GenericCsvTable(string tableName, List<string> names, List<Type> types, Dictionary<string, Array> data, string filename)
         {
             Name = tableName;
+            _fileName = filename;
             _data = data;
             var timeColInfo = new ColInfo("time", "us");
             var startTime = ((long[])data["time"])[0];
 
             _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), startTime != 0L, Name + "/" + timeColInfo.Name, timeColInfo.Unit);
-            
+
             for (int i = 0; i < names.Count; i++)
             {
                 var name = names[i];
@@ -168,7 +185,24 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            throw new NotImplementedException();
+            // TODO: give a better name?
+            var fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
+
+            // Make table object
+            var metaTable = new JObject { ["type"] = "no.sintef.table" };
+            metaTable["attachments"] = new JArray(new object[] { fileId });
+            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["version"] = 1;
+
+            var userTable = new JObject { };
+            userTable["filename"] = _fileName;
+
+            // Place objects into root
+            root["meta"] = metaTable;
+            root["user"] = userTable;
+
+            return WriteTable(fileId, writer);
         }
     }
 
@@ -285,7 +319,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                         var ix = 0;
                         foreach (var field in record)
                         {
-                            types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string)field.Value));
+                            var strVal = field.Value as string;
+                            if (strVal != null && strVal != "")
+                            {
+                                types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string)field.Value));
+                            }
                             ix++;
                         }
                     }
@@ -352,22 +390,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 var nextStreamPos = FindLikelyHeaderStart(buf, ',');
 
                 stream.Seek(nextStreamPos, SeekOrigin.Begin);
-                
-                /*var nextStreamPos = streamPos;
-                var line = reader.ReadLine();
-                for (int i = 0; i < 50; i++)
-                {
-                    nextStreamPos += line.Length + lineEndSize;
-                    var line2 = reader.ReadLine();
-                    if (line2.Contains(configuration.Delimiter) && !line2.Contains("="))
-                    {
-                        break;
-                    }
-                    line = line2;
-
-                }
-                stream.Seek(nextStreamPos, SeekOrigin.Begin);*/
-
 
                 // Reset configuration and try to skip lines until we find multiple elements
                 configuration = new CsvHelper.Configuration.Configuration();
@@ -390,11 +412,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 {
                     Debug.WriteLine($"Error when handling csv: {ex.Message}");
                 }
-                
+
                 stream.Seek(streamPos, SeekOrigin.Begin);
             }
             return configuration;
-            
+
         }
 
         private static int FindLikelyHeaderStart(byte[] buf, char delimiter)
@@ -455,7 +477,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 var genericListType = listGenericType.MakeGenericType(type);
                 var list = (IList)Activator.CreateInstance(genericListType, new object[] { lineCount });
                 data.Add(list);
-                
+
             }
 
             List<string> headers = null;
@@ -481,7 +503,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 var type = types[i];
                 var list = data[i];
-                
+
                 dataArray.Add(IListToArray(list, type));
             }
 

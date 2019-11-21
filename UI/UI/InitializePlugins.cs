@@ -29,6 +29,7 @@ namespace SINTEF.AutoActive.UI
             typeof(ImportVideoPlugin),
             typeof(ImportGenericCsv),
             typeof(ImportGaitupPlugin),
+            typeof(ImportCsvCatapult),
         };
     }
 }
