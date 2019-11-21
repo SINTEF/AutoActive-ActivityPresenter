@@ -47,7 +47,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             _filename = filename;
         }
 
-        protected virtual string TableName { get => "CSV-data"; }
+        protected virtual string TableName { get => "CSV"; }
 
         protected virtual void PreProcessStream(Stream stream) { }
         protected virtual void PostProcessData(List<string> names, List<Type> types, List<Array> data) { }
