@@ -75,7 +75,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             }
             catch (ArrayTypeMismatchException ex)
             {
-                throw new ArrayTypeMismatchException($"Could not load column {column.Name}. The expected data is {typeof(T)} but actual data was {dataField.DataType}. \n{ex.Message}");
+                throw new ArrayTypeMismatchException($"Could not load column {column.Name}. The expected data is {typeof(T)} but actual data was {dataField.DataType}.\n\n{ex.Message}");
             }
 
             _data[column] = data;

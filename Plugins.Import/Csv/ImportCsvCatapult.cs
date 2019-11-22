@@ -43,7 +43,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         {
         }
 
-        private long ParseDateTime(string date, string time)
+        private static long ParseDateTime(string date, string time)
         {
             var dateTime = DateTime.Parse(date + " " + time, CultureInfo.InvariantCulture);
             return TimeFormatter.TimeFromDateTime(dateTime);
@@ -92,7 +92,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             stream.Seek(streamPos, SeekOrigin.Begin);
         }
 
-        internal static long ConvHmssToEpochUs(string timeString)
+        public static long ConvHmssToEpochUs(string timeString)
         {
             long hours = 0;
             long minutes;

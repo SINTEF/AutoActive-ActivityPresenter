@@ -238,7 +238,7 @@ namespace SINTEF.AutoActive.UI.Views
                 }
                 catch (Exception ex)
                 {
-                    await XamarinHelpers.ShowErrorMessage("Error", ex.Message, XamarinHelpers.GetCurrentPage(Navigation));
+                    await XamarinHelpers.ShowOkMessage("Error", ex.Message, XamarinHelpers.GetCurrentPage(Navigation));
                 }
             }
         }

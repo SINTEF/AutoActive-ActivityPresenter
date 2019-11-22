@@ -224,7 +224,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             typeof(string)
         };
 
-        internal static Type TryGuessTypeSingle(string field)
+        public static Type TryGuessTypeSingle(string field)
         {
 
             if (long.TryParse(field, out long _))
@@ -266,7 +266,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return lineCount;
         }
 
-        internal static List<Type> TryGuessType(Stream stream, CsvHelper.Configuration.Configuration config = null)
+        public static List<Type> TryGuessType(Stream stream, CsvHelper.Configuration.Configuration config = null)
         {
             var streamStartPosition = stream.Position;
             try
