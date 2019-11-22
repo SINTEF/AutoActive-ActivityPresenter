@@ -245,11 +245,15 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.Save();
             canvas.ClipRect(plotRect);
 
+
             // TODO: fix this for SynchronizationContext by floating the line to the right
             if (startX < _context.AvailableTimeFrom && !(_context is SynchronizationContext))
             {
                 startX = _context.AvailableTimeFrom;
             }
+
+            // This keeps the current line at the same x-value independent of the visibility of the axes
+            plotRect = new SKRect(0, 0, info.Width, info.Height);
 
             var scaleX = plotRect.Width / xDiff;
 
@@ -268,7 +272,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
-            // TODO(sigurdal) this scales weirdly if frozen 
+            // TODO(sigurdal) this scales weirdly if frozen
             // Draw zero-x axis
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
@@ -471,7 +475,6 @@ namespace SINTEF.AutoActive.UI.Figures
                 // ReSharper disable once CompareOfFloatsByEqualityOperator
                 if (yOffset == 0f) continue;
                 var offsetText = yOffset.ToString("+#0.0e0;-#0.0e0");
-                //var offsetTextSize = TextPaint.MeasureText(offsetText);
 
                 //TODO: instead of drawing this, skip drawing the text in the first place
                 canvas.DrawRect(0, drawRect.Height - TickTextPaint.TextSize -1, TickBoxMargin-1, drawRect.Height, _legendFill);
