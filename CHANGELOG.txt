@@ -1,11 +1,15 @@
 # Changelog
 
+## [0.4.1] - 2019-11-12
+### Added
+ - Freezing window while saving and showing a message when completed
+
+
 ## [0.4.0] - 2019-11-11
 ### Added
  - Plots can now be located as desired
  - Plots can be resized at will
  - Added option to freeze scaling in plots
-
 
 ### Changed
  - Fixed default Offset in synchronization view
