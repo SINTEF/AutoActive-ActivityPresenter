@@ -62,6 +62,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             WindowSlider.Value = WindowSize / 1000000d;
         }
 
+        private bool _playSliderChanging;
+
         private void PlayButtonLoop()
         {
             _playTaskRunning = false;
@@ -91,13 +93,19 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
                     var offset = (long)(offsetDiff * PlaybackSpeed);
                     var newStart = timeContext.SelectedTimeFrom + offset;
-                    TimeSlider.Value = TimeToSliderValue(newStart);
 
-                    timeContext.SetSelectedTimeRange(newStart, timeContext.SelectedTimeTo + offset);
+                    if (newStart > timeContext.AvailableTimeTo)
+                    {
+                        newStart = timeContext.AvailableTimeTo;
+                    }
+
+                    _playSliderChanging = true;
+                    TimeSlider.Value = TimeToSliderValue(newStart);
+                    _playSliderChanging = false;
+
+                    SetSliderTime(newStart);
                     _lastTime = now;
                 });
-
-                //Debug.WriteLine((DateTime.Now - _playStartTime).TotalMilliseconds);
             }
         }
 
@@ -131,11 +139,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void Slider_ValueChanged(object sender, ValueChangedEventArgs e)
         {
-            // FIXME: Handle the other types of context
-            if (sender == TimeSlider)
-            {
-                SetSliderTime(SliderValueToTime(e.NewValue));
-            }
+            if (_playSliderChanging) return;
+
+            SetSliderTime(SliderValueToTime(e.NewValue));
         }
 
         private (long, long) _availableTime;
