@@ -167,7 +167,7 @@ namespace SINTEF.AutoActive.UI.Views
                 }
             }  catch(Exception ex)
             {
-                await XamarinHelpers.ShowOkMessage("Error", ex.Message);
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not add plot: {ex.Message}");
             }
             return null;
         }
