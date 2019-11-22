@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 using CsvHelper;
 using Newtonsoft.Json.Linq;
@@ -30,7 +29,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         }
 
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
+            Dictionary<string, object> parameters)
         {
             var importer = new GenericCsvImporter(parameters, readerFactory.Name);
             importer.ParseFile(await readerFactory.GetReadStream());
@@ -40,17 +40,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     public class GenericCsvImporter : BaseDataProvider
     {
-        string _filename;
+        private readonly string _filename;
+
         public GenericCsvImporter(Dictionary<string, object> parameters, string filename)
         {
             Name = parameters["Name"] as string;
             _filename = filename;
         }
 
-        protected virtual string TableName { get => "CSV"; }
+        protected virtual string TableName => "CSV";
 
-        protected virtual void PreProcessStream(Stream stream) { }
-        protected virtual void PostProcessData(List<string> names, List<Type> types, List<Array> data) { }
+        protected virtual void PreProcessStream(Stream stream)
+        {
+        }
+
+        protected virtual void PostProcessData(List<string> names, List<Type> types, List<Array> data)
+        {
+        }
 
         protected override void DoParseFile(Stream stream)
         {
@@ -58,7 +64,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
             var (names, types, data) = GenericCsvParser.Parse(stream);
 
-            names = names.Select(el => ReplaceIllegalNameCharacters(el)).ToList();
+            names = names.Select(ReplaceIllegalNameCharacters).ToList();
 
             PostProcessData(names, types, data);
 
@@ -85,7 +91,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return el.Replace(".", "");
         }
 
-        private int FindTimeDataIndex(List<string> names)
+        private static int FindTimeDataIndex(List<string> names)
         {
             for (var i = 0; i < names.Count; i++)
             {
@@ -117,53 +123,53 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         private Array EnsureValidType(Array array)
         {
-            if (!(array is DateTime[]arr)) return array;
+            if (!(array is DateTime[] arr)) return array;
 
-            return arr.Select(dt => TimeFormatter.TimeFromDateTime(dt)).ToArray();
+            return arr.Select(TimeFormatter.TimeFromDateTime).ToArray();
         }
 
-        private Array EnsureTimeArray(Array array)
+        private static Array EnsureTimeArray(Array array)
         {
-            if (array is long[])
-                return array;
-
-            if (array is double[] doubleArray)
+            switch (array)
             {
-                return doubleArray.Select(val => TimeFormatter.TimeFromSeconds(val)).ToArray();
+                case long[] _:
+                    return array;
+                case double[] doubleArray:
+                    return doubleArray.Select(TimeFormatter.TimeFromSeconds).ToArray();
+                case DateTime[] dateTimeArray:
+                    return dateTimeArray.Select(TimeFormatter.TimeFromDateTime).ToArray();
+                default:
+                    throw new NotImplementedException();
             }
-
-            if (array is DateTime[] dateTimeArray)
-            {
-                return dateTimeArray.Select(dt => TimeFormatter.TimeFromDateTime(dt)).ToArray();
-            }
-
-            throw new NotImplementedException();
         }
     }
 
     public class GenericCsvTable : ImportTableBase, ISaveable
     {
         private readonly Dictionary<string, Array> _data;
-        private string _fileName;
+        private readonly string _fileName;
 
-        public GenericCsvTable(string tableName, List<string> names, List<Type> types, Dictionary<string, Array> data, string filename)
+        public GenericCsvTable(string tableName, IReadOnlyList<string> names, IReadOnlyList<Type> types,
+            Dictionary<string, Array> data, string filename)
         {
-            Name = tableName;
+            base.Name = tableName;
+            IsSaved = false;
             _fileName = filename;
             _data = data;
             var timeColInfo = new ColInfo("time", "us");
-            var startTime = ((long[])data["time"])[0];
+            var startTime = ((long[]) data["time"])[0];
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), startTime != 0L, Name + "/" + timeColInfo.Name, timeColInfo.Unit);
+            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), startTime != 0L,
+                base.Name + "/" + timeColInfo.Name, timeColInfo.Unit);
 
-            for (int i = 0; i < names.Count; i++)
+            for (var i = 0; i < names.Count; i++)
             {
                 var name = names[i];
                 var type = types[i];
 
                 var colInfo = new ColInfo(name, null);
 
-                var uri = Name + "/" + colInfo.Name;
+                var uri = base.Name + "/" + colInfo.Name;
 
                 if (type == typeof(double))
                 {
@@ -180,7 +186,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             }
         }
 
-
         public bool IsSaved { get; }
 
         public override Dictionary<string, Array> ReadData()
@@ -194,8 +199,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
 
             // Make table object
-            var metaTable = new JObject { ["type"] = "no.sintef.table" };
-            metaTable["attachments"] = new JArray(new object[] { fileId });
+            var metaTable = new JObject {["type"] = "no.sintef.table"};
+            metaTable["attachments"] = new JArray(new object[] {fileId});
             metaTable["units"] = new JArray(GetUnitArr());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
@@ -216,7 +221,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private const int NumLinesToRead = 100;
         private const int FileEndOffset = 2000;
 
-        private static readonly List<Type> typeHierarchy = new List<Type>
+        private static readonly List<Type> TypeHierarchy = new List<Type>
         {
             typeof(long),
             typeof(double),
@@ -227,15 +232,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public static Type TryGuessTypeSingle(string field)
         {
 
-            if (long.TryParse(field, out long _))
+            if (long.TryParse(field, out _))
             {
                 return typeof(long);
             }
-            if (double.TryParse(field, out double _))
+
+            if (double.TryParse(field, out _))
             {
                 return typeof(double);
             }
-            if (DateTime.TryParse(field, out DateTime _))
+
+            if (DateTime.TryParse(field, out _))
             {
                 return typeof(DateTime);
             }
@@ -247,7 +254,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         {
             if (oldType == newType) return oldType;
 
-            return (typeHierarchy.IndexOf(newType) > typeHierarchy.IndexOf(oldType)) ? newType : oldType;
+            return (TypeHierarchy.IndexOf(newType) > TypeHierarchy.IndexOf(oldType)) ? newType : oldType;
         }
 
         private static int CountLines(Stream stream)
@@ -258,10 +265,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 while (!reader.EndOfStream)
                 {
-                    var line = reader.ReadLine();
+                    reader.ReadLine();
                     lineCount++;
                 }
             }
+
             stream.Seek(streamPos, SeekOrigin.Begin);
             return lineCount;
         }
@@ -279,26 +287,22 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                     if (!csv.Read()) throw new ArgumentException("Could not find valid fields");
                     if (!csv.ReadHeader()) throw new ArgumentException("Could not find valid header");
 
-                    var header = ((IDictionary<string, object>)csv.GetRecord<dynamic>()).Keys;
 
                     if (!csv.Read()) throw new ArgumentException("Could not find valid fields");
-                    var record = (IDictionary<string, object>)csv.GetRecord<dynamic>();
+                    var record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
-                    foreach (var field in record)
-                    {
-                        types.Add(TryGuessTypeSingle((string)field.Value));
-                    }
+                    types.AddRange(record.Select(field => TryGuessTypeSingle((string) field.Value)));
 
-                    for (int readCount = 0; readCount < NumLinesToRead; readCount++)
+                    for (var readCount = 0; readCount < NumLinesToRead; readCount++)
                     {
                         if (!csv.Read()) return types;
 
-                        record = (IDictionary<string, object>)csv.GetRecord<dynamic>();
+                        record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
                         var ix = 0;
                         foreach (var field in record)
                         {
-                            types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string)field.Value));
+                            types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string) field.Value));
                             ix++;
                         }
                     }
@@ -319,21 +323,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                     while (csv.Read())
                     {
-                        record = (IDictionary<string, object>)csv.GetRecord<dynamic>();
+                        record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
                         var ix = 0;
                         foreach (var field in record)
                         {
                             var strVal = field.Value as string;
-                            if (strVal != null && strVal != "")
+                            if (!string.IsNullOrEmpty(strVal))
                             {
-                                types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string)field.Value));
+                                types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string) field.Value));
                             }
+
                             ix++;
                         }
                     }
 
                 }
+
                 return types;
             }
             finally
@@ -352,46 +358,50 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 try
                 {
-                    using (var csv = configuration == null ? new CsvReader(reader, true) : new CsvReader(reader, configuration, true))
+                    using (var csv = new CsvReader(reader, configuration, true))
                     {
                         csv.Read();
                         csv.ReadHeader();
 
                         csv.Read();
-                        if (((IDictionary<string, object>)csv.GetRecord<dynamic>()).Count == 1)
+                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count == 1)
                         {
                             // Less than half of the lines contain the delimiter, guess ';' and norwegian commas instead
                             configuration.Delimiter = ";";
                             configuration.CultureInfo = new CultureInfo("no-NB");
                         }
                     }
-                } catch(BadDataException) { }
+                }
+                catch (BadDataException)
+                {
+                }
+
                 stream.Seek(streamPos, SeekOrigin.Begin);
 
                 try
                 {
-                    using (var csv = configuration == null ? new CsvReader(reader, true) : new CsvReader(reader, configuration, true))
+                    using (var csv = new CsvReader(reader, configuration, true))
                     {
                         csv.Read();
                         csv.ReadHeader();
 
                         csv.Read();
-                        if (((IDictionary<string, object>)csv.GetRecord<dynamic>()).Count != 1)
+                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count != 1)
                         {
                             stream.Seek(streamPos, SeekOrigin.Begin);
                             return configuration;
                         }
                     }
                 }
-                catch (BadDataException) { }
+                catch (BadDataException)
+                {
+                }
+
                 stream.Seek(streamPos, SeekOrigin.Begin);
 
 
-                // Check if we have \n line endings or \r\n
                 var buf = new byte[512];
-                var dataRead = stream.Read(buf, 0, 512);
-                var lineEndSize = buf.Contains((byte)'\r') ? 2 : 1;
-
+                stream.Read(buf, 0, buf.Length);
                 var nextStreamPos = FindLikelyHeaderStart(buf, ',');
 
                 stream.Seek(nextStreamPos, SeekOrigin.Begin);
@@ -400,13 +410,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 configuration = new CsvHelper.Configuration.Configuration();
                 try
                 {
-                    using (var csv = configuration == null ? new CsvReader(reader, true) : new CsvReader(reader, configuration, true))
+                    using (var csv = new CsvReader(reader, configuration, true))
                     {
                         csv.Read();
                         csv.ReadHeader();
 
                         csv.Read();
-                        if (((IDictionary<string, object>)csv.GetRecord<dynamic>()).Count > 1)
+                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count > 1)
                         {
                             stream.Seek(nextStreamPos, SeekOrigin.Begin);
                             return configuration;
@@ -420,56 +430,61 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                 stream.Seek(streamPos, SeekOrigin.Begin);
             }
+
             return configuration;
 
         }
 
         private static int FindLikelyHeaderStart(byte[] buf, char delimiter)
         {
-            var newline = (byte)'\n';
-            var illegalHeaderCharacters = new byte[] { (byte)'=' };
-            var delim = (byte)delimiter;
+            const byte newline = (byte) '\n';
+            var illegalHeaderCharacters = new[] {(byte) '='};
+            var byteDelimiter = (byte) delimiter;
 
-            for (var i=0; i<buf.Length; i++)
+            for (var i = 0; i < buf.Length; i++)
             {
-                if(buf[i] == delim)
-                {
-                    var endIx = Array.IndexOf(buf, newline, i) + 1;
-                    var startIx = Array.LastIndexOf(buf, newline, i) + 1;
+                if (buf[i] != byteDelimiter) continue;
 
-                    var isLegal = true;
-                    for(var j= startIx; j<endIx; j++)
-                    {
-                        if (illegalHeaderCharacters.Contains(buf[j]))
-                        {
-                            isLegal = false;
-                            break;
-                        }
-                    }
-                    if (isLegal)
-                    {
-                        return startIx;
-                    }
-                    i = endIx;
+
+                var endIx = Array.IndexOf(buf, newline, i) + 1;
+                var startIx = Array.LastIndexOf(buf, newline, i) + 1;
+
+                var isLegal = true;
+                for (var j = startIx; j < endIx; j++)
+                {
+                    if (!illegalHeaderCharacters.Contains(buf[j])) continue;
+
+                    isLegal = false;
+                    break;
                 }
+
+                if (isLegal)
+                {
+                    return startIx;
+                }
+
+                i = endIx;
             }
 
             return 0;
         }
 
-        public static Array IListToArray(IList list, Type elementType)
+        public static Array ListInterfaceToArray(IList list, Type elementType)
         {
-            MethodInfo castMethod = typeof(Enumerable).GetMethod("Cast").MakeGenericMethod(new Type[] { elementType });
-            MethodInfo toArrayMethod = typeof(Enumerable).GetMethod("ToArray").MakeGenericMethod(new Type[] { elementType });
+            var castMethod = typeof(Enumerable).GetMethod("Cast")?.MakeGenericMethod(elementType);
+            if (castMethod == null) return null;
 
-            var castedObjectEnum = castMethod.Invoke(null, new object[] { list });
-            return (Array)toArrayMethod.Invoke(null, new object[] { castedObjectEnum });
+            var toArrayMethod = typeof(Enumerable).GetMethod("ToArray")?.MakeGenericMethod(elementType);
+            if (toArrayMethod == null) return null;
+
+            var castedObjectEnum = castMethod.Invoke(null, new object[] {list});
+            return (Array) toArrayMethod.Invoke(null, new[] {castedObjectEnum});
         }
 
         public static (List<string>, List<Type>, List<Array>) Parse(Stream stream)
         {
             // I'm assuming that it is quicker to count the number of lines to initialize the lists for the output
-            int lineCount = CountLines(stream);
+            var lineCount = CountLines(stream);
 
             var configuration = DetectConfiguration(stream);
 
@@ -480,23 +495,24 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             foreach (var type in types)
             {
                 var genericListType = listGenericType.MakeGenericType(type);
-                var list = (IList)Activator.CreateInstance(genericListType, new object[] { lineCount });
+                var list = (IList) Activator.CreateInstance(genericListType, new object[] {lineCount});
                 data.Add(list);
 
             }
 
-            List<string> headers = null;
+            List<string> headers;
             using (var reader = new StreamReader(stream))
             using (var csv = configuration == null ? new CsvReader(reader) : new CsvReader(reader, configuration))
             {
                 csv.Read();
                 csv.ReadHeader();
 
-                headers = new List<string>(((IDictionary<string, object>)csv.GetRecord<dynamic>()).Keys.Select(s => s.Trim()));
+                headers = new List<string>(
+                    ((IDictionary<string, object>) csv.GetRecord<dynamic>()).Keys.Select(s => s.Trim()));
 
                 while (csv.Read())
                 {
-                    for (int i = 0; i < data.Count; i++)
+                    for (var i = 0; i < data.Count; i++)
                     {
                         data[i].Add(csv.GetField(types[i], i));
                     }
@@ -504,12 +520,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             }
 
             var dataArray = new List<Array>(data.Count);
-            for (int i = 0; i < data.Count; i++)
+            for (var i = 0; i < data.Count; i++)
             {
                 var type = types[i];
                 var list = data[i];
 
-                dataArray.Add(IListToArray(list, type));
+                dataArray.Add(ListInterfaceToArray(list, type));
             }
 
             return (headers, types, dataArray);
