@@ -91,7 +91,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             }
             catch (Exception ex)
             {
-                await XamarinHelpers.ShowErrorMessage("Error", $"Could not add figure: {ex.Message}", XamarinHelpers.GetCurrentPage(Navigation));
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not add figure: {ex.Message}", XamarinHelpers.GetCurrentPage(Navigation));
             }
         }
 
