@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Xamarin.Forms;
+using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views.DynamicLayout
@@ -163,7 +164,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             
             {
                 var index = layout.Children.IndexOf(container);
-                layout.Children.RemoveAt(index);
+                layout.RemoveChild(container);
 
                 var verticalIndex = MainVerticalStackLayout.Children.IndexOf(layout);
 
@@ -181,26 +182,26 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                         switch (location)
                         {
                             case PlaceableLocation.Left:
-                                MainHorizontalStackLayout.Children.Insert(index++ - ++leftIx, childItem);
+                                MainHorizontalStackLayout.InsertChild(index++ - ++leftIx, childItem);
                                 break;
                             case PlaceableLocation.Right:
-                                MainHorizontalStackLayout.Children.Insert(index, childItem);
+                                MainHorizontalStackLayout.InsertChild(index, childItem);
                                 break;
                             case PlaceableLocation.Up:
                                 if (!MainHorizontalStackLayout.Children.Any())
                                 {
-                                    MainHorizontalStackLayout.Children.Add(childItem);
+                                    MainHorizontalStackLayout.InsertChild(0, childItem);
                                     break;
                                 }
-                                MainVerticalStackLayout.Children.Insert(verticalIndex++, childItem);
+                                MainVerticalStackLayout.InsertChild(verticalIndex++, childItem);
                                 break;
                             case PlaceableLocation.Down:
                                 if (!MainHorizontalStackLayout.Children.Any())
                                 {
-                                    MainHorizontalStackLayout.Children.Add(childItem);
+                                    MainHorizontalStackLayout.InsertChild(0, childItem);
                                     break;
                                 }
-                                MainVerticalStackLayout.Children.Insert(verticalIndex + 1, childItem);
+                                MainVerticalStackLayout.InsertChild(verticalIndex + 1, childItem);
                                 break;
                             case PlaceableLocation.Center:
                                 throw new ArgumentException("Center should have been handled elsewhere");
@@ -216,7 +217,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             {
                 if (layout != MainHorizontalStackLayout && layout != MainVerticalStackLayout)
                 {
-                    stackParent.Children.Remove(layout);
+                    stackParent.RemoveChild(layout);
                 }
             }
 
@@ -226,7 +227,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var view = new PlaceableItem();
             _placeableItems.Add(view);
             view.LocationSelected += PlaceableItem_OnLocationSelected;
-            MainHorizontalStackLayout.Children.Add(view);
+            MainHorizontalStackLayout.InsertChild(0, view);
             return view;
         }
 
