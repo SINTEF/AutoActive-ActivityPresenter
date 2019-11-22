@@ -33,6 +33,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {}
+
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
     }
 
     // TODO: Split each activity and lap into their own datastructures.
@@ -154,7 +159,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 dataList = ConvertTrackpoints(tpList);
             }
             return dataList;
-            
+
         }
 
 
