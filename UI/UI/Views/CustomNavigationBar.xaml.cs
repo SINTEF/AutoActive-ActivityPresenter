@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
@@ -114,11 +113,11 @@ namespace SINTEF.AutoActive.UI.Views
                         {
                             var parameters = new Dictionary<string, (object, string)>
                             {
-                                ["Name"] = ("Imported File", "Name of the imported session file")
+                                ["Name"] = (file.Name, "Name of the imported session file")
                             };
 
                             plugin.GetExtraConfigurationParameters(parameters);
-                            var page = new ImportParametersPage(file.Name, parameters);
+                            var page = new ImportParametersPage($"{file.Name}{file.Extension}", parameters);
                             await XamarinHelpers.GetCurrentPage().Navigation.PushAsync(page: page);
 
                             streamFactoryList = new List<IReadSeekStreamFactory>();
