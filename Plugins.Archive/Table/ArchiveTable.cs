@@ -190,12 +190,20 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 {
                     unit = tableInformation.Units[index];
                 }
+                
+
+                var uri = tableFile + "/" + column.Name;
+
+                if (column.DataType == DataType.String)
+                {
+                    this.AddColumn(column.Name, GenerateLoader<string>(_reader, column), time, uri, unit);
+                    continue;
+                }
+
                 if (column.HasNulls)
                 {
                     throw new NotImplementedException("Nullable columns are not yet implemented.");
                 }
-
-                var uri = tableFile + "/" + column.Name;
 
                 switch (column.DataType)
                 {

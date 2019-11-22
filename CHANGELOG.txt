@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.4.3] - 2019-11-22
+### Added
+ - Support for reading files with string columns
+
+### Changed
+ - CSV importer writes strings to parquet tables
+
+
+## [0.4.2] - 2019-11-22
+### Added
+ - Generic CSV importer
+
+### Changed
+ - Line for current time should now be at the same x-position even if axis values are hidden
+ - Resizable windows are handled differently in the code
+ - Fixed so data is shown when adding a plot (no need to seek in data first)
+ - Updated catapult importer to the new CSV importer
+
+
 ## [0.4.1] - 2019-11-12
 ### Added
  - Freezing window while saving and showing a message when completed

@@ -167,7 +167,14 @@ namespace SINTEF.AutoActive.UI.Views
                 }
             }  catch(Exception ex)
             {
-                await XamarinHelpers.ShowOkMessage("Error", $"Could not add plot: {ex.Message}");
+                if (datapoint.DataType == typeof(string))
+                {
+                    await XamarinHelpers.ShowOkMessage("Error", $"Visualizing columns containing strings is not yet implemented.\n\n{ex.Message}");
+                }
+                else
+                {
+                    await XamarinHelpers.ShowOkMessage("Error", $"Could not add plot.\n\n{ex.Message}");
+                }
             }
             return null;
         }

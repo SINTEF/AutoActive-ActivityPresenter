@@ -117,23 +117,26 @@ namespace SINTEF.AutoActive.Plugins.Import
                 DataColumn column;
                 switch (dataArr)
                 {
-                    case bool[] arr:
+                    case bool[] _:
                         column = new DataColumn(new DataField<bool>(dataName), dataArr);
                         break;
-                    case byte[] arr:
+                    case byte[] _:
                         column = new DataColumn(new DataField<byte>(dataName), dataArr);
                         break;
-                    case int[] arr:
+                    case int[] _:
                         column = new DataColumn(new DataField<int>(dataName), dataArr);
                         break;
-                    case long[] arr:
+                    case long[] _:
                         column = new DataColumn(new DataField<long>(dataName), dataArr);
                         break;
-                    case float[] arr:
+                    case float[] _:
                         column = new DataColumn(new DataField<float>(dataName), dataArr);
                         break;
-                    case double[] arr:
+                    case double[] _:
                         column = new DataColumn(new DataField<double>(dataName), dataArr);
+                        break;
+                    case string[] _:
+                        column = new DataColumn(new DataField<string>(dataName), dataArr);
                         break;
                     default:
                         continue;
