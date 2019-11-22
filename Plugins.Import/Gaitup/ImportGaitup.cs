@@ -308,7 +308,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -386,7 +386,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -462,7 +462,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -529,7 +529,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -601,7 +601,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 

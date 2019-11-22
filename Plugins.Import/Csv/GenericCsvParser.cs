@@ -199,11 +199,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var fileId = "/Import" + "/" + Name + "." + Guid.NewGuid();
 
             // Make table object
-            var metaTable = new JObject {["type"] = "no.sintef.table"};
-            metaTable["attachments"] = new JArray(new object[] {fileId});
-            metaTable["units"] = new JArray(GetUnitArr());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
-            metaTable["version"] = 1;
+            var metaTable = new JObject
+            {
+                ["type"] = "no.sintef.table",
+                ["attachments"] = new JArray(new object[] {fileId}),
+                ["units"] = new JArray(GetUnitArray()),
+                ["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock,
+                ["version"] = 1
+            };
 
             var userTable = new JObject { };
             userTable["filename"] = _fileName;

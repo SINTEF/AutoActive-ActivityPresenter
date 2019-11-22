@@ -190,7 +190,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
                 {
                     unit = tableInformation.Units[index];
                 }
-                
 
                 var uri = tableFile + "/" + column.Name;
 

@@ -5,6 +5,7 @@ using SINTEF.AutoActive.Databus.Implementations;
 using Parquet.Data;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using System.IO;
+using System.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 
 namespace SINTEF.AutoActive.Plugins.Import
@@ -25,7 +26,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     public class RememberingFullTableReader
     {
         private readonly ImportTableBase _reader;
-        internal Dictionary<string, Array> _data = null;
+        public Dictionary<string, Array> Data { get; private set; }
 
         public RememberingFullTableReader(ImportTableBase reader)
         {
@@ -37,22 +38,17 @@ namespace SINTEF.AutoActive.Plugins.Import
             // Make a copy of existing data and reader
             _reader = rftr._reader;
 
-            if (rftr._data != null)
+            if (rftr.Data != null)
             {
-                _data = new Dictionary<string, Array>(rftr._data);
+                Data = new Dictionary<string, Array>(rftr.Data);
             }
-        }
-
-        public Dictionary<string, Array> getData()
-        {
-            return _data;
         }
 
         public void LoadAll()
         {
-            if (_data == null)
+            if (Data == null)
             {
-                _data = _reader.ReadData();
+                Data = _reader.ReadData();
             }
         }
 
@@ -60,7 +56,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         {
             LoadAll();
 
-            if (_data.TryGetValue(columnName, out var arr))
+            if (Data.TryGetValue(columnName, out var arr))
             {
                 return arr as T[];
             }
@@ -96,14 +92,14 @@ namespace SINTEF.AutoActive.Plugins.Import
             return new Task<T[]>(() => LoadColumn<T>(colInfo.Name).Result);
         }
 
-        protected DataColumnAndSchema makeDataColumnAndSchema()
+        protected DataColumnAndSchema MakeDataColumnAndSchema()
         {
             // Make a copy of the Remembering reader that later can be discarded
             // This to avoid to read in all tables in memory at the same time.
             var fullReader = new RememberingFullTableReader(_reader);
             fullReader.LoadAll();
 
-            var dataDict = fullReader.getData();
+            var dataDict = fullReader.Data;
 
             var fields = new List<Field>();
             var datacols = new List<DataColumn>();
@@ -153,7 +149,7 @@ namespace SINTEF.AutoActive.Plugins.Import
             // This stream will be disposed by the sessionWriter
             var ms = new MemoryStream();
 
-            var dataColAndSchema = makeDataColumnAndSchema();
+            var dataColAndSchema = MakeDataColumnAndSchema();
 
             using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.Schema, ms))
             {
@@ -174,17 +170,9 @@ namespace SINTEF.AutoActive.Plugins.Import
             return Task.FromResult(true);
         }
 
-        protected string[] GetUnitArr()
+        protected string[] GetUnitArray()
         {
-            // Make unit table
-            var numCol = _colInfos.Count;
-            var units = new string[numCol];
-            for (var i = 0; i < numCol; i++)
-            {
-                units[i] = _colInfos[i].Unit;
-            }
-
-            return units;
+            return _colInfos.Select(c => c.Unit).ToArray();
         }
 }
 
