@@ -18,9 +18,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public async Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
         {
             var stream = await readerFactory.GetReadStream();
-            using(var reader = new StreamReader(stream))
+            using (var reader = new StreamReader(stream))
             {
-                return reader.ReadLine().Contains("Logan");
+                var line = reader.ReadLine();
+                return line != null && line.Contains("Logan");
             }
         }
 
@@ -29,7 +30,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         }
 
-        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
+        public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
+            Dictionary<string, object> parameters)
         {
             var importer = new CatapultCsvImporter(parameters, readerFactory.Name);
             importer.ParseFile(await readerFactory.GetReadStream());
@@ -49,14 +51,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return TimeFormatter.TimeFromDateTime(dateTime);
         }
 
-        protected override string TableName { get => "Catapult"; }
+        protected override string TableName => "Catapult";
         private long _startTime;
 
         protected override void PreProcessStream(Stream stream)
         {
             var lines = new List<string>(10);
             var streamPos = stream.Position;
-            using (var sr = new StreamReader(stream,Encoding.UTF8, true, 1024, true))
+            using (var sr = new StreamReader(stream, Encoding.UTF8, true, 1024, true))
             {
                 for (var i = 0; i < lines.Capacity; i++)
                 {
@@ -69,7 +71,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             foreach (var line in lines)
             {
                 if (!line.Contains("=")) continue;
-                var lineSplit = line.Split(new[] { '=' }, 2);
+                var lineSplit = line.Split(new[] {'='}, 2);
                 parameters[lineSplit[0]] = lineSplit[1];
             }
 
@@ -89,6 +91,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 Debug.WriteLine("Start time not found.");
             }
+
             stream.Seek(streamPos, SeekOrigin.Begin);
         }
 
@@ -121,7 +124,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return epochUs;
         }
 
-        private long[] StringArrayToTime(string[] stringTime)
+        private long[] StringArrayToTime(IEnumerable<string> stringTime)
         {
             return stringTime.Select(el => ConvHmssToEpochUs(el) + _startTime).ToArray();
         }
@@ -130,15 +133,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         {
             names[0] = "time";
             types[0] = typeof(long);
-            data[0] = StringArrayToTime((string[])data[0]);
+            data[0] = StringArrayToTime((string[]) data[0]);
 
+
+            // Catapult data might have a final column which is empty
             var lastIndex = names.Count - 1;
-            if (string.IsNullOrEmpty(names[lastIndex]))
-            {
-                names.RemoveAt(lastIndex);
-                types.RemoveAt(lastIndex);
-                data.RemoveAt(lastIndex);
-            }
+            if (!string.IsNullOrEmpty(names[lastIndex])) return;
+            names.RemoveAt(lastIndex);
+            types.RemoveAt(lastIndex);
+            data.RemoveAt(lastIndex);
         }
     }
 }
