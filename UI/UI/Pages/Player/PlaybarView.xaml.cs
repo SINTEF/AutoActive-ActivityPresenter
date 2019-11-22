@@ -76,7 +76,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     _lastTime = DateTime.Now;
                     continue;
                 }
-                
+
                 Device.BeginInvokeOnMainThread(() =>
                 {
                     if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
@@ -159,9 +159,15 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 if (ViewerContext.SelectedTimeFrom < ViewerContext.AvailableTimeFrom)
                 {
                     SetSliderTime(ViewerContext.AvailableTimeFrom);
-                } else if(ViewerContext.SelectedTimeFrom > ViewerContext.AvailableTimeTo)
+                }
+                else if (ViewerContext.SelectedTimeFrom > ViewerContext.AvailableTimeTo)
                 {
-                    SetSliderTime(ViewerContext.AvailableTimeTo - WindowSize);
+                    var newTime = ViewerContext.AvailableTimeTo - WindowSize;
+                    SetSliderTime(newTime < ViewerContext.AvailableTimeFrom ? ViewerContext.AvailableTimeFrom : newTime);
+                }
+                else
+                {
+                    SetSliderTime(ViewerContext.SelectedTimeFrom);
                 }
             });
         }
