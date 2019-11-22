@@ -60,6 +60,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             playTask.Start();
 
             WindowSlider.Value = WindowSize / 1000000d;
+
+            DataTrackline.Playbar = this;
         }
 
         private void PlayButtonLoop()
@@ -118,7 +120,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             return  value / divider;
         }
 
-        private void SetSliderTime(long time)
+        public void SetSliderTime(long time)
         {
             if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
 
