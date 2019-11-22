@@ -27,6 +27,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
         private Mutex _transactionMutex;
         private readonly EventWaitHandle _waitHandle = new EventWaitHandle(false, EventResetMode.ManualReset);
 
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
 
         public void StartTransaction(List<IReadSeekStreamFactory> streamFactories)
         {
@@ -78,7 +82,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             {
                 throw new TimeoutException("Could not find all gaitup files in session.");
             }
-            
+
             lock (_transactionMutex)
             {
                 if (!_isFirst) return Task.FromResult<IDataProvider>(null);

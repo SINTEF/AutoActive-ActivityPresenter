@@ -27,6 +27,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
         }
+
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
     }
 
     public class MqttImporter : BaseDataProvider
@@ -223,6 +228,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
     }
 
 }
-    
 
-    
+
+

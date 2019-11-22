@@ -14,6 +14,6 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
     public class ArchivePluginAttribute : PluginAttribute
     {
-        public ArchivePluginAttribute(string type) : base(typeof(IArchivePlugin), type) { }
+        public ArchivePluginAttribute(string type, int priority = 100) : base(typeof(IArchivePlugin), type, priority) { }
     }
 }

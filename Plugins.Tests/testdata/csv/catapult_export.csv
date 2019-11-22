@@ -1,0 +1,10 @@
+﻿Logan 5.1.7
+rawFileName="C:\download\Dropbox\langrenn\beito2018\15s\73183 105 7647 201811180959.raw"
+From=0:00.0, To=1:08:59.0
+Date=18Nov2018
+Time=09:59:56
+Athlete=73183 105
+EventDescription=
+Time, Forward, Sideways, Up, Vel(Dpr), Gyr1(d/s), Gyr2(d/s), Gyr3(d/s), Altitude, Vel(av), HDOP, VDOP, Longitude, Latitude, Heart Rate, Acc(dpr), Raw Vel., GPS Time, GPS Latitude, GPS Longitude, 
+0:00.00, 0.982, -0.035, -0.016, 0.000, -0.514, -0.003, -0.056, 823.200, 0.000, 0.600, 1.000, 8.91546281, 61.2363598, 0, 0.000, 0.000, .., .., .., 
+0:00.01, 0.978, -0.035, -0.014, 0.000, -0.574, -0.064, -0.178, 0.000, 0.000, 0.000, 0.000, 8.91478501, 61.2366749, 0, 0.000, 0.025, .., ----, ----, 
