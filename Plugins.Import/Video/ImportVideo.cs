@@ -23,7 +23,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
     [ImportPlugin(".mts")]
     public class ImportVideoPlugin : IImportPlugin
     {
-
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
             Dictionary<string, object> parameters)
         {
@@ -36,6 +35,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
             parameters["CreatedAtStart"] = (true, "Created time is at the start of the video file");
+        }
+
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            //TODO(sigurdal): verify format?
+            return Task.FromResult(true);
         }
     }
 

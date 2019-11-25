@@ -12,7 +12,7 @@ namespace SINTEF.AutoActive.Plugins
     public static class PluginService
     {
         static readonly Dictionary<Type, PluginTypeAttribute> pluginTargetTypes = new Dictionary<Type, PluginTypeAttribute>();
-        static readonly Dictionary<Type, Dictionary<string, List<PluginImplementorData>>> pluginImplementors = new Dictionary<Type, Dictionary<string, List<PluginImplementorData>>>();
+        static readonly Dictionary<Type, Dictionary<string, SortedSet<PluginImplementorData>>> pluginImplementors = new Dictionary<Type, Dictionary<string, SortedSet<PluginImplementorData>>>();
 
         static PluginService()
         {
@@ -76,11 +76,14 @@ namespace SINTEF.AutoActive.Plugins
                 return;
             }
             // Register this type
-            Register(plugin, pluginAttribute.Target, pluginAttribute.Kind);
+            Register(plugin, pluginAttribute);
         }
 
-        private static void Register(Type plugin, Type pluginTarget, string kind, object implementor = null)
+        private static void Register(Type plugin, PluginAttribute pluginAttribute)
         {
+
+            object implementor = null;
+
             // If the implementor is not provided, we need to be able to construct one ourself
             if (plugin.GetConstructor(Type.EmptyTypes) == null)
             {
@@ -88,17 +91,17 @@ namespace SINTEF.AutoActive.Plugins
                 return;
             }
             // Check the plugin-type of the target
-            var targetAttribute = GetOrRegisterPluginType(pluginTarget);
+            var targetAttribute = GetOrRegisterPluginType(pluginAttribute.Target);
             if (targetAttribute != null)
             {
                 // Get the plugins for this target type
-                if (!pluginImplementors.TryGetValue(pluginTarget, out var targetPlugins))
+                if (!pluginImplementors.TryGetValue(pluginAttribute.Target, out var targetPlugins))
                 {
-                    targetPlugins = new Dictionary<string, List<PluginImplementorData>>();
-                    pluginImplementors[pluginTarget] = targetPlugins;
+                    targetPlugins = new Dictionary<string, SortedSet<PluginImplementorData>>();
+                    pluginImplementors[pluginAttribute.Target] = targetPlugins;
                 }
 
-                if (targetPlugins.TryGetValue(kind, out var targetKindPlugins))
+                if (targetPlugins.TryGetValue(pluginAttribute.Kind, out var targetKindPlugins))
                 {
                     // Check if multiple implementors of this plugin-type for every kind is allowed
                     if (targetAttribute.AllowMultipleImplementations)
@@ -109,32 +112,28 @@ namespace SINTEF.AutoActive.Plugins
                             ImplementorType = plugin,
                             Instance = implementor,
                             PluginType = targetAttribute,
+                            Priority = pluginAttribute.Priority
                         });
                     }
                     else
                     {
                         // If not, show an error
-                        Debug.WriteLine($"Plugin-type {pluginTarget.Name} with kind '{kind}' is already provided by {targetKindPlugins[0].ImplementorType.Name}. The type {plugin.Name} will not be used as a plugin!", "Error");
+                        Debug.WriteLine($"Plugin-type {pluginAttribute.Target.Name} with kind '{pluginAttribute.Kind}' is already provided by {targetKindPlugins.First().ImplementorType.Name}. The type {plugin.Name} will not be used as a plugin!", "Error");
                     }
                 }
                 else
                 {
                     // Create a new list containing this plugin
-                    targetKindPlugins = new List<PluginImplementorData>();
+                    targetKindPlugins = new SortedSet<PluginImplementorData>();
                     targetKindPlugins.Add(new PluginImplementorData
                     {
                         ImplementorType = plugin,
                         Instance = implementor,
                         PluginType = targetAttribute,
                     });
-                    targetPlugins[kind] = targetKindPlugins;
+                    targetPlugins[pluginAttribute.Kind] = targetKindPlugins;
                 }
             }
-        }
-
-        public static void Register<T, Timpl>(string kind, Timpl implementor = null) where T : class where Timpl : class, T
-        {
-            Register(typeof(Timpl), typeof(T), kind, implementor);
         }
 
         static T[] GetImplementors<T>(string kind, bool isSingle)
@@ -156,24 +155,24 @@ namespace SINTEF.AutoActive.Plugins
                 {
                     if (targetImplementors.TryGetValue(kind, out var targetKindImplementors))
                     {
-                        var result = new T[targetKindImplementors.Count];
-                        for (var i = 0; i < result.Length; i++)
+                        var result = new List<T>(targetKindImplementors.Count);
+
+                        foreach (var implementor in targetKindImplementors)
                         {
-                            var implementor = targetKindImplementors[i];
                             if (pluginTypeAttribute.UseSingletonInstance)
                             {
                                 if (implementor.Instance == null)
                                 {
                                     implementor.Instance = Activator.CreateInstance(implementor.ImplementorType);
                                 }
-                                result[i] = (T)implementor.Instance;
+                                result.Add((T)implementor.Instance);
                             }
                             else
                             {
-                                result[i] = (T)Activator.CreateInstance(implementor.ImplementorType);
+                                result.Add((T)Activator.CreateInstance(implementor.ImplementorType));
                             }
                         }
-                        return result;
+                        return result.ToArray();
                     }
                 }
             }
@@ -246,11 +245,18 @@ namespace SINTEF.AutoActive.Plugins
             return ret;
         }
 
-        class PluginImplementorData
+        class PluginImplementorData : IComparable<PluginImplementorData>
         {
             public object Instance { get; set; }
             public Type ImplementorType { get; set; }
             public PluginTypeAttribute PluginType { get; set; }
+            public int Priority { get; internal set; }
+
+            public int CompareTo(PluginImplementorData other)
+            {
+                // Reversed sorting to get highest priority first
+                return other.Priority.CompareTo(Priority);
+            }
         }
     }
 }

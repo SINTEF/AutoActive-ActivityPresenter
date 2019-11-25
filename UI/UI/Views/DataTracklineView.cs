@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.UI.Pages.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
 using Xamarin.Forms.Xaml;
@@ -16,7 +17,6 @@ namespace SINTEF.AutoActive.UI.Views
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class DataTracklineView : SKCanvasView
     {
-
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
         private readonly List<(IDataPoint, ITimeViewer, IDataViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer, IDataViewer)>();
 
@@ -39,10 +39,35 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
+        public PlaybarView Playbar { get; set; }
+
         public DataTracklineView()
         {
             PaintSurface += OnPaintSurface;
             WidthMargins = 10;
+            Touch += OnTouch;
+            EnableTouchEvents = true;
+        }
+
+        private void OnTouch(object sender, SKTouchEventArgs e)
+        {
+            if (e.ActionType != SKTouchAction.Pressed) return;
+
+            if (e.MouseButton == SKMouseButton.Right)
+            {
+                if (Playbar == null) return;
+
+                var height = GetTracklineHeight(_previousHeight);
+                if (height < 1) return;
+
+                height += YMargin;
+
+                var selectedItem = (int) (e.Location.Y / height);
+                if (selectedItem >= _dataTimeList.Count) return;
+
+                var (_, timeViewer, _) = _dataTimeList[selectedItem];
+                Playbar.SetSliderTime(timeViewer.Start);
+            }
         }
 
         public int WidthMargins { get; set; }
@@ -92,7 +117,7 @@ namespace SINTEF.AutoActive.UI.Views
             canvas.DrawLine(xPos, 0, xPos, canvas.LocalClipBounds.Height, _currentLinePaint);
         }
 
-        private static (List<(long, long, string)>, long, float) GetMinTimeAndScale(IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers, SKRect drawRect)
+        private static (List<(long, long, string)>, long, float) GetMinTimeAndScale(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers, SKRect drawRect)
         {
             var times = new List<(long, long, string)>();
             foreach (var (viewer, context, label) in timeViewers)
@@ -109,67 +134,74 @@ namespace SINTEF.AutoActive.UI.Views
             return (times, xMin, xScale);
         }
 
+        private readonly SKPaint _dataTrackPaint = new SKPaint
+        {
+            Color = SKColors.Red,
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _textPaint = new SKPaint
+        {
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
+            SubpixelText = true,
+            Typeface = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold)
+        };
+
+        private const float MaxTrackHeight = 30f;
+        private const float YMargin = 2f;
+        private float _previousHeight;
+
+        private float GetTracklineHeight(float plotHeight)
+        {
+            var yHeight = (plotHeight) / _timeViewers.Count - YMargin;
+            if (yHeight > MaxTrackHeight) yHeight = MaxTrackHeight;
+            return yHeight;
+        }
+
+
         private (long, float) DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
         {
             if (timeViewers.Count == 0) return (0,0);
+            _previousHeight = drawRect.Height;
 
             const float labelXMargin = 4f;
             const float boxRoundnessX = 5f;
             const float boxRoundnessY = boxRoundnessX;
             const float minTextSize = 10f;
-            const float yMargin = 2f;
-            const float maxTrackHeight = 30f;
 
             var (times, xMin, xScale) = GetMinTimeAndScale(timeViewers, drawRect);
 
-            var nLines = _timeViewers.Count;
-            var yHeight = (drawRect.Height) / nLines - yMargin;
+            var yHeight = GetTracklineHeight(drawRect.Height);
 
-            if (yHeight > maxTrackHeight) yHeight = maxTrackHeight;
+            
 
-
-            var boldFont = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold);
-
-            var paint = new SKPaint
-            {
-                Color = SKColors.Red,
-                StrokeWidth = 1,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true
-            };
-
-            var textPaint = new SKPaint
-            {
-                Color = SKColors.Black,
-                Style = SKPaintStyle.Fill,
-                IsAntialias = true,
-                SubpixelText = true,
-                Typeface = boldFont
-            };
-
-            var fontHeight = textPaint.FontMetrics.Bottom - textPaint.FontMetrics.Top;
-            var textSize = textPaint.TextSize;
+            var fontHeight = _textPaint.FontMetrics.Bottom - _textPaint.FontMetrics.Top;
+            var textSize = _textPaint.TextSize;
             if (yHeight < Math.Abs(fontHeight))
             {
-                textSize = Math.Abs(yHeight / fontHeight * textPaint.TextSize);
+                textSize = Math.Abs(yHeight / fontHeight * _textPaint.TextSize);
             }
 
-            textPaint.TextSize = Math.Max(textSize, minTextSize);
+            _textPaint.TextSize = Math.Max(textSize, minTextSize);
 
             var fontBottom =
-                Math.Abs(textPaint.FontMetrics.Bottom - textPaint.FontMetrics.Top) < yHeight
-                    ? yHeight / 2 - textPaint.FontMetrics.Bottom
+                Math.Abs(_textPaint.FontMetrics.Bottom - _textPaint.FontMetrics.Top) < yHeight
+                    ? yHeight / 2 - _textPaint.FontMetrics.Bottom
                     : 0f;
 
-            var yPos = yMargin;
+            var yPos = YMargin;
             foreach (var (start, end, label) in times)
             {
                 var xPos = (start - xMin) * xScale;
                 var width = Math.Max((end - start) * xScale, 1f);
-                canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, paint);
-                canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, textPaint);
+                canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, _dataTrackPaint);
+                canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, _textPaint);
 
-                yPos += yHeight + yMargin;
+                yPos += yHeight + YMargin;
             }
 
             return (xMin, xScale);
@@ -196,7 +228,7 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
-        public Task RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
+        public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             var found = false;
             int index;
@@ -210,7 +242,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
 
             if (!found)
-                return Task.CompletedTask;
+                return;
 
             var(_, timeViewer, dataViewer) = _dataTimeList[index];
             _dataTimeList.RemoveAt(index);
@@ -225,20 +257,28 @@ namespace SINTEF.AutoActive.UI.Views
             _timeViewers.RemoveAt(index);
 
             InvalidateSurface();
-            return Task.CompletedTask;
         }
 
         private async void DataPointAddedHandler(object sender, (IDataPoint, DataViewerContext) args)
         {
             var (datapoint, context) = args;
             if (context is TimeSynchronizedContext timeContext)
-                await AddDataPoint(datapoint, timeContext);
+            {
+                try
+                {
+                    await AddDataPoint(datapoint, timeContext);
+                }
+                catch (Exception ex)
+                {
+                    await XamarinHelpers.ShowOkMessage("Error", ex.Message, XamarinHelpers.GetCurrentPage(Navigation));
+                }
+            }
         }
-        private async void DataPointRemovedHandler(object sender, (IDataPoint, DataViewerContext) args)
+        private void DataPointRemovedHandler(object sender, (IDataPoint, DataViewerContext) args)
         {
             var (datapoint, context) = args;
             if (context is TimeSynchronizedContext timeContext)
-                await RemoveDataPoint(datapoint, timeContext);
+                RemoveDataPoint(datapoint, timeContext);
         }
 
         public void RegisterFigureContainer(IFigureContainer container)

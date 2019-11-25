@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Xamarin.Forms;
+using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views.DynamicLayout
@@ -138,12 +139,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             if (location == PlaceableLocation.Right)
             {
-                horizontalLayout.Children.Insert(horizontalLayout.Children.IndexOf(MasterLayout) + 1, visualizer);
+                horizontalLayout.InsertChild(horizontalLayout.Children.IndexOf(MasterLayout) + 1, visualizer);
                 return;
             }
             if (location == PlaceableLocation.Left)
             {
-                horizontalLayout.Children.Insert(horizontalLayout.Children.IndexOf(MasterLayout), visualizer);
+                horizontalLayout.InsertChild(horizontalLayout.Children.IndexOf(MasterLayout), visualizer);
                 return;
             }
 
@@ -152,16 +153,16 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 Orientation = StackOrientation.Horizontal,
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.FillAndExpand,
-                Children = { visualizer }
             };
+            newLayout.InsertChild(0, visualizer);
 
             if (location == PlaceableLocation.Up)
             {
-                verticalLayout.Children.Insert(verticalLayout.Children.IndexOf(horizontalLayout), newLayout);
+                verticalLayout.InsertChild(verticalLayout.Children.IndexOf(horizontalLayout), newLayout);
             }
             else if (location == PlaceableLocation.Down)
             {
-                verticalLayout.Children.Insert(verticalLayout.Children.IndexOf(horizontalLayout) + 1, newLayout);
+                verticalLayout.InsertChild(verticalLayout.Children.IndexOf(horizontalLayout) + 1, newLayout);
             }
         }
 

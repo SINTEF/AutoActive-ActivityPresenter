@@ -141,6 +141,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private async void SetMaster(IDataPoint dataPoint)
         {
             var masterFigure = await FigureView.GetView(dataPoint, _masterContext);
+            if (masterFigure == null) return;
             masterFigure.ContextButtonIsVisible = true;
             MasterLayout.Children.Add(masterFigure);
 
@@ -176,17 +177,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             var isMaster = datapoint.Time == _masterTime;
 
+            if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
+            {
+                await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
+                return;
+            }
+
             if (!isMaster && !_slaveSet)
             {
                 _slaveTime = datapoint.Time;
                 _slaveContext = new SynchronizationContext(_masterContext);
                 SlaveLayout.Children.Add(_slaveSlider);
-            }
-
-            if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
-            {
-                await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
-                return;
             }
 
             TimeSynchronizedContext context;
@@ -208,6 +209,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
 
             var figure = await FigureView.GetView(datapoint, context);
+            if (figure == null)
+            {
+                if (!_slaveSet)
+                {
+                    SlaveLayout.Children.Remove(_slaveSlider);
+                    _slaveContext = null;
+                    _slaveTime = null;
+                }
+                return;
+            }
+
             layout.Children.Add(figure);
             DatapointAdded?.Invoke(sender, (datapoint, context));
 

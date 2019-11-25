@@ -5,6 +5,7 @@ using SINTEF.AutoActive.Databus.Implementations;
 using Parquet.Data;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using System.IO;
+using System.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.AllocCheck;
 
@@ -26,7 +27,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     public class RememberingFullTableReader
     {
         private readonly ImportTableBase _importBase;
-        internal Dictionary<string, Array> _data = null;
+        public Dictionary<string, Array> Data { get; private set; }
 
 #if DEBUG_MEM
         private readonly AllocTrack mt;
@@ -47,20 +48,15 @@ namespace SINTEF.AutoActive.Plugins.Import
             // Make a copy of existing data and reader
             _importBase = rftr._importBase;
 
-            if (rftr._data != null)
+            if (rftr.Data != null)
             {
-                _data = new Dictionary<string, Array>(rftr._data);
+                Data = new Dictionary<string, Array>(rftr.Data);
             }
-        }
-
-        public Dictionary<string, Array> getData()
-        {
-            return _data;
         }
 
         public void LoadAll()
         {
-            if (_data == null)
+            if (Data == null)
             {
                 _data = _importBase.ReadData();
             }
@@ -70,7 +66,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         {
             LoadAll();
 
-            if (_data.TryGetValue(columnName, out var arr))
+            if (Data.TryGetValue(columnName, out var arr))
             {
                 return arr as T[];
             }
@@ -105,14 +101,14 @@ namespace SINTEF.AutoActive.Plugins.Import
             return new Task<T[]>(() => LoadColumn<T>(colInfo.Name).Result);
         }
 
-        protected DataColumnAndSchema makeDataColumnAndSchema()
+        protected DataColumnAndSchema MakeDataColumnAndSchema()
         {
             // Make a copy of the Remembering reader that later can be discarded
             // This to avoid to read in all tables in memory at the same time.
             var fullReader = new RememberingFullTableReader(_reader);
             fullReader.LoadAll();
 
-            var dataDict = fullReader.getData();
+            var dataDict = fullReader.Data;
 
             var fields = new List<Field>();
             var datacols = new List<DataColumn>();
@@ -126,23 +122,26 @@ namespace SINTEF.AutoActive.Plugins.Import
                 DataColumn column;
                 switch (dataArr)
                 {
-                    case bool[] arr:
+                    case bool[] _:
                         column = new DataColumn(new DataField<bool>(dataName), dataArr);
                         break;
-                    case byte[] arr:
+                    case byte[] _:
                         column = new DataColumn(new DataField<byte>(dataName), dataArr);
                         break;
-                    case int[] arr:
+                    case int[] _:
                         column = new DataColumn(new DataField<int>(dataName), dataArr);
                         break;
-                    case long[] arr:
+                    case long[] _:
                         column = new DataColumn(new DataField<long>(dataName), dataArr);
                         break;
-                    case float[] arr:
+                    case float[] _:
                         column = new DataColumn(new DataField<float>(dataName), dataArr);
                         break;
-                    case double[] arr:
+                    case double[] _:
                         column = new DataColumn(new DataField<double>(dataName), dataArr);
+                        break;
+                    case string[] _:
+                        column = new DataColumn(new DataField<string>(dataName), dataArr);
                         break;
                     default:
                         continue;
@@ -159,7 +158,7 @@ namespace SINTEF.AutoActive.Plugins.Import
             // This stream will be disposed by the sessionWriter
             var ms = new MemoryStream();
 
-            var dataColAndSchema = makeDataColumnAndSchema();
+            var dataColAndSchema = MakeDataColumnAndSchema();
 
             using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.Schema, ms))
             {
@@ -180,17 +179,9 @@ namespace SINTEF.AutoActive.Plugins.Import
             return Task.FromResult(true);
         }
 
-        protected string[] GetUnitArr()
+        protected string[] GetUnitArray()
         {
-            // Make unit table
-            var numCol = _colInfos.Count;
-            var units = new string[numCol];
-            for (var i = 0; i < numCol; i++)
-            {
-                units[i] = _colInfos[i].Unit;
-            }
-
-            return units;
+            return _colInfos.Select(c => c.Unit).ToArray();
         }
 }
 

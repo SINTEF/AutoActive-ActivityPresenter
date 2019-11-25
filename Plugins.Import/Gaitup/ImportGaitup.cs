@@ -35,6 +35,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             mt = new AllocTrack(this);
         }
 #endif
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
 
         public void StartTransaction(List<IReadSeekStreamFactory> streamFactories)
         {
@@ -87,7 +91,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             {
                 throw new TimeoutException("Could not find all gaitup files in session.");
             }
-            
+
             lock (_transactionMutex)
             {
                 if (!_isFirst) return Task.FromResult<IDataProvider>(null);
@@ -337,7 +341,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -421,7 +425,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -503,7 +507,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -576,7 +580,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -654,7 +658,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Gaitup
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 

@@ -10,8 +10,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         internal T[] Data;
         private readonly Task<T[]> _loader;
-        // private float[] _floatData; Buffer data?
 
+        
 #if DEBUG_MEM
         private AllocTrack mt;
 #endif

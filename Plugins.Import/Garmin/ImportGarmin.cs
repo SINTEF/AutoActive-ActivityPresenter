@@ -33,6 +33,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {}
+
+        public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
+        {
+            return Task.FromResult(true);
+        }
     }
 
     // TODO: Split each activity and lap into their own datastructures.
@@ -111,7 +116,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             // Make table object
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
-            metaTable["units"] = new JArray(GetUnitArr());
+            metaTable["units"] = new JArray(GetUnitArray());
             metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
@@ -154,7 +159,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
                 dataList = ConvertTrackpoints(tpList);
             }
             return dataList;
-            
+
         }
 
 

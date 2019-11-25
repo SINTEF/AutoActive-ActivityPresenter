@@ -1,51 +1,70 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
+using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 {
+    [ContentProperty("OriginalChildren")]
     public class ResizableStackLayout : Layout<View>
     {
         public StackOrientation Orientation { get; set; }
+        private IReadOnlyList<View> _children;
+        private bool _childrenChanged = true;
         public const double MinimumWeight = 1;
+
+        public new IReadOnlyList<View> Children
+        {
+            //This can't just be casted due to strange Xamarin implementation
+            get
+            {
+                if (_childrenChanged)
+                {
+                    _children = new List<View>(base.Children);
+                }
+                return _children;
+            }
+        }
 
         public ResizableStackLayout()
         {
             Orientation = StackOrientation.Vertical;
+            OriginalChildren = new ObservableCollection<Element>();
+            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;
         }
 
-        private bool _childAdded;
-        private bool _childRemoved;
-
-        protected override void OnChildAdded(Element child)
+        public ObservableCollection<Element> OriginalChildren { get; set; }
+        private void OriginalChildrenOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            base.OnChildAdded(child);
-            if (!(child is DraggableSeparator splitterView))
+            foreach(var item in e.NewItems)
             {
-                _childAdded = true;
-                return;
-            }
-            splitterView.Orientation = Orientation;
+                if (!(item is View view)) continue;
 
-            //TODO: handle removing these elements when the page is closed
-            splitterView.DragStart += Splitter_DragStart;
-            splitterView.Dragged += Splitter_Dragged;
+                AddChild(view);
+            }
         }
 
-        protected override void OnChildRemoved(Element child)
+        public void AddChild(View child)
         {
-            base.OnChildRemoved(child);
+            InsertChild(Children.Count, child);
+        }
 
-            if (!(child is DraggableSeparator splitterView))
-            {
-                _childRemoved = true;
-                return;
-            }
+        public void InsertChild(int index, View child)
+        {
+            base.Children.Insert(index, child);
+            // TODO(sigurdal): this can probably be done more intelligently now that we know the index
+            InsertMissingSeparators();
+            _childrenChanged = true;
+        }
 
-            splitterView.DragStart -= Splitter_DragStart;
-            splitterView.Dragged -= Splitter_Dragged;
+        public void RemoveChild(View child)
+        {
+            base.Children.Remove(child);
+            RemoveAdditionalSeparators();
+            _childrenChanged = true;
         }
 
         public const double SeparatorSize = 2d;
@@ -84,28 +103,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         protected override void LayoutChildren(double x, double y, double width, double height)
         {
             if (!Children.Any(child => child.IsVisible)) return;
-
-            try
-            {
-                if (_childAdded)
-                {
-                    InsertMissingSeparators();
-                    _childAdded = false;
-                }
-            }
-            catch (InvalidOperationException)
-            { }
-
-            try
-            {
-                if (_childRemoved)
-                {
-                    RemoveAdditionalSeparators();
-                    _childRemoved = false;
-                }
-            }
-            catch (InvalidOperationException)
-            { }
 
             var totalWeight = Children.Where(child => child.IsVisible && !(child is DraggableSeparator)).Sum(child => GetSizeWeight(child));
 
@@ -150,7 +147,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 foreach (var child in Children)
                 {
                     if (!child.IsVisible) continue;
-                    
+
                     double childHeight;
                     if (child is DraggableSeparator)
                     {
@@ -172,12 +169,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var missingSeparators = new List<int>();
             for (var i = 1; i < Children.Count; i++)
             {
-                if (Children[i - 1] is DraggableSeparator)
+                if (base.Children[i - 1] is DraggableSeparator)
                 {
                     continue;
                 }
 
-                if (!(Children[i] is DraggableSeparator))
+                if (!(base.Children[i] is DraggableSeparator))
                 {
                     missingSeparators.Add(i);
                 }
@@ -186,7 +183,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             IEnumerable<int> en = missingSeparators;
             foreach (var index in en.Reverse())
             {
-                Children.Insert(index, new DraggableSeparator());
+                var sep = new DraggableSeparator {Orientation = Orientation};
+
+                //TODO: handle removing these elements when the page is closed
+                sep.DragStart += Splitter_DragStart;
+                sep.Dragged += Splitter_Dragged;
+
+                base.Children.Insert(index, sep);
             }
         }
 
@@ -196,17 +199,19 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var i = 0;
             for (; i < Children.Count; i++)
             {
-                if (Children[i] is DraggableSeparator) extraSeparators.Add(i);
+                if (base.Children[i] is DraggableSeparator) extraSeparators.Add(i);
                 else break;
             }
-        
+
             for (; i < Children.Count - 1; i++)
             {
-                if (Children[i] is DraggableSeparator && Children[i + 1] is DraggableSeparator)
+                if (base.Children[i] is DraggableSeparator && base.Children[i + 1] is DraggableSeparator)
                 {
                     extraSeparators.Add(i);
                 }
             }
+
+            if (Children.Count == 0) return;
 
             if (Children.Last() is DraggableSeparator)
             {
@@ -219,19 +224,22 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             IEnumerable<int> en = extraSeparators;
             foreach (var index in en.Reverse())
             {
-                var el = Children[index];
-                Children.RemoveAt(index);
-                if (el is DraggableSeparator separator)
-                {
-                    separator.InvokeRemoved();
-                }
+                var el = base.Children[index];
+                base.Children.RemoveAt(index);
+
+                if (!(el is DraggableSeparator separator)) continue;
+
+                separator.DragStart -= Splitter_DragStart;
+                separator.Dragged -= Splitter_Dragged;
+                separator.InvokeRemoved();
             }
-            
+
         }
 
         #region Drag Handling
         private const double MinDragLength = 2d;
         private double _lastPos;
+
         private void Splitter_DragStart(DraggableSeparator sender, double x, double y)
         {
             _lastPos = Orientation == StackOrientation.Vertical ? y : x;
@@ -246,11 +254,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             _lastPos = curPos;
 
-            if (!(sender.Parent is ResizableStackLayout layout)) return;
+            if (!(sender.Parent is ResizableStackLayout resizableLayout)) return;
+
+            var layout = (Layout<View>) resizableLayout;
 
             var diff = Math.Sign(newPos);
 
-            var index = layout.Children.IndexOf(sender);
+            var index = base.Children.IndexOf(sender);
             if (index <= 0 || index + 1 >= layout.Children.Count )
             {
                 Debug.WriteLine("ResizableStackLayout: Illegal index - should never be here.");

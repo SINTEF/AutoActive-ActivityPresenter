@@ -12,10 +12,10 @@ namespace Plugins.Tests
         [Fact]
         public void TestParseTimestamp()
         {
-            Assert.Equal(0L, CatapultParser.ConvHmssToEpochUs("0:00.00"));
-            Assert.Equal(TimeFormatter.TimeFromTimeSpan(TimeSpan.FromMilliseconds(2290)), CatapultParser.ConvHmssToEpochUs("0:02.29"));
-            Assert.Equal(TimeFormatter.TimeFromTimeSpan(new TimeSpan(0,0,51,50,0)), CatapultParser.ConvHmssToEpochUs("51:50.00"));
-            Assert.Equal(TimeFormatter.TimeFromTimeSpan(new TimeSpan(0, 1, 9, 11, 0)), CatapultParser.ConvHmssToEpochUs("1:09:11.00"));
+            Assert.Equal(0L, CatapultCsvImporter.ConvHmssToEpochUs("0:00.00"));
+            Assert.Equal(TimeFormatter.TimeFromTimeSpan(TimeSpan.FromMilliseconds(2290)), CatapultCsvImporter.ConvHmssToEpochUs("0:02.29"));
+            Assert.Equal(TimeFormatter.TimeFromTimeSpan(new TimeSpan(0,0,51,50,0)), CatapultCsvImporter.ConvHmssToEpochUs("51:50.00"));
+            Assert.Equal(TimeFormatter.TimeFromTimeSpan(new TimeSpan(0, 1, 9, 11, 0)), CatapultCsvImporter.ConvHmssToEpochUs("1:09:11.00"));
         }
 
 

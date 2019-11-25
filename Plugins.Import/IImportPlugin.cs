@@ -11,6 +11,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     {
         Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters);
         void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters);
+        Task<bool> CanParse(IReadSeekStreamFactory readerFactory);
     }
 
     public interface IBatchImportPlugin : IImportPlugin
@@ -21,7 +22,7 @@ namespace SINTEF.AutoActive.Plugins.Import
 
     public class ImportPluginAttribute : PluginAttribute
     {
-        public ImportPluginAttribute(string extension) : base(typeof(IImportPlugin), extension) { }
+        public ImportPluginAttribute(string extension, int priority = 100) : base(typeof(IImportPlugin), extension, priority) { }
     }
 
     public static class ImportPlugins
