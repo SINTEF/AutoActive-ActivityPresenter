@@ -79,7 +79,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Video
         public long GetCreatedTime(Stream stream)
         {
             var property = GetProperty(stream, "Created");
-            return property != null && TryParseDateTime(property, out var date) ? TimeFormatter.TimeFromDateTime(date) : 0L;
+            if (!TryParseDateTime(property, out var date))
+            {
+                return 0L;
+            }
+
+            return date.Year <= 1970 ? 0L : TimeFormatter.TimeFromDateTime(date);
         }
 
         public long GetVideoLength(Stream stream)
