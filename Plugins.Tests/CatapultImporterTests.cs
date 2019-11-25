@@ -40,7 +40,7 @@ namespace Plugins.Tests
 
             var fr = new TestFileReader(csvName);
 
-            var importer = new CatapultImportPlugin();
+            var importer = new ImportCsvCatapult();
             var importTask = importer.Import(fr, null);
             importTask.Wait();
             var provider = importTask.Result;

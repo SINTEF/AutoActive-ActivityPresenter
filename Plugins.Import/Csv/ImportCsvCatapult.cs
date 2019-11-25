@@ -9,12 +9,21 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.AllocCheck;
 
 namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
     [ImportPlugin(".csv", 200)]
     public class ImportCsvCatapult : IImportPlugin
     {
+#if DEBUG_MEM
+        private AllocTrack mt;
+
+        public ImportCsvCatapult()
+        {
+            mt = new AllocTrack(this);
+        }
+#endif
         public async Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
         {
             var stream = await readerFactory.GetReadStream();
@@ -41,8 +50,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     public class CatapultCsvImporter : GenericCsvImporter
     {
+#if DEBUG_MEM
+        private AllocTrack mt;
+#endif
         public CatapultCsvImporter(Dictionary<string, object> parameters, string filename) : base(parameters, filename)
         {
+#if DEBUG_MEM
+            mt = new AllocTrack(this, filename);
+#endif
         }
 
         private static long ParseDateTime(string date, string time)

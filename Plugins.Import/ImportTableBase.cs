@@ -58,7 +58,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         {
             if (Data == null)
             {
-                _data = _importBase.ReadData();
+                Data = _importBase.ReadData();
             }
         }
 
