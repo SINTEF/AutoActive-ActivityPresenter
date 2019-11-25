@@ -6,6 +6,20 @@ using System.Threading;
 
 namespace SINTEF.AutoActive.Databus.AllocCheck
 {
+    // The classes in this namespace are used for keeping track of allocation / deallocation of any class.
+    // It has shown that not all classes are deallocated by the GC (Garbage Collector) due to remaining references.
+    // These references can be normal references, event listeners thats hard to keep track of.
+    // By adding an instance of AllocTrack to your class, you can check if it is GCed as intended.
+    //   AllocTrack will register info in AllocLogger during construction and clean up registration at GC
+    //   This works the AllocTrack instance only is referencd by your class, and will be GCed when your class instance is.
+    // The AllocLogger is a static class that keep track of all registrations.
+    //   It provides the method PrintRegs() for listing registered instances.
+    //   The method GetTotalMemory() reports allocated memory after forcing the GC to run.
+    //
+    // All usages of AllocTrack and AllocLogger has to be be embraces by #if DEBUG_MEM ... #endif
+    //   Add DEBUG_MEM to the DEBUG configuration for the projects using this functionality.
+    //   This removes all functionality in RELEASE config.
+    // 
 #if DEBUG_MEM
     public class AllocTrack
     {
