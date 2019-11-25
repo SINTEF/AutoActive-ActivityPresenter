@@ -5,7 +5,6 @@
              x:Class="SINTEF.AutoActive.UI.Views.RelativeSlider">
     <ContentView.Content>
         <StackLayout>
-            <views:DeltaSlider x:Name="Slider" Value="0" Minimum="-500" Maximum="500" UpdateRate="50"/>
             <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition  Width="25" />
@@ -14,15 +13,16 @@
                     <ColumnDefinition  Width="Auto" />
                     <ColumnDefinition  Width="25" />
                 </Grid.ColumnDefinitions>
-                <Grid Grid.Column="2" HorizontalOptions="FillAndExpand">
+                <Grid Grid.Column="2" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="Auto"/>
                     </Grid.ColumnDefinitions>
-                    <Entry x:Name="SliderEntry" Grid.Column="0" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="FillAndExpand" TextChanged="SliderEntryOnTextChanged"/>
+                    <Entry x:Name="SliderEntry" Grid.Column="0" HorizontalTextAlignment="End" VerticalOptions="Center" HorizontalOptions="FillAndExpand" TextChanged="SliderEntryOnTextChanged" Text="0.0"/>
                     <Label Grid.Column="1" Text="s" HorizontalOptions="Start" VerticalOptions="Center" />
                 </Grid>
             </Grid>
+            <views:DeltaSlider x:Name="Slider" Value="0" Minimum="-500" Maximum="500" UpdateRate="50"/>
         </StackLayout>
     </ContentView.Content>
 </ContentView>
