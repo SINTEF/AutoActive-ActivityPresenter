@@ -28,16 +28,22 @@ namespace SINTEF.AutoActive.Plugins.Import
         private readonly ImportTableBase _importBase;
         internal Dictionary<string, Array> _data = null;
 
+#if DEBUG_MEM
         private readonly AllocTrack mt;
+#endif
         public RememberingFullTableReader(ImportTableBase importBase)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this);
+#endif
             _importBase = importBase;
         }
 
         public RememberingFullTableReader(RememberingFullTableReader rftr)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this);
+#endif
             // Make a copy of existing data and reader
             _importBase = rftr._importBase;
 

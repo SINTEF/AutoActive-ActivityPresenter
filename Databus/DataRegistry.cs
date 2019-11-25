@@ -78,8 +78,10 @@ namespace SINTEF.AutoActive.Databus
             ProviderRemoved?.Invoke(dataprovider);
             dataprovider.Close();
 
+#if DEBUG_MEM
             var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
+#endif
         }
     }
 }

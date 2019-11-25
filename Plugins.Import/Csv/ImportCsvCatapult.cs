@@ -23,11 +23,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     [ImportPlugin(".csv")]
     public class CatapultImportPlugin : IImportPlugin
     {
+#if DEBUG_MEM
         private AllocTrack mt;
         public CatapultImportPlugin()
         {
             mt = new AllocTrack(this);
         }
+#endif
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
@@ -43,13 +45,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
     public class CatapultImporter : BaseDataProvider
     {
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         internal IReadSeekStreamFactory _readerFactory;
         internal CatapultImporter(IReadSeekStreamFactory readerFactory)
         {
             Name = readerFactory.Name;
             _readerFactory = readerFactory;
+#if DEBUG_MEM
             mt = new AllocTrack(this, Name);
+#endif
         }
 
         protected override void DoParseFile(Stream s)
@@ -105,10 +111,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private IReadSeekStreamFactory _readerFactory;
         private string _fileName;
 
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         internal CatapultTable(string name, long startTime, IReadSeekStreamFactory readerFactory, string fileName)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, name);
+#endif
             Name = name;
             _readerFactory = readerFactory;
             IsSaved = false;
@@ -203,11 +213,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private readonly List<float> _accData = new List<float>();
         private readonly List<float> _rawvelData = new List<float>();
 
+#if DEBUG_MEM
         private AllocTrack mt;
         public CatapultParser()
         {
             mt = new AllocTrack(this);
         }
+#endif
 
         public void ConfigureCsvReader(CsvReader csvReader)
         {

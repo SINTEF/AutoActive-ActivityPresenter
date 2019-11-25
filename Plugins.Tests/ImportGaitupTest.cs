@@ -13,6 +13,7 @@ namespace Plugins.Tests
 {
     public class ImportGaitupTest
     {
+#if DEBUG_MEM
         private void LoadAll(IDataStructure structure)
         {
             foreach (var child in structure.Children)
@@ -98,5 +99,6 @@ namespace Plugins.Tests
             Assert.True(AllocLogger.GetTotalRegs() == 0, $"Not all allocations removed {AllocLogger.GetTotalRegs()} remains");
         }
 
+#endif
     }
 }

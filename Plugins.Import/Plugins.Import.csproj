@@ -6,6 +6,10 @@
     <RootNamespace>SINTEF.AutoActive.Plugins.Import</RootNamespace>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <DefineConstants>TRACE;DEBUG;DEBUG_MEM</DefineConstants>
+  </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="CsvHelper" Version="12.1.2" />
     <PackageReference Include="MetadataExtractor" Version="2.1.0" />

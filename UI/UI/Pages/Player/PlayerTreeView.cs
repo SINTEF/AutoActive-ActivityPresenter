@@ -172,14 +172,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderCell : DataStructureCell
     {
+#if DEBUG_MEM
         private static int instCount = 0;
         private AllocTrack mt;
+#endif
         public DataProviderCell()
         {
             Detail = "DataProvider";
 
+#if DEBUG_MEM
             instCount++;
             mt = new AllocTrack(this, Detail+"    "+instCount);
+#endif
 
             var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
             closeAction.Clicked += CloseClicked;
@@ -188,8 +192,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void CloseClicked(object sender, EventArgs e)
         {
+#if DEBUG_MEM
             var endMemM = AllocLogger.GetTotalMemory() / 1024.0 / 1024.0;
             AllocLogger.PrintRegs();
+#endif
 
             var dataProviderItem = BindingContext as DataProviderItem;
             dataProviderItem?.DataProvider.Unregister();
@@ -198,25 +204,33 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureCell : DataItemCell
     {
+#if DEBUG_MEM
         private static int instCount = 0;
         private AllocTrack mt;
+#endif
         public DataStructureCell()
         {
             Detail = "DataStructure";
+#if DEBUG_MEM
             instCount++;
             mt = new AllocTrack(this, Detail+" " + instCount);
+#endif
         }
     }
 
     internal class DataPointCell : DataItemCell
     {
+#if DEBUG_MEM
         private static int instCount = 0;
         private AllocTrack mt;
+#endif
         public DataPointCell()
         {
             Detail = "DataPoint";
+#if DEBUG_MEM
             instCount++;
             mt = new AllocTrack(this, Detail + " " + instCount);
+#endif
 
             // FIXME: Only for compatible data item types
             var useInTimelineAction = new MenuItem { Text = "Timeline" };
@@ -301,10 +315,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderItem : DataStructureItem, IDisposable
     {
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         internal DataProviderItem(IDataProvider dataProvider, DataRegistryTree tree) : base(dataProvider, tree)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, dataProvider.Name);
+#endif
 
             DataProvider = dataProvider;
             IsShown = true;
@@ -320,10 +338,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataStructureItem : DataItem, IDisposable
     {
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         internal DataStructureItem(IDataStructure dataStructure, DataRegistryTree tree) : base(tree)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, dataStructure.Name);
+#endif
 
             DataStructure = dataStructure;
 

@@ -32,6 +32,7 @@ namespace Plugins.Tests
             }
         }
 
+#if DEBUG_MEM
         private int CheckMemFreeStuff(bool doLoad)
         {
             var csvName = "C:\\Users\\steffend\\Documents\\repos\\autoactive_repos\\examples\\import_catapult\\73220 2 7684 201811071247.csv";
@@ -121,5 +122,6 @@ namespace Plugins.Tests
             AllocLogger.PrintRegs();
             Assert.True(AllocLogger.GetTotalRegs() > 0, "No allocations registered");
         }
+#endif
     }
 }

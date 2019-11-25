@@ -10,10 +10,14 @@ namespace SINTEF.AutoActive.Databus.Implementations
         private readonly List<IDataStructure> children = new List<IDataStructure>();
         private readonly List<IDataPoint> datapoints = new List<IDataPoint>();
 
+#if DEBUG_MEM
         private readonly AllocTrack mt;
+#endif
         public BaseDataStructure()
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, Name);
+#endif
         }
 
         // Recursive searches to try to prevent creating loops in the tree of data

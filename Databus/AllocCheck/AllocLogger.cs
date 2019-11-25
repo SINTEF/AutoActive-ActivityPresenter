@@ -6,6 +6,7 @@ using System.Threading;
 
 namespace SINTEF.AutoActive.Databus.AllocCheck
 {
+#if DEBUG_MEM
     public class AllocTrack
     {
         private readonly int hash;
@@ -103,4 +104,11 @@ namespace SINTEF.AutoActive.Databus.AllocCheck
         }
 
     }
+
+#else
+    public class Dummy  // Dummy class to keep namespace visible
+    {
+    }
+
+#endif
 }

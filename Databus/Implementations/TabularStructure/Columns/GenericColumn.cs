@@ -12,10 +12,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         private readonly Task<T[]> _loader;
         // private float[] _floatData; Buffer data?
 
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(T), name, loader, index, uri)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, name);
+#endif
             _loader = loader;
             Unit = unit;
         }
@@ -50,10 +54,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
     {
         private readonly GenericColumn<T> _column;
 
+#if DEBUG_MEM
         private AllocTrack mt;
+#endif
         public GenericColumnViewer(TableTimeIndex index, GenericColumn<T> column) : base(index, column)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, column.Name);
+#endif
             _column = column;
         }
 

@@ -12,10 +12,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         internal string[] data;
         private Task<string[]> loader;
 
+#if DEBUG_MEM
         private readonly AllocTrack mt;
+#endif
         public StringColumn(string name, Task<string[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(string), name, loader, index, uri)
         {
+#if DEBUG_MEM
             mt = new AllocTrack(this, Name);
+#endif
             this.loader = loader;
             Unit = unit;
         }
