@@ -37,8 +37,8 @@
                     </StackLayout>
                 </StackLayout>
                 <Label Text="Slave" Grid.Column="1" Grid.Row="0" HorizontalTextAlignment="Center" />
-                <Frame Grid.Column="1" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightBlue">
-                    <StackLayout x:Name="SlaveLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
+                <Frame Grid.Column="1" Grid.Row="1" BorderColor="Black" Margin="1" Padding="5" BackgroundColor="LightBlue"  VerticalOptions="FillAndExpand">
+                    <StackLayout x:Name="SlaveLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
                 </Frame>
                 <StackLayout Grid.Column="1" Grid.Row="2">
                     <views:TimeStepper x:Name="SlaveTimeStepper" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
