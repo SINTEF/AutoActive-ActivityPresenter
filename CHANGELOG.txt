@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.4.5] - 2019-11-26
+### Added
+ - Version number added to main page
+
+### Changed
+ - Improved CSV file format culture detection
+ - Fixed reported video timestamp when not correctly detected
+ - Fixed offset not always visible due to layout handlers
+
+
+## [0.4.4] - 2019-11-22
+### Added
+ - Right clicking in datatrackline now seeks to beginning of that dataset
+
+### Changed
+ - Line does not continue to progress when at end of playback
+
+
 ## [0.4.3] - 2019-11-22
 ### Added
  - Support for reading files with string columns
