@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.4.4] - 2019-11-22
+### Added
+ - Right clicking in datatrackline now seeks to beginning of that dataset
+
+### Changed
+ - Line does not continue to progress when at end of playback
+
+
 ## [0.4.3] - 2019-11-22
 ### Added
  - Support for reading files with string columns
