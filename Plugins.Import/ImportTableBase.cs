@@ -25,18 +25,18 @@ namespace SINTEF.AutoActive.Plugins.Import
 
     public class RememberingFullTableReader
     {
-        private readonly ImportTableBase _reader;
+        private readonly ImportTableBase _importBase;
         public Dictionary<string, Array> Data { get; private set; }
 
-        public RememberingFullTableReader(ImportTableBase reader)
+        public RememberingFullTableReader(ImportTableBase importBase)
         {
-            _reader = reader;
+            _importBase = importBase;
         }
 
         public RememberingFullTableReader(RememberingFullTableReader rftr)
         {
             // Make a copy of existing data and reader
-            _reader = rftr._reader;
+            _importBase = rftr._importBase;
 
             if (rftr.Data != null)
             {
@@ -48,7 +48,7 @@ namespace SINTEF.AutoActive.Plugins.Import
         {
             if (Data == null)
             {
-                Data = _reader.ReadData();
+                Data = _importBase.ReadData();
             }
         }
 
@@ -70,8 +70,7 @@ namespace SINTEF.AutoActive.Plugins.Import
     
     public abstract class ImportTableBase : BaseDataStructure
     {
-        protected readonly RememberingFullTableReader _reader;
-        protected TableTimeIndex _timeIndex = null;
+        protected RememberingFullTableReader _reader;
         protected List<ColInfo> _colInfos = new List<ColInfo>();
 
         protected ImportTableBase()

@@ -71,6 +71,20 @@ namespace SINTEF.AutoActive.Databus.Implementations
         }
 
         /* -- Public API -- */
+
+        // Remove all children and datapoints
+        public virtual void Close()
+        {
+            while (children.Count > 0)
+            {
+                RemoveChild(children[0]);
+            }
+            while (datapoints.Count > 0)
+            {
+                RemoveDataPoint(datapoints[0]);
+            }
+        }
+
         public virtual string Name { get; protected set; }
 
         public IEnumerable<IDataStructure> Children => children.AsReadOnly();
