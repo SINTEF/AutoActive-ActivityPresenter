@@ -1,5 +1,10 @@
 # Changelog
 
+## [0.4.6] - 2019-11-26
+### Changed
+ - Handling freeing memory on data import
+
+
 ## [0.4.5] - 2019-11-26
 ### Added
  - Version number added to main page
