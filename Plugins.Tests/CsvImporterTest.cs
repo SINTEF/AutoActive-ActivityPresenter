@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.IO;
 using SINTEF.AutoActive.Plugins.Import.Csv;
 using Xunit;
@@ -10,10 +11,10 @@ namespace Plugins.Tests
         [Fact]
         public void TestSimpleTypeExtraction()
         {
-            Assert.Equal(typeof(long), GenericCsvParser.TryGuessTypeSingle("1337"));
-            Assert.Equal(typeof(string), GenericCsvParser.TryGuessTypeSingle("Test"));
-            Assert.Equal(typeof(double), GenericCsvParser.TryGuessTypeSingle("3.14"));
-            Assert.Equal(typeof(DateTime), GenericCsvParser.TryGuessTypeSingle("2014-12-24 01:02:03"));
+            Assert.Equal(typeof(long), GenericCsvParser.TryGuessTypeSingle("1337", CultureInfo.InvariantCulture));
+            Assert.Equal(typeof(string), GenericCsvParser.TryGuessTypeSingle("Test", CultureInfo.InvariantCulture));
+            Assert.Equal(typeof(double), GenericCsvParser.TryGuessTypeSingle("3.14", CultureInfo.InvariantCulture));
+            Assert.Equal(typeof(DateTime), GenericCsvParser.TryGuessTypeSingle("2014-12-24 01:02:03", CultureInfo.InvariantCulture));
 
             using (var stream = new FileStream("testdata/csv/123.csv", FileMode.Open))
             {
