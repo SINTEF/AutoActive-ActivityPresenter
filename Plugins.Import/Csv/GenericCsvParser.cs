@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -233,20 +232,35 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             typeof(string)
         };
 
-        public static Type TryGuessTypeSingle(string field)
-        {
 
+        public static Configuration DefaultConfig => AlternativeConfigurations[0];
+
+        private static readonly Configuration[] AlternativeConfigurations = new Configuration[] {
+            new Configuration
+            {
+                Delimiter = ",",
+                CultureInfo = CultureInfo.InvariantCulture
+            },
+            new Configuration {
+                Delimiter = ";",
+                CultureInfo = new CultureInfo("no-NB")
+            }, // Norwegian format (Excel)
+            new Configuration()
+        };
+
+        public static Type TryGuessTypeSingle(string field, CultureInfo culture)
+        {
+            
             if (long.TryParse(field, out _))
             {
                 return typeof(long);
             }
-
-            if (double.TryParse(field, out _))
+            if (double.TryParse(field, NumberStyles.Float | NumberStyles.AllowThousands, culture.NumberFormat,out _))
             {
                 return typeof(double);
             }
 
-            if (DateTime.TryParse(field, out _))
+            if (DateTime.TryParse(field, culture.DateTimeFormat, DateTimeStyles.None, out _))
             {
                 return typeof(DateTime);
             }
@@ -258,7 +272,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         {
             if (oldType == newType) return oldType;
 
-            return (TypeHierarchy.IndexOf(newType) > TypeHierarchy.IndexOf(oldType)) ? newType : oldType;
+            if ((TypeHierarchy.IndexOf(newType) > TypeHierarchy.IndexOf(oldType)))
+                return newType;
+            return oldType;
         }
 
         private static int CountLines(Stream stream)
@@ -281,12 +297,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public static List<Type> TryGuessType(Stream stream, Configuration config = null)
         {
             var streamStartPosition = stream.Position;
+            config = config ?? DefaultConfig;
+            var culture = config.CultureInfo;
             try
             {
                 var types = new List<Type>();
 
                 using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
-                using (var csv = config == null ? new CsvReader(reader, true) : new CsvReader(reader, config, true))
+                using (var csv = new CsvReader(reader, config, true))
                 {
                     if (!csv.Read()) throw new ArgumentException("Could not find valid fields");
                     if (!csv.ReadHeader()) throw new ArgumentException("Could not find valid header");
@@ -295,7 +313,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                     if (!csv.Read()) throw new ArgumentException("Could not find valid fields");
                     var record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
-                    types.AddRange(record.Select(field => TryGuessTypeSingle((string) field.Value)));
+                    types.AddRange(record.Select(field => TryGuessTypeSingle((string) field.Value, culture)));
 
                     for (var readCount = 0; readCount < NumLinesToRead; readCount++)
                     {
@@ -306,7 +324,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                         var ix = 0;
                         foreach (var field in record)
                         {
-                            types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string) field.Value));
+                            types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string) field.Value, culture));
                             ix++;
                         }
                     }
@@ -332,10 +350,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                         var ix = 0;
                         foreach (var field in record)
                         {
-                            var strVal = field.Value as string;
+                            var strVal = (field.Value as string)?.Trim();
                             if (!string.IsNullOrEmpty(strVal))
                             {
-                                types[ix] = ReduceType(types[ix], TryGuessTypeSingle((string) field.Value));
+                                types[ix] = ReduceType(types[ix], TryGuessTypeSingle(strVal, culture));
                             }
 
                             ix++;
@@ -383,23 +401,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private static Configuration DetectConfiguration(Stream stream)
         {
             var streamPos = stream.Position;
-            var configuration = new Configuration();
 
-            if (TestConfiguration(stream, configuration))
+            foreach (var config in AlternativeConfigurations)
             {
-                return configuration;
+                if (TestConfiguration(stream, config))
+                {
+                    return config;
+                }
             }
-
-            // Try to detect delimiter (Norwegian Excel format)
-            configuration.Delimiter = ";";
-            configuration.CultureInfo = new CultureInfo("no-NB");
-
-            if (TestConfiguration(stream, configuration))
-            {
-                return configuration;
-            }
-
-            configuration = new Configuration();
 
             stream.Seek(streamPos, SeekOrigin.Begin);
             var buf = new byte[512];
@@ -407,23 +416,17 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var nextStreamPos = FindLikelyHeaderStart(buf, ',');
             stream.Seek(nextStreamPos, SeekOrigin.Begin);
 
-            if (TestConfiguration(stream, configuration))
+            foreach (var config in AlternativeConfigurations)
             {
-                return configuration;
-            }
-
-            // Try to detect delimiter (Norwegian Excel format)
-            configuration.Delimiter = ";";
-            configuration.CultureInfo = new CultureInfo("no-NB");
-
-            if (TestConfiguration(stream, configuration))
-            {
-                return configuration;
+                if (TestConfiguration(stream, config))
+                {
+                    return config;
+                }
             }
 
             stream.Seek(streamPos, SeekOrigin.Begin);
 
-            return configuration;
+            return DefaultConfig;
 
         }
 
@@ -494,7 +497,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
             List<string> headers;
             using (var reader = new StreamReader(stream))
-            using (var csv = configuration == null ? new CsvReader(reader) : new CsvReader(reader, configuration))
+            using (var csv = new CsvReader(reader, configuration))
             {
                 csv.Read();
                 csv.ReadHeader();
