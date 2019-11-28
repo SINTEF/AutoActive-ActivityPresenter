@@ -61,7 +61,9 @@ namespace SINTEF.AutoActive.UI.Views
                     session.Register();
 	            }
 
-	        }
+                archive.Close();
+
+            }
 	        catch (Exception ex)
 	        {
 	            Debug.WriteLine($"ERROR OPENING ARCHIVE: {ex.Message} \n{ex}");
@@ -242,10 +244,7 @@ namespace SINTEF.AutoActive.UI.Views
 	            var session = ArchiveSession.Create(archive, sessionName);
 	            foreach (var dataPoint in selectedDataPoints)
 	            {
-	                foreach (var child in dataPoint.Children)
-	                {
-	                    session.AddChild(child);
-                    }
+                    session.AddChild(dataPoint);
                     if (dataPoint is ArchiveSession locArch)
                     {
                         session.AddBasedOnSession(locArch);

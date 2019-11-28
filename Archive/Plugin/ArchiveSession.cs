@@ -100,16 +100,23 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 var root = new JObject();
                 try
                 {
-                    if (!(child is ISaveable saveable))
+                    if (child is ISaveable saveable)
+                    {
+                        if (!await saveable.WriteData(root, sessionWriter))
+                        {
+                            Debug.WriteLine($"Could not save {child.Name} (save failed)");
+                            continue;
+                        }
+                    }
+                    else
                     {
                         Debug.WriteLine($"Could not save {child.Name} ({child} not saveable)");
-                        continue;
-                    }
-
-                    if (!await saveable.WriteData(root, sessionWriter))
-                    {
-                        Debug.WriteLine($"Could not save {child.Name} (save failed)");
-                        continue;
+                        root["user"] = new JObject();
+                        root["meta"] = new JObject
+                        {
+                            ["type"] = "no.sintef.folder",
+                            ["version"] = 1
+                        };
                     }
                 }
                 catch (NotImplementedException)
@@ -146,7 +153,17 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 if (child.Name != null)
                 {
                     // Store tree from child
-                    user[child.Name] = root;
+                    var name = child.Name;
+                    for (var i = 2; i < 10; i++)
+                    {
+                        if(!user.ContainsKey(name))
+                        {
+                            break;
+                        }
+                        name = $"{child.Name}_{i}";
+                    }
+
+                    user[name] = root;
                 }
                 else
                 {
