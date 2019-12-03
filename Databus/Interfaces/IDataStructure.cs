@@ -16,6 +16,9 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         // Icon
         // Other metadata
 
+        // Close all children and datapoints
+        void Close();
+
         IEnumerable<IDataStructure> Children { get; }
         event DataStructureAddedHandler ChildAdded;
         event DataStructureRemovedHandler ChildRemoved;

@@ -78,7 +78,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             var timeColInfo = new ColInfo("time", "us");
             string uri = Name + "/" + timeColInfo.Name;
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), isWorldSynchronized, uri, timeColInfo.Unit);
 
             var stringUnits = new[]
             {
@@ -93,7 +93,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             foreach (var colInfo in stringUnits)
             {
                 uri = Name + "/" + colInfo.Name;
-                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
+                this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), timeIndex, uri, colInfo.Unit);
             }
 
 
@@ -117,7 +117,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
             var metaTable = new JObject { ["type"] = "no.sintef.table" };
             metaTable["attachments"] = new JArray(new object[] { fileId });
             metaTable["units"] = new JArray(GetUnitArray());
-            metaTable["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock;
+            metaTable["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock;
             metaTable["version"] = 1;
 
             var userTable = new JObject { };

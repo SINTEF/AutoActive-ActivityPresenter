@@ -8,10 +8,35 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
     public class TableTimeIndex : GenericColumn<long>, ITimePoint
     {
         private readonly List<TableTimeIndexViewer> _viewers = new List<TableTimeIndexViewer>();
+        private readonly long _initialStartTime;
+        private bool _pendingApplyStartTime = false;
+
         public TableTimeIndex(string name, Task<long[]> loader, bool isWorldClockSynchronized, string uri, string unit) : base(name, loader, null, uri, unit)
         {
             IsSynchronizedToWorldClock = isWorldClockSynchronized;
+            _pendingApplyStartTime = false;
         }
+
+        public TableTimeIndex(string name, Task<long[]> loader, bool isWorldClockSynchronized, string uri, string unit, long startTime) : base(name, loader, null, uri, unit)
+        {
+            IsSynchronizedToWorldClock = isWorldClockSynchronized;
+            _pendingApplyStartTime = true;
+            _initialStartTime = startTime;
+        }
+
+        protected override int CheckLoaderResultLength()
+        {
+            var len = base.CheckLoaderResultLength();
+
+            if (_pendingApplyStartTime)
+            {
+                _pendingApplyStartTime = false;
+                TransformTime(_initialStartTime, 1d);
+            }
+
+            return len;
+        }
+
 
         internal int FindIndex(int current, long value)
         {

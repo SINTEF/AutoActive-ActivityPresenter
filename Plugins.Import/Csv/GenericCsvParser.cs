@@ -160,7 +160,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var timeColInfo = new ColInfo("time", "us");
             var startTime = ((long[]) data["time"])[0];
 
-            _timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), startTime != 0L,
+            var timeIndex = new TableTimeIndex(timeColInfo.Name, GenerateLoader<long>(timeColInfo), startTime != 0L,
                 base.Name + "/" + timeColInfo.Name, timeColInfo.Unit);
 
             for (var i = 0; i < names.Count; i++)
@@ -174,15 +174,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                 if (type == typeof(double))
                 {
-                    this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), _timeIndex, uri, colInfo.Unit);
+                    this.AddColumn(colInfo.Name, GenerateLoader<double>(colInfo), timeIndex, uri, colInfo.Unit);
                 }
                 else if (type == typeof(long))
                 {
-                    this.AddColumn(colInfo.Name, GenerateLoader<long>(colInfo), _timeIndex, uri, colInfo.Unit);
+                    this.AddColumn(colInfo.Name, GenerateLoader<long>(colInfo), timeIndex, uri, colInfo.Unit);
                 }
                 else if (type == typeof(string))
                 {
-                    this.AddColumn(colInfo.Name, GenerateLoader<string>(colInfo), _timeIndex, uri, colInfo.Unit);
+                    this.AddColumn(colInfo.Name, GenerateLoader<string>(colInfo), timeIndex, uri, colInfo.Unit);
                 }
             }
         }
@@ -205,7 +205,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 ["type"] = "no.sintef.table",
                 ["attachments"] = new JArray(new object[] {fileId}),
                 ["units"] = new JArray(GetUnitArray()),
-                ["is_world_clock"] = _timeIndex.IsSynchronizedToWorldClock,
+                ["is_world_clock"] = DataPoints.First().Time.IsSynchronizedToWorldClock,
                 ["version"] = 1
             };
 

@@ -105,8 +105,11 @@ namespace SINTEF.AutoActive.Databus.Implementations
             _stream = stream;
             DoParseFile(stream);
         }
-        public void Close()
+
+        // Close stream and all children and datapoints
+        public override void Close()
         {
+            base.Close();
             _stream?.Close();
         }
     }
