@@ -36,28 +36,13 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Critical error", "Could get file browser. Will not be able to open and save files.", "OK");
             }
-        }
 
-        /* -- Menu Button -- */
-        public static readonly BindableProperty MenuButtonShownProperty = BindableProperty.Create("MenuButtonShown", typeof(bool), typeof(CustomNavigationBar), false, propertyChanged: MenuButtonShownChanged);
+            var versionGetter = DependencyService.Get<IVersionProvider>();
 
-        public bool MenuButtonShown
-        {
-            get => (bool)GetValue(MenuButtonShownProperty);
-            set => SetValue(MenuButtonShownProperty, value);
-        }
-
-        static void MenuButtonShownChanged(BindableObject bindable, object oldValue, object newValue)
-        {
-            var self = bindable as CustomNavigationBar;
-            self.MenuButton.IsVisible = (bool)newValue;
-        }
-
-        public event EventHandler MenuButtonClicked;
-
-        private void MenuButton_Clicked(object sender, EventArgs e)
-        {
-            MenuButtonClicked?.Invoke(this, e);
+            if (versionGetter != null)
+            {
+                VersionLabel.Text = versionGetter.Version;
+            }
         }
 
 	    private async void OpenArchiveButton_OnClicked(object sender, EventArgs e)
@@ -206,7 +191,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             // TODO: implement
             //var selector = new StorageSelector(sessions, dataPoints);
-            
+
             var sessionName = dataPoints.Any() ? dataPoints.First().Name : "New Session";
 
             // TODO: this should be run in a thread if we want to control the app while saving:

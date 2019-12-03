@@ -11,7 +11,7 @@
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
             <Button
@@ -44,13 +44,7 @@
             <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
             <Button Grid.Column="5" Text="Head2Head" Clicked="Head2Head_OnClicked"/>
 
-            <Button
-                Grid.Column="5"
-                x:Name="MenuButton"
-                Text="Menu"
-                IsVisible="false"
-                Clicked="MenuButton_Clicked"
-            />
+            <Label Grid.Column="7" x:Name="VersionLabel" />
         </Grid>
     </ContentView.Content>
 </ContentView>

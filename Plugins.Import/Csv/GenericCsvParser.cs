@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using CsvHelper;
+using CsvHelper.Configuration;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
@@ -121,7 +122,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return 0;
         }
 
-        private Array EnsureValidType(Array array)
+        private static Array EnsureValidType(Array array)
         {
             if (!(array is DateTime[] arr)) return array;
 
@@ -277,7 +278,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return lineCount;
         }
 
-        public static List<Type> TryGuessType(Stream stream, CsvHelper.Configuration.Configuration config = null)
+        public static List<Type> TryGuessType(Stream stream, Configuration config = null)
         {
             var streamStartPosition = stream.Position;
             try
@@ -351,12 +352,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             }
         }
 
-        private static CsvHelper.Configuration.Configuration DetectConfiguration(Stream stream)
+        private static bool TestConfiguration(Stream stream, Configuration configuration)
         {
             var streamPos = stream.Position;
-            var configuration = new CsvHelper.Configuration.Configuration();
-
-            // Try to detect delimiter typically (Norwegian Excel format)
             using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
             {
                 try
@@ -367,72 +365,63 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                         csv.ReadHeader();
 
                         csv.Read();
-                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count == 1)
-                        {
-                            // Less than half of the lines contain the delimiter, guess ';' and norwegian commas instead
-                            configuration.Delimiter = ";";
-                            configuration.CultureInfo = new CultureInfo("no-NB");
-                        }
+                        stream.Seek(streamPos, SeekOrigin.Begin);
+                        return ((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count > 1;
                     }
                 }
                 catch (BadDataException)
                 {
                 }
-
-                stream.Seek(streamPos, SeekOrigin.Begin);
-
-                try
-                {
-                    using (var csv = new CsvReader(reader, configuration, true))
-                    {
-                        csv.Read();
-                        csv.ReadHeader();
-
-                        csv.Read();
-                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count != 1)
-                        {
-                            stream.Seek(streamPos, SeekOrigin.Begin);
-                            return configuration;
-                        }
-                    }
-                }
-                catch (BadDataException)
+                catch (ReaderException)
                 {
                 }
-
-                stream.Seek(streamPos, SeekOrigin.Begin);
-
-
-                var buf = new byte[512];
-                stream.Read(buf, 0, buf.Length);
-                var nextStreamPos = FindLikelyHeaderStart(buf, ',');
-
-                stream.Seek(nextStreamPos, SeekOrigin.Begin);
-
-                // Reset configuration and try to skip lines until we find multiple elements
-                configuration = new CsvHelper.Configuration.Configuration();
-                try
-                {
-                    using (var csv = new CsvReader(reader, configuration, true))
-                    {
-                        csv.Read();
-                        csv.ReadHeader();
-
-                        csv.Read();
-                        if (((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count > 1)
-                        {
-                            stream.Seek(nextStreamPos, SeekOrigin.Begin);
-                            return configuration;
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    Debug.WriteLine($"Error when handling csv: {ex.Message}");
-                }
-
-                stream.Seek(streamPos, SeekOrigin.Begin);
             }
+
+            return false;
+        }
+
+        private static Configuration DetectConfiguration(Stream stream)
+        {
+            var streamPos = stream.Position;
+            var configuration = new Configuration();
+
+            if (TestConfiguration(stream, configuration))
+            {
+                return configuration;
+            }
+
+            // Try to detect delimiter (Norwegian Excel format)
+            configuration.Delimiter = ";";
+            configuration.CultureInfo = new CultureInfo("no-NB");
+
+            if (TestConfiguration(stream, configuration))
+            {
+                return configuration;
+            }
+
+            configuration = new Configuration();
+
+            stream.Seek(streamPos, SeekOrigin.Begin);
+            var buf = new byte[512];
+            stream.Read(buf, 0, buf.Length);
+            var nextStreamPos = FindLikelyHeaderStart(buf, ',');
+            stream.Seek(nextStreamPos, SeekOrigin.Begin);
+
+            if (TestConfiguration(stream, configuration))
+            {
+                return configuration;
+            }
+
+            // Try to detect delimiter (Norwegian Excel format)
+            configuration.Delimiter = ";";
+            configuration.CultureInfo = new CultureInfo("no-NB");
+
+            if (TestConfiguration(stream, configuration))
+            {
+                return configuration;
+            }
+
+            stream.Seek(streamPos, SeekOrigin.Begin);
 
             return configuration;
 

@@ -30,8 +30,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             Splitter.DragStart += Splitter_DragStart;
             Splitter.Dragged += Splitter_Dragged;
 
-            NavigationBar.MenuButtonClicked += NavigationBar_MenuButtonClicked;
-
             TreeView.DataPointTapped += TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
@@ -42,8 +40,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             Splitter.DragStart -= Splitter_DragStart;
             Splitter.Dragged -= Splitter_Dragged;
-
-            NavigationBar.MenuButtonClicked -= NavigationBar_MenuButtonClicked;
 
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
@@ -72,9 +68,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (nextTreeViewState == _treeViewState) return;
             var prevTreeViewState = _treeViewState;
             _treeViewState = nextTreeViewState;
-
-            // Hide or show the menu button
-            NavigationBar.MenuButtonShown = nextTreeViewState != TreeViewState.SplitMode;
 
             // Deal with the tree
             if (nextTreeViewState == TreeViewState.SplitMode)

@@ -32,10 +32,15 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         public double Offset
-	    {
-	        get => Slider.Offset;
-	        set => Slider.Offset = value;
-	    }
-	    public event EventHandler<ValueChangedEventArgs> OffsetChanged;
+        {
+            get => Slider?.Offset ?? 0d;
+            set
+            {
+                if (Slider == null) return;
+                Slider.Offset = value;
+            }
+        }
+
+        public event EventHandler<ValueChangedEventArgs> OffsetChanged;
     }
 }
