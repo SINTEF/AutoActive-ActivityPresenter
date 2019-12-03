@@ -35,30 +35,79 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig)
         {
-            var offsetX = lineConfig.OffsetX;
-            var scaleX = lineConfig.ScaleX;
-            var offsetY = lineConfig.OffsetY;
-            var scaleY = lineConfig.ScaleY;
-
             var en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
+
+            switch (lineConfig.PlotType)
+            {
+                case PlotTypes.Line:
+                    DrawLine(plot, drawRect, lineConfig, en);
+                    break;
+                case PlotTypes.Scatter:
+                    DrawScatter(plot, drawRect, lineConfig, en);
+                    break;
+                case PlotTypes.Column:
+                    DrawColumn(plot, drawRect, lineConfig, en);
+                    break;
+            }
+        }
+
+        private static void DrawColumn(SKPath plot, SKRect drawRect, LineConfiguration lineConfig, SpanPair<T>.Enumerator en)
+        {
+            if (!en.MoveNext()) return;
+
+            var startX = Math.Max(LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX), 0);
+            var startY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY);
+            plot.MoveTo(startX + drawRect.Left, startY);
+            var prevY = startY;
+            while (en.MoveNext())
+            {
+                var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
+
+                if (plotX > drawRect.Width)
+                {
+                    plot.LineTo(drawRect.Right, prevY);
+                    break;
+                }
+
+                var valY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY);
+                plot.LineTo(plotX + drawRect.Left, prevY);
+                plot.LineTo(plotX + drawRect.Left, valY);
+                prevY = valY;
+            }
+        }
+
+        private static void DrawScatter(SKPath plot, SKRect drawRect, LineConfiguration lineConfig, SpanPair<T>.Enumerator en)
+        {
+            while (en.MoveNext())
+            {
+                var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
+                if (plotX > drawRect.Width)
+                {
+                    break;
+                }
+
+                var valY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY);
+
+                plot.AddCircle(plotX + drawRect.Left, valY, 1);
+            }
+        }
+
+        private static void DrawLine(SKPath plot, SKRect drawRect, LineConfiguration lineConfig, SpanPair<T>.Enumerator en)
+        {
 
             if (!en.MoveNext()) return;
 
-            var width = drawRect.Width;
-
-            var startX = Math.Max(LinePlot.ScalePointX(en.Current.x, offsetX, scaleX), 0);
-            plot.MoveTo(startX + drawRect.Left, LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), offsetY, scaleY));
-            var done = false;
-            while (en.MoveNext() && !done)
+            var startX = Math.Max(LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX), 0);
+            plot.MoveTo(startX + drawRect.Left, LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY));
+            while (en.MoveNext())
             {
-                var plotX = LinePlot.ScalePointX(en.Current.x, offsetX, scaleX);
-                if (plotX > width)
+                var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
+                if (plotX > drawRect.Width)
                 {
-                    plotX = width;
-                    done = true;
+                    break;
                 }
 
-                var valY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), offsetY, scaleY);
+                var valY = LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY);
                 plot.LineTo(plotX + drawRect.Left, valY);
             }
         }
