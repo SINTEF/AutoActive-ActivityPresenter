@@ -10,7 +10,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
     public interface IDataStructure
     {
-        string Name { get; }
+        string Name { get; set; }
 
         // Path
         // Icon

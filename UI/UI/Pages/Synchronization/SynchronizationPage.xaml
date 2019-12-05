@@ -2,12 +2,13 @@
 <ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
+             xmlns:treeView="clr-namespace:SINTEF.AutoActive.UI.Views.TreeView;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.SynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
-                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static treeView:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -27,7 +28,7 @@
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
             </Grid>
-            <player:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
+            <treeView:PlayerTreeView Grid.Column="1" Grid.Row="0" x:Name="TreeView"/>
 
             <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
             <StackLayout Grid.Column="1" Grid.Row="1" Orientation="Horizontal" FlowDirection="RightToLeft">
@@ -37,4 +38,3 @@
         </Grid>
     </ContentPage.Content>
 </ContentPage>
-    

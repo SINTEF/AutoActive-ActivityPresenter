@@ -85,7 +85,8 @@ namespace SINTEF.AutoActive.Databus.Implementations
             }
         }
 
-        public virtual string Name { get; protected set; }
+        //TODO(sigurdal): make sure name is updated when this is changed
+        public virtual string Name { get; set; }
 
         public IEnumerable<IDataStructure> Children => children.AsReadOnly();
 

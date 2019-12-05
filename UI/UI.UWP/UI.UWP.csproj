@@ -110,9 +110,12 @@
     </Compile>
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Video\VideoLengthExtractor.cs" />
+    <Compile Include="Views\BranchViewRenderer.cs" />
+    <Compile Include="Views\MultiButtonRenderer.cs" />
     <Compile Include="Views\NativeUwpDeltaSliderRenderer.cs" />
     <Compile Include="Views\DraggableSeparatorViewRenderer.cs" />
     <Compile Include="Video\VideoPlayerRenderer.cs" />
+    <Compile Include="Views\PlayerTreeView.cs" />
     <Compile Include="Views\VersionProvider.cs" />
   </ItemGroup>
   <ItemGroup>
