@@ -131,7 +131,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             {
                 _offsetQueue.Dequeue();
             }
-            _offsetQueue.Enqueue(offset);
+            _offsetQueue.Enqueue(diff);
 
             var offsetChanged = false;
 
