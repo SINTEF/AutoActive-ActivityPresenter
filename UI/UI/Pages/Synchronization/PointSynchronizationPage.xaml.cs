@@ -66,6 +66,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void Reset()
         {
+            ResetSlave();
+
             _masterSet = false;
             _masterTime = null;
             _selectedMasterTime = 0L;
@@ -79,12 +81,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 }
                 MasterLayout.Children.Clear();
             }
-
-            ResetSlave();
         }
 
         private void ResetSlave()
         {
+            Selected = null;
+
             _slaveSet = false;
             _slaveTime = null;
             _selectedSlaveTime = 0L;
@@ -169,64 +171,71 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
         {
-            if (!_masterSet)
+            try
             {
-                SetMaster(datapoint);
-                return;
-            }
-
-            var isMaster = datapoint.Time == _masterTime;
-
-            if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
-            {
-                await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
-                return;
-            }
-
-            if (!isMaster && !_slaveSet)
-            {
-                _slaveTime = datapoint.Time;
-                _slaveContext = new SynchronizationContext(_masterContext);
-                SlaveLayout.Children.Add(_slaveSlider);
-            }
-
-            TimeSynchronizedContext context;
-            StackLayout layout;
-            if (isMaster)
-            {
-                context = _masterContext;
-                layout = MasterLayout;
-            } else
-            {
-                context = _slaveContext;
-                layout = SlaveLayout;
-            }
-
-            if (Selected != null)
-            {
-                await Selected.ToggleDataPoint(datapoint, context);
-                return;
-            }
-
-            var figure = await FigureView.GetView(datapoint, context);
-            if (figure == null)
-            {
-                if (!_slaveSet)
+                if (!_masterSet)
                 {
-                    SlaveLayout.Children.Remove(_slaveSlider);
-                    _slaveContext = null;
-                    _slaveTime = null;
+                    SetMaster(datapoint);
+                    return;
                 }
-                return;
+
+                var isMaster = datapoint.Time == _masterTime;
+
+                if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
+                {
+                    await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
+                    return;
+                }
+
+                if (!isMaster && !_slaveSet)
+                {
+                    _slaveTime = datapoint.Time;
+                    _slaveContext = new SynchronizationContext(_masterContext);
+                    SlaveLayout.Children.Add(_slaveSlider);
+                }
+
+                TimeSynchronizedContext context;
+                StackLayout layout;
+                if (isMaster)
+                {
+                    context = _masterContext;
+                    layout = MasterLayout;
+                }
+                else
+                {
+                    context = _slaveContext;
+                    layout = SlaveLayout;
+                }
+
+                if (Selected != null)
+                {
+                    await Selected.ToggleDataPoint(datapoint, context);
+                    return;
+                }
+
+                var figure = await FigureView.GetView(datapoint, context);
+                if (figure == null)
+                {
+                    if (!_slaveSet)
+                    {
+                        SlaveLayout.Children.Remove(_slaveSlider);
+                        _slaveContext = null;
+                        _slaveTime = null;
+                    }
+                    return;
+                }
+
+                layout.Children.Add(figure);
+                DatapointAdded?.Invoke(sender, (datapoint, context));
+
+                if (_slaveSet || isMaster) return;
+                _slaveSet = true;
+
+                SetCommonStartTime(false);
+            } catch(Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"An error occured:\n{ex.Message}", this);
             }
-
-            layout.Children.Add(figure);
-            DatapointAdded?.Invoke(sender, (datapoint, context));
-
-            if (_slaveSet || isMaster) return;
-            _slaveSet = true;
-
-            SetCommonStartTime(false);
         }
 
         private void SetCommonStartTime(bool force)
