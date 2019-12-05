@@ -60,7 +60,7 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 <Label Grid.Column="0"  Text="Window length [s]" VerticalTextAlignment="Center"/>
-                <Slider Grid.Column="1" x:Name="WindowSlider" Maximum="1000" Value="10"
+                <Slider Grid.Column="1" x:Name="WindowSlider" Maximum="7200" Value="10"
                         Minimum="1" ValueChanged="WindowSlider_OnValueChanged"/>
                 <Label Grid.Column="2"  x:Name="WindowLengthLabel"/>
             </Grid>
