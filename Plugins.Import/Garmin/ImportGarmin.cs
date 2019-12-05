@@ -26,7 +26,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
     {
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory, Dictionary<string, object> parameters)
         {
-            var importer = new GarminImporter(readerFactory);
+            var importer = new GarminImporter(readerFactory, parameters["Name"] as string);
             importer.ParseFile(await readerFactory.GetReadStream());
             return importer;
         }
@@ -47,15 +47,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Garmin
     {
         internal IReadSeekStreamFactory _readerFactory;
 
-        internal GarminImporter(IReadSeekStreamFactory readerFactory)
+        internal GarminImporter(IReadSeekStreamFactory readerFactory, string name)
         {
-            Name = readerFactory.Name;
+            Name = name ?? readerFactory.Name;
             _readerFactory = readerFactory;
         }
 
         protected override void DoParseFile(Stream s)
         {
-            AddChild(new GarminTable(Name + "_table", _readerFactory, Name + _readerFactory.Extension));
+            AddChild(new GarminTable(Name, _readerFactory, Name + _readerFactory.Extension));
         }
 
     }
