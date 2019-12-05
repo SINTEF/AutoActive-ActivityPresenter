@@ -13,7 +13,11 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             get
             {
                 var version = Package.Current.Id.Version;
+#if DEBUG
+                return "vD.B.G";
+#else
                 return $"v{version.Major}.{version.Minor}.{version.Build}";
+#endif
             }
         }
     }
