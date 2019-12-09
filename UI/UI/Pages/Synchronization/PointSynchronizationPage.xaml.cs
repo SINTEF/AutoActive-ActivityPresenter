@@ -383,5 +383,26 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
         }
 
+        protected override bool OnBackButtonPressed()
+        {
+            base.OnBackButtonPressed();
+
+            if (_slaveContext == null || _slaveContext.Offset == 0L) return false;
+
+
+            var displayTask = DisplayAlert("Unsaved offset",
+                "The offset between master and slave was non-zero, but this has not been saved.\n\nDo you want to save this offset?",
+                "Save", "Discard");
+            displayTask.ContinueWith(task =>
+            {
+                if (displayTask.Result)
+                {
+                    Save_OnClicked(this, new EventArgs());
+                }
+
+                XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+            });
+            return true;
+        }
     }
 }
