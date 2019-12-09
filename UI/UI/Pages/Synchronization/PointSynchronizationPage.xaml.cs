@@ -24,7 +24,31 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private SynchronizationContext _slaveContext;
 
         private long? _selectedMasterTime;
+        private long? SelectedMasterTime
+        {
+            get => _selectedMasterTime;
+            set
+            {
+                _selectedMasterTime = value;
+                MasterTimeButton.Text = _selectedMasterTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ')
+                    : "Unset";
+            }
+        }
+
         private long? _selectedSlaveTime;
+        private long? SelectedSlaveTime
+        {
+            get => _selectedSlaveTime;
+            set
+            {
+                _selectedSlaveTime = value;
+                SlaveTimeButton.Text = _selectedSlaveTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator: ' ')
+                    : "Unset";
+            }
+        }
+
         // The total offset-change in this synchronization operation. This is stored in _lastOffset when saving.
         private long _totalOffset;
 
@@ -74,8 +98,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _masterSet = false;
             _masterTime = null;
-            _selectedMasterTime = 0L;
-            MasterTimeButton.Text = "Unset";
+            SelectedMasterTime = 0L;
 
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
@@ -95,8 +118,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _slaveSet = false;
             _slaveTime = null;
-            _selectedSlaveTime = 0L;
-            SlaveTimeButton.Text = "Unset";
+            SelectedSlaveTime = 0L;
             _totalOffset = 0L;
 
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
@@ -112,24 +134,22 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
             if (_slaveContext == null) return;
-            _selectedSlaveTime = _slaveContext.SelectedTimeFrom;
-            SlaveTimeButton.Text = TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator:' ');
+            SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
-            _selectedMasterTime = _masterContext.SelectedTimeFrom;
-            MasterTimeButton.Text = TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ');
+            SelectedMasterTime = _masterContext.SelectedTimeFrom;
         }
 
         private async void Sync_OnClicked(object sender, EventArgs e)
         {
-            if (!_selectedMasterTime.HasValue || !_selectedSlaveTime.HasValue)
+            if (!SelectedMasterTime.HasValue || !SelectedSlaveTime.HasValue)
             {
                 await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
                 return;
             }
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_selectedSlaveTime.Value - _selectedMasterTime.Value);
+            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
         }
 
         private FigureView _selected;
@@ -290,6 +310,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
 #endif
             var offset = -(_slaveContext.Offset + extraOffset);
+            SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
             _lastOffset = _totalOffset;
             _slaveTime.TransformTime(offset, _slaveContext.Scale);
