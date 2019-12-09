@@ -3,14 +3,13 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
-             xmlns:treeView="clr-namespace:SINTEF.AutoActive.UI.Views.TreeView;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
                 <ColumnDefinition x:Name="ColumnSplitter2" Width="Auto" />
-                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static treeView:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -49,7 +48,7 @@
                     </StackLayout>
                 </StackLayout>
             </Grid>
-            <treeView:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
+            <player:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
 
             <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
             <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
