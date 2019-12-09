@@ -25,6 +25,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private long? _selectedMasterTime;
         private long? _selectedSlaveTime;
+        // The total offset-change in this synchronization operation. This is stored in _lastOffset when saving.
+        private long _totalOffset;
+
+        private static long _lastOffset;
 
         public PointSynchronizationPage()
         {
@@ -87,10 +91,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             Selected = null;
 
+            LastOffset.IsEnabled = false;
+
             _slaveSet = false;
             _slaveTime = null;
             _selectedSlaveTime = 0L;
             SlaveTimeButton.Text = "Unset";
+            _totalOffset = 0L;
 
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
@@ -191,6 +198,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 {
                     _slaveTime = datapoint.Time;
                     _slaveContext = new SynchronizationContext(_masterContext);
+                    LastOffset.IsEnabled = true;
                     SlaveLayout.Children.Add(_slaveSlider);
                 }
 
@@ -264,7 +272,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 Debug.WriteLine("Could not remove frame from layout.");
             }
-            
+
             foreach (var dataPoint in figureView.DataPoints)
             {
                 DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
@@ -281,8 +289,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 extraOffset = videoTime.VideoPlaybackOffset;
             }
 #endif
-            _slaveTime.TransformTime(-(_slaveContext.Offset + extraOffset), _slaveContext.Scale);
-            _slaveContext.Offset = 0;
+            var offset = -(_slaveContext.Offset + extraOffset);
+            _totalOffset += offset;
+            _lastOffset = _totalOffset;
+            _slaveTime.TransformTime(offset, _slaveContext.Scale);
+            _slaveSlider.Offset = 0;
         }
 
         private static long GetOffsetFromTimeStep(TimeStepEvent timeStep)
@@ -342,5 +353,14 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             SetCommonStartTime(true);
         }
+
+        private void LastOffset_OnClicked(object sender, EventArgs e)
+        {
+            if (_slaveSlider != null)
+            {
+                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(-_lastOffset);
+            }
+        }
+
     }
 }
