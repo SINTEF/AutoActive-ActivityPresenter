@@ -1,5 +1,21 @@
 # Changelog
 
+## [0.5.0] - 2019-12-12
+### Added
+ - Saving page
+ - Column plot
+ - Scatter plot
+ - Storing previous offset which can be loaded using a new button
+ - Prompts to save when exiting from sync view with changed offset
+ - Added templates for $filename and $fileext in parameter names
+
+### Changed
+ - Improved CSV file import when running from different culture
+ - Fixed bug in sync view when selecting slave, removing it and then adding a point
+ - Increased max window size to two hours
+ - Minor fixes to video time handling
+
+
 ## [0.4.6] - 2019-11-26
 ### Changed
  - Handling freeing memory on data import
