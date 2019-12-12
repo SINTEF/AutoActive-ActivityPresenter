@@ -14,7 +14,7 @@ using Xamarin.Forms.Xaml;
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class PlayerTreeView : ContentView, IDropCollector
+    public partial class DataTreeView : ContentView, IDropCollector
     {
         public static readonly GridLength DefaultWidth = 200;
 
@@ -48,45 +48,61 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         private void TreeOnChildElementChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            throw new NotImplementedException();
+            if (e.Action == NotifyCollectionChangedAction.Move)
+            {
+                var el = Tree.Children[e.OldStartingIndex];
+                return;
+            }
+
+            if (e.Action == NotifyCollectionChangedAction.Remove)
+            {
+                foreach (var item in e.OldItems)
+                {
+                    if (!(item is IDataStructure dataStructure))
+                        throw new NotImplementedException("Only data structure has been implemented");
+                    RemoveStructure(dataStructure);
+                }
+
+                return;
+            }
+
+            if (e.Action != NotifyCollectionChangedAction.Add)
+            {
+                throw new NotImplementedException("Only adding of data has been implemented");
+            }
+
+            foreach (var item in e.NewItems)
+            {
+                if (!(item is IDataStructure dataStructure))
+                    throw new NotImplementedException("Only data structure has been implemented");
+
+                AddStructure(dataStructure);
+            }
         }
 
-        public PlayerTreeView()
+        public DataTreeView()
         {
             InitializeComponent();
-
-            DataRegistry.ProviderAdded += ProviderAdded;
-            DataRegistry.ProviderRemoved += ProviderRemoved;
-            // Add current items
-            foreach (var dataProvider in DataRegistry.Providers)
-                ProviderAdded(dataProvider);
+            Tree = new DataTree();
         }
 
-        private void ProviderRemoved(IDataProvider dataprovider)
+        private void RemoveStructure(IDataStructure dataprovider)
         {
-            RemoveProvider(dataprovider);
-        }
-
-        private void RemoveProvider(IDataProvider dataprovider)
-        {
-            TreeLayout.Children.Remove(TreeLayout.Children.First(el => (el as BranchView)?.Element.DataStructure == dataprovider));
-        }
-
-        private void ProviderAdded(IDataProvider dataprovider)
-        {
-            AddStructure(dataprovider);
+            var branchView = TreeLayout.Children.First(el => (el as BranchView)?.Element.DataStructure == dataprovider);
+            TreeLayout.Children.Remove(branchView);
         }
 
         private void AddStructure(IDataStructure dataStructure)
         {
-            TreeLayout.Children.Add(new BranchView
+            var branchView = new BranchView
             {
                 Element = new VisualizedStructure(dataStructure)
                 {
                     IsExpanded = false
                 },
                 ParentTree = this
-            });
+            };
+            TreeLayout.Children.Add(branchView);
         }
 
         public event EventHandler<IDataPoint> DataPointTapped;
@@ -109,85 +125,21 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public void ObjectDroppedOn(IDraggable item)
         {
-            Debug.WriteLine($"{item} dropped on {this}");
+            ObjectDroppedOn(this, item);
+        }
+
+        public event EventHandler<(DataTreeView parent, IDropCollector container, IDraggable item)> ItemDroppedOn;
+
+        internal void ObjectDroppedOn(IDropCollector collector, IDraggable item)
+        {
+            var parent = XamarinHelpers.GetTypedElementFromParents<DataTreeView>(item as Element);
+            ItemDroppedOn?.Invoke(this, (parent, collector, item));
         }
     }
 
     public enum TreeAction
     {
         UseInTimeline
-    }
-
-    public class VisualizedStructure
-    {
-        private bool _isExpanded;
-
-        public VisualizedStructure(IDataStructure structure)
-        {
-            DataStructure = structure;
-
-        }
-
-        public VisualizedStructure(IDataPoint dataPoint)
-        {
-            DataPoint = dataPoint;
-        }
-
-        public IDataStructure DataStructure { get; }
-        public IDataPoint DataPoint { get; }
-
-
-        private List<VisualizedStructure> _children;
-
-        public List<VisualizedStructure> Children
-        {
-            get
-            {
-                if (_children != null) return _children;
-
-                _children = new List<VisualizedStructure>();
-
-                if (DataStructure == null) return _children;
-
-                foreach (var child in DataStructure.Children)
-                {
-                    _children.Add(new VisualizedStructure(child));
-                }
-                foreach (var child in DataStructure.DataPoints)
-                {
-                    _children.Add(new VisualizedStructure(child));
-                }
-
-                return _children;
-            }
-        }
-
-        public bool IsExpanded
-        {
-            get => _isExpanded;
-            set
-            {
-                _isExpanded = value;
-                OnExpandChanged?.Invoke(this, value);
-            }
-        }
-
-        public string Name
-        {
-            get => DataStructure != null ? DataStructure.Name : DataPoint.Name;
-            set
-            {
-                if (DataStructure != null)
-                {
-                    DataStructure.Name = value;
-                    return;
-                }
-
-                DataPoint.Name = value;
-            }
-        }
-
-        public event EventHandler<bool> OnExpandChanged;
     }
 
     public class DataTree : IEnumerable<IDataStructure>

@@ -1,8 +1,9 @@
 ﻿using System;
-using System.Diagnostics;
+using System.Collections.Specialized;
 using System.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
+using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views.TreeView
@@ -40,6 +41,11 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 }
 
                 _element = value;
+                if (_element.DataStructure != null)
+                {
+                    _element.DataStructure.Children.CollectionChanged += DataStructureChildrenChanged;
+                    _element.DataStructure.DataPoints.CollectionChanged += DataStructureChildrenChanged;
+                }
                 if (BranchButton == null) return;
                 BranchButton.Text = _element.Name;
 
@@ -53,45 +59,102 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             }
         }
 
+        private void DataStructureChildrenChanged(object sender, NotifyCollectionChangedEventArgs e)
+        {
+            UpdateExpandedName();
+            EnsureCorrectChildren();
+        }
+
+        private void EnsureCorrectChildren()
+        {
+            var dataStructure = _element;
+            var i = -1;
+            foreach(var child in dataStructure.Children)
+            {
+                i++;
+
+                if (i >= ChildElements.Children.Count)
+                {
+                    var newChild = CreateChildElement(child);
+                    ChildElements.Children.Add(newChild);
+                    continue;
+                }
+
+                var childElement = ChildElements.Children[i];
+                if (!(childElement is BranchView branchView))
+                {
+                    throw new ArgumentException("Invalid child argument");
+                }
+
+                if (child == branchView.Element)
+                {
+                    continue;
+                }
+
+                // Look for later matching items:
+                var existingChildIx = ChildElements.Children.Skip(i)
+                    .IndexOf(el => (el as BranchView)?.Element == child);
+                if (existingChildIx != -1)
+                {
+                    var tmpChildElement = ChildElements.Children[existingChildIx];
+                    ChildElements.Children.RemoveAt(existingChildIx);
+                    ChildElements.Children.Insert(i, tmpChildElement);
+                    continue;
+                }
+                ChildElements.Children.Insert(i, CreateChildElement(child));
+            }
+
+            i++;
+
+            if (i == 0)
+                ChildElements.Children.Clear();
+
+            while (i < ChildElements.Children.Count)
+            {
+                ChildElements.Children.RemoveAt(ChildElements.Children.Count - 1);
+            }
+
+        }
+
         private bool IsClickable()
         {
             return Element.DataPoint != null;
         }
 
-        public PlayerTreeView ParentTree { get; set; }
+        public DataTreeView ParentTree { get; set; }
 
         private void UpdateExpandedName()
         {
             if (_element == null) return;
 
             ExpandButton.IsVisible = _element.Children.Any();
+            if (!ExpandButton.IsVisible && _element.IsExpanded)
+            {
+                // TODO(sigurdal): The following line would be the logical behaviour, but there seems to be a bug with Xamarin not showing the element when it is made visible again
+                // _element.IsExpanded = false;
+            }
+
+
             ExpandButton.Text = _element.IsExpanded ? "-" : "+";
         }
 
         private void BranchOnOnExpandChanged(object sender, bool isExpanded)
         {
             UpdateExpandedName();
-            if (isExpanded)
-            {
-                ChildElements.IsVisible = true;
-                var elements = ChildElements.Children.Select(el => ((BranchView)el).Element);
-
-                if (elements.SequenceEqual(_element.Children))
-                {
-                    return;
-                }
-
-                ChildElements.Children.Clear();
-
-                foreach (var element in _element.Children)
-                {
-                    ChildElements.Children.Add(new BranchView { ParentTree = ParentTree, Element = element });
-                }
-            }
-            else
+            if (!isExpanded)
             {
                 ChildElements.IsVisible = false;
+                return;
             }
+
+            ChildElements.IsVisible = true;
+
+            EnsureCorrectChildren();
+        }
+
+        private BranchView CreateChildElement(VisualizedStructure element)
+        {
+            return new BranchView {ParentTree = ParentTree, Element = element};
         }
 
         private void BranchButton_OnClicked(object sender, EventArgs e)
@@ -145,7 +208,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public void ObjectDroppedOn(IDraggable item)
         {
-            Debug.WriteLine($"{item} dropped on {this} ({Name})");
+            ParentTree?.ObjectDroppedOn(this, item);
         }
     }
 }

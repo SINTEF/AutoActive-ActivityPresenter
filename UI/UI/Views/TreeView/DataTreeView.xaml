@@ -4,7 +4,7 @@
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d"
-             x:Class="SINTEF.AutoActive.UI.Views.TreeView.PlayerTreeView">
+             x:Class="SINTEF.AutoActive.UI.Views.TreeView.DataTreeView">
     <ContentView.Content>
         <ScrollView>
             <StackLayout x:Name="TreeLayout" Orientation="Vertical" Spacing="2" Margin="0" Padding="0" />

@@ -41,7 +41,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         public PlaybarView Playbar { get; set; }
 
-        public DataTracklineView()
+        public DataTracklineView() : base()
         {
             PaintSurface += OnPaintSurface;
             WidthMargins = 10;
@@ -177,7 +177,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             var yHeight = GetTracklineHeight(drawRect.Height);
 
-            
+
 
             var fontHeight = _textPaint.FontMetrics.Bottom - _textPaint.FontMetrics.Top;
             var textSize = _textPaint.TextSize;

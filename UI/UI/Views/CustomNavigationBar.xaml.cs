@@ -19,17 +19,11 @@ namespace SINTEF.AutoActive.UI.Views
 	public partial class CustomNavigationBar : ContentView
 	{
         public static readonly GridLength DefaultHeight = 40;
-
-	    public HashSet<ArchiveSession> OpenSessions = new HashSet<ArchiveSession>();
-
         private readonly IFileBrowser _browser;
 
         public CustomNavigationBar()
         {
             InitializeComponent();
-
-            // TODO(sigurdal) should this event be deregistered?
-            SaveComplete += OnSaveComplete;
 
             _browser = DependencyService.Get<IFileBrowser>();
             if (_browser == null)
@@ -57,7 +51,7 @@ namespace SINTEF.AutoActive.UI.Views
 
                 foreach (var session in archive.Sessions)
                 {
-                    OpenSessions.Add(session);
+                    //OpenSessions.Add(session);
                     session.Register();
 	            }
 
@@ -185,87 +179,17 @@ namespace SINTEF.AutoActive.UI.Views
             XamarinHelpers.EnsureMainThread(() => DoImportFiles(files));
         }
 
+        private SavingPage _savingPage;
+
         private async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
         {
-            var dataPoints = new List<IDataStructure>(DataRegistry.Providers);
-            //var sessions = new List<ArchiveSession>(OpenSessions);
-            var sessions = new List<ArchiveSession>();
-
-            // TODO: implement
-            //var selector = new StorageSelector(sessions, dataPoints);
-
-            var sessionName = dataPoints.Any() ? dataPoints.First().Name : "New Session";
-
-            // TODO: this should be run in a thread if we want to control the app while saving:
-            await SaveArchive(sessions, dataPoints, sessionName);
-        }
-
-        private async void OnSaveComplete(object sender, SaveCompleteArgs args)
-        {
-            switch (args.Status)
+            if (_savingPage == null)
             {
-                case SaveStatus.Cancel:
-                    return;
-                case SaveStatus.Failure:
-                    await XamarinHelpers.GetCurrentPage(this).DisplayAlert("Save failed", args.Message, "OK");
-                    return;
-                case SaveStatus.Success:
-                    await XamarinHelpers.GetCurrentPage(this).DisplayAlert("Saving done", "Save completed successfully", "OK");
-                    return;
-            }
-        }
-
-	    public event SaveCompleteEvent SaveComplete;
-
-	    private async Task SaveArchive(ICollection<ArchiveSession> selectedSession,
-	        ICollection<IDataStructure> selectedDataPoints, string sessionName)
-	    {
-            var streamFactory = await _browser.BrowseForSave();
-            if (streamFactory == null) return;
-
-            var result = await SaveArchiveProxy(streamFactory, selectedSession, selectedDataPoints, sessionName);
-            SaveComplete?.Invoke(this, result);
-	    }
-
-
-        private static async Task<SaveCompleteArgs> SaveArchiveProxy(IReadWriteSeekStreamFactory file, ICollection<ArchiveSession> selectedSession, ICollection<IDataStructure> selectedDataPoints, string sessionName)
-	    {
-            if ((selectedSession == null || selectedSession.Count == 0) && (selectedDataPoints == null || selectedDataPoints.Count == 0))
-            {
-                return new SaveCompleteArgs(SaveStatus.Failure, "No data selected for save.");
+                _savingPage = new SavingPage();
             }
 
-            var stream = await file.GetReadWriteStream();
-
-	        var archive = Archive.Archive.Create(stream);
-
-	        if (selectedDataPoints?.Count > 0)
-	        {
-	            var session = ArchiveSession.Create(archive, sessionName);
-	            foreach (var dataPoint in selectedDataPoints)
-	            {
-                    session.AddChild(dataPoint);
-                    if (dataPoint is ArchiveSession locArch)
-                    {
-                        session.AddBasedOnSession(locArch);
-                    }
-                }
-                archive.AddSession(session);
-	        }
-
-	        if (selectedSession != null)
-	        {
-	            foreach (var session in selectedSession)
-	            {
-	                archive.AddSession(session);
-	            }
-	        }
-
-            await archive.WriteFile();
-            archive.Close();
-	        file.Close();
-	        return new SaveCompleteArgs(SaveStatus.Success, "success");
-	    }
+            await Navigation.PushAsync(_savingPage);
+        }
 
 	    private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
@@ -276,24 +200,5 @@ namespace SINTEF.AutoActive.UI.Views
         {
             Navigation.PushAsync(new HeadToHead());
         }
-    }
-
-    public delegate void SaveCompleteEvent(object sender, SaveCompleteArgs args);
-
-    public class SaveCompleteArgs
-    {
-        public SaveCompleteArgs(SaveStatus status, string message)
-        {
-            Status = status;
-            Message = message;
-        }
-
-        public string Message;
-        public SaveStatus Status;
-    }
-
-    public enum SaveStatus
-    {
-        Success, Failure, Cancel
     }
 }

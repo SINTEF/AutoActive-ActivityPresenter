@@ -10,7 +10,7 @@
              Margin="0" HorizontalOptions="Start">
     <ContentView.Content>
         <StackLayout Orientation="Vertical" Spacing="0" Margin="0" Padding="0">
-            <Frame x:Name="OuterFrame" BorderColor="Blue" CornerRadius="4" Padding="2" Margin="0"  HorizontalOptions="Start">
+            <Frame x:Name="OuterFrame" BorderColor="Blue" CornerRadius="4" Padding="2" Margin="0"  HorizontalOptions="Start" MinimumHeightRequest="10">
                 <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand"  Padding="2" Margin="4" Spacing="4">
                     <Button x:Name="ExpandButton" Text="+" HorizontalOptions="Start" VerticalOptions="Center" Clicked="ExpandButton_OnClicked" Margin="0" Padding="5"/>
                     <treeVisualizer:MultiButton x:Name="BranchButton" Clicked="BranchButton_OnClicked" AlternateClicked="BranchButton_OnAlternateClicked"/>

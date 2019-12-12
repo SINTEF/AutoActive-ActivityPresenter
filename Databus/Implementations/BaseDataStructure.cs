@@ -1,13 +1,14 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SINTEF.AutoActive.Databus.Implementations
 {
     // Base class that implements the IDataStructure interface with lists of children and datapoints
     public abstract class BaseDataStructure : IDataStructure
     {
-        private readonly List<IDataStructure> children = new List<IDataStructure>();
-        private readonly List<IDataPoint> datapoints = new List<IDataPoint>();
+        private readonly ObservableCollection<IDataStructure> children = new ObservableCollection<IDataStructure>();
+        private readonly ObservableCollection<IDataPoint> datapoints = new ObservableCollection<IDataPoint>();
 
         // Recursive searches to try to prevent creating loops in the tree of data
         private bool Contains(IDataStructure datastructure)
@@ -41,7 +42,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
             ChildAdded?.Invoke(sender, datastructure);
         }
 
-        protected internal virtual void RemoveChild(IDataStructure datastructure)
+        public virtual void RemoveChild(IDataStructure datastructure)
         {
             if (children.Remove(datastructure)) OnChildRemoved(this, datastructure);
         }
@@ -50,7 +51,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
             ChildRemoved?.Invoke(sender, datastructure);
         }
 
-        protected internal virtual void AddDataPoint(IDataPoint datapoint)
+        public virtual void AddDataPoint(IDataPoint datapoint)
         {
             if (Contains(datapoint)) return;
             datapoints.Add(datapoint);
@@ -61,7 +62,7 @@ namespace SINTEF.AutoActive.Databus.Implementations
             DataPointAdded?.Invoke(sender, datapoint);
         }
 
-        protected internal virtual void RemoveDataPoint(IDataPoint datapoint)
+        public virtual void RemoveDataPoint(IDataPoint datapoint)
         {
             if (datapoints.Remove(datapoint)) OnDataPointRemoved(this, datapoint);
         }
@@ -88,9 +89,9 @@ namespace SINTEF.AutoActive.Databus.Implementations
         //TODO(sigurdal): make sure name is updated when this is changed
         public virtual string Name { get; set; }
 
-        public IEnumerable<IDataStructure> Children => children.AsReadOnly();
+        public ObservableCollection<IDataStructure> Children => children;
 
-        public IEnumerable<IDataPoint> DataPoints => datapoints.AsReadOnly();
+        public ObservableCollection<IDataPoint> DataPoints => datapoints;
 
         public event DataStructureAddedHandler ChildAdded;
         public event DataStructureRemovedHandler ChildRemoved;

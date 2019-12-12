@@ -1,0 +1,62 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:treeView="clr-namespace:SINTEF.AutoActive.UI.Views.TreeView;assembly=SINTEF.AutoActive.UI"
+             mc:Ignorable="d"
+             x:Class="SINTEF.AutoActive.UI.Pages.SavingPage">
+    <ContentPage.Content>
+        <Grid RowSpacing="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition />
+                <ColumnDefinition />
+            </Grid.ColumnDefinitions>
+            <Grid.RowDefinitions>
+                <RowDefinition />
+                <RowDefinition Height="Auto"/>
+            </Grid.RowDefinitions>
+            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Black">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Label Grid.Row="0" Grid.Column="1" Text="Data" HorizontalTextAlignment="Center" />
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add all ->" HorizontalOptions="End" Clicked="AddAllClicked"/>
+                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="DataTree"/>
+                </Grid>
+            </Frame>
+            <Frame Grid.Row="0" Grid.Column="1" BorderColor="Red">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button Grid.Row="0" Grid.Column="0" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="Save archive" HorizontalTextAlignment="Center"/>
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked"/>
+                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="SavingTree"/>
+                </Grid>
+            </Frame>
+            <Grid Grid.Column="1" Grid.Row="1">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="4*"/>
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <ProgressBar x:Name="SavingProgress" Grid.Column="0" Progress="0" VerticalOptions="Center"/>
+                <Button Grid.Column="1" Text="Save" Clicked="SaveButtonClicked" VerticalOptions="Fill"/>
+            </Grid>
+        </Grid>
+    </ContentPage.Content>
+</ContentPage>

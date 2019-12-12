@@ -16,11 +16,11 @@ namespace SINTEF.AutoActive.Archive
     public class Archive
     {
         private readonly ZipFile _zipFile;
-        private readonly IReadWriteSeekStreamFactory _streamFactory;
+        private readonly IReadSeekStreamFactory _streamFactory;
         private readonly List<ArchiveSession> _sessions = new List<ArchiveSession>();
 
         /* ---------- Open an existing archive ---------- */
-        private Archive(ZipFile file, IReadWriteSeekStreamFactory factory)
+        private Archive(ZipFile file, IReadSeekStreamFactory factory)
         {
             _zipFile = file;
             _streamFactory = factory;
@@ -67,8 +67,9 @@ namespace SINTEF.AutoActive.Archive
                     throw new ArgumentException("Session is missing 'id'");
                 }
 
+                var parsedElement = ParseJsonElement(json, sessionId.Value);
                 // Load the contents of the file
-                if (ParseJsonElement(json, sessionId.Value) is ArchiveSession session)
+                if (parsedElement is ArchiveSession session)
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
@@ -125,19 +126,16 @@ namespace SINTEF.AutoActive.Archive
             return new ArchiveFileBoundFactory(this, entry);
         }
 
-
-        public static async Task<Archive> Open(IReadWriteSeekStreamFactory file)
+        public static async Task<Archive> Open(IReadSeekStreamFactory file)
         {
-            var zipFile = new ZipFile(await file.GetReadWriteStream());
+            var zipFile = new ZipFile(await file.GetReadStream());
             var archive = new Archive(zipFile, file);
             await archive.ParseSessions();
             return archive;
         }
 
-
-
         /* ---------- Create a new archive from scratch ---------- */
-        private Archive(ZipFile zipFile)
+            private Archive(ZipFile zipFile)
         {
             zipFile.UseZip64 = UseZip64.On;
             _zipFile = zipFile;

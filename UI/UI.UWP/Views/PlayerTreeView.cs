@@ -4,22 +4,22 @@ using SINTEF.AutoActive.UI.UWP.Views;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms.Platform.UWP;
 
-[assembly: ExportRenderer(typeof(PlayerTreeView), typeof(TreeViewRenderer))]
+[assembly: ExportRenderer(typeof(DataTreeView), typeof(TreeViewRenderer))]
 namespace SINTEF.AutoActive.UI.UWP.Views
 {
-    class TreeViewRenderer : ViewRenderer<PlayerTreeView, Canvas>, IDropCollector
+    class TreeViewRenderer : ViewRenderer<DataTreeView, Canvas>, IDropCollector
     {
-        public PlayerTreeView PlayerTreeView;
-        protected override void OnElementChanged(ElementChangedEventArgs<PlayerTreeView> e)
+        public DataTreeView DataTreeView;
+        protected override void OnElementChanged(ElementChangedEventArgs<DataTreeView> e)
         {
             base.OnElementChanged(e);
 
-            PlayerTreeView = e.NewElement;
+            DataTreeView = e.NewElement;
         }
 
         public void ObjectDroppedOn(IDraggable item)
         {
-            PlayerTreeView?.ObjectDroppedOn(item);
+            DataTreeView?.ObjectDroppedOn(item);
         }
     }
 }

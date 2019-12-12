@@ -41,7 +41,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             var id = Meta["id"].ToObject<Guid?>();
             var name = User["name"].ToObject<string>();
             var created = User["created"].ToObject<DateTimeOffset?>();
-            
+
             Id = id ?? throw new ArgumentException("Session is missing 'id'");
             Name = name ?? throw new ArgumentException("Session is missing 'name'");
             Created = created ?? throw new ArgumentException("Session is missing 'created'");
@@ -199,7 +199,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
             // Copy previous session selectivly
             root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
-            root["meta"]["based_on"] = new JObject(_basedOn); 
+            root["meta"]["based_on"] = new JObject(_basedOn);
             root["meta"]["version"] = Meta["version"];
 
             root["user"]["created"] = Created.ToString();
