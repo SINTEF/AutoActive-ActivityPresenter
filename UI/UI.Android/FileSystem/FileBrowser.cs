@@ -153,6 +153,11 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             return !string.IsNullOrEmpty(path) ? new ReadWriteSeekStreamFactory(path) : null;
         }
 
+        public Task<IReadSeekStreamFactory> LoadFromUri(string uri)
+        {
+            throw new NotImplementedException();
+        }
+
         /* --- Helpers --- */
         string GetPath(Context context, Android.Net.Uri uri)
         {

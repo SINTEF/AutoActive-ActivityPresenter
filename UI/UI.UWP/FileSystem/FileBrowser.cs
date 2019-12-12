@@ -114,6 +114,7 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             var files = await picker.PickMultipleFilesAsync();
             return files.Count == 0 ? null : new List<ReadWriteSeekStreamFactory>(files.Select(file => new ReadWriteSeekStreamFactory(file)));
         }
+
         public async Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default((string, string)),
             string filename = null)
         {
@@ -130,6 +131,12 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
 
             var file = await picker.PickSaveFileAsync();
             return file == null ? null : new ReadWriteSeekStreamFactory(file);
+        }
+
+        public async Task<IReadSeekStreamFactory> LoadFromUri(string uri)
+        {
+            var storageFile = await StorageFile.GetFileFromPathAsync(uri);
+            return new ReadWriteSeekStreamFactory(storageFile);
         }
     }
 }

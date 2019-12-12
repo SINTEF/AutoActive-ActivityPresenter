@@ -2,17 +2,21 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
-using SINTEF.AutoActive.UI.Views.TreeView;
+using System.Threading;
+using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.Plugins;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	public partial class PlayerPage : ContentPage
-	{
-	    private const double SplitViewWidthMin = 1000;
-	    private const double OverlayModeWidth = 0.9;
-	    private const double OverlayModeShadeOpacity = 0.5;
-	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
+    public partial class PlayerPage : ContentPage
+    {
+        private const double SplitViewWidthMin = 1000;
+        private const double OverlayModeWidth = 0.9;
+        private const double OverlayModeShadeOpacity = 0.5;
+        private static bool _fistStart = true;
+        public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
         public PlayerPage()
         {
@@ -35,6 +39,33 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
+
+            if (!_fistStart) return;
+            _fistStart = false;
+
+            var loaderThread = new Thread(async () =>
+            {
+                // Load Archive in the background
+                var browser = DependencyHandler.GetInstance<IFileBrowser>();
+                var file = await browser.LoadFromUri("D:\\data\\v0.6.0\\testSine.aaz");
+                var archive = await Archive.Archive.Open(file);
+                foreach (var session in archive.Sessions)
+                {
+                    session.Register();
+                }
+
+                // Load Archive in the background
+                browser = DependencyHandler.GetInstance<IFileBrowser>();
+                file = await browser.LoadFromUri("D:\\data\\v0.6.0\\testSine.aaz");
+                archive = await Archive.Archive.Open(file);
+                foreach (var session in archive.Sessions)
+                {
+                    session.Register();
+                }
+
+                XamarinHelpers.EnsureMainThread(() => NavigationBar.SaveArchiveButton.SendClicked());
+            });
+            loaderThread.Start();
         }
 
         private void OnDisappearing(object sender, EventArgs e)

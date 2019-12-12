@@ -13,5 +13,6 @@ namespace SINTEF.AutoActive.FileSystem
 
         Task<IReadWriteSeekStreamFactory> BrowseForSave((string, string) extensionDescription = default, string filename = null);
 
+        Task<IReadSeekStreamFactory> LoadFromUri(string uri);
     }
 }
