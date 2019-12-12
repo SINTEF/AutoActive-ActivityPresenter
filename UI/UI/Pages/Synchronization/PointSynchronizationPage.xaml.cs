@@ -24,7 +24,35 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private SynchronizationContext _slaveContext;
 
         private long? _selectedMasterTime;
+        private long? SelectedMasterTime
+        {
+            get => _selectedMasterTime;
+            set
+            {
+                _selectedMasterTime = value;
+                MasterTimeButton.Text = _selectedMasterTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ')
+                    : "Unset";
+            }
+        }
+
         private long? _selectedSlaveTime;
+        private long? SelectedSlaveTime
+        {
+            get => _selectedSlaveTime;
+            set
+            {
+                _selectedSlaveTime = value;
+                SlaveTimeButton.Text = _selectedSlaveTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator: ' ')
+                    : "Unset";
+            }
+        }
+
+        // The total offset-change in this synchronization operation. This is stored in _lastOffset when saving.
+        private long _totalOffset;
+
+        private static long _lastOffset;
 
         public PointSynchronizationPage()
         {
@@ -70,8 +98,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _masterSet = false;
             _masterTime = null;
-            _selectedMasterTime = 0L;
-            MasterTimeButton.Text = "Unset";
+            SelectedMasterTime = 0L;
 
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
@@ -87,10 +114,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             Selected = null;
 
+            LastOffset.IsEnabled = false;
+
             _slaveSet = false;
             _slaveTime = null;
-            _selectedSlaveTime = 0L;
-            SlaveTimeButton.Text = "Unset";
+            SelectedSlaveTime = 0L;
+            _totalOffset = 0L;
 
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
@@ -105,24 +134,22 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
             if (_slaveContext == null) return;
-            _selectedSlaveTime = _slaveContext.SelectedTimeFrom;
-            SlaveTimeButton.Text = TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator:' ');
+            SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
-            _selectedMasterTime = _masterContext.SelectedTimeFrom;
-            MasterTimeButton.Text = TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ');
+            SelectedMasterTime = _masterContext.SelectedTimeFrom;
         }
 
         private async void Sync_OnClicked(object sender, EventArgs e)
         {
-            if (!_selectedMasterTime.HasValue || !_selectedSlaveTime.HasValue)
+            if (!SelectedMasterTime.HasValue || !SelectedSlaveTime.HasValue)
             {
                 await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
                 return;
             }
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_selectedSlaveTime.Value - _selectedMasterTime.Value);
+            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
         }
 
         private FigureView _selected;
@@ -191,6 +218,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 {
                     _slaveTime = datapoint.Time;
                     _slaveContext = new SynchronizationContext(_masterContext);
+                    LastOffset.IsEnabled = true;
                     SlaveLayout.Children.Add(_slaveSlider);
                 }
 
@@ -264,7 +292,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 Debug.WriteLine("Could not remove frame from layout.");
             }
-            
+
             foreach (var dataPoint in figureView.DataPoints)
             {
                 DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
@@ -281,8 +309,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 extraOffset = videoTime.VideoPlaybackOffset;
             }
 #endif
-            _slaveTime.TransformTime(-(_slaveContext.Offset + extraOffset), _slaveContext.Scale);
-            _slaveContext.Offset = 0;
+            var offset = -(_slaveContext.Offset + extraOffset);
+            SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
+            _totalOffset += offset;
+            _lastOffset = _totalOffset;
+            _slaveTime.TransformTime(offset, _slaveContext.Scale);
+            _slaveSlider.Offset = 0;
         }
 
         private static long GetOffsetFromTimeStep(TimeStepEvent timeStep)
@@ -341,6 +373,36 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SetCommonStart_OnClicked(object sender, EventArgs e)
         {
             SetCommonStartTime(true);
+        }
+
+        private void LastOffset_OnClicked(object sender, EventArgs e)
+        {
+            if (_slaveSlider != null)
+            {
+                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(-_lastOffset);
+            }
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            base.OnBackButtonPressed();
+
+            if (_slaveContext == null || _slaveContext.Offset == 0L) return false;
+
+
+            var displayTask = DisplayAlert("Unsaved offset",
+                "The offset between master and slave was non-zero, but this has not been saved.\n\nDo you want to save this offset?",
+                "Save", "Discard");
+            displayTask.ContinueWith(task =>
+            {
+                if (displayTask.Result)
+                {
+                    Save_OnClicked(this, new EventArgs());
+                }
+
+                XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+            });
+            return true;
         }
     }
 }
