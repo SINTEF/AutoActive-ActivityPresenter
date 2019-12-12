@@ -51,14 +51,23 @@
             <player:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
 
             <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
-            <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  Orientation="Horizontal"  HorizontalOptions="EndAndExpand">
-                <Button Text="Reset" Clicked ="Reset_OnClicked"/>
-                <Button Text="Remove Slave" Clicked ="ResetSlave_OnClicked"/>
-                <Button Text="Common Start" Clicked ="SetCommonStart_OnClicked"/>
-                <Button Text="Point Sync" Clicked ="Sync_OnClicked"/>
-                <Button Text="Save" Clicked ="Save_OnClicked"/>
-            </StackLayout>
+            <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  HorizontalOptions="EndAndExpand">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                </Grid.ColumnDefinitions>
+                <Grid.RowDefinitions>
+                    <RowDefinition />
+                    <RowDefinition />
+                </Grid.RowDefinitions>
+                <Button Grid.Column="0" Grid.Row="0" Text="Reset" Clicked ="Reset_OnClicked"/>
+                <Button Grid.Column="1" Grid.Row="0" Text="Remove Slave" Clicked ="ResetSlave_OnClicked"/>
+                <Button Grid.Column="2" Grid.Row="0" Text="Common Start" Clicked ="SetCommonStart_OnClicked"/>
+                <Button x:Name="LastOffset" Grid.Column="0" Grid.Row="1" Text="Load Previous Offset" Clicked ="LastOffset_OnClicked" IsEnabled="False" />
+                <Button Grid.Column="1" Grid.Row="1" Text="Point Sync" Clicked ="Sync_OnClicked"/>
+                <Button Grid.Column="2" Grid.Row="1" Text="Save" Clicked ="Save_OnClicked"/>
+            </Grid>
         </Grid>
     </ContentPage.Content>
 </ContentPage>
-    
