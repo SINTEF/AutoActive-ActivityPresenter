@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Archive.Plugin;
@@ -224,8 +225,8 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 return;
             }
+            SaveButton.IsEnabled = false;
             await SaveArchive(SavingTree.Tree);
-            SavingProgress.Progress = 1;
         }
 
         private async Task<bool> VerifyArchive(DataTree sessions)
@@ -278,19 +279,25 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        private async void OnSaveComplete(object sender, SaveCompleteArgs args)
+        private void OnSaveComplete(object sender, SaveCompleteArgs args)
         {
-            switch (args.Status)
+            XamarinHelpers.EnsureMainThread(async () =>
             {
-                case SaveStatus.Cancel:
-                    return;
-                case SaveStatus.Failure:
-                    await DisplayAlert("Save failed", args.Message, "OK");
-                    return;
-                case SaveStatus.Success:
-                    await DisplayAlert("Saving done", "Save completed successfully", "OK");
-                    return;
-            }
+                SaveButton.IsEnabled = true;
+                SavingProgress.Progress = 1;
+
+                switch (args.Status)
+                {
+                    case SaveStatus.Cancel:
+                        return;
+                    case SaveStatus.Failure:
+                        await DisplayAlert("Save failed", args.Message, "OK");
+                        return;
+                    case SaveStatus.Success:
+                        await DisplayAlert("Saving done", "Save completed successfully", "OK");
+                        return;
+                }
+            });
         }
 
         public event EventHandler<SaveCompleteArgs> SaveComplete;
@@ -325,6 +332,16 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+
+            new Thread(async () =>
+                {
+                    await WriteArchive(dataTree, file);
+                }
+            ).Start();
+        }
+
+        private async Task WriteArchive(DataTree dataTree, IReadWriteSeekStreamFactory file)
+        {
             var stream = await file.GetReadWriteStream();
 
             var archive = Archive.Archive.Create(stream);
@@ -341,63 +358,34 @@ namespace SINTEF.AutoActive.UI.Pages
                 {
                     session.AddDataPoint(dataPoint);
                 }
+
                 archive.AddSession(session);
             }
 
+            archive.SavingProgressChanged += ArchiveOnSavingProgress;
             await archive.WriteFile();
+            archive.SavingProgressChanged -= ArchiveOnSavingProgress;
             archive.Close();
             file.Close();
+            if (archive.ErrorList.Any())
+            {
+                var msg = "";
+
+                foreach (var (name, ex) in archive.ErrorList)
+                {
+                    msg += $"  {name} - {ex.Message}";
+                }
+
+                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Failure, $"Error when saving:\n\n{msg}"));
+                return;
+            }
+
             SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Success, "success"));
         }
 
-
-
-        private async void SaveArchive(ICollection<ArchiveSession> selectedSession, ICollection<IDataStructure> selectedDataPoints, string sessionName)
+        private void ArchiveOnSavingProgress(object sender, double progress)
         {
-            if ((selectedSession == null || selectedSession.Count == 0) && (selectedDataPoints == null || selectedDataPoints.Count == 0))
-            {
-                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Failure, "No data selected for save."));
-                return;
-            }
-
-            var file = await _browser.BrowseForSave();
-
-            if (file == null)
-            {
-                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Cancel, "Save cancelled"));
-                return;
-            }
-
-            var stream = await file.GetReadWriteStream();
-
-            var archive = Archive.Archive.Create(stream);
-
-            if (selectedDataPoints?.Count > 0)
-            {
-                var session = ArchiveSession.Create(archive, sessionName);
-                foreach (var dataPoint in selectedDataPoints)
-                {
-                    session.AddChild(dataPoint);
-                    if (dataPoint is ArchiveSession locArch)
-                    {
-                        session.AddBasedOnSession(locArch);
-                    }
-                }
-                archive.AddSession(session);
-            }
-
-            if (selectedSession != null)
-            {
-                foreach (var session in selectedSession)
-                {
-                    archive.AddSession(session);
-                }
-            }
-
-            await archive.WriteFile();
-            archive.Close();
-            file.Close();
-            SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Success, "success"));
+            XamarinHelpers.EnsureMainThread(() => SavingProgress.Progress = progress);
         }
 
         public class SaveCompleteArgs

@@ -96,18 +96,36 @@ namespace SINTEF.AutoActive.Archive.Plugin
             Closing?.Invoke(this, this);
         }
 
-        public static async Task WriteChildren(ISessionWriter sessionWriter, JObject json, IEnumerable<IDataStructure> children)
+        public List<Exception> SavingErrors = new List<Exception>();
+
+        public async Task WriteChildren(ISessionWriter sessionWriter, JObject json, ObservableCollection<IDataStructure> children)
         {
+            if (children == Children)
+            {
+                _progressStep = 1d / children.Count;
+            }
+
+            var childIx = 0;
             foreach (var child in children)
             {
+                if (children == Children)
+                    SavingProgress += _progressStep * childIx++;
                 var root = new JObject();
                 try
                 {
                     if (child is ISaveable saveable)
                     {
-                        if (!await saveable.WriteData(root, sessionWriter))
+                        try
                         {
-                            Debug.WriteLine($"Could not save {child.Name} (save failed)");
+                            if (!await saveable.WriteData(root, sessionWriter))
+                            {
+                                Debug.WriteLine($"Could not save {child.Name} (save failed)");
+                                continue;
+                            }
+                        }
+                        catch (ObjectDisposedException ex)
+                        {
+                            SavingErrors.Add(ex);
                             continue;
                         }
                     }
@@ -127,11 +145,25 @@ namespace SINTEF.AutoActive.Archive.Plugin
                     Debug.WriteLine($"Could not save {child.Name} (save not implemented)");
                     continue;
                 }
+                catch (Exception ex)
+                {
+                    SavingErrors.Add(ex);
+                    continue;
+                }
 
                 if (child.Children.Any())
                 {
                     sessionWriter.PushPathName(child.Name);
-                    await WriteChildren(sessionWriter, root, child.Children);
+                    try
+                    {
+                        await WriteChildren(sessionWriter, root, child.Children);
+                    }
+                    catch (Exception ex)
+                    {
+                        Debug.WriteLine($"There was a problem saving the session {ex.Message}");
+                        SavingErrors.Add(ex);
+                    }
+
                     sessionWriter.PopPathName();
                 }
 
@@ -156,17 +188,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 if (child.Name != null)
                 {
                     // Store tree from child
-                    var name = child.Name;
-                    for (var i = 2; i < 10; i++)
-                    {
-                        if(!user.ContainsKey(name))
-                        {
-                            break;
-                        }
-                        name = $"{child.Name}_{i}";
-                    }
-
-                    user[name] = root;
+                    user[child.Name] = root;
                 }
                 else
                 {
@@ -179,8 +201,23 @@ namespace SINTEF.AutoActive.Archive.Plugin
             }
         }
 
+        private double _totalProgress;
+        private double _progressStep;
+        private double SavingProgress
+        {
+            get => _totalProgress;
+            set
+            {
+                _totalProgress = value;
+                SavingProgressChanged?.Invoke(this, _totalProgress);
+            }
+        }
+
+        public event EventHandler<ArchiveSession> Closing;
+
         public async Task WriteFile(ZipFile zipFile)
         {
+            _totalProgress = 0d;
             var sessionWriter = new ArchiveSessionWriter(zipFile, this);
 
             // Use begin/commit close to the actual changes    sessionWriter.BeginUpdate();
@@ -190,7 +227,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
             // Use begin/commit close to the actual changes    sessionWriter.CommitUpdate();
             sessionWriter.StoreMeta(sessionJsonRoot);
-
+            SavingProgress = 1d;
         }
 
         public override async Task<bool> WriteData(JObject root, ISessionWriter writer)

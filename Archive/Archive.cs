@@ -146,7 +146,7 @@ namespace SINTEF.AutoActive.Archive
         }
 
         /* ---------- Create a new archive from scratch ---------- */
-            private Archive(ZipFile zipFile)
+        private Archive(ZipFile zipFile)
         {
             zipFile.UseZip64 = UseZip64.On;
             _zipFile = zipFile;
@@ -179,12 +179,48 @@ namespace SINTEF.AutoActive.Archive
             zip.Close();
         }
 
+        private double _totalProgress = 0d;
+
+        private double SavingProgress
+        {
+            get => _totalProgress;
+            set
+            {
+                _totalProgress = value;
+                SavingProgressChanged?.Invoke(this, _totalProgress);
+            }
+        }
+
+        public List<(string, Exception)> ErrorList = new List<(string, Exception)>();
+
+        private double _progressStep;
         public async Task WriteFile(ZipFile zipFile)
         {
+            SavingProgress = 0d;
+
+            _progressStep = 1d / Sessions.Count;
+            var sessionIx = 0;
             foreach (var session in Sessions)
             {
+                SavingProgress = _progressStep * sessionIx++;
+
+                session.SavingProgressChanged += SessionOnSavingProgress;
                 await session.WriteFile(zipFile);
+                if (!session.SavingErrors.Any()) continue;
+
+                foreach (var error in session.SavingErrors)
+                {
+                    ErrorList.Add((session.Name, error));
+                }
             }
+
+            SavingProgress = 1d;
+        }
+
+
+        private void SessionOnSavingProgress(object sender, double progress)
+        {
+            SavingProgress += progress * _progressStep;
         }
 
         public void Close()
@@ -198,6 +234,7 @@ namespace SINTEF.AutoActive.Archive
 
         /* ---- Public API ---- */
         public IReadOnlyCollection<ArchiveSession> Sessions => _sessions.AsReadOnly();
+        public event EventHandler<double> SavingProgressChanged;
 
         /* ---- Helpers ---- */
         public class ArchiveFileBoundFactory : IReadSeekStreamFactory

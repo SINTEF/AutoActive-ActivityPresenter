@@ -55,7 +55,7 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <ProgressBar x:Name="SavingProgress" Grid.Column="0" Progress="0" VerticalOptions="Center"/>
-                <Button Grid.Column="1" Text="Save" Clicked="SaveButtonClicked" VerticalOptions="Fill"/>
+                <Button x:Name="SaveButton" Grid.Column="1" Text="Save" Clicked="SaveButtonClicked" VerticalOptions="Fill"/>
             </Grid>
         </Grid>
     </ContentPage.Content>
