@@ -54,7 +54,7 @@ namespace SINTEF.AutoActive.Archive
             using (var jsonReader = new JsonTextReader(streamReader))
             {
                 var serializer = new JsonSerializer();
-                var json = (JToken)serializer.Deserialize(jsonReader);
+                var json = (JToken) serializer.Deserialize(jsonReader);
 
                 var meta = json["meta"];
                 if (meta == null)
@@ -98,6 +98,7 @@ namespace SINTEF.AutoActive.Archive
             }
 
             var type = meta.Property("type").ToObject<string>();
+
             // Try to parse the object with the specified plugin
             var plugin = PluginService.GetSingle<IArchivePlugin>(type);
             if (plugin != null)
@@ -105,6 +106,7 @@ namespace SINTEF.AutoActive.Archive
                 var parsed = plugin.CreateFromJSON(json as JObject, this, sessionId).Result;
                 if (parsed != null) return parsed;
             }
+
             // If not, try to parse it as a folder (the default)
             plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
             if (plugin != null)
@@ -120,7 +122,14 @@ namespace SINTEF.AutoActive.Archive
 
         public ZipEntry FindFile(string path)
         {
-            return _zipFile.GetEntry(path);
+            try
+            {
+                return _zipFile.GetEntry(path);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new ObjectDisposedException($"ObjectDisposed exception when reading: {path}", ex);
+            }
         }
 
         public List<Stream> OpenFiles = new List<Stream>();
