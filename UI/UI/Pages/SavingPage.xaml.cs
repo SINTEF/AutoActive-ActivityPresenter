@@ -220,6 +220,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
+            SavingLabel.Text = "Saving";
             SavingProgress.Progress = 0;
             if (!await VerifyArchive(SavingTree.Tree))
             {
@@ -283,6 +284,7 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             XamarinHelpers.EnsureMainThread(async () =>
             {
+                SavingLabel.Text = "";
                 SaveButton.IsEnabled = true;
                 SavingProgress.Progress = 1;
 
