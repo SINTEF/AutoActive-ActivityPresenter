@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
@@ -34,6 +35,8 @@ namespace SINTEF.AutoActive.Archive.Plugin
         private List<BasedOnInfo> _basedOn = new List<BasedOnInfo>();
 
         public DateTimeOffset Created { get; }
+        public event EventHandler<double> SavingProgressChanged;
+
         public const string SessionFileName = "AUTOACTIVE_SESSION.json";
 
         internal ArchiveSession(JObject json, Archive archive, Guid sessionId) : base(json, archive, sessionId)
@@ -88,9 +91,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
             return Id.GetHashCode();
         }
 
-        public void Close()
+        public new void Close()
         {
-            _archive.Close();
+            Closing?.Invoke(this, this);
         }
 
         public static async Task WriteChildren(ISessionWriter sessionWriter, JObject json, IEnumerable<IDataStructure> children)

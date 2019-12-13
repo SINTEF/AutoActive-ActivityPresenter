@@ -2,6 +2,7 @@
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -73,7 +74,17 @@ namespace SINTEF.AutoActive.Archive
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
+                    session.Closing += SessionOnClosing;
                 }
+            }
+        }
+
+        private void SessionOnClosing(object sender, ArchiveSession e)
+        {
+            _sessions.Remove(e);
+            if (!_sessions.Any())
+            {
+                Close();
             }
         }
 

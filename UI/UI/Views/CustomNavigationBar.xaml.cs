@@ -53,9 +53,6 @@ namespace SINTEF.AutoActive.UI.Views
                 {
                     session.Register();
 	            }
-
-                archive.Close();
-
             }
 	        catch (Exception ex)
 	        {
