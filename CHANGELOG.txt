@@ -6,6 +6,7 @@
 ### Changed
  - Improved video playback stability and accuracy
  - Changed button text from showing status "Unset" to showing action "Set"
+ - Fixed crash when attempting to use video in timeline view
 
 
 ## [0.5.2] - 2019-12-16
