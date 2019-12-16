@@ -1,4 +1,16 @@
 # Changelog
+## [0.5.2] - 2019-12-16
+### Added
+ - A number in the video now shows the current offset
+
+### Changed
+ - Improved video playback stability and accuracy
+
+
+## [0.5.2] - 2019-12-16
+### Changed
+ - Fixed a bug in the CSV-importer (now restarting stream after testing config)
+
 ## [0.5.1] - 2019-12-13
 ### Added
  - Updating progress bar when saving

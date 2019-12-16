@@ -101,9 +101,11 @@ namespace SINTEF.AutoActive.UI
             {
                 _offset = value;
                 OffsetChanged?.Invoke(this, _offset);
-                XamarinHelpers.EnsureMainThread(() => Label.Text = $"{_offset}");
+                XamarinHelpers.EnsureMainThread(() => Label.Text = $"{_offset:F3}\n{Compensator:F3}");
             }
         }
+
+        public double Compensator { get; set; }
 
         public event EventHandler<double> PlaybackRateChanged;
 
