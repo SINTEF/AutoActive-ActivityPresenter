@@ -250,7 +250,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public static Type TryGuessTypeSingle(string field, CultureInfo culture)
         {
-            
+
             if (long.TryParse(field, out _))
             {
                 return typeof(long);
@@ -373,26 +373,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         private static bool TestConfiguration(Stream stream, Configuration configuration)
         {
             var streamPos = stream.Position;
-            using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
+            try
             {
-                try
+                using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
                 {
-                    using (var csv = new CsvReader(reader, configuration, true))
+                    try
                     {
-                        csv.Read();
-                        csv.ReadHeader();
+                        using (var csv = new CsvReader(reader, configuration, true))
+                        {
+                            csv.Read();
+                            csv.ReadHeader();
 
-                        csv.Read();
-                        stream.Seek(streamPos, SeekOrigin.Begin);
-                        return ((IDictionary<string, object>) csv.GetRecord<dynamic>()).Count > 1;
+                            csv.Read();
+                            stream.Seek(streamPos, SeekOrigin.Begin);
+                            var row = (IDictionary<string, object>) csv.GetRecord<dynamic>();
+                            return row.Count > 1;
+                        }
+                    }
+                    catch (BadDataException)
+                    {
+                    }
+                    catch (ReaderException)
+                    {
                     }
                 }
-                catch (BadDataException)
-                {
-                }
-                catch (ReaderException)
-                {
-                }
+            }
+            finally
+            {
+                stream.Seek(streamPos, SeekOrigin.Begin);
             }
 
             return false;
@@ -400,8 +408,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         private static Configuration DetectConfiguration(Stream stream)
         {
-            var streamPos = stream.Position;
-
             foreach (var config in AlternativeConfigurations)
             {
                 if (TestConfiguration(stream, config))
@@ -410,7 +416,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 }
             }
 
-            stream.Seek(streamPos, SeekOrigin.Begin);
             var buf = new byte[512];
             stream.Read(buf, 0, buf.Length);
             var nextStreamPos = FindLikelyHeaderStart(buf, ',');
@@ -423,8 +428,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                     return config;
                 }
             }
-
-            stream.Seek(streamPos, SeekOrigin.Begin);
 
             return DefaultConfig;
 
@@ -476,6 +479,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return (Array) toArrayMethod.Invoke(null, new[] {castedObjectEnum});
         }
 
+        private static IList CreateListOfType(Type type, int capacity)
+        {
+            var listGenericType = typeof(List<>);
+            var genericListType = listGenericType.MakeGenericType(type);
+            var list = (IList)Activator.CreateInstance(genericListType, new object[] { capacity });
+            return list;
+        }
+
         public static (List<string>, List<Type>, List<Array>) Parse(Stream stream)
         {
             // I'm assuming that it is quicker to count the number of lines to initialize the lists for the output
@@ -484,16 +495,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             var configuration = DetectConfiguration(stream);
 
             var types = TryGuessType(stream, configuration);
-
-            var data = new List<IList>();
-            var listGenericType = typeof(List<>);
-            foreach (var type in types)
-            {
-                var genericListType = listGenericType.MakeGenericType(type);
-                var list = (IList) Activator.CreateInstance(genericListType, new object[] {lineCount});
-                data.Add(list);
-
-            }
+            var data = types.Select(type => CreateListOfType(type, lineCount)).ToList();
 
             List<string> headers;
             using (var reader = new StreamReader(stream))
