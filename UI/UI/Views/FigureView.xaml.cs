@@ -158,7 +158,7 @@ namespace SINTEF.AutoActive.UI.Views
                 switch (datapoint)
                 {
                     case ArchiveVideoVideo _:
-                        return await ImageView.Create(datapoint, context);
+                        return await VideoView.Create(datapoint, context);
                     case TableColumn _:
                     case TableColumnDyn _:
                         return await LinePlot.Create(datapoint, context);
