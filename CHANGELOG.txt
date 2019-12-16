@@ -5,6 +5,7 @@
 
 ### Changed
  - Improved video playback stability and accuracy
+ - Changed button text from showing status "Unset" to showing action "Set"
 
 
 ## [0.5.2] - 2019-12-16
