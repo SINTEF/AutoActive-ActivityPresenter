@@ -39,12 +39,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         }
     }
 
-
     class GaitUpResultsImporter : GenericExcelImporter
     {
-
-
-
 
         public GaitUpResultsImporter(Dictionary<string, object> parameters, string filename) : base(parameters, filename)
         {
@@ -52,13 +48,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         }
 
         private long _startTime;
-
-
-
-
-
-
-
         protected override ExcelDataSetConfiguration PreProcessStream()
         {
 
@@ -77,11 +66,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return conf;
         }
 
-
-
-
-
-
         protected override DataTable PostProcessData(DataTable dataTable)
         {
             dataTable = setHeaderName(dataTable);
@@ -94,7 +78,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                                              .Where(x => x.ColumnName.Contains("time"))
                                              .Select(x => x.ColumnName)
                                              .ToList();
-
 
             foreach (string name in columnNames)
             {
@@ -110,15 +93,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                     dataTable.Rows[i][name] = timeArray[i];
                 }
 
-
             }
-
 
             return dataTable;
 
         }
-
-
 
         private DataTable setHeaderName(DataTable dataTable)
         {
@@ -138,9 +117,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
         }
 
-
-
-
         private DataTable deleteStatistics(DataTable dataTable)
         {
             List<int> rowsWithStatiscts = Enumerable.Range(0, 9).ToList();
@@ -154,7 +130,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
 
         }
-
 
         private DataTable deleteRowsWithNans(DataTable dataTable)
         {
@@ -173,9 +148,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
         }
 
-
-
-
         public static long ConvSecToEpochUs(string timeString)
         {
             float timeFloat = float.Parse(timeString);
@@ -190,9 +162,41 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         }
 
 
+        protected override void DoParseFile(Stream stream)
+        {
+            var (names, types, data) = processStream(stream);
+
+            List<String> sides = new List<String>() { "_R", "_L" };
+
+            foreach (string side in sides)
+            {
+
+                var booleanFilter = names.Select(name => !name.Contains(side)).ToList();
+
+                List<Array> sideData = booleanFilter.Zip(data, (flag, name) => new { flag, name })
+                                    .Where(x => x.flag)
+                                    .Select(x => x.name).ToList();
+
+                List<String> sideNames = booleanFilter.Zip(names, (flag, name) => new { flag, name })
+                                    .Where(x => x.flag)
+                                    .Select(x => x.name).ToList();
+
+                List<Type> sideTypes = booleanFilter.Zip(types, (flag, name) => new { flag, name })
+                                    .Where(x => x.flag)
+                                    .Select(x => x.name).ToList();
+
+                String sideTableName = TableName + side;
+
+                int index = sideNames.FindIndex(name => name.Contains("time"));
+
+                sideNames[index] = "time";
+
+                createGenericExcelTable(sideNames, sideTypes, sideData, sideTableName);
+
+            }
+
+        }
 
     }
-
-
 
 }

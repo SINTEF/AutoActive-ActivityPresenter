@@ -18,7 +18,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
     [ImportPlugin(".xlsx")]
     public class ImportGenericExcel : IImportPlugin
     {
-
         public Task<bool> CanParse(IReadSeekStreamFactory readerFactory)
         {
             return Task.FromResult(true);
@@ -39,7 +38,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
     }
 
-
     public class GenericExcelImporter : BaseDataProvider
     {
         private readonly string _filename;
@@ -52,22 +50,26 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected virtual string TableName => "EXCEL";
 
-
         protected virtual ExcelDataSetConfiguration PreProcessStream()
         {
             ExcelDataSetConfiguration conf = new ExcelDataSetConfiguration();
             return conf;
         }
 
-
         protected virtual DataTable PostProcessData(DataTable dataTable)
         {
             return dataTable;
         }
 
-
-
         protected override void DoParseFile(Stream stream)
+        {
+            var (names, types, data) = processStream(stream);
+
+             createGenericExcelTable(names, types, data, TableName);
+
+        }
+
+        protected (List<String> names, List<Type> types, List<Array> data) processStream(Stream stream)
         {
             ExcelDataSetConfiguration conf = PreProcessStream();
 
@@ -83,52 +85,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
             names = names.Select(ReplaceIllegalNameCharacters).ToList();
 
-
-
-            if (names.Select(name => !name.Contains("_L") || !name.Contains("_R")).ToList().Count == names.Count)
-            {
-                List<String> sides = new List<String>() { "_R", "_L" };
-
-                foreach (string side in sides)
-                {
-
-
-                    var BooleanFilter = names.Select(name => !name.Contains(side)).ToList();
-
-                    List<Array> sideData = BooleanFilter.Zip(data, (flag, name) => new { flag, name })
-                                        .Where(x => x.flag)
-                                        .Select(x => x.name).ToList();
-
-                    List<String> sideNames = BooleanFilter.Zip(names, (flag, name) => new { flag, name })
-                                        .Where(x => x.flag)
-                                        .Select(x => x.name).ToList();
-
-                    List<Type> sideTypes = BooleanFilter.Zip(types, (flag, name) => new { flag, name })
-                                        .Where(x => x.flag)
-                                        .Select(x => x.name).ToList();
-
-                    String sideTableName = TableName + side;
-
-                    int index = sideNames.FindIndex(name => name.Contains("time"));
-
-                    sideNames[index] = "time";
-
-
-
-                    createGenericExcelTable(sideNames, sideTypes, sideData, sideTableName);
-
-
-                }
-
-            }
-            else
-            {
-                createGenericExcelTable(names, types, data, TableName);
-            }
+            return (names, types, data);
 
         }
 
-        private void createGenericExcelTable(List<String> names, List<Type> types, List<Array> data, String tableName)
+        protected void createGenericExcelTable(List<String> names, List<Type> types, List<Array> data, String tableName)
         {
 
             var dict = new Dictionary<string, Array>();
@@ -141,7 +102,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             types.RemoveAt(timeIndex);
             data.RemoveAt(timeIndex);
 
-
             for (var i = 0; i < names.Count; i++)
             {
                 dict[names[i]] = EnsureValidType(data[i]);
@@ -150,8 +110,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             AddChild(new GenericExcelTable(tableName, names, types, dict, _filename));
         }
 
-
-        private static string ReplaceIllegalNameCharacters(string el)
+        protected static string ReplaceIllegalNameCharacters(string el)
         {
             return el.Replace(".", "");
         }
@@ -201,7 +160,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             }
         }
 
-
         private static Array EnsureValidType(Array array)
         {
             if (!(array is DateTime[] arr)) return array;
@@ -209,13 +167,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return arr.Select(TimeFormatter.TimeFromDateTime).ToArray();
         }
 
-
-
-
     }
-
-
-
 
     public class GenericExcelTable : ImportTableBase, ISaveable
     {
@@ -334,12 +286,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             {
                 try
                 {
-
-
                     string[] stringArray = rows.Select(row => row[column.ColumnName].ToString()).ToArray();
                     var typesInColumn = new List<Type>();
                     typesInColumn.AddRange(stringArray.Select(field => TryGuessTypeSingle((string)field)));
-
 
                     if (typesInColumn.Select(field => field.FullName).Contains("System.Double"))
                     {
@@ -368,14 +317,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                     //Throws away columns which does not contain any data, as these columns cause a FormatException 
                 }
 
-
             }
 
             return (names, types, data);
 
         }
-
-
 
         public static DataTable Parse(Stream stream, ExcelDataSetConfiguration conf)
         {
@@ -387,10 +333,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
 
         }
-
-
-
-
 
     }
 
