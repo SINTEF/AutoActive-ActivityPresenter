@@ -15,6 +15,7 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using UnhandledExceptionEventArgs = Windows.UI.Xaml.UnhandledExceptionEventArgs;
 
 namespace SINTEF.AutoActive.UI.UWP
 {
@@ -31,6 +32,7 @@ namespace SINTEF.AutoActive.UI.UWP
         {
             this.InitializeComponent();
             this.Suspending += OnSuspending;
+            UnhandledException += OnUnhandledException;
         }
 
         /// <summary>
@@ -73,6 +75,12 @@ namespace SINTEF.AutoActive.UI.UWP
             }
             // Ensure the current window is active
             Window.Current.Activate();
+        }
+
+        private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            e.Handled = true;
+            var errMsg = XamarinHelpers.ShowOkMessage("Error", $"An unexpected error occurred: \n{e.Exception}");
         }
 
         /// <summary>

@@ -2,6 +2,7 @@
 ## [0.5.4] - 2019-12-17
 ### Added
  - Figures now have titles which can be toggled
+ - App now attempts to show an error message instead of crashing on unhandled exception
 
 ### Changed
  - Attempt to further improve video playback performance
