@@ -2,6 +2,7 @@
 using System.IO;
 using System.Diagnostics;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json;
@@ -16,11 +17,11 @@ namespace SINTEF.AutoActive.Archive
     public class Archive
     {
         private readonly ZipFile _zipFile;
-        private readonly IReadWriteSeekStreamFactory _streamFactory;
+        private readonly IReadSeekStreamFactory _streamFactory;
         private readonly List<ArchiveSession> _sessions = new List<ArchiveSession>();
 
         /* ---------- Open an existing archive ---------- */
-        private Archive(ZipFile file, IReadWriteSeekStreamFactory factory)
+        private Archive(ZipFile file, IReadSeekStreamFactory factory)
         {
             _zipFile = file;
             _streamFactory = factory;
@@ -53,7 +54,7 @@ namespace SINTEF.AutoActive.Archive
             using (var jsonReader = new JsonTextReader(streamReader))
             {
                 var serializer = new JsonSerializer();
-                var json = (JToken)serializer.Deserialize(jsonReader);
+                var json = (JToken) serializer.Deserialize(jsonReader);
 
                 var meta = json["meta"];
                 if (meta == null)
@@ -67,12 +68,23 @@ namespace SINTEF.AutoActive.Archive
                     throw new ArgumentException("Session is missing 'id'");
                 }
 
+                var parsedElement = ParseJsonElement(json, sessionId.Value);
                 // Load the contents of the file
-                if (ParseJsonElement(json, sessionId.Value) is ArchiveSession session)
+                if (parsedElement is ArchiveSession session)
                 {
                     // If the root object was a session, add it to the list
                     _sessions.Add(session);
+                    session.Closing += SessionOnClosing;
                 }
+            }
+        }
+
+        private void SessionOnClosing(object sender, ArchiveSession e)
+        {
+            _sessions.Remove(e);
+            if (!_sessions.Any())
+            {
+                Close();
             }
         }
 
@@ -86,6 +98,7 @@ namespace SINTEF.AutoActive.Archive
             }
 
             var type = meta.Property("type").ToObject<string>();
+
             // Try to parse the object with the specified plugin
             var plugin = PluginService.GetSingle<IArchivePlugin>(type);
             if (plugin != null)
@@ -93,6 +106,7 @@ namespace SINTEF.AutoActive.Archive
                 var parsed = plugin.CreateFromJSON(json as JObject, this, sessionId).Result;
                 if (parsed != null) return parsed;
             }
+
             // If not, try to parse it as a folder (the default)
             plugin = PluginService.GetSingle<IArchivePlugin>(ArchiveFolder.PluginType);
             if (plugin != null)
@@ -108,7 +122,14 @@ namespace SINTEF.AutoActive.Archive
 
         public ZipEntry FindFile(string path)
         {
-            return _zipFile.GetEntry(path);
+            try
+            {
+                return _zipFile.GetEntry(path);
+            }
+            catch (ObjectDisposedException ex)
+            {
+                throw new ObjectDisposedException($"ObjectDisposed exception when reading: {path}", ex);
+            }
         }
 
         public List<Stream> OpenFiles = new List<Stream>();
@@ -125,16 +146,13 @@ namespace SINTEF.AutoActive.Archive
             return new ArchiveFileBoundFactory(this, entry);
         }
 
-
-        public static async Task<Archive> Open(IReadWriteSeekStreamFactory file)
+        public static async Task<Archive> Open(IReadSeekStreamFactory file)
         {
-            var zipFile = new ZipFile(await file.GetReadWriteStream());
+            var zipFile = new ZipFile(await file.GetReadStream());
             var archive = new Archive(zipFile, file);
             await archive.ParseSessions();
             return archive;
         }
-
-
 
         /* ---------- Create a new archive from scratch ---------- */
         private Archive(ZipFile zipFile)
@@ -170,12 +188,48 @@ namespace SINTEF.AutoActive.Archive
             zip.Close();
         }
 
+        private double _totalProgress = 0d;
+
+        private double SavingProgress
+        {
+            get => _totalProgress;
+            set
+            {
+                _totalProgress = value;
+                SavingProgressChanged?.Invoke(this, _totalProgress);
+            }
+        }
+
+        public List<(string, Exception)> ErrorList = new List<(string, Exception)>();
+
+        private double _progressStep;
         public async Task WriteFile(ZipFile zipFile)
         {
+            SavingProgress = 0d;
+
+            _progressStep = 1d / Sessions.Count;
+            var sessionIx = 0;
             foreach (var session in Sessions)
             {
+                SavingProgress = _progressStep * sessionIx++;
+
+                session.SavingProgressChanged += SessionOnSavingProgress;
                 await session.WriteFile(zipFile);
+                if (!session.SavingErrors.Any()) continue;
+
+                foreach (var error in session.SavingErrors)
+                {
+                    ErrorList.Add((session.Name, error));
+                }
             }
+
+            SavingProgress = 1d;
+        }
+
+
+        private void SessionOnSavingProgress(object sender, double progress)
+        {
+            SavingProgress += progress * _progressStep;
         }
 
         public void Close()
@@ -189,6 +243,7 @@ namespace SINTEF.AutoActive.Archive
 
         /* ---- Public API ---- */
         public IReadOnlyCollection<ArchiveSession> Sessions => _sessions.AsReadOnly();
+        public event EventHandler<double> SavingProgressChanged;
 
         /* ---- Helpers ---- */
         public class ArchiveFileBoundFactory : IReadSeekStreamFactory

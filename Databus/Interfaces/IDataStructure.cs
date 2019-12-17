@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Collections.ObjectModel;
 
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
@@ -10,7 +11,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
     public interface IDataStructure
     {
-        string Name { get; }
+        string Name { get; set; }
 
         // Path
         // Icon
@@ -19,12 +20,18 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         // Close all children and datapoints
         void Close();
 
-        IEnumerable<IDataStructure> Children { get; }
+        ObservableCollection<IDataStructure> Children { get; }
+        //TODO: remove these events and use ObservableCollection's events
         event DataStructureAddedHandler ChildAdded;
         event DataStructureRemovedHandler ChildRemoved;
+        void AddChild(IDataStructure dataStructure);
+        void RemoveChild(IDataStructure dataStructure);
 
-        IEnumerable<IDataPoint> DataPoints { get; }
+        ObservableCollection<IDataPoint> DataPoints { get; }
+        //TODO: remove these events and use ObservableCollection's events
         event DataPointAddedHandler DataPointAdded;
         event DataPointRemovedHandler DataPointRemoved;
+        void AddDataPoint(IDataPoint dataPoint);
+        void RemoveDataPoint(IDataPoint dataPoint);
     }
 }

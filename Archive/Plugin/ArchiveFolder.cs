@@ -29,7 +29,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
                 if (!(content is ArchiveStructure datastruct)) continue;
 
                 datastruct.SetName(property.Name);
-                AddChild(datastruct);
+                base.AddChild(datastruct);
             }
 
             //TODO: Verify that this works
@@ -57,7 +57,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
 
         public bool IsSaved { get; protected set; }
 
-        public async virtual Task<bool> WriteData(JObject root, ISessionWriter writer)
+        public virtual async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
             if (Meta.ContainsKey("attachments"))
             {

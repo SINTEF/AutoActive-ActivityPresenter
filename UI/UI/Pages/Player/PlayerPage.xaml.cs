@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player

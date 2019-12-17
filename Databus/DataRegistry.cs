@@ -9,6 +9,7 @@ namespace SINTEF.AutoActive.Databus
     public static class DataRegistry
     {
         private static readonly List<IDataProvider> dataproviders = new List<IDataProvider>();
+        //TODO(sigurdal): I do not understand why this is needed?
         private static readonly List<IDataPoint> datapoints = new List<IDataPoint>();
 
         private static void OnDataPointAdded(IDataStructure datastructure, IDataPoint datapoint)
@@ -46,6 +47,48 @@ namespace SINTEF.AutoActive.Databus
             {
                 OnDataPointRemoved(datastructure, point);
             }
+        }
+
+        private static List<IDataStructure> ExtractParents(Dictionary<IDataStructure, IDataStructure> map, IDataStructure el)
+        {
+            var retList = new List<IDataStructure> {el};
+
+            while (map.TryGetValue(el, out var parent))
+            {
+                retList.Add(parent);
+                el = parent;
+            }
+
+            return retList;
+        }
+        public static List<IDataStructure> GetParents(IDataPoint dataPoint)
+        {
+            var queue = new Queue<IDataStructure>();
+            var parentMap = new Dictionary<IDataStructure, IDataStructure>();
+            foreach (var provider in Providers)
+            {
+                queue.Enqueue(provider);
+            }
+
+            while (queue.Count > 0)
+            {
+                var parent = queue.Dequeue();
+                foreach (var el in parent.DataPoints)
+                {
+                    if (el == dataPoint)
+                    {
+                        return ExtractParents(parentMap, parent);
+                    }
+                }
+
+                foreach (var child in parent.Children)
+                {
+                    parentMap[child] = parent;
+                    queue.Enqueue(child);
+                }
+            }
+
+            return null;
         }
 
         /* -- Public API -- */

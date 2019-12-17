@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedMasterTime = value;
                 MasterTimeButton.Text = _selectedMasterTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ')
-                    : "Unset";
+                    : "Set";
             }
         }
 
@@ -45,7 +45,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedSlaveTime = value;
                 SlaveTimeButton.Text = _selectedSlaveTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator: ' ')
-                    : "Unset";
+                    : "Set";
             }
         }
 
@@ -98,7 +98,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _masterSet = false;
             _masterTime = null;
-            SelectedMasterTime = 0L;
+            SelectedMasterTime = null;
 
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
@@ -118,7 +118,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             _slaveSet = false;
             _slaveTime = null;
-            SelectedSlaveTime = 0L;
+            SelectedSlaveTime = null;
             _totalOffset = 0L;
 
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
@@ -370,9 +370,23 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             ResetSlave();
         }
 
-        private void SetCommonStart_OnClicked(object sender, EventArgs e)
+        private async void SetCommonStart_OnClicked(object sender, EventArgs e)
         {
-            SetCommonStartTime(true);
+            if (_masterContext == null || _slaveContext == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Illegal operation", "Select both the master and the slave first.",
+                    this);
+                return;
+            }
+
+            try
+            {
+                SetCommonStartTime(true);
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"An error occurred: {ex}", this);
+            }
         }
 
         private void LastOffset_OnClicked(object sender, EventArgs e)

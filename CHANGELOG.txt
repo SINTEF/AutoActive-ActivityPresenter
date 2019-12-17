@@ -1,4 +1,58 @@
 # Changelog
+## [0.5.5] - 2019-12-17
+### Changed
+ - Attempting to dectect manual seeking in video and handle it separately
+
+
+## [0.5.4] - 2019-12-17
+### Added
+ - Figures now have titles which can be toggled
+ - App now attempts to show an error message instead of crashing on unhandled exception
+
+### Changed
+ - Attempt to further improve video playback performance
+ - Fixed potential null reference exception in sync view
+
+
+## [0.5.3] - 2019-12-16
+### Added
+ - A number in the video now shows the current offset
+
+### Changed
+ - Improved video playback stability and accuracy
+ - Changed button text from showing status "Unset" to showing action "Set"
+ - Fixed crash when attempting to use video in timeline view
+
+
+## [0.5.2] - 2019-12-16
+### Changed
+ - Fixed a bug in the CSV-importer (now restarting stream after testing config)
+
+## [0.5.1] - 2019-12-13
+### Added
+ - Updating progress bar when saving
+
+### Changed
+ - Fixed a bug where the archive would be closed preemptively
+ - Cleaning up threads created by the relative slider
+ - No longer duplicating when saving objects with identical names
+ 
+
+## [0.5.0] - 2019-12-12
+### Added
+ - Saving page
+ - Column plot
+ - Scatter plot
+ - Storing previous offset which can be loaded using a new button
+ - Prompts to save when exiting from sync view with changed offset
+ - Added templates for $filename and $fileext in parameter names
+
+### Changed
+ - Improved CSV file import when running from different culture
+ - Fixed bug in sync view when selecting slave, removing it and then adding a point
+ - Increased max window size to two hours
+ - Minor fixes to video time handling
+
 
 ## [0.4.6] - 2019-11-26
 ### Changed

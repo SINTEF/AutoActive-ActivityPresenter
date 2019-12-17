@@ -2,6 +2,7 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:sk="clr-namespace:SkiaSharp.Views.Forms;assembly=SkiaSharp.Views.Forms"
+             xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Views.FigureView"
              HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
     <ContentView.Content>
@@ -18,8 +19,8 @@
                                 Property=Height,
                                 Factor=1}">
                     <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -28,11 +29,25 @@
                     <sk:SKCanvasView Grid.Row="0" Grid.Column="0" Grid.RowSpan="2" Grid.ColumnSpan="2"
                                      x:Name="Canvas" x:FieldModifier="protected" />
                 </Grid>
-                <Button x:Name="ContextButton"
-                        Text="•••" WidthRequest="40" HeightRequest="40"
-                        BackgroundColor="LightSlateGray"
-                        Clicked="MenuButton_OnClicked"
-                />
+                <Grid RelativeLayout.WidthConstraint =
+                      "{ConstraintExpression Type=RelativeToParent,
+                                Property=Width,
+                                Factor=1}">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition />
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition />
+                    </Grid.ColumnDefinitions>
+                    <Button x:Name="ContextButton" HorizontalOptions="Start"
+                            Text="•••" WidthRequest="40" HeightRequest="40"
+                            BackgroundColor="{x:Static views:FigureView.ElementBackgroundColor}"
+                            Clicked="MenuButton_OnClicked"
+                    />
+                    <Label x:Name="Title" Grid.Column="1" VerticalOptions="Start" HorizontalOptions="Center"
+                            Text="" HorizontalTextAlignment="Center"
+                            BackgroundColor="{x:Static views:FigureView.ElementBackgroundColor}"
+                    />
+                </Grid>
             </RelativeLayout>
         </Frame>
     </ContentView.Content>

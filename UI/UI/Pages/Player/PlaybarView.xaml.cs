@@ -5,6 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 
@@ -35,7 +36,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        public IDataPoint PreviewDataPoint { get; private set; }
+        private IDataPoint _previewDataPoint;
+
+        public IDataPoint PreviewDataPoint
+        {
+            get => _previewDataPoint;
+            private set
+            {
+                _previewDataPoint = value;
+
+                RowDataPreview.Height = _previewDataPoint != null ? DefaultPreviewHeight : 0;
+            }
+        }
 
         public double PlaybackSpeed { get; private set; } = 1;
         public uint PlayUpdateRate = 30;
@@ -182,11 +194,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public async void UseDataPointForTimelinePreview(IDataPoint datapoint)
         {
-            if (PreviewDataPoint == null)
-            {
-                RowDataPreview.Height = DefaultPreviewHeight;
-            }
-
             if (_previewView != null)
             {
                 ContentGrid.Children.Remove(_previewView);
@@ -196,17 +203,37 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (PreviewDataPoint == datapoint)
             {
                 PreviewDataPoint = null;
-                RowDataPreview.Height = 0;
+                return;
+            }
+
+            if (!(datapoint is TableColumn))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "Only lines are supported for timeline view.",
+                    XamarinHelpers.GetCurrentPage(Navigation));
+                return;
+            }
+
+            try
+            {
+                _previewView = await LinePlot.Create(datapoint, _previewContext);
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview:\n{ex}",
+                    XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }
 
             PreviewDataPoint = datapoint;
-
-            _previewView = await LinePlot.Create(datapoint, _previewContext);
+            if (PreviewDataPoint == null)
+            {
+                return;
+            }
 
             if (_previewView == null)
             {
-                //TODO: add warning
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview",
+                    XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }
             _previewView.ContextButtonIsVisible = false;
