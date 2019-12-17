@@ -33,7 +33,7 @@ namespace SINTEF.AutoActive.UI
 
         // Allowed Offset property
         public static readonly BindableProperty AllowedOffsetProperty =
-            BindableProperty.Create(nameof(AllowedOffset), typeof(double), typeof(VideoPlayer), 3d);
+            BindableProperty.Create(nameof(AllowedOffset), typeof(double), typeof(VideoPlayer), 2d);
 
         [TypeConverter(typeof(double))]
         public double AllowedOffset

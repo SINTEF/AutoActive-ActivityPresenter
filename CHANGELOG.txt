@@ -1,4 +1,9 @@
 # Changelog
+## [0.5.5] - 2019-12-17
+### Changed
+ - Attempting to dectect manual seeking in video and handle it separately
+
+
 ## [0.5.4] - 2019-12-17
 ### Added
  - Figures now have titles which can be toggled

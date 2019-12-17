@@ -90,10 +90,14 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             else _mediaElement.Pause();
         }
 
+        private TimeSpan _prevPosition;
         private void SetVideoPosition(TimeSpan wantedPosition, double allowedOffset)
         {
             var duration = _mediaElement.NaturalDuration.TimeSpan;
             if (duration == TimeSpan.Zero) return;
+
+            var prevPosition = _prevPosition;
+            _prevPosition = wantedPosition;
 
             if (wantedPosition > duration)
             {
@@ -112,9 +116,19 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 return;
             }
 
-            if (!_currentlyPlaying)
+            if (!_currentlyPlaying || prevPosition > wantedPosition)
             {
                 _mediaElement.Position = wantedPosition;
+                _videoPlayer.CurrentOffset = 0;
+                // Hack to reset the updated time
+                _timeCompensator.Compensator = _timeCompensator.Compensator;
+                return;
+            }
+
+            var posDiff = (wantedPosition - prevPosition).TotalSeconds;
+            if (posDiff < 0 || posDiff > allowedOffset)
+            {
+                _mediaElement.Position = wantedPosition.Add(TimeSpan.FromSeconds(_timeCompensator.Compensator));
                 _videoPlayer.CurrentOffset = 0;
                 // Hack to reset the updated time
                 _timeCompensator.Compensator = _timeCompensator.Compensator;
@@ -240,7 +254,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
             if (offset > MaxAllowedOffset)
             {
-                retOffset = wantedPosition;
+                retOffset = wantedPosition.Add(TimeSpan.FromSeconds(Compensator));
                 return true;
             }
 
