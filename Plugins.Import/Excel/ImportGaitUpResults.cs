@@ -74,12 +74,12 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
             dataTable = deleteStatistics(dataTable);
 
-            List<String> columnNames = dataTable.Columns.Cast<DataColumn>()
+            List<String> timeColumnNames = dataTable.Columns.Cast<DataColumn>()
                                              .Where(x => x.ColumnName.Contains("time"))
                                              .Select(x => x.ColumnName)
                                              .ToList();
 
-            foreach (string name in columnNames)
+            foreach (string name in timeColumnNames)
             {
                 DataRow[] rows = dataTable.Select();
                 _startTime = 0L;
@@ -150,8 +150,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         public static long ConvSecToEpochUs(string timeString)
         {
-            float timeFloat = float.Parse(timeString);
-            float epochUs = timeFloat * 1000000;
+            double timeFloat = double.Parse(timeString);
+            double epochUs = timeFloat * 1000000;
             return Convert.ToInt64(epochUs);
 
         }
