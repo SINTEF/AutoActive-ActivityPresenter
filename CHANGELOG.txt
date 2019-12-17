@@ -5,6 +5,8 @@
 
 ### Changed
  - Attempt to further improve video playback performance
+ - Fixed potential null reference exception in sync view
+
 
 ## [0.5.3] - 2019-12-16
 ### Added

@@ -370,9 +370,23 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             ResetSlave();
         }
 
-        private void SetCommonStart_OnClicked(object sender, EventArgs e)
+        private async void SetCommonStart_OnClicked(object sender, EventArgs e)
         {
-            SetCommonStartTime(true);
+            if (_masterContext == null || _slaveContext == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Illegal operation", "Select both the master and the slave first.",
+                    this);
+                return;
+            }
+
+            try
+            {
+                SetCommonStartTime(true);
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"An error occurred: {ex}", this);
+            }
         }
 
         private void LastOffset_OnClicked(object sender, EventArgs e)
