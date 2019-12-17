@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
@@ -16,6 +17,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
 	public partial class FigureView : ContentView
 	{
+        public static Color ElementBackgroundColor = Color.CornflowerBlue.MultiplyAlpha(0.7d);
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
         public TimeSynchronizedContext Context { get; }
@@ -152,16 +154,31 @@ namespace SINTEF.AutoActive.UI.Views
 
         /// Create new view of the proper type to visualize datapoint.
 	    public static async Task<FigureView> GetView(IDataPoint datapoint, TimeSynchronizedContext context)
-	    {
+        {
             try
             {
+                FigureView view;
+                var parents = DataRegistry.GetParents(datapoint);
                 switch (datapoint)
                 {
                     case ArchiveVideoVideo _:
-                        return await VideoView.Create(datapoint, context);
+                        view = await VideoView.Create(datapoint, context);
+                        if (parents != null && parents.Any())
+                        {
+                            view.Title.Text = parents.First().Name;
+                        }
+                        return view;
                     case TableColumn _:
                     case TableColumnDyn _:
-                        return await LinePlot.Create(datapoint, context);
+                        view = await LinePlot.Create(datapoint, context);
+                        if (parents != null && parents.Any())
+                        {
+                            var titleText = parents.Count > 2 ? parents[2].Name + " - " : "";
+                            titleText += parents.Count > 1 ? parents[1].Name + " - " : "";
+                            titleText += parents[0].Name;
+                            view.Title.Text = titleText;
+                        }
+                        return view;
                     default:
                         throw new NotSupportedException();
                 }
@@ -183,6 +200,7 @@ namespace SINTEF.AutoActive.UI.Views
 	    protected const string RemoveText = "Remove";
 	    protected const string SelectText = "Select";
 	    protected const string DeselectText = "Deselect";
+        protected const string ToggleTitleText = "Toggle title";
 
         protected async void MenuButton_OnClicked(object sender, EventArgs e)
 	    {
@@ -191,9 +209,14 @@ namespace SINTEF.AutoActive.UI.Views
 
 	        var parameters = new List<string> {Selected ? DeselectText : SelectText};
 
-	        GetExtraMenuParameters(parameters);
+            GetExtraMenuParameters(parameters);
 
-	        var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, parameters.ToArray());
+            if (Title.Text != "")
+            {
+                parameters.Add(ToggleTitleText);
+            }
+
+            var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, parameters.ToArray());
 	        try
 	        {
 	            OnHandleMenuResult(page, action);
@@ -251,6 +274,9 @@ namespace SINTEF.AutoActive.UI.Views
                     break;
                 case RemoveText:
                     RemoveThisView();
+                    break;
+                case ToggleTitleText:
+                    Title.IsVisible ^= true;
                     break;
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
