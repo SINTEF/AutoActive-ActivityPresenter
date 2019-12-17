@@ -10,6 +10,7 @@ using Xamarin.Forms.Platform.UWP;
 using System.Collections.Generic;
 using System.Linq;
 using Windows.UI.Xaml.Media;
+using SINTEF.AutoActive.UI.Helpers;
 
 [assembly: ExportRenderer(typeof(VideoPlayer), typeof(VideoPlayerRenderer))]
 
@@ -115,7 +116,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             {
                 _mediaElement.Position = wantedPosition;
                 _videoPlayer.CurrentOffset = 0;
-                _timeCompensator.Compensator = 0;
+                // Hack to reset the updated time
+                _timeCompensator.Compensator = _timeCompensator.Compensator;
                 return;
             }
 
@@ -169,20 +171,24 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 #endif
 
         // The variance between the first element and all the others must be less than this before updating
-        public static double MaxVarianceDiff = 0.1d * 0.1d;
+        public static double MaxVarianceDiff = 0.3d * 0.3d;
 
         // The difference between the new and old offset must be larger than this before updating the offset
-        public static double OffsetEqualComp = 0.01d;
+        public static double OffsetEqualComp = 0.05d;
 
         // The difference between the wanted time and the current time must be larger than this to change the offset
-        public static double MinChangingOffset = 0.01d;
+        public static double MinChangingOffset = 0.05d;
 
         // The offset can't be larger than this
         public static double MaxAllowedOffset;
 
+        // Portion of the old Compensator to "keep"
+        public static double Alpha = 0.3d;
+
         private DateTime _lastDiffTime;
         private DateTime _lastUpdate;
         public TimeSpan MinUpdateDelta = new TimeSpan(0, 0, 2);
+        public TimeSpan MinUpdateDeltaSlowMo = new TimeSpan(0, 0, 10);
 
         public TimeCompensator(double maxAllowedOffset)
         {
@@ -245,8 +251,21 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
             var offsetChanged = GetOffset(playbackRate, out var offsetCompensator);
 
+#if USE_SpeedCompensation
+            if (playbackRate < 1 && _diffQueue.Count >= OffsetQueueElements)
+            {
+                var prevDiff = _diffQueue.First();
+                var diffs = new List<double>(_diffQueue.Count-1);
+                foreach (var curDiff in _diffQueue.Skip(1))
+                {
+                    diffs.Add(prevDiff - curDiff);
+                }
+            }
+#endif
+
             // A possibility here would be to estimate the expected offset and compensate for it
-            if (now - _lastUpdate <= MinUpdateDelta || !offsetChanged) return false;
+            if (now - _lastUpdate <= (playbackRate >= 0.75d ? MinUpdateDelta : MinUpdateDeltaSlowMo) ||
+                !offsetChanged) return false;
 
             if (Math.Abs(offsetCompensator) > MaxAllowedOffset)
             {
@@ -254,10 +273,17 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             }
             else
             {
-                Compensator = offsetCompensator;
+                if (Compensator == 0)
+                {
+                    Compensator = offsetCompensator;
+                }
+                else
+                {
+                    Compensator = Alpha * Compensator + (1 - Alpha) * offsetCompensator;
+                }
             }
 
-            retOffset = wantedPosition.Add(new TimeSpan((long)(Compensator * 10000000L)));
+            retOffset = wantedPosition.Add(TimeSpan.FromSeconds(Compensator));
             return true;
         }
     }

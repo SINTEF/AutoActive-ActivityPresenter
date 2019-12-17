@@ -1,4 +1,8 @@
 # Changelog
+## [0.5.4] - 2019-12-17
+### Changed
+ - Attempt to further improve video playback performance
+
 ## [0.5.2] - 2019-12-16
 ### Added
  - A number in the video now shows the current offset
