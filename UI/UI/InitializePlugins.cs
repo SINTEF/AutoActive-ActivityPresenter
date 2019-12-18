@@ -9,6 +9,7 @@ using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.Plugins.Import.Video;
 using SINTEF.AutoActive.Plugins.Import.Csv;
 using SINTEF.AutoActive.Plugins.Import.Gaitup;
+using SINTEF.AutoActive.Plugins.Import.Excel;
 using Xamarin.Forms;
 
 [assembly: Dependency(typeof(SINTEF.AutoActive.UI.InitializePlugins))]
@@ -30,6 +31,8 @@ namespace SINTEF.AutoActive.UI
             typeof(ImportGenericCsv),
             typeof(ImportGaitupPlugin),
             typeof(ImportCsvCatapult),
+            typeof(ImportGenericExcel),
+            typeof(ImportGaitUpReults)
         };
     }
 }
