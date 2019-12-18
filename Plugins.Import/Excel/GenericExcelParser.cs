@@ -63,13 +63,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected override void DoParseFile(Stream stream)
         {
-            var (names, types, data) = processStream(stream);
+            var (names, types, data) = ProcessStream(stream);
 
-             createGenericExcelTable(names, types, data, TableName);
+             CreateGenericExcelTable(names, types, data, TableName);
 
         }
 
-        protected (List<String> names, List<Type> types, List<Array> data) processStream(Stream stream)
+        protected (List<String> names, List<Type> types, List<Array> data) ProcessStream(Stream stream)
         {
             ExcelDataSetConfiguration conf = PreProcessStream();
 
@@ -81,7 +81,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                                              .Select(x => x.ColumnName)
                                              .ToList();
 
-            var (names, types, data) = GenericExcelParser.convertDatatable(dataTable);
+            var (names, types, data) = GenericExcelParser.ConvertDatatable(dataTable);
 
             names = names.Select(ReplaceIllegalNameCharacters).ToList();
 
@@ -89,7 +89,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         }
 
-        protected void createGenericExcelTable(List<String> names, List<Type> types, List<Array> data, String tableName)
+        protected void CreateGenericExcelTable(List<String> names, List<Type> types, List<Array> data, String tableName)
         {
 
             var dict = new Dictionary<string, Array>();
@@ -274,7 +274,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         }
 
 
-        public static (List<string> names, List<Type> types, List<Array> data) convertDatatable(DataTable dataTable)
+        public static (List<string> names, List<Type> types, List<Array> data) ConvertDatatable(DataTable dataTable)
         {
             List<Array> data = new List<Array>();
             List<String> names = new List<String>();

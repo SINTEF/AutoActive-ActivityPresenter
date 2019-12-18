@@ -69,11 +69,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected override DataTable PostProcessData(DataTable dataTable)
         {
-            dataTable = setHeaderName(dataTable);
+            dataTable = SetHeaderName(dataTable);
 
-            dataTable = deleteRowsWithNans(dataTable);
+            dataTable = DeleteRowsWithNans(dataTable);
 
-            dataTable = deleteStatistics(dataTable);
+            dataTable = DeleteStatistics(dataTable);
 
             List<String> timeColumnNames = dataTable.Columns.Cast<DataColumn>()
                                              .Where(x => x.ColumnName.Contains("time"))
@@ -99,7 +99,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         }
 
-        private DataTable setHeaderName(DataTable dataTable)
+        private DataTable SetHeaderName(DataTable dataTable)
         {
             List<String> columnNames = dataTable.Rows[0].ItemArray.OfType<String>().ToList();
 
@@ -117,7 +117,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
         }
 
-        private DataTable deleteStatistics(DataTable dataTable)
+        private DataTable DeleteStatistics(DataTable dataTable)
         {
             List<int> rowsWithStatiscts = Enumerable.Range(0, 9).ToList();
 
@@ -131,7 +131,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         }
 
-        private DataTable deleteRowsWithNans(DataTable dataTable)
+        private DataTable DeleteRowsWithNans(DataTable dataTable)
         {
 
             foreach (DataColumn column in dataTable.Columns)
@@ -152,7 +152,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected override void DoParseFile(Stream stream)
         {
-            var (names, types, data) = processStream(stream);
+            var (names, types, data) = ProcessStream(stream);
 
             List<String> sides = new List<String>() { "_R", "_L" };
 
@@ -179,7 +179,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
                 sideNames[index] = "time";
 
-                createGenericExcelTable(sideNames, sideTypes, sideData, sideTableName);
+                CreateGenericExcelTable(sideNames, sideTypes, sideData, sideTableName);
 
             }
 
