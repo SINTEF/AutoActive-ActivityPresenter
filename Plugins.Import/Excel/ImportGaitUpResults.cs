@@ -9,6 +9,7 @@ using ExcelDataReader;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Plugins.Import.Excel
 {
@@ -83,8 +84,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             {
                 DataRow[] rows = dataTable.Select();
                 _startTime = 0L;
-                string[] stringArray = rows.Select(row => row[name].ToString()).ToArray();
-                long[] timeArray = StringArrayToTime(stringArray);
+                long[] timeArray = rows.Select(row => TimeFormatter.TimeFromSeconds(double.Parse(row[name].ToString()))).ToArray();
                 dataTable.Columns.Remove(name);
                 dataTable.Columns.Add(name, typeof(long));
 
@@ -148,18 +148,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return dataTable;
         }
 
-        public static long ConvSecToEpochUs(string timeString)
-        {
-            double timeFloat = double.Parse(timeString);
-            double epochUs = timeFloat * 1000000;
-            return Convert.ToInt64(epochUs);
-
-        }
-
-        private long[] StringArrayToTime(IEnumerable<string> stringTime)
-        {
-            return stringTime.Select(el => ConvSecToEpochUs(el) + _startTime).ToArray();
-        }
 
 
         protected override void DoParseFile(Stream stream)
