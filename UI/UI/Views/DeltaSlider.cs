@@ -5,7 +5,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-    public class DeltaSlider : Slider
+    public class DeltaSlider : Slider, IDisposable
     {
         public new event PropertyChangedEventHandler PropertyChanged;
 
@@ -24,13 +24,28 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
+        private Page _page;
+        private readonly Thread _thread;
         public DeltaSlider()
         {
             Unfocused += (a, b) => ManipulationCompleted();
             ValueChanged += (a, b) => ValueChangedHandler();
 
-            (new Thread(UpdateOffset)).Start();
+            _page = XamarinHelpers.GetCurrentPage();
+            if(_page != null)
+                _page.Disappearing += OnDisappearing;
+            _thread = new Thread(UpdateOffset);
+            _thread.Start();
         }
+
+
+        private void OnDisappearing(object sender, EventArgs e)
+        {
+            if(_page != null)
+                _page.Disappearing -= OnDisappearing;
+            Dispose();
+        }
+
 
         private double _offset;
         public double Offset
@@ -58,6 +73,16 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
+        protected virtual void Dispose(bool val)
+        {
+            IsVisible = false;
+            _thread.Join();
+        }
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+
         private void ValueChangedHandler()
         {
             if (!_manipulating && Value != 0) Value = 0;
@@ -74,5 +99,6 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         public event EventHandler<ValueChangedEventArgs> OffsetChanged;
+
     }
 }

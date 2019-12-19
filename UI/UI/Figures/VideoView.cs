@@ -10,16 +10,16 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
-    public class ImageView : FigureView
+    public class VideoView : FigureView
     {
         private VideoPlayer _player;
 
-        public static async Task<ImageView> Create(IDataPoint datapoint, TimeSynchronizedContext context)
+        public static async Task<VideoView> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
             // TODO: Check that this datapoint has a type that can be used
             var viewer = await context.GetDataViewerFor(datapoint);
 
-            var view = new ImageView(context, datapoint);
+            var view = new VideoView(context, datapoint);
             view.AddViewer(viewer);
 
             if (!(viewer is ArchiveVideoVideoViewer videoViewer))
@@ -103,7 +103,7 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.Position = TimeSpan.Zero;
         }
 
-        protected ImageView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
+        protected VideoView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
         }
 

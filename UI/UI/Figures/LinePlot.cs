@@ -67,7 +67,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private void AddLine(ILineDrawer lineDrawer)
         {
             lineDrawer.Parent = this;
-            _lines.Add(new LineConfiguration()
+            _lines.Add(new LineConfiguration(this)
             {
                 Drawer = lineDrawer,
                 LinePaint = LinePaintProvider.GetNextPaint()
@@ -117,6 +117,7 @@ namespace SINTEF.AutoActive.UI.Figures
         protected LinePlot(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
             _context = context;
+            PlotType = PlotTypes.Line;
         }
 
         // ---- Drawing ----
@@ -198,6 +199,7 @@ namespace SINTEF.AutoActive.UI.Figures
         }
         public static int MaxPlotPoints { get; } = 500;
         public bool CurrentTimeVisible { get; set; } = true;
+        public PlotTypes PlotType { get; private set; }
 
         public long PreviewPercentage = 30;
 
@@ -550,6 +552,9 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string AutoScaleCommonText = "AutoScale Common";
         protected const string FreezeScalingText = "Freeze scaling";
         protected const string UnfreezeScalingText = "Unfreeze scaling";
+        protected const string ScatterPlotText = "Scatter Plot";
+        protected const string LinePlotText = "Line Plot";
+        protected const string ColumnPlotText = "Column Plot";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
@@ -557,6 +562,22 @@ namespace SINTEF.AutoActive.UI.Figures
 
             parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
             parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
+
+            switch (PlotType)
+            {
+                case PlotTypes.Line:
+                    parameters.Add(ScatterPlotText);
+                    parameters.Add(ColumnPlotText);
+                    break;
+                case PlotTypes.Scatter:
+                    parameters.Add(LinePlotText);
+                    parameters.Add(ColumnPlotText);
+                    break;
+                case PlotTypes.Column:
+                    parameters.Add(LinePlotText);
+                    parameters.Add(ScatterPlotText);
+                    break;
+            }
 
             return true;
         }
@@ -578,6 +599,18 @@ namespace SINTEF.AutoActive.UI.Figures
                     return;
                 case UnfreezeScalingText:
                     _scalingFrozen = false;
+                    return;
+                case LinePlotText:
+                    PlotType = PlotTypes.Line;
+                    InvalidateSurface();
+                    return;
+                case ScatterPlotText:
+                    PlotType = PlotTypes.Scatter;
+                    InvalidateSurface();
+                    return;
+                case ColumnPlotText:
+                    PlotType = PlotTypes.Column;
+                    InvalidateSurface();
                     return;
                 case RemoveLineText:
                     var lineToRemoveAction = await page.DisplayActionSheet("Remove Line", CancelText, null,
@@ -661,6 +694,10 @@ namespace SINTEF.AutoActive.UI.Figures
 
     public class LineConfiguration
     {
+        public LineConfiguration(LinePlot linePlot)
+        {
+            _linePlot = linePlot;
+        }
         public ILineDrawer Drawer { get; set; }
 
         public long OffsetX { get; set; }
@@ -670,7 +707,14 @@ namespace SINTEF.AutoActive.UI.Figures
         public float OffsetY { get; set; }
         public float ScaleY { get; set; }
         public SKPaint LinePaint { get; set; }
+        public PlotTypes PlotType { get => _linePlot.PlotType; }
 
         public Queue<(float, float)> SmoothScalingQueue;
+        private LinePlot _linePlot;
+    }
+
+    public enum PlotTypes
+    {
+        Line, Scatter, Column
     }
 }

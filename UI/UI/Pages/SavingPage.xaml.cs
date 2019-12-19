@@ -4,6 +4,7 @@ using System.Collections.ObjectModel;
 using System.Collections.Specialized;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Archive.Plugin;
@@ -21,6 +22,8 @@ namespace SINTEF.AutoActive.UI.Pages
     public partial class SavingPage : ContentPage
     {
         private readonly IFileBrowser _browser;
+        private bool _isSaving;
+        private bool _treeMightHaveChanged;
 
         public SavingPage()
         {
@@ -34,6 +37,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 DataTree.Tree.Children.Add(dataProvider);
 
             SavingTree.ItemDroppedOn += SavingTreeOnItemDroppedOn;
+            RemovalTree.ItemDroppedOn += RemovalTreeOnItemDroppedOn;
 
             _browser = DependencyService.Get<IFileBrowser>();
             if (_browser == null)
@@ -45,7 +49,6 @@ namespace SINTEF.AutoActive.UI.Pages
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
             SaveComplete += OnSaveComplete;
         }
 
@@ -53,6 +56,39 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             base.OnDisappearing();
             SaveComplete -= OnSaveComplete;
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            var ret = base.OnBackButtonPressed();
+
+            if (_treeMightHaveChanged)
+            {
+                var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
+                    "Quit", "Cancel");
+                displayAlert.ContinueWith(task =>
+                {
+                    if (displayAlert.Result)
+                    {
+                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    }
+                });
+                return true;
+            }
+
+
+            if (!_isSaving) return ret;
+
+            var displayTask = DisplayAlert("Saving in progress", "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
+                "Quit", "Wait");
+            displayTask.ContinueWith(task =>
+            {
+                if (displayTask.Result)
+                {
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
+            });
+            return true;
         }
 
         private static bool IsOwnParent(BranchView target, BranchView item)
@@ -153,6 +189,8 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+            _treeMightHaveChanged = true;
+
             if (parent == SavingTree)
             {
                 if (target == SavingTree)
@@ -187,6 +225,48 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
+        private void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
+        {
+            var (parent, target, item) = args;
+
+            if (target == item)
+            {
+                return;
+            }
+
+            if (!(item is BranchView branchItem))
+            {
+                Debug.WriteLine($"Unknown dragged item: {item}");
+                return;
+            }
+
+            if (parent != SavingTree)
+            {
+                return;
+            }
+
+            _treeMightHaveChanged = true;
+
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+
+            if (branchParent == null)
+            {
+                var dataTreeView = XamarinHelpers.GetTypedElementFromParents<DataTreeView>(branchItem.Parent);
+
+                if (dataTreeView == null)
+                {
+                    Debug.WriteLine("Unkown parent");
+                    return;
+                }
+
+                dataTreeView.Tree.Children.Remove(branchItem.Element.DataStructure);
+            }
+            else
+            {
+                branchParent.Element.DataStructure.RemoveChild(branchItem.Element.DataStructure);
+            }
+        }
+
         private void AddChild(IDropCollector target, BranchView branchItem)
         {
             if (!(target is BranchView branchTarget))
@@ -213,19 +293,23 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddFolderClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             var folder = new TemporaryFolder("New Folder");
             SavingTree.Tree.Children.Add(folder);
         }
 
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
+            _isSaving = true;
+            SavingLabel.Text = "Saving";
             SavingProgress.Progress = 0;
             if (!await VerifyArchive(SavingTree.Tree))
             {
+                _isSaving = false;
                 return;
             }
+            SaveButton.IsEnabled = false;
             await SaveArchive(SavingTree.Tree);
-            SavingProgress.Progress = 1;
         }
 
         private async Task<bool> VerifyArchive(DataTree sessions)
@@ -272,25 +356,35 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddAllClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             foreach (var el in DataTree.Tree)
             {
                 SavingTree.Tree.Children.Add(el);
             }
         }
 
-        private async void OnSaveComplete(object sender, SaveCompleteArgs args)
+        private void OnSaveComplete(object sender, SaveCompleteArgs args)
         {
-            switch (args.Status)
+            XamarinHelpers.EnsureMainThread(async () =>
             {
-                case SaveStatus.Cancel:
-                    return;
-                case SaveStatus.Failure:
-                    await DisplayAlert("Save failed", args.Message, "OK");
-                    return;
-                case SaveStatus.Success:
-                    await DisplayAlert("Saving done", "Save completed successfully", "OK");
-                    return;
-            }
+                _isSaving = false;
+                SavingLabel.Text = "";
+                SaveButton.IsEnabled = true;
+                SavingProgress.Progress = 1;
+
+                switch (args.Status)
+                {
+                    case SaveStatus.Cancel:
+                        return;
+                    case SaveStatus.Failure:
+                        await DisplayAlert("Save failed", args.Message, "OK");
+                        return;
+                    case SaveStatus.Success:
+                        _treeMightHaveChanged = false;
+                        await DisplayAlert("Saving done", "Save completed successfully", "OK");
+                        return;
+                }
+            });
         }
 
         public event EventHandler<SaveCompleteArgs> SaveComplete;
@@ -325,6 +419,16 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+
+            new Thread(async () =>
+                {
+                    await WriteArchive(dataTree, file);
+                }
+            ).Start();
+        }
+
+        private async Task WriteArchive(DataTree dataTree, IReadWriteSeekStreamFactory file)
+        {
             var stream = await file.GetReadWriteStream();
 
             var archive = Archive.Archive.Create(stream);
@@ -341,63 +445,34 @@ namespace SINTEF.AutoActive.UI.Pages
                 {
                     session.AddDataPoint(dataPoint);
                 }
+
                 archive.AddSession(session);
             }
 
+            archive.SavingProgressChanged += ArchiveOnSavingProgress;
             await archive.WriteFile();
+            archive.SavingProgressChanged -= ArchiveOnSavingProgress;
             archive.Close();
             file.Close();
+            if (archive.ErrorList.Any())
+            {
+                var msg = "";
+
+                foreach (var (name, ex) in archive.ErrorList)
+                {
+                    msg += $"  {name} - {ex.Message}";
+                }
+
+                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Failure, $"Error when saving:\n\n{msg}"));
+                return;
+            }
+
             SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Success, "success"));
         }
 
-
-
-        private async void SaveArchive(ICollection<ArchiveSession> selectedSession, ICollection<IDataStructure> selectedDataPoints, string sessionName)
+        private void ArchiveOnSavingProgress(object sender, double progress)
         {
-            if ((selectedSession == null || selectedSession.Count == 0) && (selectedDataPoints == null || selectedDataPoints.Count == 0))
-            {
-                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Failure, "No data selected for save."));
-                return;
-            }
-
-            var file = await _browser.BrowseForSave();
-
-            if (file == null)
-            {
-                SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Cancel, "Save cancelled"));
-                return;
-            }
-
-            var stream = await file.GetReadWriteStream();
-
-            var archive = Archive.Archive.Create(stream);
-
-            if (selectedDataPoints?.Count > 0)
-            {
-                var session = ArchiveSession.Create(archive, sessionName);
-                foreach (var dataPoint in selectedDataPoints)
-                {
-                    session.AddChild(dataPoint);
-                    if (dataPoint is ArchiveSession locArch)
-                    {
-                        session.AddBasedOnSession(locArch);
-                    }
-                }
-                archive.AddSession(session);
-            }
-
-            if (selectedSession != null)
-            {
-                foreach (var session in selectedSession)
-                {
-                    archive.AddSession(session);
-                }
-            }
-
-            await archive.WriteFile();
-            archive.Close();
-            file.Close();
-            SaveComplete?.Invoke(this, new SaveCompleteArgs(SaveStatus.Success, "success"));
+            XamarinHelpers.EnsureMainThread(() => SavingProgress.Progress = progress);
         }
 
         public class SaveCompleteArgs
@@ -419,6 +494,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void ClearClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = false;
             SavingTree.Tree = new DataTree();
         }
     }

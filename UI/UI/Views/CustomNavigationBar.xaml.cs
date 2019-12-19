@@ -51,12 +51,8 @@ namespace SINTEF.AutoActive.UI.Views
 
                 foreach (var session in archive.Sessions)
                 {
-                    //OpenSessions.Add(session);
                     session.Register();
 	            }
-
-                archive.Close();
-
             }
 	        catch (Exception ex)
 	        {
@@ -105,7 +101,7 @@ namespace SINTEF.AutoActive.UI.Views
                         {
                             var parameters = new Dictionary<string, (object, string)>
                             {
-                                ["Name"] = (file.Name, "Name of the imported session file")
+                                ["Name"] = ("$filename", "Name of the imported session file.\nThe text $filename is replaced with the file name of the file \nand $fileext is replaced with the file extension.")
                             };
 
                             plugin.GetExtraConfigurationParameters(parameters);
@@ -146,7 +142,10 @@ namespace SINTEF.AutoActive.UI.Views
                     {
                         try
                         {
-                            var provider = await plugin.Import(file, page.Parameters);
+                            var fileParams = page.Parameters;
+                            fileParams["Name"] = (fileParams["Name"] as string)?.Replace("$fileext", file.Extension)
+                                .Replace("$filename", file.Name);
+                            var provider = await plugin.Import(file, fileParams);
                             provider?.Register();
                         }
                         catch (Exception ex)
