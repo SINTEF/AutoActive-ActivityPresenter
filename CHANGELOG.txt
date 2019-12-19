@@ -1,4 +1,15 @@
 # Changelog
+## [0.5.6] - 2019-12-19
+### Added
+ - Import of generic Excel data
+ - Import of GaitUp Excel data
+ - Warning when exiting saving page while saving
+
+### Changed
+ - Handling repeated error message due to strange casting bug
+ - Upgraded Xamarin Forms to newest version
+
+
 ## [0.5.5] - 2019-12-17
 ### Changed
  - Attempting to dectect manual seeking in video and handle it separately
