@@ -49,21 +49,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 var browser = DependencyHandler.GetInstance<IFileBrowser>();
                 var file = await browser.LoadFromUri("D:\\data\\v0.6.0\\testSine.aaz");
                 var archive = await Archive.Archive.Open(file);
-                foreach (var session in archive.Sessions)
+                XamarinHelpers.EnsureMainThread(() =>
                 {
-                    session.Register();
-                }
+                    foreach (var session in archive.Sessions)
+                    {
+                        session.Register();
+                    }
+                });
 
-                // Load Archive in the background
-                browser = DependencyHandler.GetInstance<IFileBrowser>();
-                file = await browser.LoadFromUri("D:\\data\\v0.6.0\\testSine.aaz");
-                archive = await Archive.Archive.Open(file);
-                foreach (var session in archive.Sessions)
-                {
-                    session.Register();
-                }
-
-                XamarinHelpers.EnsureMainThread(() => NavigationBar.SaveArchiveButton.SendClicked());
             });
             loaderThread.Start();
         }
