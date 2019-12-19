@@ -22,6 +22,7 @@ namespace SINTEF.AutoActive.UI.Pages
     public partial class SavingPage : ContentPage
     {
         private readonly IFileBrowser _browser;
+        private bool _isSaving;
 
         public SavingPage()
         {
@@ -54,6 +55,24 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             base.OnDisappearing();
             SaveComplete -= OnSaveComplete;
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            var ret = base.OnBackButtonPressed();
+
+            if (!_isSaving) return ret;
+
+            var displayTask = DisplayAlert("Saving in progress", "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
+                "Quit", "Wait");
+            displayTask.ContinueWith(task =>
+            {
+                if (displayTask.Result)
+                {
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
+            });
+            return true;
         }
 
         private static bool IsOwnParent(BranchView target, BranchView item)
@@ -220,10 +239,12 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
+            _isSaving = true;
             SavingLabel.Text = "Saving";
             SavingProgress.Progress = 0;
             if (!await VerifyArchive(SavingTree.Tree))
             {
+                _isSaving = false;
                 return;
             }
             SaveButton.IsEnabled = false;
@@ -284,6 +305,7 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             XamarinHelpers.EnsureMainThread(async () =>
             {
+                _isSaving = false;
                 SavingLabel.Text = "";
                 SaveButton.IsEnabled = true;
                 SavingProgress.Progress = 1;
