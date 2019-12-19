@@ -37,6 +37,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 DataTree.Tree.Children.Add(dataProvider);
 
             SavingTree.ItemDroppedOn += SavingTreeOnItemDroppedOn;
+            RemovalTree.ItemDroppedOn += RemovalTreeOnItemDroppedOn;
 
             _browser = DependencyService.Get<IFileBrowser>();
             if (_browser == null)
@@ -48,7 +49,6 @@ namespace SINTEF.AutoActive.UI.Pages
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
             SaveComplete += OnSaveComplete;
         }
 
@@ -222,6 +222,48 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 var dataItemParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
                 SavingTree.Tree.Children.Add(dataItemParent.Element.DataStructure);
+            }
+        }
+
+        private void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
+        {
+            var (parent, target, item) = args;
+
+            if (target == item)
+            {
+                return;
+            }
+
+            if (!(item is BranchView branchItem))
+            {
+                Debug.WriteLine($"Unknown dragged item: {item}");
+                return;
+            }
+
+            if (parent != SavingTree)
+            {
+                return;
+            }
+
+            _treeMightHaveChanged = true;
+
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+
+            if (branchParent == null)
+            {
+                var dataTreeView = XamarinHelpers.GetTypedElementFromParents<DataTreeView>(branchItem.Parent);
+
+                if (dataTreeView == null)
+                {
+                    Debug.WriteLine("Unkown parent");
+                    return;
+                }
+
+                dataTreeView.Tree.Children.Remove(branchItem.Element.DataStructure);
+            }
+            else
+            {
+                branchParent.Element.DataStructure.RemoveChild(branchItem.Element.DataStructure);
             }
         }
 
