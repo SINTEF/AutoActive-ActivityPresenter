@@ -293,6 +293,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddFolderClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             var folder = new TemporaryFolder("New Folder");
             SavingTree.Tree.Children.Add(folder);
         }
@@ -355,6 +356,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddAllClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             foreach (var el in DataTree.Tree)
             {
                 SavingTree.Tree.Children.Add(el);
@@ -492,6 +494,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void ClearClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = false;
             SavingTree.Tree = new DataTree();
         }
     }
