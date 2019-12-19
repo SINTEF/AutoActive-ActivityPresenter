@@ -23,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Pages
     {
         private readonly IFileBrowser _browser;
         private bool _isSaving;
+        private bool _treeMightHaveChanged;
 
         public SavingPage()
         {
@@ -60,6 +61,21 @@ namespace SINTEF.AutoActive.UI.Pages
         protected override bool OnBackButtonPressed()
         {
             var ret = base.OnBackButtonPressed();
+
+            if (_treeMightHaveChanged)
+            {
+                var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
+                    "Quit", "Cancel");
+                displayAlert.ContinueWith(task =>
+                {
+                    if (displayAlert.Result)
+                    {
+                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    }
+                });
+                return true;
+            }
+
 
             if (!_isSaving) return ret;
 
@@ -172,6 +188,8 @@ namespace SINTEF.AutoActive.UI.Pages
                 Debug.WriteLine($"Unknown dragged item: {item}");
                 return;
             }
+
+            _treeMightHaveChanged = true;
 
             if (parent == SavingTree)
             {
@@ -318,6 +336,7 @@ namespace SINTEF.AutoActive.UI.Pages
                         await DisplayAlert("Save failed", args.Message, "OK");
                         return;
                     case SaveStatus.Success:
+                        _treeMightHaveChanged = false;
                         await DisplayAlert("Saving done", "Save completed successfully", "OK");
                         return;
                 }
