@@ -159,7 +159,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             foreach (string side in sides)
             {
 
-                var booleanFilter = names.Select(name => !name.Contains(side)).ToList();
+                var booleanFilter = names.Select(name => name.Contains(side)).ToList();
 
                 List<Array> sideData = booleanFilter.Zip(data, (flag, name) => new { flag, name })
                                     .Where(x => x.flag)
