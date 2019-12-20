@@ -39,7 +39,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         public ObservableCollection<Element> OriginalChildren { get; set; }
         private void OriginalChildrenOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
-            foreach(var item in e.NewItems)
+            OriginalChildren.CollectionChanged -= OriginalChildrenOnCollectionChanged;
+            foreach (var item in e.NewItems)
             {
                 if (!(item is View view)) continue;
 

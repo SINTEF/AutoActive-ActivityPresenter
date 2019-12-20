@@ -28,6 +28,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         void RemoveChild(IDataStructure dataStructure);
 
         ObservableCollection<IDataPoint> DataPoints { get; }
+
         //TODO: remove these events and use ObservableCollection's events
         event DataPointAddedHandler DataPointAdded;
         event DataPointRemovedHandler DataPointRemoved;
