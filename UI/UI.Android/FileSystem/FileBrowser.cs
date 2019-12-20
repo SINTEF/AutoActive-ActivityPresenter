@@ -158,6 +158,11 @@ namespace SINTEF.AutoActive.UI.Droid.FileSystem
             throw new NotImplementedException();
         }
 
+        public Task<IReadWriteSeekStreamFactory> SaveFromUri(string uri)
+        {
+            throw new NotImplementedException();
+        }
+
         /* --- Helpers --- */
         string GetPath(Context context, Android.Net.Uri uri)
         {

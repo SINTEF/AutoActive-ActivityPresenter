@@ -57,7 +57,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             if (_placeableItems.Count == 1 && _placeableItems.First().Item == null)
             {
                 PlaceableItem_OnLocationSelected(_placeableItems.First(), PlaceableLocation.Center);
-            } 
+            }
         }
 
         private async void PlaceableItem_OnLocationSelected(object sender, PlaceableLocation e)
@@ -136,7 +136,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         private async Task ToggleDataPoint(PlaceableItem container, IDataPoint item, TimeSynchronizedContext context)
         {
             await container.Item.ToggleDataPoint(item, context);
-            
+
             if (container.Item != null && container.Item.DataPoints.Any()) return;
 
             RemoveItem(container, context);
@@ -161,7 +161,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return placeableParent;
             }
             placeableParent?.RemoveItem(container);
-            
+
             {
                 var index = layout.Children.IndexOf(container);
                 layout.RemoveChild(container);
@@ -231,7 +231,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             return view;
         }
 
-        
+
 
         public FigureView Selected { get; set; }
 
@@ -260,7 +260,19 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public JObject SerializeView(JObject root = null)
         {
-            throw new NotImplementedException();
+            if (root == null)
+            {
+                root = new JObject();
+            }
+
+            var arr = new JArray();
+            root["container"] = arr;
+            foreach (var child in Children)
+            {
+
+            }
+
+            return root;
         }
     }
 }

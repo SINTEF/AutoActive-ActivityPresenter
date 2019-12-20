@@ -138,5 +138,12 @@ namespace SINTEF.AutoActive.UI.UWP.FileSystem
             var storageFile = await StorageFile.GetFileFromPathAsync(uri);
             return new ReadWriteSeekStreamFactory(storageFile);
         }
+
+        public async Task<IReadWriteSeekStreamFactory> SaveFromUri(string path)
+        {
+            var folder = await StorageFolder.GetFolderFromPathAsync(Path.GetDirectoryName(path));
+            var file = await folder.CreateFileAsync(Path.GetFileName(path), CreationCollisionOption.ReplaceExisting);
+            return new ReadWriteSeekStreamFactory(file);
+        }
     }
 }

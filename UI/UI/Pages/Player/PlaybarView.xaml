@@ -32,11 +32,11 @@
                    VerticalTextAlignment="End" HorizontalTextAlignment="End"
             />
 
-            <Button x:Name="TimelineExpand" Grid.Row="3" Grid.Column="2" Text="^"
+            <Button x:Name="TimelineExpand" Grid.Row="3" Grid.Column="2" Text="v"
                     Clicked="TimelineExpand_OnClickedExpand_OnClicked"
                     HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
             />
-            <Button x:Name="ButtonUpExpand" Grid.Row="3" Grid.Column="3" Text="v"
+            <Button x:Name="ButtonUpExpand" Grid.Row="3" Grid.Column="3" Text="^"
                     Clicked="ButtonUpExpand_OnClicked"
                     HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
             />

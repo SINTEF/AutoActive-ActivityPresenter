@@ -25,7 +25,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-            
+
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -314,7 +314,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                 }
                 catch (FormatException)
                 {
-                    //Throws away columns which does not contain any data, as these columns cause a FormatException 
+                    //Throws away columns which does not contain any data, as these columns cause a FormatException
                 }
 
             }

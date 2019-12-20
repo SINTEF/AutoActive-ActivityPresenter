@@ -2,7 +2,11 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using System.IO;
+using System.Linq;
 using System.Threading;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
@@ -12,6 +16,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 {
     public partial class PlayerPage : ContentPage
     {
+        private IFileBrowser _browser;
         private const double SplitViewWidthMin = 1000;
         private const double OverlayModeWidth = 0.9;
         private const double OverlayModeShadeOpacity = 0.5;
@@ -21,6 +26,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlayerPage()
         {
             InitializeComponent();
+
+            _browser = DependencyService.Get<IFileBrowser>();
+            if (_browser == null)
+            {
+                XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Critical error", "Could get file browser. Will not be able to open and save files.", "OK");
+            }
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
@@ -47,13 +58,43 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 // Load Archive in the background
                 var browser = DependencyHandler.GetInstance<IFileBrowser>();
-                var file = await browser.LoadFromUri("D:\\data\\v0.6.0\\testSine.aaz");
+                var file = await browser.LoadFromUri(@"D:\data\raw\Rothe\Rothe.aaz");
                 var archive = await Archive.Archive.Open(file);
-                XamarinHelpers.EnsureMainThread(() =>
+                XamarinHelpers.EnsureMainThread(async () =>
                 {
                     foreach (var session in archive.Sessions)
                     {
                         session.Register();
+                    }
+
+                    var save = false;
+                    var path = "D:\\data\\v0.6.0\\rothe-video-view3.aav";
+
+                    if (save)
+                    {
+                        var firstSession = DataRegistry.Providers.First();
+
+                        var table = firstSession.Children.First();
+                        var accel = table.DataPoints.First();
+                        var video1 = firstSession.Children.Skip(1).First().DataPoints.First();
+                        var video2 = firstSession.Children.Skip(2).First().DataPoints.First();
+
+                        //PlayerContainer.DataPointSelected(accel, ViewerContext);
+                        var playIt = PlayerContainer.PlaceableItems.First().Item1;
+
+                        var acceEl = await PlayerContainer.PlaceItem(playIt, accel, ViewerContext, PlaceableLocation.Center);
+
+                        var vid1 = await PlayerContainer.PlaceItem(acceEl, video1, ViewerContext, PlaceableLocation.Down);
+                        var vid11 = await PlayerContainer.PlaceItem(acceEl, video1, ViewerContext, PlaceableLocation.Down);
+
+                        await PlayerContainer.PlaceItem(vid1, video2, ViewerContext, PlaceableLocation.Right);
+                        await PlayerContainer.PlaceItem(vid11, video2, ViewerContext, PlaceableLocation.Right);
+
+                        SaveView(path);
+                    }
+                    else
+                    {
+                        LoadView(path);
                     }
                 });
 
@@ -223,5 +264,59 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 ColumnTree.Width = _treeViewWidth = new GridLength(newWidth);
             }
         }
-	}
+
+        public async void SaveView(string uri=null)
+        {
+            IReadWriteSeekStreamFactory file;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForSave((".aav", "AutoActive View"));
+            }
+            else
+            {
+                file = await _browser.SaveFromUri(uri);
+            }
+
+            if (file == null) return;
+
+            var root = new JObject();
+            PlayerContainer.SerializeView(root);
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, root);
+            }
+        }
+
+        public async void LoadView(string uri=null)
+        {
+            IReadSeekStreamFactory file;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForLoad((".aav", "AutoActive View"));
+            }
+            else
+            {
+                file = await _browser.LoadFromUri(uri);
+            }
+
+            JObject root;
+            var stream = await file.GetReadStream();
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                var serializer = new JsonSerializer();
+                root = serializer.Deserialize(reader) as JObject;
+            }
+
+            PlayerContainer.ViewerContext = ViewerContext;
+            await PlayerContainer.DeserializeView(root);
+        }
+    }
 }

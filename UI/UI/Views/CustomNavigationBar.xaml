@@ -6,46 +6,46 @@
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
-            <Button
-                x:Name="BackButton"
-                Grid.Column="0"
-                Text="&lt;-"
-                IsVisible="False"
-            />
+            <StackLayout Grid.Column="0" Orientation="Horizontal">
+                <Button
+                    x:Name="BackButton"
+                    Text="&lt;-"
+                    IsVisible="False"
+                />
 
-            <Button
-                Grid.Column="1"
-                x:Name="OpenArchiveButton"
-                Text="Open"
-                Clicked="OpenArchiveButton_OnClicked"
-            />
+                <Button
+                    x:Name="OpenArchiveButton"
+                    Text="Open"
+                    Clicked="OpenArchiveButton_OnClicked"
+                />
 
-            <Button
-                Grid.Column="2"
-                x:Name="OpenImportButton"
-                Text="Import file"
-                Clicked="OpenImportButton_OnClicked"
-            />
+                <Button
+                    x:Name="OpenImportButton"
+                    Text="Import file"
+                    Clicked="OpenImportButton_OnClicked"
+                />
 
-            <Button
-                Grid.Column="3"
-                x:Name="SaveArchiveButton"
-                x:FieldModifier="public"
-                Text="Save"
-                Clicked="SaveArchiveButton_OnClicked"
-            />
-            <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
-            <Button Grid.Column="5" Text="Head2Head" Clicked="Head2Head_OnClicked"/>
+                <Button
+                    x:Name="SaveArchiveButton"
+                    x:FieldModifier="public"
+                    Text="Save"
+                    Clicked="SaveArchiveButton_OnClicked"
+                />
+                <Button Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
+                <Button Text="Head2Head" Clicked="Head2Head_OnClicked"/>
+            </StackLayout>
 
-            <Label Grid.Column="7" x:Name="VersionLabel" />
+            <StackLayout Grid.Column="2"  Orientation="Horizontal">
+                <Button Text="Save View" Clicked="SaveView"/>
+                <Button Text="Load View" Clicked="LoadView"/>
+            </StackLayout>
+
+            <Label Grid.Column="4" x:Name="VersionLabel" />
         </Grid>
     </ContentView.Content>
 </ContentView>
