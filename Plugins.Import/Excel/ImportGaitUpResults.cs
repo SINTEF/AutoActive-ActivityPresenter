@@ -23,7 +23,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             {
                 var line = reader.ReadLine();
                 var line2 = reader.ReadLine();
-                return line != null && line2.Contains("worksheets/sheet1.xml");
+                return (line != null) && (line2.Contains("worksheets/sheet1.xml"));
             }
         }
 
