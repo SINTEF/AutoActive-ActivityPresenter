@@ -26,7 +26,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-
+            parameters["Time in epoch milliseconds/microseconds"] = (true, "CSV timestamps in milliseconds");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -41,11 +41,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     public class GenericCsvImporter : BaseDataProvider
     {
         private readonly string _filename;
+        private readonly Dictionary<string, object> _parameters;
 
         public GenericCsvImporter(Dictionary<string, object> parameters, string filename)
         {
             Name = parameters["Name"] as string;
             _filename = filename;
+            _parameters = parameters;
         }
 
         protected virtual string TableName => "CSV";
@@ -128,11 +130,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return arr.Select(TimeFormatter.TimeFromDateTime).ToArray();
         }
 
-        private static Array EnsureTimeArray(Array array)
+        private Array EnsureTimeArray(Array array)
         {
             switch (array)
             {
-                case long[] _:
+                case long[] longArray:
+                    if ((bool)_parameters["Time in epoch milliseconds/microseconds"])
+                    {
+                        return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
+                    }
                     return array;
                 case double[] doubleArray:
                     return doubleArray.Select(TimeFormatter.TimeFromSeconds).ToArray();
