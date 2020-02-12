@@ -26,7 +26,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-            parameters["Time in epoch milliseconds/microseconds"] = (true, "CSV timestamps in milliseconds");
+            parameters["EpochTime"] = (false, "in milliseconds");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -135,7 +135,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             switch (array)
             {
                 case long[] longArray:
-                    if ((bool)_parameters["Time in epoch milliseconds/microseconds"])
+                    if ((_parameters.ContainsKey("EpochTime")) && 
+                        ((bool)_parameters["EpochTime"]))
                     {
                         return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
                     }
@@ -493,6 +494,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return list;
         }
 
+        // This method fails if there is a line that includes a , (comma) before the 'header' (e.g. Hyper IMU files)
         public static (List<string>, List<Type>, List<Array>) Parse(Stream stream)
         {
             // I'm assuming that it is quicker to count the number of lines to initialize the lists for the output

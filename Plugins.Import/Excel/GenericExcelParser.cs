@@ -244,12 +244,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         }
     }
 
-
-
-
-
-
-
     public class GenericExcelParser
     {
         private static Type TryGuessTypeSingle(string field)
