@@ -52,7 +52,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected virtual ExcelDataSetConfiguration PreProcessStream()
         {
-            ExcelDataSetConfiguration conf = new ExcelDataSetConfiguration();
+            ExcelDataSetConfiguration conf = new ExcelDataSetConfiguration
+            {
+                ConfigureDataTable = _ => new ExcelDataTableConfiguration
+                {
+                    UseHeaderRow = true // Use first row is ColumnName here 
+                }
+            };
+
             return conf;
         }
 
