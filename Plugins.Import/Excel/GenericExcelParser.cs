@@ -25,7 +25,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-            
+            parameters["EpochTime"] = (false, "in milliseconds");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -41,11 +41,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
     public class GenericExcelImporter : BaseDataProvider
     {
         private readonly string _filename;
+        private readonly Dictionary<string, object> _parameters;
 
         public GenericExcelImporter(Dictionary<string, object> parameters, string filename)
         {
             Name = parameters["Name"] as string;
             _filename = filename;
+            _parameters = parameters;
         }
 
         protected virtual string TableName => "EXCEL";
@@ -152,11 +154,16 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return 0;
         }
 
-        private static Array EnsureTimeArray(Array array)
+        private Array EnsureTimeArray(Array array)
         {
             switch (array)
             {
-                case long[] _:
+                case long[] longArray:
+                    if ((_parameters.ContainsKey("EpochTime")) &&
+                        ((bool)_parameters["EpochTime"]))
+                    {
+                        return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
+                    }
                     return array;
                 case double[] doubleArray:
                     return doubleArray.Select(TimeFormatter.TimeFromSeconds).ToArray();
