@@ -25,7 +25,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-            
+            // Add option to specify that time coloumn is in milliseconds
+            parameters["EpochTime"] = (false, "in milliseconds");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -41,11 +42,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
     public class GenericExcelImporter : BaseDataProvider
     {
         private readonly string _filename;
+        private readonly Dictionary<string, object> _parameters;
 
         public GenericExcelImporter(Dictionary<string, object> parameters, string filename)
         {
             Name = parameters["Name"] as string;
             _filename = filename;
+            _parameters = parameters;
         }
 
         protected virtual string TableName => "EXCEL";
@@ -152,17 +155,35 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return 0;
         }
 
-        private static Array EnsureTimeArray(Array array)
+        private Array EnsureTimeArray(Array array)
         {
             switch (array)
             {
-                case long[] _:
+                case long[] longArray:
+                    // Time as long array, check if specified to be in ms
+                    if ((_parameters.ContainsKey("EpochTime")) &&
+                        ((bool)_parameters["EpochTime"]))
+                    {
+                        // Time in ms, convert to us
+                        return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
+                    }
+                    // Time already in us
                     return array;
                 case double[] doubleArray:
+                    // Check if time array already in epoch microseconds, eg. a large number
+                    if (doubleArray.Max() > 1e12)
+                    {
+                        // Convert time column from long to double
+                        long[] longArray = Array.ConvertAll<double, long>(doubleArray, x => (long)x);
+                        return longArray;
+                    }
+                    // Convert from seconds to microseconds
                     return doubleArray.Select(TimeFormatter.TimeFromSeconds).ToArray();
                 case DateTime[] dateTimeArray:
+                    // Time is date time format, convert to us
                     return dateTimeArray.Select(TimeFormatter.TimeFromDateTime).ToArray();
                 default:
+                    // Unknown time format
                     throw new NotImplementedException();
             }
         }
@@ -250,12 +271,6 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             return WriteTable(fileId, writer);
         }
     }
-
-
-
-
-
-
 
     public class GenericExcelParser
     {
