@@ -22,6 +22,8 @@ namespace SINTEF.AutoActive.UI.Pages
     public partial class SavingPage : ContentPage
     {
         private readonly IFileBrowser _browser;
+        private bool _isSaving;
+        private bool _treeMightHaveChanged;
 
         public SavingPage()
         {
@@ -35,6 +37,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 DataTree.Tree.Children.Add(dataProvider);
 
             SavingTree.ItemDroppedOn += SavingTreeOnItemDroppedOn;
+            RemovalTree.ItemDroppedOn += RemovalTreeOnItemDroppedOn;
 
             _browser = DependencyService.Get<IFileBrowser>();
             if (_browser == null)
@@ -46,7 +49,6 @@ namespace SINTEF.AutoActive.UI.Pages
         protected override void OnAppearing()
         {
             base.OnAppearing();
-
             SaveComplete += OnSaveComplete;
         }
 
@@ -54,6 +56,39 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             base.OnDisappearing();
             SaveComplete -= OnSaveComplete;
+        }
+
+        protected override bool OnBackButtonPressed()
+        {
+            var ret = base.OnBackButtonPressed();
+
+            if (_treeMightHaveChanged)
+            {
+                var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
+                    "Quit", "Cancel");
+                displayAlert.ContinueWith(task =>
+                {
+                    if (displayAlert.Result)
+                    {
+                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    }
+                });
+                return true;
+            }
+
+
+            if (!_isSaving) return ret;
+
+            var displayTask = DisplayAlert("Saving in progress", "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
+                "Quit", "Wait");
+            displayTask.ContinueWith(task =>
+            {
+                if (displayTask.Result)
+                {
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
+            });
+            return true;
         }
 
         private static bool IsOwnParent(BranchView target, BranchView item)
@@ -154,6 +189,8 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+            _treeMightHaveChanged = true;
+
             if (parent == SavingTree)
             {
                 if (target == SavingTree)
@@ -188,6 +225,48 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
+        private void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
+        {
+            var (parent, target, item) = args;
+
+            if (target == item)
+            {
+                return;
+            }
+
+            if (!(item is BranchView branchItem))
+            {
+                Debug.WriteLine($"Unknown dragged item: {item}");
+                return;
+            }
+
+            if (parent != SavingTree)
+            {
+                return;
+            }
+
+            _treeMightHaveChanged = true;
+
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+
+            if (branchParent == null)
+            {
+                var dataTreeView = XamarinHelpers.GetTypedElementFromParents<DataTreeView>(branchItem.Parent);
+
+                if (dataTreeView == null)
+                {
+                    Debug.WriteLine("Unkown parent");
+                    return;
+                }
+
+                dataTreeView.Tree.Children.Remove(branchItem.Element.DataStructure);
+            }
+            else
+            {
+                branchParent.Element.DataStructure.RemoveChild(branchItem.Element.DataStructure);
+            }
+        }
+
         private void AddChild(IDropCollector target, BranchView branchItem)
         {
             if (!(target is BranchView branchTarget))
@@ -214,16 +293,19 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddFolderClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             var folder = new TemporaryFolder("New Folder");
             SavingTree.Tree.Children.Add(folder);
         }
 
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
+            _isSaving = true;
             SavingLabel.Text = "Saving";
             SavingProgress.Progress = 0;
             if (!await VerifyArchive(SavingTree.Tree))
             {
+                _isSaving = false;
                 return;
             }
             SaveButton.IsEnabled = false;
@@ -274,6 +356,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void AddAllClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = true;
             foreach (var el in DataTree.Tree)
             {
                 SavingTree.Tree.Children.Add(el);
@@ -284,6 +367,7 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             XamarinHelpers.EnsureMainThread(async () =>
             {
+                _isSaving = false;
                 SavingLabel.Text = "";
                 SaveButton.IsEnabled = true;
                 SavingProgress.Progress = 1;
@@ -296,6 +380,7 @@ namespace SINTEF.AutoActive.UI.Pages
                         await DisplayAlert("Save failed", args.Message, "OK");
                         return;
                     case SaveStatus.Success:
+                        _treeMightHaveChanged = false;
                         await DisplayAlert("Saving done", "Save completed successfully", "OK");
                         return;
                 }
@@ -409,6 +494,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void ClearClicked(object sender, EventArgs e)
         {
+            _treeMightHaveChanged = false;
             SavingTree.Tree = new DataTree();
         }
     }

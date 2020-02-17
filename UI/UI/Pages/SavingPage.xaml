@@ -51,6 +51,12 @@
                     <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                     <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="SavingTree"/>
+                    <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
+                        <Grid>
+                            <treeView:DataTreeView x:Name="RemovalTree"  HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
+                            <Label Text="Drag here to remove element" HorizontalOptions="Center" VerticalOptions="Center" HorizontalTextAlignment="Center"/>
+                        </Grid>
+                    </Frame>
                 </Grid>
             </Frame>
             <Grid Grid.Column="1" Grid.Row="1">

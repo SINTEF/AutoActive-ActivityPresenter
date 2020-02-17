@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Linq;
 using System.Numerics;
 using Windows.Foundation;
@@ -18,7 +19,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
     internal class BranchViewRenderer : ViewRenderer<BranchView, Panel>, IDropCollector
     {
         private BranchView _branchView;
-        private UIElement _frame;
+        private Border _frame;
         private Point _elementStartPoint;
         private Point _startPoint;
         private readonly Brush _frameBorderBrush = new SolidColorBrush(Colors.LightGreen);
@@ -68,6 +69,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             return null;
         }
 
+        private const double ElementOffset = 0;
+
         private void ControlOnManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
         {
             e.Handled = true;
@@ -76,7 +79,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 MainContainer.Children.Remove(_frame);
                 _frame = null;
             }
-
 
             var elWidth = ActualWidth;
             var elHeight = ActualHeight;
@@ -101,7 +103,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             var pointerPosition = Windows.UI.Core.CoreWindow.GetForCurrentThread().PointerPosition;
             _startPoint = new Point(pointerPosition.X - Window.Current.Bounds.X, pointerPosition.Y - Window.Current.Bounds.Y);
             _elementStartPoint = _startPoint;
-            _elementStartPoint.Y -= elHeight;
+            _elementStartPoint.X += ElementOffset;
+            _elementStartPoint.Y -= elHeight + ElementOffset;
 
             SetElementTranslation(0, 0);
 
@@ -114,13 +117,26 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             SetElementTranslation(e.Cumulative.Translation.X, e.Cumulative.Translation.Y);
         }
 
+        private static bool _hasCastError;
+
         private void SetElementTranslation(double dx, double dy)
         {
             if (_frame == null) return;
 
             var x = _elementStartPoint.X + dx;
             var y = _elementStartPoint.Y + dy;
-            _frame.Translation = new Vector3((float)x, (float)y, 0);
+            try
+            {
+                _frame.Translation = new Vector3((float) x, (float) y, 0);
+            }
+            catch (InvalidCastException)
+            {
+                if (!_hasCastError)
+                {
+                    _hasCastError = true;
+                    throw;
+                }
+            }
         }
 
         private void ControlOnManipulationCompleted(object sender, ManipulationCompletedRoutedEventArgs e)
