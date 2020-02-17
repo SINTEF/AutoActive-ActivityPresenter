@@ -14,7 +14,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public PlayerTreeView () : base(ListViewCachingStrategy.RecycleElementAndDataTemplate)
 		{
-            BackgroundColor = Color.White;
+            BackgroundColor = Color.FromHex("#1D2637");
             SelectionMode = ListViewSelectionMode.None;
 
             ItemTemplate = new DataItemTemplateSelector();
@@ -280,6 +280,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public uint Indentation { get; set; }
 
         public abstract void OnTapped();
+
+        
     }
 
     internal class DataProviderItem : DataStructureItem, IDisposable

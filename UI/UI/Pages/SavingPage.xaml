@@ -5,6 +5,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:treeView="clr-namespace:SINTEF.AutoActive.UI.Views.TreeView;assembly=SINTEF.AutoActive.UI"
              mc:Ignorable="d"
+             BackgroundColor="#1D2637"
              x:Class="SINTEF.AutoActive.UI.Pages.SavingPage">
     <ContentPage.Content>
         <Grid RowSpacing="0">
@@ -16,7 +17,7 @@
                 <RowDefinition />
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Black">
+            <Frame Grid.Column="0" Grid.Row="0" BorderColor="#23A2B1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -27,12 +28,13 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Row="0" Grid.Column="1" Text="Data" HorizontalTextAlignment="Center" />
-                    <Button Grid.Row="0" Grid.Column="2" Text="Add all ->" HorizontalOptions="End" Clicked="AddAllClicked"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="Data" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White" />
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add all ->" HorizontalOptions="End" Clicked="AddAllClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                     <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="DataTree"/>
                 </Grid>
             </Frame>
-            <Frame Grid.Row="0" Grid.Column="1" BorderColor="Red">
+            <Frame Grid.Row="0" Grid.Column="1" BorderColor="#23A2B1">
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
@@ -43,9 +45,11 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Row="0" Grid.Column="0" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked"/>
-                    <Label Grid.Row="0" Grid.Column="1" Text="Save archive" HorizontalTextAlignment="Center"/>
-                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked"/>
+                    <Button Grid.Row="0" Grid.Column="0" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked" BorderColor="#23A2B1"
+                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                    <Label Grid.Row="0" Grid.Column="1" Text="Save archive" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White"/>
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                     <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="SavingTree"/>
                 </Grid>
             </Frame>
@@ -56,8 +60,9 @@
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Label x:Name="SavingLabel" VerticalOptions="Center" VerticalTextAlignment="Center"/>
-                <ProgressBar x:Name="SavingProgress" Grid.Column="1" Progress="0" VerticalOptions="Center"/>
-                <Button x:Name="SaveButton" Grid.Column="2" Text="Save" Clicked="SaveButtonClicked" VerticalOptions="Fill"/>
+                <ProgressBar x:Name="SavingProgress" Grid.Column="1" Progress="0" VerticalOptions="Center" ProgressColor="White"/>
+                <Button x:Name="SaveButton" Grid.Column="2" Text="Save" Clicked="SaveButtonClicked" VerticalOptions="Fill" BorderColor="#23A2B1"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             </Grid>
         </Grid>
     </ContentPage.Content>

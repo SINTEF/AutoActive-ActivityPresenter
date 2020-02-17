@@ -9,7 +9,7 @@
                     VerticalOptions="Start" 
                     HorizontalOptions="Start"
                    Margin="0,0,0,30"/>
-            <Button Text="Load archive"
+            <Button Text="Load archives"
                     VerticalOptions="Start"
                     HorizontalOptions="Start"
                     Clicked="OnButtonClicked"
