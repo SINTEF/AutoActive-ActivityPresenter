@@ -91,7 +91,7 @@
 
             <Label Grid.Column="7" Grid.Row="1" x:Name="VersionLabel" TextColor="White" />
 
-            <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="2" Aspect="AspectFit" Source="Assets\ActivityPresenterLogo.png" />
+            <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="2" Aspect="AspectFit" HorizontalOptions="End" Source="Assets\ActivityPresenterLogo.png" />
 
         </Grid>
     </ContentView.Content>
