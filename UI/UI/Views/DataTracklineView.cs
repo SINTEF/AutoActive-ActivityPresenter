@@ -13,7 +13,7 @@ using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-    [DesignTimeVisible(true)]
+    [DesignTimeVisible(false)]
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public class DataTracklineView : SKCanvasView
     {
@@ -136,7 +136,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         private readonly SKPaint _dataTrackPaint = new SKPaint
         {
-            Color = SKColors.Red,
+            Color = new SKColor(100,108,119),
             StrokeWidth = 1,
             Style = SKPaintStyle.Fill,
             IsAntialias = true
@@ -144,7 +144,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         private readonly SKPaint _textPaint = new SKPaint
         {
-            Color = SKColors.Black,
+            Color = SKColors.White,
             Style = SKPaintStyle.Fill,
             IsAntialias = true,
             SubpixelText = true,

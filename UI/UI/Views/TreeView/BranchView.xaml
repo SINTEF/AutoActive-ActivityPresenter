@@ -10,13 +10,13 @@
              Margin="0" HorizontalOptions="Start">
     <ContentView.Content>
         <StackLayout Orientation="Vertical" Spacing="0" Margin="0" Padding="0">
-            <Frame x:Name="OuterFrame" BorderColor="Blue" CornerRadius="4" Padding="2" Margin="0"  HorizontalOptions="Start" MinimumHeightRequest="10">
+            <Frame x:Name="OuterFrame" BorderColor="Blue" CornerRadius="4" Padding="2" Margin="0"  HorizontalOptions="Start" MinimumHeightRequest="10" >
                 <StackLayout Orientation="Horizontal" HorizontalOptions="FillAndExpand"  Padding="2" Margin="4" Spacing="4">
-                    <Button x:Name="ExpandButton" Text="+" HorizontalOptions="Start" VerticalOptions="Center" Clicked="ExpandButton_OnClicked" Margin="0" Padding="5"/>
-                    <treeVisualizer:MultiButton x:Name="BranchButton" Clicked="BranchButton_OnClicked" AlternateClicked="BranchButton_OnAlternateClicked"/>
+                    <Button x:Name="ExpandButton" Text="+" HorizontalOptions="Start" VerticalOptions="Center" Clicked="ExpandButton_OnClicked" Margin="0" Padding="5" TextColor="White"/>
+                    <treeVisualizer:MultiButton x:Name="BranchButton" Clicked="BranchButton_OnClicked" AlternateClicked="BranchButton_OnAlternateClicked" TextColor="White"/>
                     <StackLayout x:Name="NameChangeLayout" IsVisible="False" Orientation="Horizontal" Spacing="0" Margin="0" Padding="0" HorizontalOptions="FillAndExpand">
                         <Entry x:Name="NameChangeEntry" HorizontalOptions="FillAndExpand" Completed="NameChangeEntry_OnCompleted" />
-                        <Button Text="OK" Clicked="ChangeNameButton" HorizontalOptions="End"/>
+                        <Button Text="OK" Clicked="ChangeNameButton" HorizontalOptions="End" TextColor="White"/>
                     </StackLayout>
                 </StackLayout>
             </Frame>

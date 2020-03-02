@@ -4,6 +4,7 @@
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
+             BackgroundColor="#1D2637"
              x:Class="SINTEF.AutoActive.UI.Pages.HeadToHead.HeadToHead">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">

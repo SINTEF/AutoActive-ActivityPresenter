@@ -7,12 +7,12 @@
              x:Class="SINTEF.AutoActive.UI.Views.TimeStepper">
   <ContentView.Content>
         <StackLayout Orientation="Horizontal">
-            <Button Text="&lt;&lt;&lt;" Clicked="StepClicked"/>
-            <Button Text="&lt;&lt;" Clicked="StepClicked"/>
-            <Button Text="&lt;" Clicked="StepClicked"/>
-            <Button Text="&gt;" Clicked="StepClicked"/>
-            <Button Text="&gt;&gt;" Clicked="StepClicked"/>
-            <Button Text="&gt;&gt;&gt;" Clicked="StepClicked"/>
+            <Button Text="&lt;&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button Text="&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button Text="&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button Text="&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button Text="&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button Text="&gt;&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
         </StackLayout>
     </ContentView.Content>
 </ContentView>

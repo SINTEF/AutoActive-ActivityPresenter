@@ -14,7 +14,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public PlayerTreeView () : base(ListViewCachingStrategy.RecycleElementAndDataTemplate)
 		{
-            BackgroundColor = Color.White;
+            BackgroundColor = Color.FromHex("#1D2637");
             SelectionMode = ListViewSelectionMode.None;
 
             ItemTemplate = new DataItemTemplateSelector();
@@ -101,6 +101,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
                 var text = value as string;
                 cell._label.Text = text;
+                cell._label.TextColor = Color.White;
+                cell._label.FontAttributes = FontAttributes.Bold;
             });
         public readonly BindableProperty UIntProperty = BindableProperty.Create(nameof(Indentation), typeof(uint), typeof(DataItemCell),
             propertyChanged: (boundObject, _, value) =>
@@ -125,10 +127,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var layout = new StackLayout
             {
                 Orientation = StackOrientation.Horizontal
+               
             };
             _frame = new Frame
             {
-                BorderColor = Color.Black, Content = layout, HorizontalOptions = LayoutOptions.Start,
+                BorderColor = Color.FromHex("#1D2637"), Content = layout, HorizontalOptions = LayoutOptions.Start, 
                 Padding = 5, Margin = 0
             };
 
@@ -280,6 +283,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public uint Indentation { get; set; }
 
         public abstract void OnTapped();
+
+        
     }
 
     internal class DataProviderItem : DataStructureItem, IDisposable
