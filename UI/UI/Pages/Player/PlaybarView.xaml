@@ -10,8 +10,8 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="30"/>
+                <ColumnDefinition Width="55"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
@@ -48,18 +48,10 @@
             />
             <Button x:Name="PlayButton" Text=">" Grid.Row="3" Grid.Column="4" Clicked="PlayButton_Clicked"
                      BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Picker x:Name="PlaybackSpeedPicker" Grid.Row="3" Grid.Column="5" SelectedIndexChanged="PlaybackSpeed_SelectedIndexChanged" TextColor="White" BackgroundColor="#1D2637" FontAttributes="Bold" TitleColor="White" >
-                <Picker.Items>
-                    <x:String>0.1x</x:String>
-                    <x:String>0.25x</x:String>
-                    <x:String>0.5x</x:String>
-                    <x:String>1x</x:String>
-                    <x:String>2x</x:String>
-                    <x:String>5x</x:String>
-                    <x:String>10x</x:String>
-                </Picker.Items>
-                <Picker.SelectedIndex>3</Picker.SelectedIndex>
-            </Picker>
+
+            <Button x:Name="PlaybackSpeedButton" Text="1x" Grid.Row="3" Grid.Column="5" Clicked="PlaybackSpeedButton_Clicked"
+                     BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" HorizontalOptions="FillAndExpand"/>
+
             <Grid x:Name="WindowSliderSelector"  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" IsVisible="False">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto"/>
