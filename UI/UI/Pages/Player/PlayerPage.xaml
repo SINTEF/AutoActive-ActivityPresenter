@@ -4,11 +4,12 @@
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
              xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
+             BackgroundColor="#1D2637"
              x:Class="SINTEF.AutoActive.UI.Pages.Player.PlayerPage">
     <ContentPage.Content>
         <Grid x:Name="PageGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.RowDefinitions>
-                <RowDefinition Height="{x:Static views:CustomNavigationBar.DefaultHeight}" />
+                <RowDefinition Height="Auto" />
                 <RowDefinition x:Name="RowMain" Height="*" />
                 <RowDefinition x:Name="RowPlaybar" Height="Auto" />
                 <RowDefinition x:Name="Dis" Height="0"/>

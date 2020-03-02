@@ -2,10 +2,15 @@
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="SINTEF.AutoActive.UI.Views.CustomNavigationBar">
+            
     <ContentView.Content>
         <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height ="Auto"/>
+                <RowDefinition Height ="Auto"/>
+            </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -14,38 +19,80 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition Width="Auto" />
             </Grid.ColumnDefinitions>
+            
             <Button
                 x:Name="BackButton"
                 Grid.Column="0"
                 Text="&lt;-"
                 IsVisible="False"
-            />
-
-            <Button
-                Grid.Column="1"
-                x:Name="OpenArchiveButton"
-                Text="Open"
-                Clicked="OpenArchiveButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"
             />
 
             <Button
                 Grid.Column="2"
-                x:Name="OpenImportButton"
-                Text="Import file"
-                Clicked="OpenImportButton_OnClicked"
+                Grid.Row="1"
+                x:Name="OpenArchiveButton"
+                Text="Open archive"
+                Clicked="OpenArchiveButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"
             />
 
             <Button
                 Grid.Column="3"
+                Grid.Row="1"
+                x:Name="OpenImportButton"
+                Text="Import file"
+                Clicked="OpenImportButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"
+            />
+
+            <Button
+                Grid.Column="2"
+                Grid.Row="2"
                 x:Name="SaveArchiveButton"
                 x:FieldModifier="public"
                 Text="Save"
                 Clicked="SaveArchiveButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"
             />
-            <Button Grid.Column="4" Text="Synchronize" Clicked="SynchronizationButton_OnClicked"/>
-            <Button Grid.Column="5" Text="Head2Head" Clicked="Head2Head_OnClicked"/>
+            
+            <Button 
+                Grid.Column="3"
+                Grid.Row="2"
+                Text="Synchronize" 
+                Clicked="SynchronizationButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"/>
+            
+            
+            <Button 
+                Grid.Column="4"
+                Grid.Row="2"
+                Text="Head2Head" 
+                Clicked="Head2Head_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637" 
+                FontAttributes="Bold" 
+                TextColor="White"/>
 
-            <Label Grid.Column="7" x:Name="VersionLabel" />
+            <Label Grid.Column="7" Grid.Row="1" x:Name="VersionLabel" TextColor="White" />
+
+            <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="2" Aspect="AspectFit" HorizontalOptions="End" Source="Assets\ActivityPresenterLogo.png" />
+
         </Grid>
     </ContentView.Content>
 </ContentView>

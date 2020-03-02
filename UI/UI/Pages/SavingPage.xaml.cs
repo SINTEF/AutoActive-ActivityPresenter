@@ -31,7 +31,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
             DataRegistry.ProviderAdded += el => DataTree.Tree.Children.Add(el);
             DataRegistry.ProviderRemoved += el => DataTree.Tree.Children.Remove(el);
-
+          
             // Add current items
             foreach (var dataProvider in DataRegistry.Providers)
                 DataTree.Tree.Children.Add(dataProvider);
