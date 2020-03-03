@@ -220,7 +220,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                 var name = names[i];
                 var type = types[i];
 
-                var colInfo = new ColInfo(name, null);
+                var colInfo = new ColInfo(name, "-");
 
                 var uri = base.Name + "/" + colInfo.Name;
 
