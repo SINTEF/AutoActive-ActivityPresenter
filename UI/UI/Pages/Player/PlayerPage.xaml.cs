@@ -159,6 +159,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             // Disable hiding overlay
             UpdateTreeView(TreeViewState.SplitMode);
             return;
+            /*
             var shouldShowSplit = width >= SplitViewWidthMin;
             if (shouldShowSplit && _treeViewState != TreeViewState.SplitMode)
             {
@@ -168,6 +169,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 UpdateTreeView(TreeViewState.OverlayModeHidden);
             }
+            */
         }
 
         private void NavigationBar_MenuButtonClicked(object sender, EventArgs e)

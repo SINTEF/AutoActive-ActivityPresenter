@@ -49,7 +49,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         }
 
-        private long _startTime;
+        //private long _startTime;
         protected override ExcelDataSetConfiguration PreProcessStream()
         {
 
@@ -84,7 +84,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             foreach (string name in timeColumnNames)
             {
                 DataRow[] rows = dataTable.Select();
-                _startTime = 0L;
+                //_startTime = 0L;
                 long[] timeArray = rows.Select(row => TimeFormatter.TimeFromSeconds(double.Parse(row[name].ToString()))).ToArray();
                 dataTable.Columns.Remove(name);
                 dataTable.Columns.Add(name, typeof(long));

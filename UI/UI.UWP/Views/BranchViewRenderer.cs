@@ -24,7 +24,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         private Point _startPoint;
         private readonly Brush _frameBorderBrush = new SolidColorBrush(Colors.LightGreen);
         private readonly Brush _frameBackgroundBrush = new SolidColorBrush(Color.FromArgb(51, 0, 0, 0));
-        public static bool ListHits;
+        //public static bool ListHits;
         private Page _page;
         private Page CurrentPage => _page ?? (_page = GetCurrentPage(this));
 
@@ -158,7 +158,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 return;
             }
 
-            if (!ListHits) return;
+            //if (!ListHits) return;
 
 #if !DEBUG
             return;
