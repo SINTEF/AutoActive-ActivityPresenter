@@ -53,7 +53,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 UpdateExpandedName();
                 if (!IsClickable())
                 {
-                    BranchButton.BackgroundColor = Color.White;
+                    BranchButton.BackgroundColor = Color.FromHex("#23A2B1");
                 }
             }
         }

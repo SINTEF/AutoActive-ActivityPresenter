@@ -18,6 +18,7 @@
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition x:Name="ColumnSplitter" Width="2" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <!-- Content -->
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="3" />
