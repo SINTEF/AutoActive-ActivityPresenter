@@ -157,34 +157,36 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 dropCollector.ObjectDroppedOn(_branchView);
                 return;
             }
-
-            //if (!ListHits) return;
-
-#if !DEBUG
             return;
-#endif
-            Debug.WriteLine("Found elements:");
-            foreach (var element in elements)
-            {
-                if (element is IDropCollector dropCollector)
-                {
-                    dropCollector.ObjectDroppedOn(_branchView);
-                }
+            /*          Debug code, not in use
+                        if (!ListHits) return;
 
-                if (!(element is FrameworkElement frameworkElement))
-                {
-                    Debug.WriteLine($"  {element.GetType().Name}");
-                    continue;
-                }
+            #if !DEBUG
+                        return;
+            #endif
+                        Debug.WriteLine("Found elements:");
+                        foreach (var element in elements)
+                        {
+                            if (element is IDropCollector dropCollector)
+                            {
+                                dropCollector.ObjectDroppedOn(_branchView);
+                            }
 
-                if (frameworkElement is Button button)
-                {
-                    Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name} - {button.Content}");
-                    continue;
-                }
-                Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name}");
-            }
-            Debug.WriteLine("");
+                            if (!(element is FrameworkElement frameworkElement))
+                            {
+                                Debug.WriteLine($"  {element.GetType().Name}");
+                                continue;
+                            }
+
+                            if (frameworkElement is Button button)
+                            {
+                                Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name} - {button.Content}");
+                                continue;
+                            }
+                            Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name}");
+                        }
+                        Debug.WriteLine("");
+            */
         }
 
         public void ObjectDroppedOn(IDraggable item)
