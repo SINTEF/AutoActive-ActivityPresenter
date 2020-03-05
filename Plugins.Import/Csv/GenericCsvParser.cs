@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Newtonsoft.Json.Linq;
@@ -91,7 +92,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         private static string ReplaceIllegalNameCharacters(string el)
         {
-            return el.Replace(".", "");
+            return Regex.Replace(el, @"[-.() ]", "_");
         }
 
         private static int FindTimeDataIndex(List<string> names)
@@ -181,7 +182,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 var name = names[i];
                 var type = types[i];
 
-                var colInfo = new ColInfo(name, null);
+                var colInfo = new ColInfo(name, "-");
 
                 var uri = base.Name + "/" + colInfo.Name;
 

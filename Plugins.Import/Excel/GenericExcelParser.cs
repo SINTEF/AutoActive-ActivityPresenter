@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using ExcelDataReader;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations;
@@ -122,7 +123,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected static string ReplaceIllegalNameCharacters(string el)
         {
-            return el.Replace(".", "");
+            return Regex.Replace(el, @"[-.() ]", "_");
         }
 
         private static int FindTimeDataIndex(List<string> names)
@@ -220,7 +221,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                 var name = names[i];
                 var type = types[i];
 
-                var colInfo = new ColInfo(name, null);
+                var colInfo = new ColInfo(name, "-");
 
                 var uri = base.Name + "/" + colInfo.Name;
 
