@@ -6,7 +6,7 @@
     <ContentView.Content>
         <Grid x:Name="ContentGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="125"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="Auto"/>
                 <ColumnDefinition Width="Auto"/>
@@ -65,7 +65,7 @@
                         MaximumTrackColor="#1D2637" />
                 <Label Grid.Column="2"  x:Name="WindowLengthLabel" TextColor="White" FontAttributes="Bold"/>
             </Grid>
-            <views:DataTracklineView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
+            <views:DataTracklineView Grid.Row="1" Grid.Column="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
         </Grid>
     </ContentView.Content>
 </ContentView>

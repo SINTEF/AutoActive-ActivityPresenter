@@ -16,6 +16,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
 
+
         private SingleSetDataViewerContext _viewerContext;
         public SingleSetDataViewerContext ViewerContext
         {
@@ -49,6 +50,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
+
         public double PlaybackSpeed { get; private set; } = 1;
         public uint PlayUpdateRate = 30;
         public long WindowSize = 1000000 * 30; // 30s
@@ -74,6 +76,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             WindowSlider.Value = WindowSize / 1000000d;
 
             DataTrackline.Playbar = this;
+
+
         }
 
         private bool _playSliderChanging;
@@ -324,7 +328,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         private void LabelTimeFrom_OnClicked(object sender, EventArgs e)
-        {
+        {;
             _fromTimeIsCurrent ^= true;
             if (ViewerContext is TimeSynchronizedContext context)
             {

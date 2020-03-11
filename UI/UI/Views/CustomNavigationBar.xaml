@@ -10,7 +10,6 @@
                 <RowDefinition Height ="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -32,7 +31,7 @@
             />
 
             <Button
-                Grid.Column="2"
+                Grid.Column="0"
                 Grid.Row="1"
                 x:Name="OpenArchiveButton"
                 Text="Open archive"
@@ -44,7 +43,7 @@
             />
 
             <Button
-                Grid.Column="3"
+                Grid.Column="1"
                 Grid.Row="1"
                 x:Name="OpenImportButton"
                 Text="Import file"
@@ -56,7 +55,7 @@
             />
 
             <Button
-                Grid.Column="2"
+                Grid.Column="0"
                 Grid.Row="2"
                 x:Name="SaveArchiveButton"
                 x:FieldModifier="public"
@@ -69,7 +68,7 @@
             />
             
             <Button 
-                Grid.Column="3"
+                Grid.Column="1"
                 Grid.Row="2"
                 Text="Synchronize" 
                 Clicked="SynchronizationButton_OnClicked"
@@ -80,7 +79,7 @@
             
             
             <Button 
-                Grid.Column="4"
+                Grid.Column="2"
                 Grid.Row="2"
                 Text="Head2Head" 
                 Clicked="Head2Head_OnClicked"
