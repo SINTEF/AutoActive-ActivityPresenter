@@ -11,21 +11,22 @@
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto" />
                 <RowDefinition x:Name="RowMain" Height="*" />
+                <RowDefinition x:Name="RowSplitter" Height="8" />
                 <RowDefinition x:Name="RowPlaybar" Height="Auto" />
                 <RowDefinition x:Name="Dis" Height="0"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="125"/>
                 <ColumnDefinition Width="*" />
-                <ColumnDefinition x:Name="ColumnSplitter" Width="7" />
+                <ColumnDefinition x:Name="ColumnSplitter" Width="8" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
             </Grid.ColumnDefinitions>
             <!-- Content -->
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
-            <dynamicLayout:PlaceableContainer x:Name="PlayerContainer" Grid.Row="1" Grid.Column="1" />
+            <dynamicLayout:PlaceableContainer x:Name="PlayerContainer" Grid.Row="1" Grid.Column="1"/>
             <dynamicLayout:DraggableSeparator x:Name="Splitter" Grid.Row="1" Grid.Column="2"  IsVisible="False"/>
             <player:PlayerTreeView x:Name="TreeView" Grid.Row="1" Grid.Column="3" />
-            <player:PlaybarView x:Name="Playbar" Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="4" />
+            <player:PlaybarView x:Name="Playbar" Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="4" />
 
             <AbsoluteLayout x:Name="OverlayLayout" Grid.Row="3" Grid.Column="0">
                 <BoxView x:Name="OverlayShading" IsVisible="False" Color="Black" AbsoluteLayout.LayoutFlags="SizeProportional" AbsoluteLayout.LayoutBounds="0,0,1,1"/>

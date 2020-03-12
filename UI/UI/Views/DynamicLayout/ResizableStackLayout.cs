@@ -15,7 +15,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         private IReadOnlyList<View> _children;
         private bool _childrenChanged = true;
         public const double MinimumWeight = 1;
-
+        
+        
         public new IReadOnlyList<View> Children
         {
             //This can't just be casted due to strange Xamarin implementation
@@ -33,8 +34,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             Orientation = StackOrientation.Vertical;
             OriginalChildren = new ObservableCollection<Element>();
-            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;
-        }
+            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;        }
 
         public ObservableCollection<Element> OriginalChildren { get; set; }
         private void OriginalChildrenOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
@@ -67,7 +67,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             _childrenChanged = true;
         }
 
-        public const double SeparatorSize = 2d;
+        public const double SeparatorSize = 8d;
 
         public const double DefaultPercentageValue = 100d;
         public static readonly BindableProperty SizeWeightProperty = BindableProperty.CreateAttached(
@@ -79,7 +79,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             (bindable, value) => (double)value >= MinimumWeight,
             SizeWeightPropertyChanged
             );
-
+        
         private static void SizeWeightPropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
             if (!(bindable is View view) || oldValue == newValue)
