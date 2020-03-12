@@ -108,7 +108,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             var numSeparators = Children.Count(child => child.IsVisible && child is DraggableSeparator);
 
-
             // Reset all weights if they are very small
             if (Math.Abs(totalWeight) < 1d)
             {
@@ -143,6 +142,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             }
             else
             {
+                var childHeights = height - numSeparators * SeparatorSize;
                 var yPos = y;
                 foreach (var child in Children)
                 {
@@ -155,7 +155,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                     }
                     else
                     {
-                        childHeight = height * GetSizeWeight(child) / totalWeight;
+                        childHeight = childHeights * GetSizeWeight(child) / totalWeight;
                     }
 
                     LayoutChildIntoBoundingRegion(child, new Rectangle(x, yPos, width, childHeight));
