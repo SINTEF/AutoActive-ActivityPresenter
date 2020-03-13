@@ -34,7 +34,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             Orientation = StackOrientation.Vertical;
             OriginalChildren = new ObservableCollection<Element>();
-            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;        }
+            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;        
+        }
 
         public ObservableCollection<Element> OriginalChildren { get; set; }
         private void OriginalChildrenOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)

@@ -76,8 +76,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             WindowSlider.Value = WindowSize / 1000000d;
 
             DataTrackline.Playbar = this;
-
-
         }
 
         private bool _playSliderChanging;
@@ -328,7 +326,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         private void LabelTimeFrom_OnClicked(object sender, EventArgs e)
-        {;
+        {
             _fromTimeIsCurrent ^= true;
             if (ViewerContext is TimeSynchronizedContext context)
             {
