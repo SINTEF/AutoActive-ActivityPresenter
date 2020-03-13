@@ -7,6 +7,7 @@
              mc:Ignorable="d"
              HorizontalOptions="Fill" VerticalOptions="Fill"
              x:Class="SINTEF.AutoActive.UI.Views.DynamicLayout.PlaceableContainer">
+               
     <ContentView.Content>
         <dynamicLayout:ResizableStackLayout x:Name="MainVerticalStackLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <dynamicLayout:ResizableStackLayout x:Name="MainHorizontalStackLayout" Orientation="Horizontal" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">

@@ -16,6 +16,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
 
+
         private SingleSetDataViewerContext _viewerContext;
         public SingleSetDataViewerContext ViewerContext
         {
@@ -48,6 +49,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 RowDataPreview.Height = _previewDataPoint != null ? DefaultPreviewHeight : 0;
             }
         }
+
 
         public double PlaybackSpeed { get; private set; } = 1;
         public uint PlayUpdateRate = 30;

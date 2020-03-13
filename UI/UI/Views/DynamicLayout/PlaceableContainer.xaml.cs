@@ -22,6 +22,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             InitializeComponent();
             _placeableItems.AddRange(XamarinHelpers.GetAllChildElements<PlaceableItem>(this));
+
         }
 
         private bool PlacementLocationVisible

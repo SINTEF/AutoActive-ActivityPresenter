@@ -17,6 +17,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             PlacementLocationVisible = false;
 
             SizeChanged += OnSizeChanged;
+            
         }
 
         private void OnSizeChanged(object sender, EventArgs e)
@@ -154,6 +155,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 HorizontalOptions = LayoutOptions.FillAndExpand,
                 VerticalOptions = LayoutOptions.FillAndExpand,
             };
+
             newLayout.InsertChild(0, visualizer);
 
             if (location == PlaceableLocation.Up)
