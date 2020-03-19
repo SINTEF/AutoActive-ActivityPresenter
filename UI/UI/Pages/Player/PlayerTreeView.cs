@@ -90,8 +90,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // View data cell class
     public abstract class DataItemCell : ViewCell
     {
+        // Create datacell at top level, no indentation
         public readonly BindableProperty TextProperty = BindableProperty.Create(nameof(Text), typeof(string),
             typeof(DataItemCell),
             propertyChanged: (boundObject, _, value) =>
@@ -108,6 +110,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 cell._frame.BorderColor = Color.Transparent;
                 cell._frame.HorizontalOptions = LayoutOptions.FillAndExpand;
             });
+
+        // Create datacell with indentation
         public readonly BindableProperty UIntProperty = BindableProperty.Create(nameof(Indentation), typeof(uint), typeof(DataItemCell),
             propertyChanged: (boundObject, _, value) =>
             {
@@ -181,6 +185,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell at top level, data provider
     internal class DataProviderCell : DataStructureCell
     {
         public DataProviderCell()
@@ -199,6 +204,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell with no data
     internal class DataStructureCell : DataItemCell
     {
         public DataStructureCell()
@@ -207,6 +213,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell with data
     internal class DataPointCell : DataItemCell
     {
         public DataPointCell()
