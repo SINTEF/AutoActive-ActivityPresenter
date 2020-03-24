@@ -9,6 +9,7 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
+using SINTEF.AutoActive.UI.Views;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -64,10 +65,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             get => TimeSlider;
         }
-
-
-
-        
 
 
 
@@ -318,6 +315,39 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             PopupNavigation.Instance.PushAsync(popupObject);
             
 
+        }
+
+        private void TimeStepper_OnOnStep(object sender, TimeStepEvent e)
+        {
+            //_slaveSlider.Offset += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
+            TimeSlider.Value += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
+        }
+
+
+        private static long GetOffsetFromTimeStep(TimeStepEvent timeStep)
+        {
+            long offset;
+            switch (timeStep.Length)
+            {
+                case TimeStepLength.Step:
+                    offset = TimeFormatter.TimeFromSeconds(1d / 30);
+                    break;
+                case TimeStepLength.Short:
+                    offset = TimeFormatter.TimeFromSeconds(1);
+                    break;
+                case TimeStepLength.Large:
+                    offset = TimeFormatter.TimeFromSeconds(10);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (timeStep.Direction == TimeStepDirection.Backward)
+            {
+                offset = -offset;
+            }
+
+            return offset;
         }
 
     }
