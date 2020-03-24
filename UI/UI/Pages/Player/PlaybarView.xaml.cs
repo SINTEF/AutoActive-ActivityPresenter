@@ -8,6 +8,7 @@ using System.Threading;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
+using Rg.Plugins.Popup.Services;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -50,8 +51,28 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
+        public string GetLabelTimeFrom
+        {
+            get => LabelTimeFrom.Text;
+            set
+            {
+                LabelTimeFrom.Text = value;
+            }
+        }
 
-        public double PlaybackSpeed { get; private set; } = 1;
+        public Slider GetTimeSlider 
+        {
+            get => TimeSlider;
+        }
+
+
+
+        
+
+
+
+
+        public double PlaybackSpeed { get; set; } = 1;
         public uint PlayUpdateRate = 30;
         public long WindowSize = 1000000 * 30; // 30s
         private DateTime _playStartTime;
@@ -61,7 +82,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private long PlayDelayUs => 1000000L / PlayUpdateRate;
         private int PlayDelayMs => (int)(PlayDelayUs / 1000);
 
-        private bool _fromTimeIsCurrent = true;
+        public bool FromTimeIsCurrent = true;
 
         private readonly ManualTimeSynchronizedContext _previewContext = new ManualTimeSynchronizedContext();
         private LinePlot _previewView;
@@ -72,8 +93,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             var playTask = new Task(PlayButtonLoop);
             playTask.Start();
-
-            WindowSlider.Value = WindowSize / 1000000d;
 
             DataTrackline.Playbar = this;
         }
@@ -125,7 +144,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        private long SliderValueToTime(double value)
+        public long SliderValueToTime(double value)
         {
             if (ViewerContext == null || TimeSlider == null) return 0;
             return (long)(value / TimeSlider.Maximum * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
@@ -146,7 +165,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
 
-            if (_fromTimeIsCurrent)
+            if (FromTimeIsCurrent)
             {
                 LabelTimeFrom.Text = TimeFormatter.FormatTime(time);
             }
@@ -167,7 +186,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             Device.BeginInvokeOnMainThread(() =>
             {
                 Debug.WriteLine($"Playbar AVAILABLE TIME {from}->{to}");
-                if (!_fromTimeIsCurrent)
+                if (!FromTimeIsCurrent)
                 {
                     LabelTimeFrom.Text = TimeFormatter.FormatTime(from);
                 }
@@ -246,8 +265,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
-
-        private void TimelineExpand_OnClickedExpand_OnClicked(object sender, EventArgs e)
+        
+        public void TimelineExpand_OnClickedExpand_OnClicked()
         {
             var wasVisible = RowTimelineView.Height.Value == 0d;
             if (wasVisible)
@@ -261,7 +280,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 DataTrackline.IsVisible = false;
             }
 
-            TimelineExpand.Text = wasVisible ? "v" : "^";
         }
 
         private void PlayButton_Clicked(object sender, EventArgs e)
@@ -280,59 +298,27 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _viewerContext.IsPlaying = false;
             }
         }
-        private void PlaybackSpeedButton_Clicked(object sender, EventArgs e)
-        {
-            if (PlaybackSpeedButton.Text == "1x")
-            {
-                PlaybackSpeedButton.Text = "2x";
-            }
-            else if(PlaybackSpeedButton.Text == "2x")
-            {
-                PlaybackSpeedButton.Text = "5x";
-            }
-            else if(PlaybackSpeedButton.Text == "5x")
-            {
-                PlaybackSpeedButton.Text = "0.1x";
-            }
-            else if(PlaybackSpeedButton.Text == "0.1x")
-            {
-                PlaybackSpeedButton.Text = "0.25x";
-            }
-            else if(PlaybackSpeedButton.Text == "0.25x")
-            {
-                PlaybackSpeedButton.Text = "0.5x";
-            }
-            else if(PlaybackSpeedButton.Text == "0.5x")
-            {
-                PlaybackSpeedButton.Text = "1x";
-            }
-            var trimChars = new[] { 'x', ' ' };
-            PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
-            _viewerContext.PlaybackRate = PlaybackSpeed;
-        }
- 
-        private void ButtonUpExpand_OnClicked(object sender, EventArgs e)
-        {
-            WindowSliderSelector.IsVisible ^= true;
-            ButtonUpExpand.Text = WindowSliderSelector.IsVisible ? "v" : "^";
-            WindowSlider.Value = WindowSize / 1000000d;
-        }
 
-        private void WindowSlider_OnValueChanged(object sender, ValueChangedEventArgs e)
-        {
-            WindowLengthLabel.Text = $"{e.NewValue} s";
-            WindowSize = (long)(e.NewValue * 1000000);
-            SetSliderTime(SliderValueToTime(TimeSlider.Value));
-        }
 
         private void LabelTimeFrom_OnClicked(object sender, EventArgs e)
         {
-            _fromTimeIsCurrent ^= true;
+            FromTimeIsCurrent ^= true;
             if (ViewerContext is TimeSynchronizedContext context)
             {
                 LabelTimeFrom.Text =
-                    TimeFormatter.FormatTime(!_fromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
+                    TimeFormatter.FormatTime(!FromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
             }
         }
+
+        private void OpenSettings(object sender, EventArgs e)
+        {
+            var popupObject = new SettingsPopupView();
+            popupObject.MyPlaybarView = this;
+            popupObject.SetSettings();
+            PopupNavigation.Instance.PushAsync(popupObject);
+            
+
+        }
+
     }
 }
