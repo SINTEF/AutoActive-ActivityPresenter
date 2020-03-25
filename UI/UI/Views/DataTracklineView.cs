@@ -51,22 +51,19 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void OnTouch(object sender, SKTouchEventArgs e)
         {
-            if (e.ActionType != SKTouchAction.Pressed) return;
-
-            if (e.MouseButton == SKMouseButton.Right)
+            if (e.MouseButton == SKMouseButton.Left)
             {
-                if (Playbar == null) return;
+                if (Playbar != null)
+                {
+                    var totalWindowLength = this.Width;
+                    var mouseClickLocationY = e.Location.X;
+                    var relativeMouseClickLocationY = mouseClickLocationY / totalWindowLength;
+                    var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
+                    Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationY;
 
-                var height = GetTracklineHeight(_previousHeight);
-                if (height < 1) return;
 
-                height += YMargin;
 
-                var selectedItem = (int) (e.Location.Y / height);
-                if (selectedItem >= _dataTimeList.Count) return;
-
-                var (_, timeViewer, _) = _dataTimeList[selectedItem];
-                Playbar.SetSliderTime(timeViewer.Start);
+                }
             }
         }
 
