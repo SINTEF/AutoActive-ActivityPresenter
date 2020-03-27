@@ -22,15 +22,10 @@
 
 
             <Grid x:Name="ButtonGrid" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="4">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+
                 
-                
-                <Button x:Name="Settings" Clicked="OpenSettings" BorderColor="#23A2B1"
-                    Grid.Row="0" Text="Player Settings"
+                <Button x:Name="Settings" Clicked="OpenSettings" 
+                  ImageSource="Assets\settings.png" VerticalOptions="Center" HorizontalOptions="Center"
                     BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
                  />
                 
