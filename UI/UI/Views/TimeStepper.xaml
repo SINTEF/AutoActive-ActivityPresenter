@@ -10,6 +10,7 @@
             <Button Text="&lt;&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             <Button Text="&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             <Button Text="&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="PlayButton" BorderColor="#23A2B1" BackgroundColor="#1D2637"  Clicked="PlayButton_Clicked" TextColor="White" Text="PLAY"/>
             <Button Text="&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             <Button Text="&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             <Button Text="&gt;&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>

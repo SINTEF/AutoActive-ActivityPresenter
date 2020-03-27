@@ -14,6 +14,11 @@ namespace SINTEF.AutoActive.UI.Views
             InitializeComponent();
         }
 
+        public Button GetPlayButton
+        {
+            get => PlayButton;
+        }
+
         private void StepClicked(object sender, EventArgs e)
         {
             if (!(sender is Button button))
@@ -76,22 +81,63 @@ namespace SINTEF.AutoActive.UI.Views
             OnStep?.Invoke(this, eventArgs);
         }
 
+        private void PlayButton_Clicked(object sender, EventArgs e)
+        {
+            TimeStepEvent eventArgs;
+            
+            if (PlayButton.Text == "PLAY")
+            {
+                eventArgs = new TimeStepEvent
+                {
+                    
+                    Play = StartPlay.Start
+                                  
+                };
+            }
+            else 
+            {
+                eventArgs = new TimeStepEvent
+                {
+                    Play = StartPlay.Stop
+                };
+            }
+
+            OnStep?.Invoke(this, eventArgs);
+
+            if (PlayButton.Text == "PLAY")
+            {
+                PlayButton.Text = "STOP";
+            }
+            else 
+            {
+                PlayButton.Text = "PLAY";
+            }
+
+        }
+
         public event EventHandler<TimeStepEvent> OnStep;
     }
 
     public enum TimeStepLength {
-        Step, Short, Large
+        Step, Short, Large, None
     }
 
     public enum TimeStepDirection
     {
         Backward = -1,
-        Forward = 1
+        Forward = 1,
+        None = 0
+    }
+
+    public enum StartPlay
+    {
+        None, Start, Stop
     }
 
     public struct TimeStepEvent
     {
         public TimeStepLength Length;
         public TimeStepDirection Direction;
+        public StartPlay Play;
     }
 }
