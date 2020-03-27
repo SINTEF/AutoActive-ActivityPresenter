@@ -8,10 +8,7 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="125"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="30"/>
-                <ColumnDefinition Width="55"/>
+                <ColumnDefinition Width="188"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
@@ -21,40 +18,47 @@
             </Grid.RowDefinitions>
 
 
-            <Grid x:Name="ButtonGrid" Grid.Row="1" Grid.Column="2" Grid.ColumnSpan="4">
-
-                
-                <Button x:Name="Settings" Clicked="OpenSettings" 
+            <Button x:Name="Settings" Clicked="OpenSettings" Grid.Row="1" Grid.Column="2"
                   ImageSource="Assets\settings.png" VerticalOptions="Center" HorizontalOptions="Center"
                     BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
-                 />
-                
-            </Grid>
+             />
 
+            <views:DataTracklineView Grid.Row="1" Grid.Column="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
 
-
-            <Button x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
-                   Grid.Row="2" Grid.Column="0" MinimumWidthRequest="50"
-                    VerticalOptions="End" HorizontalOptions="EndAndExpand"
-                    Clicked="LabelTimeFrom_OnClicked"  BorderColor="#23A2B1" 
-                    BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
-            />
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
                     Grid.Row="2" Grid.Column="1"  VerticalOptions="Center" ThumbColor="#f1304d" MinimumTrackColor="#1D2637"
                     MaximumTrackColor="#1D2637" IsVisible="False"
             />
 
-            <views:TimeStepper x:Name="MasterTimeStepper" Grid.Row="2" Grid.Column="1" OnStep="TimeStepper_OnOnStep"
-                                VerticalOptions="Center" HorizontalOptions="CenterAndExpand"
-            />
 
-            <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
-                   Grid.Row="2" Grid.Column="2"  MinimumWidthRequest="50"
-                   VerticalTextAlignment="End" HorizontalTextAlignment="End" 
-                   TextColor="White" FontAttributes="Bold"
-            />
+            <Grid x:Name="TimeStepperGrid" Grid.Row="2" Grid.Column="1" IsVisible="True">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>            
+            
+            
+                <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="1" OnStep="TimeStepper_OnOnStep"
+                                    VerticalOptions="Center" HorizontalOptions="CenterAndExpand"
+                />
 
-            <views:DataTracklineView Grid.Row="1" Grid.Column="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
+
+                <Button x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
+                        Grid.Column="0" MinimumWidthRequest="50"
+                        VerticalOptions="Center" HorizontalOptions="Start"
+                        Clicked="LabelTimeFrom_OnClicked"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
+                />
+
+
+                <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
+                        Grid.Column="2"  MinimumWidthRequest="50"
+                       VerticalTextAlignment="Center" HorizontalTextAlignment="End" 
+                       TextColor="White" FontAttributes="Bold"
+                />
+            </Grid>
+            
             
         </Grid>
     </ContentView.Content>
