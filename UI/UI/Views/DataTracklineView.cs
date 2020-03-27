@@ -60,9 +60,6 @@ namespace SINTEF.AutoActive.UI.Views
                     var relativeMouseClickLocationY = mouseClickLocationY / totalWindowLength;
                     var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
                     Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationY;
-
-
-
                 }
             }
         }

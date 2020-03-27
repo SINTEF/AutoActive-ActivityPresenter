@@ -279,19 +279,17 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         }
 
-        private void PlayButton_Clicked(object sender, EventArgs e)
+        private void PlayButton_Clicked(bool action)
         {
-            if (PlayButton.Text == ">")
+            if (action == true)
             {
                 _playStartTime = DateTime.Now;
                 _playTaskRunning = true;
-                PlayButton.Text = "II";
                 _viewerContext.IsPlaying = true;
             }
             else
             {
                 _playTaskRunning = false;
-                PlayButton.Text = ">";
                 _viewerContext.IsPlaying = false;
             }
         }
@@ -317,10 +315,23 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         }
 
-        private void TimeStepper_OnOnStep(object sender, TimeStepEvent e)
+        private void TimeStepper_OnOnStep(object sender, TimeStepEvent timeStep)
         {
             //_slaveSlider.Offset += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
-            TimeSlider.Value += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
+            switch (timeStep.Play)
+            {
+                case StartPlay.None:
+                    TimeSlider.Value += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(timeStep));
+                    break;
+                case StartPlay.Start:
+                    PlayButton_Clicked(true);
+                    break;
+                case StartPlay.Stop:
+                    PlayButton_Clicked(false);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
 

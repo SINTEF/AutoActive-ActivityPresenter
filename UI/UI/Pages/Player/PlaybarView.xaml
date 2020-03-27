@@ -31,13 +31,9 @@
                 
                 <Button x:Name="Settings" Clicked="OpenSettings" BorderColor="#23A2B1"
                     Grid.Row="0" Text="Player Settings"
-                    BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-
-                <Button x:Name="PlayButton" Text=">" Grid.Row="1" Clicked="PlayButton_Clicked"
-                     BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-
-                <views:TimeStepper x:Name="MasterTimeStepper" Grid.Row="2" OnStep="TimeStepper_OnOnStep"/>
-
+                    BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
+                 />
+                
             </Grid>
 
 
@@ -50,8 +46,13 @@
             />
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
                     Grid.Row="2" Grid.Column="1"  VerticalOptions="Center" ThumbColor="#f1304d" MinimumTrackColor="#1D2637"
-                    MaximumTrackColor="#1D2637" 
+                    MaximumTrackColor="#1D2637" IsVisible="False"
             />
+
+            <views:TimeStepper x:Name="MasterTimeStepper" Grid.Row="2" Grid.Column="1" OnStep="TimeStepper_OnOnStep"
+                                VerticalOptions="Center" HorizontalOptions="CenterAndExpand"
+            />
+
             <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
                    Grid.Row="2" Grid.Column="2"  MinimumWidthRequest="50"
                    VerticalTextAlignment="End" HorizontalTextAlignment="End" 
