@@ -69,7 +69,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Text="Reset" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
+                <Button Grid.Column="0" Text="Reset Sync" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                 <Button Grid.Column="1" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
@@ -79,7 +79,7 @@
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                 <Button Grid.Column="4" Text="Point Sync" Clicked ="Sync_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="5" Text="Save" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
+                <Button Grid.Column="5" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
             </Grid>
         </Grid>
