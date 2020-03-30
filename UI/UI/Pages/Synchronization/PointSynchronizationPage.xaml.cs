@@ -57,6 +57,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         public PointSynchronizationPage()
         {
             InitializeComponent();
+            SlaveTimeStepper.GetPlayButton.IsVisible = false;
+            MasterTimeStepper.GetPlayButton.IsVisible = false;
         }
 
         protected override void OnAppearing()
