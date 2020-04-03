@@ -9,6 +9,7 @@ using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
+using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -50,18 +51,89 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         private void OnTouch(object sender, SKTouchEventArgs e)
-        {
+        {        
             if (e.MouseButton == SKMouseButton.Left)
             {
                 if (Playbar != null)
                 {
-                    var totalWindowLength = this.Width;
-                    var mouseClickLocationY = e.Location.X;
-                    var relativeMouseClickLocationY = mouseClickLocationY / totalWindowLength;
-                    var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
-                    Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationY;
+                    var parent = this.Parent.Parent.Parent.Parent.ToString();
+
+                    if (parent == "SINTEF.AutoActive.UI.Pages.Player.PlayerPage")
+                    {
+                        onTouchPlayerPage(sender, e);
+                    }
+                    else if (parent == "SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage")
+                    {
+                        onTouchSyncPage(sender, e);
+                    }
+                    else
+                    {
+                        throw new NotImplementedException();
+                    }
                 }
             }
+        }
+
+        private void onTouchPlayerPage(object sender, SKTouchEventArgs e)
+        {
+            var mouseClickLocationX = e.Location.X;
+            var totalWindowLength = this.Width;
+            var relativeMouseClickLocationX = mouseClickLocationX / totalWindowLength;
+            var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
+            Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationX;
+        }
+
+        private void onTouchSyncPage(object sender, SKTouchEventArgs e)
+        {
+            var mouseClickLocationX = e.Location.X;
+            var times = new List<(long, long, string)>();
+
+            foreach (var (viewer, context, label) in _timeViewers)
+            {
+                int counterMaster = times.Where(x => x.Item3.Contains("Master")).Count();
+                int counterSlave = times.Where(x => x.Item3.Contains("Slave")).Count();
+                if (counterMaster == 1 && counterSlave == 1) { break; }
+                try
+                {   
+                    SynchronizationContext slaveContext = (SynchronizationContext)context;
+                    long offset = slaveContext.Offset;
+                    long start = viewer.Start - offset;
+                    long end = viewer.End - offset;
+                    string newLabel = label + "_Slave";
+                    times.Add((start, end, label));
+                }
+                catch 
+                {
+                    if (counterMaster == 0)
+                    {
+                        string newLabel = label + "_Master";
+                        times.Add((viewer.Start, viewer.End, newLabel));
+                    }
+                }
+            }
+            
+            double xMin = times.Min(el => el.Item1);
+            double xMax = times.Max(el => el.Item2);
+             
+            foreach (var (start, end, label) in times)
+            {
+                double scaleX = (this.Width / (xMax - xMin));
+                double rectStartX = (start - xMin) * scaleX;
+                double rectEndX = (end - xMin) * scaleX;
+
+                if (label.Contains("Master"))
+                {
+                    Slider slider = Playbar.GetTimeSlider;
+                    setSliderValue(rectStartX, rectEndX, mouseClickLocationX, slider);
+                }
+            }
+        }
+
+        private void setSliderValue(double rectStartX, double rectEndX, double mouseClickLocationX,  Slider slider)
+        {
+                double totalWindowLength = rectEndX - rectStartX;
+                double relativeMouseClick = (mouseClickLocationX - rectStartX) / totalWindowLength;
+                slider.Value = slider.Maximum * relativeMouseClick;
         }
 
         public int WidthMargins { get; set; }
