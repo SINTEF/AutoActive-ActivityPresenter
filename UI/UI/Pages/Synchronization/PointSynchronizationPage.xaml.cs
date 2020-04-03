@@ -221,7 +221,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     _slaveTime = datapoint.Time;
                     _slaveContext = new SynchronizationContext(_masterContext);
                     LastOffset.IsEnabled = true;
-                    SlaveLayout.Children.Add(_slaveSlider);
+                    SlaveLayout.Children.Add(_slaveSlider);     
                 }
 
                 TimeSynchronizedContext context;
@@ -255,7 +255,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
 
-                layout.Children.Add(figure);
+                layout.Children.Insert(0, figure);
                 DatapointAdded?.Invoke(sender, (datapoint, context));
 
                 if (_slaveSet || isMaster) return;
