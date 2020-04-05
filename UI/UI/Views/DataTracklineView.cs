@@ -48,6 +48,19 @@ namespace SINTEF.AutoActive.UI.Views
             WidthMargins = 10;
             Touch += OnTouch;
             EnableTouchEvents = true;
+
+        }
+
+        NavigationPage GetNavigationPage()
+        {
+            var mainPage = Application.Current.MainPage;
+
+            if (mainPage is MasterDetailPage page)
+            {
+                mainPage = page.Detail;
+            }
+
+            return (NavigationPage)mainPage;
         }
 
         private void OnTouch(object sender, SKTouchEventArgs e)
@@ -56,13 +69,13 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 if (Playbar != null)
                 {
-                    var parent = this.Parent.Parent.Parent.Parent.ToString();
+                    var currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
 
-                    if (parent == "SINTEF.AutoActive.UI.Pages.Player.PlayerPage")
+                    if (currentPage is PlayerPage)
                     {
                         onTouchPlayerPage(sender, e);
                     }
-                    else if (parent == "SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage")
+                    else if (currentPage is Pages.Synchronization.PointSynchronizationPage)
                     {
                         onTouchSyncPage(sender, e);
                     }
@@ -157,7 +170,7 @@ namespace SINTEF.AutoActive.UI.Views
             };
             drawRect.Right -= 1;
             drawRect.Bottom -= 1;
-
+      
             canvas.DrawRect(drawRect, borderPaint);
 
             drawRect.Left = WidthMargins;
@@ -203,6 +216,22 @@ namespace SINTEF.AutoActive.UI.Views
         private readonly SKPaint _dataTrackPaint = new SKPaint
         {
             Color = new SKColor(100,108,119),
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _dataTrackPaintOnSync = new SKPaint
+        {
+            Color = new SKColor(29, 185, 84),
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _dataTrackPaintNoSync = new SKPaint
+        {
+            Color = new SKColor(241, 48, 77),
             StrokeWidth = 1,
             Style = SKPaintStyle.Fill,
             IsAntialias = true
