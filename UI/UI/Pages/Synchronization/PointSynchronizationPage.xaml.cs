@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedMasterTime = value;
                 MasterTimeButton.Text = _selectedMasterTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ')
-                    : "Set";
+                    : "SET SYNC POINT";
             }
         }
 
@@ -45,7 +45,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedSlaveTime = value;
                 SlaveTimeButton.Text = _selectedSlaveTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator: ' ')
-                    : "Set";
+                    : "SET SYNC POINT";
             }
         }
 
@@ -137,11 +137,16 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             if (_slaveContext == null) return;
             SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
+            _slaveContext.SyncIsSet = true;
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
+            if (_masterContext == null) return;
             SelectedMasterTime = _masterContext.SelectedTimeFrom;
+            _masterContext.SyncIsSet = true;
+            MasterTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
         }
 
         private async void Sync_OnClicked(object sender, EventArgs e)
@@ -151,7 +156,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
                 return;
             }
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
+            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);  
         }
 
         private FigureView _selected;
@@ -365,11 +370,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void Reset_OnClicked(object sender, EventArgs e)
         {
             Reset();
+            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
+            if (_masterContext != null) { _masterContext.SyncIsSet = false;  }
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
         }
 
         private void ResetSlave_OnClicked(object sender, EventArgs e)
         {
             ResetSlave();
+            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
         }
 
         private async void SetCommonStart_OnClicked(object sender, EventArgs e)
@@ -402,9 +413,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         protected override bool OnBackButtonPressed()
         {
             base.OnBackButtonPressed();
-
+            
             if (_slaveContext == null || _slaveContext.Offset == 0L) return false;
-
 
             var displayTask = DisplayAlert("Unsaved offset",
                 "The offset between master and slave was non-zero, but this has not been saved.\n\nDo you want to save this offset?",
@@ -420,5 +430,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             });
             return true;
         }
+
     }
 }

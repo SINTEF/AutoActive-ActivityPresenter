@@ -39,8 +39,8 @@
                 <StackLayout Grid.Column="0" Grid.Row="2" >
                     <views:TimeStepper x:Name="MasterTimeStepper" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep"/>
                     <StackLayout  HorizontalOptions="Center" Orientation="Horizontal">
-                        <Button x:Name="MasterTimeButton" Text="SET SYNC POINT" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="Center" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                        <Button x:Name="MasterTimeButton" Text="SET SYNC POINT" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White"/>
                     </StackLayout>
                 </StackLayout>
                 
@@ -51,8 +51,8 @@
                 <StackLayout Grid.Column="1" Grid.Row="2">
                     <views:TimeStepper x:Name="SlaveTimeStepper" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
                     <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
-                        <Button x:Name="SlaveTimeButton" Text="SET SYNC POINT" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="Center" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                        <Button x:Name="SlaveTimeButton" Text="SET SYNC POINT" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White"/>
                     </StackLayout>
                 </StackLayout>
             </Grid>
@@ -69,18 +69,18 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button Grid.Column="0" Text="Reset Sync" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                <Button x:Name="Reset_Page" Grid.Column="0" Text="Reset Page" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" />
                 <Button Grid.Column="1" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
                 <Button Grid.Column="2" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button x:Name="LastOffset" Grid.Column="3" Text="Load Previous Offset" Clicked ="LastOffset_OnClicked" IsEnabled="True" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="4" Text="Point Sync" Clicked ="Sync_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" />
+                <Button x:Name="LastOffset" Grid.Column="3" Text="Load Previous Offset" Clicked ="LastOffset_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" />
+                <Button Grid.Column="4" Text="Temporary Sync" Clicked ="Sync_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" />
                 <Button Grid.Column="5" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" />
             </Grid>
         </Grid>
     </ContentPage.Content>
