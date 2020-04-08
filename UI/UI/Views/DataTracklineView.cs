@@ -416,6 +416,7 @@ namespace SINTEF.AutoActive.UI.Views
             timeViewer.TimeChanged -= ViewerOnTimeChanged;
             context.Remove(dataViewer);
             context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
+            context.SyncIsSet = false;
             context.SyncIsSetChanged -= ChangeColor;
             _timeViewers.RemoveAt(index);
             int masterCount = _timeViewers.Where(x => x.Item2 is TimeSynchronizedContext).Count();
