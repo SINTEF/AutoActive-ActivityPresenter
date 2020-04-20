@@ -97,7 +97,7 @@ namespace SINTEF.AutoActive.UI.Views
             OnStep?.Invoke(this, eventArgs);
         }
 
-        private void PlayButton_Clicked(object sender, EventArgs e)
+        public void PlayButton_Clicked(object sender, EventArgs e)
         {
             TimeStepEvent eventArgs;
             

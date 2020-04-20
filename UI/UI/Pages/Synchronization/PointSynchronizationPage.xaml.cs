@@ -125,7 +125,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterContext.SetSynchronizedToWorldClock(true);
             Playbar.ViewerContext = _masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(this);
-
         }
 
         private void ResetSlave()

@@ -70,23 +70,25 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void OnTouch(object sender, SKTouchEventArgs e)
         {
+            if (_timeViewers.Count == 0) { return; }
             if (e.MouseButton == SKMouseButton.Left)
             {
-                if (Playbar != null)
+                if (_currentPage is PlayerPage)
                 {
-                    if (_currentPage is PlayerPage)
-                    {
-                        onTouchPlayerPage(sender, e);
-                    }
-                    else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
-                    {
-                        onTouchSyncPage(sender, e);
-                    }
-                    else
-                    {
-                        throw new NotImplementedException();
-                    }
+                    onTouchPlayerPage(sender, e);
                 }
+                else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+                {
+                    onTouchSyncPage(sender, e);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
+            }
+            if (e.MouseButton == SKMouseButton.Right && e.ActionType == SKTouchAction.Released)
+            {
+                Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
             }
         }
 
@@ -188,6 +190,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
             ActivateDeactivateTimeStepper(_timeViewers);
+            EnsurePlayerIsDeactivatedIfEmpty(_timeViewers);
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
@@ -196,14 +199,23 @@ namespace SINTEF.AutoActive.UI.Views
 
         private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
         {
-            var nrOfTimeViers = _timeViewers.Count();
-            if (nrOfTimeViers == 0)
+            var nrOfTimeViewers = _timeViewers.Count();
+            if (nrOfTimeViewers == 0)
             {
                 Playbar.GetTimeStepper.AreButtonsEnabled = false;
             }
             else
             {
                 Playbar.GetTimeStepper.AreButtonsEnabled = true;
+            }
+        }
+
+        private void EnsurePlayerIsDeactivatedIfEmpty(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        {
+            var nrOfTimeViewers = _timeViewers.Count();
+            if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
+            {
+                Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
             }
         }
 
