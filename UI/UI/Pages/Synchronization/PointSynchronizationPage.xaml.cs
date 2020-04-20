@@ -16,7 +16,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]
 
-        private readonly TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
+        private TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
         private bool _masterSet;
         private bool _slaveSet;
         private ITimePoint _masterTime;
@@ -108,7 +108,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterSet = false;
             _masterTime = null;
             SelectedMasterTime = null;
-
+            
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
@@ -118,7 +118,14 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterLayout.Children.Clear();
             }
 
+            _masterContext.SyncIsSet = false; 
             MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            Playbar.DataTrackline.DeregisterFigureContainer(this);
+            _masterContext = new TimeSynchronizedContext();
+            _masterContext.SetSynchronizedToWorldClock(true);
+            Playbar.ViewerContext = _masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(this);
+
         }
 
         private void ResetSlave()
@@ -131,7 +138,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveTime = null;
             SelectedSlaveTime = null;
             _totalOffset = 0L;
-
+            
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
@@ -141,7 +148,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 SlaveLayout.Children.Clear();
             }
 
-            TimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            _slaveContext.SyncIsSet = false;
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
+            _slaveSlider = new RelativeSlider();
+            _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
         }
 
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
@@ -303,23 +314,23 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _slaveSlider.Offset = -offset;
         }
 
+
         public void RemoveChild(FigureView figureView)
         {
-
             if (figureView.Parent == MasterLayout)
             {
                 int nrOfMasterFigures = MasterLayout.Children.Where(x => x is FigureView).Count();
                 if (nrOfMasterFigures == 1)
                 {
-                    _masterSet = false;
-                    _masterTime = null;
-                    SelectedMasterTime = null;
-                    MasterLayout.Children.Clear();
-                    MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+                    Reset_OnClicked(this, new EventArgs());
                 }
                 else
                 {
                     MasterLayout.Children.Remove(figureView);
+                    foreach (var dataPoint in figureView.DataPoints)
+                    {
+                        InvokeDatapointRemoved(dataPoint, figureView.Context);
+                    }
                 }
                 
             }
@@ -328,11 +339,15 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 int nrOfSlaveFigures = SlaveLayout.Children.Where(x => x is FigureView).Count();
                 if (nrOfSlaveFigures == 1)
                 {
-                    ResetSlave();
+                    ResetSlave_OnClicked(this, new EventArgs());
                 }
                 else
                 {
                     SlaveLayout.Children.Remove(figureView);
+                    foreach (var dataPoint in figureView.DataPoints)
+                    {
+                        InvokeDatapointRemoved(dataPoint, figureView.Context);
+                    }
                 }
                 
             }
@@ -341,10 +356,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 Debug.WriteLine("Could not remove frame from layout.");
             }
 
-            foreach (var dataPoint in figureView.DataPoints)
-            {
-                InvokeDatapointRemoved(dataPoint, figureView.Context);
-            }
         }
 
         private void Save_OnClicked(object sender, EventArgs e)
@@ -411,17 +422,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void Reset_OnClicked(object sender, EventArgs e)
         {
             Reset();
-            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
-            if (_masterContext != null) { _masterContext.SyncIsSet = false;  }
-            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
-            MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
         }
 
         private void ResetSlave_OnClicked(object sender, EventArgs e)
         {
             ResetSlave();
-            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
-            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
         }
 
         private async void SetCommonStart_OnClicked(object sender, EventArgs e)
@@ -521,20 +526,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
 
-            if (_masterContext != null && _slaveContext != null)
+            if (_masterSet == true || _slaveSet == true)
             {
                 ResetPage.IsEnabled = true;
                 return;
             }
-
-            if (_slaveContext != null)
-            {
-                ResetPage.IsEnabled = true;
-                RemoveSlave.IsEnabled = true;
-                return;
-            }
-
         }
-
     }
 }
