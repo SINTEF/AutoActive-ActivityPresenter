@@ -118,7 +118,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterLayout.Children.Clear();
             }
 
-            _masterContext.SyncIsSet = false; 
+            if (_masterContext != null) { _masterContext.SyncIsSet = false; }
             MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             Playbar.DataTrackline.DeregisterFigureContainer(this);
             _masterContext = new TimeSynchronizedContext();
@@ -148,7 +148,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 SlaveLayout.Children.Clear();
             }
 
-            _slaveContext.SyncIsSet = false;
+            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
             SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
             _slaveSlider = new RelativeSlider();
