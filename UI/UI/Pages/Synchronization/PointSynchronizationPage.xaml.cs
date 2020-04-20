@@ -491,15 +491,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             MasterTimeButton.IsEnabled = false;
 
             if (_slaveSet == true)
-            {
+            {                
                 SlaveTimeStepper.AreButtonsEnabled = true;
                 SlaveTimeButton.IsEnabled = true;
+                SlaveTimeStepper.AreButtonsEnabled = true;
             }
 
             if ( _masterSet == true)
             {
                 MasterTimeStepper.AreButtonsEnabled = true;
                 MasterTimeButton.IsEnabled = true;
+                MasterTimeStepper.AreButtonsEnabled = true;
             }
 
             if (_masterSet == true & _slaveSet == true)

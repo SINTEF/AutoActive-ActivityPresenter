@@ -21,7 +21,6 @@ namespace SINTEF.AutoActive.UI.Views
 
         public bool AreButtonsEnabled
         {
-            get { return this.IsEnabled; }
             set
             {
                 FarBack.IsEnabled = value;

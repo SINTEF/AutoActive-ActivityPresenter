@@ -46,7 +46,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Text="Master" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
-                        <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="1" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep" IsEnabled="False"/>
+                        <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="1" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep" />
                     </Grid>
                     <StackLayout  HorizontalOptions="Center" Orientation="Horizontal">
                         <Button x:Name="MasterTimeButton" Text="SET SYNC POINT" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
@@ -68,7 +68,7 @@
                             <ColumnDefinition Width="*"/>
                         </Grid.ColumnDefinitions>
                         <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
-                        <views:TimeStepper x:Name="SlaveTimeStepper" Grid.Column="1" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep" IsEnabled="False"/>
+                        <views:TimeStepper x:Name="SlaveTimeStepper" Grid.Column="1" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
                     </Grid>
                     <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
                         <Button x:Name="SlaveTimeButton" Text="SET SYNC POINT" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
