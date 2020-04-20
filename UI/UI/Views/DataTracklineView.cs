@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.UI.Views
     {
         private readonly List<(ITimeViewer, TimeSynchronizedContext, string)> _timeViewers = new List<(ITimeViewer, TimeSynchronizedContext, string)>();
         private readonly List<(IDataPoint, ITimeViewer, IDataViewer)> _dataTimeList = new List<(IDataPoint, ITimeViewer, IDataViewer)>();
-        
+
         private readonly SKPaint _currentLinePaint = new SKPaint
         {
             Color = SKColor.Parse("#F1304D"),
@@ -55,7 +55,7 @@ namespace SINTEF.AutoActive.UI.Views
         private bool _syncIsSetMaster;
         private bool _syncIsSetSlave;
         private Page _currentPage;
-        
+
         NavigationPage GetNavigationPage()
         {
             var mainPage = Application.Current.MainPage;
@@ -69,7 +69,7 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         private void OnTouch(object sender, SKTouchEventArgs e)
-        {        
+        {
             if (e.MouseButton == SKMouseButton.Left)
             {
                 if (Playbar != null)
@@ -110,7 +110,7 @@ namespace SINTEF.AutoActive.UI.Views
                 int counterSlave = times.Where(x => x.Item3.Contains("Slave")).Count();
                 if (counterMaster == 1 && counterSlave == 1) { break; }
                 try
-                {   
+                {
                     SynchronizationContext slaveContext = (SynchronizationContext)context;
                     long offset = slaveContext.Offset;
                     long start = viewer.Start - offset;
@@ -118,7 +118,7 @@ namespace SINTEF.AutoActive.UI.Views
                     string newLabel = label + "_Slave";
                     times.Add((start, end, label));
                 }
-                catch 
+                catch
                 {
                     if (counterMaster == 0)
                     {
@@ -127,10 +127,10 @@ namespace SINTEF.AutoActive.UI.Views
                     }
                 }
             }
-            
+
             double xMin = times.Min(el => el.Item1);
             double xMax = times.Max(el => el.Item2);
-             
+
             foreach (var (start, end, label) in times)
             {
                 double scaleX = (this.Width / (xMax - xMin));
@@ -145,11 +145,11 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
-        private void setSliderValue(double rectStartX, double rectEndX, double mouseClickLocationX,  Slider slider)
+        private void setSliderValue(double rectStartX, double rectEndX, double mouseClickLocationX, Slider slider)
         {
-                double totalWindowLength = rectEndX - rectStartX;
-                double relativeMouseClick = (mouseClickLocationX - rectStartX) / totalWindowLength;
-                slider.Value = slider.Maximum * relativeMouseClick;
+            double totalWindowLength = rectEndX - rectStartX;
+            double relativeMouseClick = (mouseClickLocationX - rectStartX) / totalWindowLength;
+            slider.Value = slider.Maximum * relativeMouseClick;
         }
 
         public int WidthMargins { get; set; }
@@ -157,7 +157,7 @@ namespace SINTEF.AutoActive.UI.Views
         protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
             _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
-            
+
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.White);
@@ -175,7 +175,7 @@ namespace SINTEF.AutoActive.UI.Views
             };
             drawRect.Right -= 1;
             drawRect.Bottom -= 1;
-      
+
             canvas.DrawRect(drawRect, borderPaint);
 
             drawRect.Left = WidthMargins;
@@ -187,9 +187,24 @@ namespace SINTEF.AutoActive.UI.Views
             canvas.SetMatrix(trans);
 
             var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            ActivateDeactivateTimeStepper(_timeViewers);
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
+            
+        }
+
+        private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        {
+            var nrOfTimeViers = _timeViewers.Count();
+            if (nrOfTimeViers == 0)
+            {
+                Playbar.GetTimeStepper.AreButtonsEnabled = false;
+            }
+            else
+            {
+                Playbar.GetTimeStepper.AreButtonsEnabled = true;
+            }
         }
 
         private void DrawCurrentTime(SKCanvas canvas, long xMin, float xScale)
