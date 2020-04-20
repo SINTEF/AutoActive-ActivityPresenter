@@ -79,6 +79,7 @@ namespace SINTEF.AutoActive.UI.Views
                 }
                 else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
                 {
+                    
                     onTouchSyncPage(sender, e);
                 }
                 else
@@ -158,8 +159,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-            _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
 
+            _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
+            if (_currentPage is Pages.Synchronization.PointSynchronizationPage) { Playbar.GetTimeStepper.IsVisible = false; }
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.White);
