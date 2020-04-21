@@ -96,7 +96,7 @@ namespace SINTEF.AutoActive.UI.Views
         private void onTouchPlayerPage(object sender, SKTouchEventArgs e)
         {
             var mouseClickLocationX = e.Location.X;
-            var totalWindowLength = this.Width;
+            var totalWindowLength = this.CanvasSize.Width;
             var relativeMouseClickLocationX = mouseClickLocationX / totalWindowLength;
             var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
             Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationX;
@@ -136,7 +136,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             foreach (var (start, end, label) in times)
             {
-                double scaleX = (this.Width / (xMax - xMin));
+                double scaleX = (this.CanvasSize.Width / (xMax - xMin));
                 double rectStartX = (start - xMin) * scaleX;
                 double rectEndX = (end - xMin) * scaleX;
 
