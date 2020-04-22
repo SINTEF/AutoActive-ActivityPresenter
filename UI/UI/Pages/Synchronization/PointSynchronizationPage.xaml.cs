@@ -118,7 +118,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterLayout.Children.Clear();
             }
 
-            if (_masterContext != null) { _masterContext.SyncIsSet = false; }
+            if (_masterContext != null) 
+            { 
+                _masterContext.SyncIsSet = false;            
+            }
             MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             Playbar.DataTrackline.DeregisterFigureContainer(this);
             _masterContext = new TimeSynchronizedContext();
@@ -147,7 +150,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 SlaveLayout.Children.Clear();
             }
 
-            if (_slaveContext != null) { _slaveContext.SyncIsSet = false; }
+            if (_slaveContext != null) 
+            { 
+                _slaveContext.SyncIsSet = false; 
+            }
             SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
             _slaveSlider = new RelativeSlider();
@@ -156,20 +162,26 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
-            if (_slaveContext == null) return;
+            if (_slaveContext == null)
+            {     
+                return;
+            }
             SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
             _slaveContext.SyncIsSet = true;
             SlaveTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
-            DisableEnableButtons();
+            EnableButtons();
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
-            if (_masterContext == null) return;
+            if (_masterContext == null)
+            { 
+                return;
+            }
             SelectedMasterTime = _masterContext.SelectedTimeFrom;
             _masterContext.SyncIsSet = true;
             MasterTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
-            DisableEnableButtons();
+            EnableButtons();
         }
 
         private async void Sync_OnClicked(object sender, EventArgs e)
@@ -180,7 +192,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
             _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
-            DisableEnableButtons();
+            EnableButtons();
         }
 
         private FigureView _selected;
@@ -215,20 +227,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             _slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
             Playbar.DataTrackline.InvalidateSurface();
-            XamarinHelpers.EnsureMainThread(() => { DisableEnableButtons(); });
+            XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
 
             }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
             DatapointRemoved?.Invoke(this, (dataPoint, context));
-            DisableEnableButtons();
+            EnableButtons();
         }
 
         public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
         {
             DatapointAdded?.Invoke(this, (dataPoint, context));
-            DisableEnableButtons();
+            EnableButtons();
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -476,7 +488,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             return true;
         }
 
-        private void DisableEnableButtons()
+        private void EnableButtons()
         {
             ResetPage.IsEnabled = false;
             RemoveSlave.IsEnabled = false;
