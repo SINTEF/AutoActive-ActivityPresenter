@@ -99,8 +99,6 @@
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="SaveSync" Grid.Column="4" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="TemporarySync" Grid.Column="5" Text="Temporary Sync" Clicked ="Sync_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" IsVisible="False" />
             </Grid>
         </Grid>
     </ContentPage.Content>

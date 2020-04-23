@@ -184,17 +184,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             EnableButtons();
         }
 
-        private async void Sync_OnClicked(object sender, EventArgs e)
-        {
-            if (!SelectedMasterTime.HasValue || !SelectedSlaveTime.HasValue)
-            {
-                await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
-                return;
-            }
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
-            EnableButtons();
-        }
-
         private FigureView _selected;
         public FigureView Selected
         {
@@ -494,7 +483,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             RemoveSlave.IsEnabled = false;
             CommonStart.IsEnabled = false;
             LastOffset.IsEnabled = false;
-            TemporarySync.IsEnabled = false;
             SaveSync.IsEnabled = false;
             SlaveTimeStepper.AreButtonsEnabled = false;
             MasterTimeStepper.AreButtonsEnabled = false;
@@ -523,7 +511,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
                 if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
                 {
-                    TemporarySync.IsEnabled = true;
                     if (_slaveSlider.Offset != 0)
                     {
                         SaveSync.IsEnabled = true;
@@ -533,9 +520,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     {
                         LastOffset.IsEnabled = true;
                     }
-
                 }
-
                 return;
             }
 
