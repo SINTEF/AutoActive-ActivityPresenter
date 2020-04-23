@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -15,7 +16,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]
 
-        private readonly TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
+        private TimeSynchronizedContext _masterContext = new TimeSynchronizedContext();
         private bool _masterSet;
         private bool _slaveSet;
         private ITimePoint _masterTime;
@@ -32,7 +33,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedMasterTime = value;
                 MasterTimeButton.Text = _selectedMasterTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedMasterTime.Value, dateSeparator: ' ')
-                    : "Set";
+                    : "SET SYNC POINT";
             }
         }
 
@@ -45,7 +46,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _selectedSlaveTime = value;
                 SlaveTimeButton.Text = _selectedSlaveTime.HasValue
                     ? TimeFormatter.FormatTime(_selectedSlaveTime.Value, dateSeparator: ' ')
-                    : "Set";
+                    : "SET SYNC POINT";
             }
         }
 
@@ -59,6 +60,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             InitializeComponent();
             SlaveTimeStepper.GetPlayButton.IsVisible = false;
             MasterTimeStepper.GetPlayButton.IsVisible = false;
+            SlaveTimeStepper.AreButtonsEnabled = false;
+            MasterTimeStepper.AreButtonsEnabled = false;
+            
         }
 
         protected override void OnAppearing()
@@ -68,10 +72,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterContext.SetSynchronizedToWorldClock(true);
             _slaveSlider = new RelativeSlider {MinimumHeightRequest = 30};
             _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
-
             Playbar.ViewerContext = _masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(this);
         }
+
+
 
         protected override void OnDisappearing()
         {
@@ -80,6 +85,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             Playbar.DataTrackline.DeregisterFigureContainer(this);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
         }
+
+
 
         private static IEnumerable<FigureView> GetFigureViewChildren(StackLayout masterLayout)
         {
@@ -101,15 +108,26 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterSet = false;
             _masterTime = null;
             SelectedMasterTime = null;
-
+            
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
                 {
-                    DatapointRemoved?.Invoke(this, (datapoint, _masterContext));
+                    InvokeDatapointRemoved(datapoint, _masterContext);
                 }
                 MasterLayout.Children.Clear();
             }
+
+            if (_masterContext != null) 
+            { 
+                _masterContext.SyncIsSet = false;            
+            }
+            MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            Playbar.DataTrackline.DeregisterFigureContainer(this);
+            _masterContext = new TimeSynchronizedContext();
+            _masterContext.SetSynchronizedToWorldClock(true);
+            Playbar.ViewerContext = _masterContext;
+            Playbar.DataTrackline.RegisterFigureContainer(this);
         }
 
         private void ResetSlave()
@@ -122,26 +140,48 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveTime = null;
             SelectedSlaveTime = null;
             _totalOffset = 0L;
-
+            
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
                 {
-                    DatapointRemoved?.Invoke(this, (datapoint, _slaveContext));
+                    InvokeDatapointRemoved(datapoint, _slaveContext);
                 }
                 SlaveLayout.Children.Clear();
             }
+
+            if (_slaveContext != null) 
+            { 
+                _slaveContext.SyncIsSet = false; 
+            }
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
+            _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
+            _slaveSlider = new RelativeSlider();
+            _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
         }
 
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
-            if (_slaveContext == null) return;
+            if (_slaveContext == null)
+            {     
+                return;
+            }
             SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
+            _slaveContext.SyncIsSet = true;
+            SlaveTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
+            EnableButtons();
         }
 
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
+            if (_masterContext == null)
+            { 
+                return;
+            }
             SelectedMasterTime = _masterContext.SelectedTimeFrom;
+            _masterContext.SyncIsSet = true;
+            MasterTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
+            EnableButtons();
         }
 
         private async void Sync_OnClicked(object sender, EventArgs e)
@@ -152,6 +192,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
             _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
+            EnableButtons();
         }
 
         private FigureView _selected;
@@ -179,23 +220,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterTime = dataPoint.Time;
             _masterSet = true;
 
-            DatapointAdded?.Invoke(this, (dataPoint, _masterContext));
+            InvokeDatapointAdded(dataPoint, _masterContext);
         }
 
         private void SlaveSliderOnOffsetChanged(object sender, ValueChangedEventArgs args)
         {
             _slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
             Playbar.DataTrackline.InvalidateSurface();
-        }
+            XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
+
+            }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
             DatapointRemoved?.Invoke(this, (dataPoint, context));
+            EnableButtons();
         }
 
         public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
         {
             DatapointAdded?.Invoke(this, (dataPoint, context));
+            EnableButtons();
         }
 
         private async void TreeView_DataPointTapped(object sender, IDataPoint datapoint)
@@ -221,7 +266,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     _slaveTime = datapoint.Time;
                     _slaveContext = new SynchronizationContext(_masterContext);
                     LastOffset.IsEnabled = true;
-                    SlaveLayout.Children.Add(_slaveSlider);
+                    SlaveLayout.Children.Add(_slaveSlider);     
                 }
 
                 TimeSynchronizedContext context;
@@ -255,12 +300,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
 
-                layout.Children.Add(figure);
-                DatapointAdded?.Invoke(sender, (datapoint, context));
-
+                layout.Children.Insert(0, figure);
                 if (_slaveSet || isMaster) return;
                 _slaveSet = true;
+                InvokeDatapointAdded(datapoint, context);
 
+
+                
                 SetCommonStartTime(false);
             } catch(Exception ex)
             {
@@ -279,26 +325,48 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 _slaveSlider.Offset = -offset;
         }
 
+
         public void RemoveChild(FigureView figureView)
         {
-
             if (figureView.Parent == MasterLayout)
             {
-                MasterLayout.Children.Remove(figureView);
+                int nrOfMasterFigures = MasterLayout.Children.Where(x => x is FigureView).Count();
+                if (nrOfMasterFigures == 1)
+                {
+                    Reset_OnClicked(this, new EventArgs());
+                }
+                else
+                {
+                    MasterLayout.Children.Remove(figureView);
+                    foreach (var dataPoint in figureView.DataPoints)
+                    {
+                        InvokeDatapointRemoved(dataPoint, figureView.Context);
+                    }
+                }
+                
             }
             else if (figureView.Parent == SlaveLayout)
             {
-                SlaveLayout.Children.Remove(figureView);
+                int nrOfSlaveFigures = SlaveLayout.Children.Where(x => x is FigureView).Count();
+                if (nrOfSlaveFigures == 1)
+                {
+                    ResetSlave_OnClicked(this, new EventArgs());
+                }
+                else
+                {
+                    SlaveLayout.Children.Remove(figureView);
+                    foreach (var dataPoint in figureView.DataPoints)
+                    {
+                        InvokeDatapointRemoved(dataPoint, figureView.Context);
+                    }
+                }
+                
             }
             else
             {
                 Debug.WriteLine("Could not remove frame from layout.");
             }
 
-            foreach (var dataPoint in figureView.DataPoints)
-            {
-                DatapointRemoved?.Invoke(this, (dataPoint, figureView.Context));
-            }
         }
 
         private void Save_OnClicked(object sender, EventArgs e)
@@ -402,9 +470,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         protected override bool OnBackButtonPressed()
         {
             base.OnBackButtonPressed();
-
+            
             if (_slaveContext == null || _slaveContext.Offset == 0L) return false;
-
 
             var displayTask = DisplayAlert("Unsaved offset",
                 "The offset between master and slave was non-zero, but this has not been saved.\n\nDo you want to save this offset?",
@@ -419,6 +486,64 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
             });
             return true;
+        }
+
+        private void EnableButtons()
+        {
+            ResetPage.IsEnabled = false;
+            RemoveSlave.IsEnabled = false;
+            CommonStart.IsEnabled = false;
+            LastOffset.IsEnabled = false;
+            TemporarySync.IsEnabled = false;
+            SaveSync.IsEnabled = false;
+            SlaveTimeStepper.AreButtonsEnabled = false;
+            MasterTimeStepper.AreButtonsEnabled = false;
+            SlaveTimeButton.IsEnabled = false;
+            MasterTimeButton.IsEnabled = false;
+
+            if (_slaveSet == true)
+            {                
+                SlaveTimeStepper.AreButtonsEnabled = true;
+                SlaveTimeButton.IsEnabled = true;
+                SlaveTimeStepper.AreButtonsEnabled = true;
+            }
+
+            if ( _masterSet == true)
+            {
+                MasterTimeStepper.AreButtonsEnabled = true;
+                MasterTimeButton.IsEnabled = true;
+                MasterTimeStepper.AreButtonsEnabled = true;
+            }
+
+            if (_masterSet == true & _slaveSet == true)
+            {
+                ResetPage.IsEnabled = true;
+                RemoveSlave.IsEnabled = true;
+                CommonStart.IsEnabled = true;
+
+                if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
+                {
+                    TemporarySync.IsEnabled = true;
+                    if (_slaveSlider.Offset != 0)
+                    {
+                        SaveSync.IsEnabled = true;
+                    }
+
+                    if (_slaveContext.Offset != 0)
+                    {
+                        LastOffset.IsEnabled = true;
+                    }
+
+                }
+
+                return;
+            }
+
+            if (_masterSet == true || _slaveSet == true)
+            {
+                ResetPage.IsEnabled = true;
+                return;
+            }
         }
     }
 }

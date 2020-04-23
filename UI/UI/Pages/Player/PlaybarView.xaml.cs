@@ -66,6 +66,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             get => TimeSlider;
         }
 
+        public TimeStepper GetTimeStepper
+        {
+            get => MasterTimeStepper;
+        }
+
 
 
 
