@@ -140,6 +140,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveTime = null;
             SelectedSlaveTime = null;
             _totalOffset = 0L;
+            _lastOffset = 0L;
             
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
@@ -181,17 +182,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SelectedMasterTime = _masterContext.SelectedTimeFrom;
             _masterContext.SyncIsSet = true;
             MasterTimeButton.BackgroundColor = Color.FromRgb(29, 185, 84);
-            EnableButtons();
-        }
-
-        private async void Sync_OnClicked(object sender, EventArgs e)
-        {
-            if (!SelectedMasterTime.HasValue || !SelectedSlaveTime.HasValue)
-            {
-                await DisplayAlert("Unset sync time", "A point in both the master time and the slave time must be set.", "OK");
-                return;
-            }
-            _slaveSlider.Offset = TimeFormatter.SecondsFromTime(SelectedSlaveTime.Value - SelectedMasterTime.Value);
             EnableButtons();
         }
 
@@ -382,7 +372,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var offset = -(_slaveContext.Offset + extraOffset);
             SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
-            _lastOffset = _totalOffset;
+            _lastOffset = offset;
             _slaveTime.TransformTime(offset, _slaveContext.Scale);
             _slaveSlider.Offset = 0;
         }
@@ -459,11 +449,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
         }
 
-        private void LastOffset_OnClicked(object sender, EventArgs e)
+        private void LastSync_OnClicked(object sender, EventArgs e)
         {
             if (_slaveSlider != null)
             {
-                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(-_lastOffset);
+                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_lastOffset);
             }
         }
 
@@ -494,7 +484,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             RemoveSlave.IsEnabled = false;
             CommonStart.IsEnabled = false;
             LastOffset.IsEnabled = false;
-            TemporarySync.IsEnabled = false;
             SaveSync.IsEnabled = false;
             SlaveTimeStepper.AreButtonsEnabled = false;
             MasterTimeStepper.AreButtonsEnabled = false;
@@ -515,6 +504,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterTimeStepper.AreButtonsEnabled = true;
             }
 
+            if (_lastOffset != 0)
+            {
+                LastOffset.IsEnabled = true;
+            }
+
             if (_masterSet == true & _slaveSet == true)
             {
                 ResetPage.IsEnabled = true;
@@ -523,19 +517,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
                 if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
                 {
-                    TemporarySync.IsEnabled = true;
                     if (_slaveSlider.Offset != 0)
                     {
                         SaveSync.IsEnabled = true;
                     }
-
-                    if (_slaveContext.Offset != 0)
-                    {
-                        LastOffset.IsEnabled = true;
-                    }
-
                 }
-
                 return;
             }
 
