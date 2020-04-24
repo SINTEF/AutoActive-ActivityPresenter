@@ -87,17 +87,16 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
-                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="LastOffset" Grid.Column="0" Text="Load Previous Offset" Clicked ="LastOffset_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" IsVisible="False"/>
-                <Button x:Name="ResetPage" Grid.Column="1" Text="Reset Page" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="LastOffset" Grid.Column="4" Text="Load Previous Sync" Clicked ="LastSync_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
-                <Button x:Name="RemoveSlave" Grid.Column="2" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="ResetPage" Grid.Column="0" Text="Reset Page" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
+                <Button x:Name="RemoveSlave" Grid.Column="1" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="CommonStart" Grid.Column="3" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="CommonStart" Grid.Column="2" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="SaveSync" Grid.Column="4" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="SaveSync" Grid.Column="3" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>

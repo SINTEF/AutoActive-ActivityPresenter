@@ -140,6 +140,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveTime = null;
             SelectedSlaveTime = null;
             _totalOffset = 0L;
+            _lastOffset = 0L;
             
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
@@ -371,7 +372,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var offset = -(_slaveContext.Offset + extraOffset);
             SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
-            _lastOffset = _totalOffset;
+            _lastOffset = offset;
             _slaveTime.TransformTime(offset, _slaveContext.Scale);
             _slaveSlider.Offset = 0;
         }
@@ -448,11 +449,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
         }
 
-        private void LastOffset_OnClicked(object sender, EventArgs e)
+        private void LastSync_OnClicked(object sender, EventArgs e)
         {
             if (_slaveSlider != null)
             {
-                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(-_lastOffset);
+                _slaveSlider.Offset = TimeFormatter.SecondsFromTime(_lastOffset);
             }
         }
 
@@ -503,6 +504,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterTimeStepper.AreButtonsEnabled = true;
             }
 
+            if (_lastOffset != 0)
+            {
+                LastOffset.IsEnabled = true;
+            }
+
             if (_masterSet == true & _slaveSet == true)
             {
                 ResetPage.IsEnabled = true;
@@ -514,11 +520,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     if (_slaveSlider.Offset != 0)
                     {
                         SaveSync.IsEnabled = true;
-                    }
-
-                    if (_slaveContext.Offset != 0)
-                    {
-                        LastOffset.IsEnabled = true;
                     }
                 }
                 return;
