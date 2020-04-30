@@ -10,6 +10,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.Import;
 using SINTEF.AutoActive.UI.Pages;
+using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages.HeadToHead;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
@@ -167,6 +168,11 @@ namespace SINTEF.AutoActive.UI.Views
             Debug.WriteLine($"Could not import file {filename}: {ex.Message}");
             await Application.Current.MainPage.DisplayAlert("Open error",
                 $"Could not import file \"{filename}\":\n{ex.Message}", "OK");
+        }
+
+        private void MainPage_OnClicked(object sender, EventArgs e)
+        {
+            Navigation.PushAsync(new PlayerPage());
         }
 
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)

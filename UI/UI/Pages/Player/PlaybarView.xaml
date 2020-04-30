@@ -6,7 +6,7 @@
     <ContentView.Content>
         <Grid x:Name="ContentGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="125"/>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="188"/>
             </Grid.ColumnDefinitions>

@@ -17,7 +17,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlayerPage()
         {
             InitializeComponent();
-
+            NavigationBar.MainPageButton.BackgroundColor = Color.FromHex("23A2B1");
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
             Appearing += OnAppearing;
