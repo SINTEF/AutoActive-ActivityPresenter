@@ -81,6 +81,19 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
                 SyncIsSetChanged?.Invoke(this, value);
             }
         }
+
+        private double? _MarkedFeature;
+        public event EventHandler<double?> MarkedFeatureChanged;
+
+        public double? MarkedFeature
+        {
+            get => _MarkedFeature;
+            set
+            {
+                _MarkedFeature = value;
+                MarkedFeatureChanged?.Invoke(this, value);
+            }
+        }
     }
 
     public delegate void DataViewerContextSelectedRangeChangedHandler(SingleSetDataViewerContext sender, long from, long to);
