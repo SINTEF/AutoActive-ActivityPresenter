@@ -13,6 +13,7 @@
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>

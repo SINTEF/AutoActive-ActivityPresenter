@@ -12,8 +12,9 @@
         <Grid RowSpacing="0">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
-                <ColumnDefinition />
-                <ColumnDefinition />
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
@@ -32,10 +33,10 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Label Grid.Row="1" Grid.Column="2" Text="Data" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White" />
-                    <Button Grid.Row="1" Grid.Column="3" Text="Add all ->" HorizontalOptions="End" Clicked="AddAllClicked" BorderColor="#23A2B1"
+                    <Label Grid.Row="0" Grid.Column="1" Text="DATA" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White" />
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add all ->" HorizontalOptions="End" Clicked="AddAllClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" TextColor="White"/>
-                    <treeView:DataTreeView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" x:Name="DataTree"/>
+                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="DataTree"/>
                 </Grid>
             </Frame>
             <Frame Grid.Row="1" Grid.Column="2" BorderColor="#23A2B1">
@@ -49,13 +50,13 @@
                         <ColumnDefinition />
                         <ColumnDefinition />
                     </Grid.ColumnDefinitions>
-                    <Button Grid.Row="1" Grid.Column="1" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked" BorderColor="#23A2B1"
+                    <Button Grid.Row="0" Grid.Column="0" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked" BorderColor="#23A2B1"
                              BackgroundColor="#1D2637" TextColor="White"/>
-                    <Label Grid.Row="1" Grid.Column="2" Text="Save archive" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White"/>
-                    <Button Grid.Row="1" Grid.Column="3" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
+                    <Label Grid.Row="0" Grid.Column="1" Text="SAVE ARCHIVE" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White"/>
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" TextColor="White"/>
-                    <treeView:DataTreeView Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" x:Name="SavingTree"/>
-                    <Frame Grid.Row="2" Grid.Column="1" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
+                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="SavingTree"/>
+                    <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
                         <Grid>
                             <treeView:DataTreeView x:Name="RemovalTree"  HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
                             <Label Text="Drag here to remove element" HorizontalOptions="Center" VerticalOptions="Center" HorizontalTextAlignment="Center"/>

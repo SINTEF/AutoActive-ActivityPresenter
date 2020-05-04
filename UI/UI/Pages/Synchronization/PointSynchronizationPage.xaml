@@ -13,6 +13,7 @@
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
                 <ColumnDefinition x:Name="ColumnSplitter2" Width="Auto" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/>
