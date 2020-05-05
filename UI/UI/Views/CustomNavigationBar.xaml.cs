@@ -180,9 +180,11 @@ namespace SINTEF.AutoActive.UI.Views
             XamarinHelpers.EnsureMainThread(() => DoImportFiles(files));
         }
 
-        private SavingPage _savingPage;
+        // Store one instance of each page to keep setup and content for each page
+        private static SavingPage _savingPage;
+        private static PointSynchronizationPage   _syncPage;
+        private static HeadToHead _headToHeadPage;
 
-        
         private void PlayerPage_OnClicked(object sender, EventArgs e)
         {
             if (Navigation.NavigationStack.Count == 0 ||
@@ -198,8 +200,13 @@ namespace SINTEF.AutoActive.UI.Views
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(PointSynchronizationPage))
             {
+                if (_syncPage == null)
+                {
+                    _syncPage = new PointSynchronizationPage();
+                }
+
                 Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
-                Navigation.PushAsync(new PointSynchronizationPage());
+                Navigation.PushAsync(_syncPage);
                 if (currPage.GetType() != typeof(PlayerPage))
                 {
                     // Remove previous page, unless main page that must remain to have 
@@ -215,8 +222,13 @@ namespace SINTEF.AutoActive.UI.Views
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(HeadToHead))
             {
+                if (_headToHeadPage == null)
+                {
+                    _headToHeadPage = new HeadToHead();
+                }
+
                 Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
-                Navigation.PushAsync(new HeadToHead());
+                Navigation.PushAsync(_headToHeadPage);
                 if (currPage.GetType() != typeof(PlayerPage))
                 {
                     // Remove previous page, unless main page that must remain to have 
