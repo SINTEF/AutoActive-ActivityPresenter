@@ -87,8 +87,9 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="LastOffset" Grid.Column="4" Text="Load Previous Sync" Clicked ="LastSync_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="LastOffset" Grid.Column="5" Text="Load Previous Sync" Clicked ="LastSync_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
                 <Button x:Name="ResetPage" Grid.Column="0" Text="Reset Page" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
@@ -96,7 +97,9 @@
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="CommonStart" Grid.Column="2" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="SaveSync" Grid.Column="3" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="SaveSync" Grid.Column="4" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="MarkFeature" Grid.Column="3" Text="Mark Features" Clicked ="MarkFeatures_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>

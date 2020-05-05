@@ -216,10 +216,18 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SlaveSliderOnOffsetChanged(object sender, ValueChangedEventArgs args)
         {
             _slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
-            Playbar.DataTrackline.InvalidateSurface();
-            XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
-
+            if (_masterContext.MarkedFeature == null && _slaveContext == null)
+            {
+                Playbar.DataTrackline.InvalidateSurface();
             }
+            else
+            {
+                MarkFeatures_OnClicked(this, new EventArgs());
+            }
+            XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
+            
+
+        }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
@@ -413,6 +421,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var to = from + diff;
 
             context.SetSelectedTimeRange(from, to);
+            var value = Playbar.TimeToSliderValue(from);
+            Playbar.GetTimeSlider.Value = value;   
         }
 
         private void SlaveTimeStepper_OnOnStep(object sender, TimeStepEvent e)
@@ -457,6 +467,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
         }
 
+        private void MarkFeatures_OnClicked(object sender, EventArgs e)
+        {
+            var (masterMin, masterMax) = _masterContext.GetAvailableTimeMinMax(true);
+            var (slaveMin, slaveMax) = _slaveContext.GetAvailableTimeMinMax(true);
+            slaveMin -= TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
+            slaveMax -= TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
+            var scaleFacotr = Playbar.GetTimeSlider.Value / Playbar.GetTimeSlider.Maximum;
+            double masterFeatureTime = masterMin + ((masterMax - masterMin) * scaleFacotr);
+            double slaveFeatureTime = masterFeatureTime - TimeFormatter.TimeFromSeconds(_slaveSlider.Offset + _totalOffset);
+
+            if (masterMin <= masterFeatureTime && masterFeatureTime <= masterMax)
+            {
+                _masterContext.MarkedFeature = masterFeatureTime;
+            }
+            
+            if (slaveMin <= slaveFeatureTime && slaveFeatureTime <= slaveMax)
+            { 
+                _slaveContext.MarkedFeature = slaveFeatureTime;
+            }
+        }
+
         protected override bool OnBackButtonPressed()
         {
             base.OnBackButtonPressed();
@@ -489,6 +520,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             MasterTimeStepper.AreButtonsEnabled = false;
             SlaveTimeButton.IsEnabled = false;
             MasterTimeButton.IsEnabled = false;
+            MarkFeature.IsEnabled = false;
 
             if (_slaveSet == true)
             {                
@@ -514,6 +546,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 ResetPage.IsEnabled = true;
                 RemoveSlave.IsEnabled = true;
                 CommonStart.IsEnabled = true;
+                MarkFeature.IsEnabled = true;
 
                 if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
                 {
