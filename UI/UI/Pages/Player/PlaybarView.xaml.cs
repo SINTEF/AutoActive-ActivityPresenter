@@ -152,7 +152,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             return (long)(value / TimeSlider.Maximum * (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom)) + ViewerContext.AvailableTimeFrom;
         }
 
-        private double TimeToSliderValue(long time)
+        public double TimeToSliderValue(long time)
         {
             var divider = (ViewerContext.AvailableTimeTo - ViewerContext.AvailableTimeFrom);
             if (divider == 0)
@@ -316,8 +316,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             popupObject.MyPlaybarView = this;
             popupObject.SetSettings();
             PopupNavigation.Instance.PushAsync(popupObject);
-            
-
         }
 
         private void TimeStepper_OnOnStep(object sender, TimeStepEvent timeStep)

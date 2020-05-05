@@ -161,7 +161,10 @@ namespace SINTEF.AutoActive.UI.Views
         {
 
             _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
-            if (_currentPage is Pages.Synchronization.PointSynchronizationPage) { Playbar.GetTimeStepper.IsVisible = false; }
+            if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+            { 
+                Playbar.GetTimeStepper.IsVisible = false; 
+            }
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.White);
@@ -197,6 +200,7 @@ namespace SINTEF.AutoActive.UI.Views
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
             
+            
         }
 
         private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
@@ -216,7 +220,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var nrOfTimeViewers = _timeViewers.Count();
             if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
-            {
+            { 
                 Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
             }
         }
@@ -301,6 +305,8 @@ namespace SINTEF.AutoActive.UI.Views
             }
             else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
             {
+                var minTime = times.Select(x => x.Item1).Min();
+                var maxTime = times.Select(x => x.Item2).Max();
                 foreach (var tup in times.Zip(timeViewers, (i1, i2) => Tuple.Create(i1, i2)))
                 {
                     var (start, end, label) = tup.Item1;
@@ -311,6 +317,11 @@ namespace SINTEF.AutoActive.UI.Views
                     canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, trackPaint);
                     canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, _textPaint);
                     yPos += yHeight + YMargin;
+                    if (context.MarkedFeature != null)
+                    {
+                        var canvasWidth = this.CanvasSize.Width;
+                        DrawFeatureMarkings(canvas, context, xPos, yPos, canvasWidth, yHeight, minTime, maxTime);
+                    }
                 }
             }
             else
@@ -319,6 +330,15 @@ namespace SINTEF.AutoActive.UI.Views
             }
 
             return (xMin, xScale);
+        }
+
+        private void DrawFeatureMarkings(SKCanvas canvas, TimeSynchronizedContext timeViewers, float xPos, float yPos, float width, float yHeight, float minTime, float maxTime)
+        {
+            var yStart = yPos - yHeight- YMargin;
+            var yEnd = yPos- YMargin;
+            float scaleFactor = (maxTime- minTime) / width;
+            float featureMarikingXPos = (float)((timeViewers.MarkedFeature - minTime) / scaleFactor);
+            canvas.DrawLine(featureMarikingXPos, yStart, featureMarikingXPos, yEnd, _TrackPaintfeatureMark);
         }
 
         private void ChangeColor(object sender, bool value)
@@ -388,6 +408,14 @@ namespace SINTEF.AutoActive.UI.Views
             IsAntialias = true
         };
 
+        private readonly SKPaint _TrackPaintfeatureMark = new SKPaint
+        {
+            Color = new SKColor(0, 0, 0),
+            StrokeWidth = 2,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
         private readonly SKPaint _textPaint = new SKPaint
         {
             Color = SKColors.White,
@@ -398,6 +426,11 @@ namespace SINTEF.AutoActive.UI.Views
         };
 
         private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
+        {
+            InvalidateSurface();
+        }
+
+        private void ContextOnMarkedFeatureChanged(object sender, double? value)
         {
             InvalidateSurface();
         }
@@ -416,6 +449,7 @@ namespace SINTEF.AutoActive.UI.Views
             timeViewer.TimeChanged += ViewerOnTimeChanged;
             context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
             context.SyncIsSetChanged += ChangeColor;
+            context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
         }
 
@@ -447,6 +481,7 @@ namespace SINTEF.AutoActive.UI.Views
             context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
             context.SyncIsSet = false;
             context.SyncIsSetChanged -= ChangeColor;
+            context.MarkedFeatureChanged -= ContextOnMarkedFeatureChanged;
             _timeViewers.RemoveAt(index);
             int masterCount = _timeViewers.Where(x => x.Item2 is TimeSynchronizedContext).Count();
             int slaveCount = _timeViewers.Where(x => x.Item2 is SynchronizationContext).Count();
