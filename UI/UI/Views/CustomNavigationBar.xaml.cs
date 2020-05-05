@@ -185,73 +185,65 @@ namespace SINTEF.AutoActive.UI.Views
         
         private void PlayerPage_OnClicked(object sender, EventArgs e)
         {
-            if (Navigation.NavigationStack.Count == 0 || 
-                Navigation.NavigationStack.Last().GetType() != typeof(PlayerPage))
+            if (Navigation.NavigationStack.Count == 0 ||
+                XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(PlayerPage))
             {
-                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
-                {
-                    // Remove previous page, unless main page that must remain to have 
-                    // something to go back to
-                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
-                }
+                XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
             }
-            Navigation.PushAsync(new PlayerPage());
         }
 
         private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
             // Avoid reopening same page
             if (Navigation.NavigationStack.Count == 0 ||
-                Navigation.NavigationStack.Last().GetType() != typeof(PointSynchronizationPage))
+                XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(PointSynchronizationPage))
             {
-                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
+                Navigation.PushAsync(new PointSynchronizationPage());
+                if (currPage.GetType() != typeof(PlayerPage))
                 {
                     // Remove previous page, unless main page that must remain to have 
                     // something to go back to
-                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    Navigation.RemovePage(currPage);
                 }
             }
-            Navigation.PushAsync(new PointSynchronizationPage());
         }
 
         private void Head2Head_OnClicked(object sender, EventArgs e)
         {
             // Avoid reopening same page
             if (Navigation.NavigationStack.Count == 0 ||
-                Navigation.NavigationStack.Last().GetType() != typeof(HeadToHead))
+                XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(HeadToHead))
             {
-                // Avoid reopening same page
-                if (Navigation.NavigationStack.Count == 0 ||
-                    Navigation.NavigationStack.Last().GetType() != typeof(HeadToHead))
-                {
-                    if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
-                    {
-                        // Remove previous page, unless main page that must remain to have 
-                        // something to go back to
-                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
-                    }
-                }
+                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
                 Navigation.PushAsync(new HeadToHead());
+                if (currPage.GetType() != typeof(PlayerPage))
+                {
+                    // Remove previous page, unless main page that must remain to have 
+                    // something to go back to
+                    Navigation.RemovePage(currPage);
+                }
             }
         }
         public async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
         {
             // Avoid reopening same page
             if (Navigation.NavigationStack.Count == 0 ||
-                Navigation.NavigationStack.Last().GetType() != typeof(SavingPage))
+                XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(SavingPage))
             {
                 if (_savingPage == null)
                 {
                     _savingPage = new SavingPage();
                 }
 
-                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
+                await Navigation.PushAsync(_savingPage);
+                if (currPage.GetType() != typeof(PlayerPage))
                 {
                     // Remove previous page, unless main page that must remain to have 
                     // something to go back to
-                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    Navigation.RemovePage(currPage);
                 }
-                await Navigation.PushAsync(_savingPage);
             }
         }
 
