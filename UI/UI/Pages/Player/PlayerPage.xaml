@@ -16,7 +16,7 @@
                 <RowDefinition x:Name="Dis" Height="0"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="125"/>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*" />
                 <ColumnDefinition x:Name="ColumnSplitter" Width="8" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />

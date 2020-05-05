@@ -38,6 +38,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         public HeadToHead()
         {
             InitializeComponent();
+            NavigationBar.Head2HeadPageButton.BackgroundColor = Color.FromHex("23A2B1");
         }
 
         protected override void OnAppearing()

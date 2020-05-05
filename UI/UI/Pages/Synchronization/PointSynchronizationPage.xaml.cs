@@ -58,11 +58,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         public PointSynchronizationPage()
         {
             InitializeComponent();
+            NavigationBar.SyncPageButton.BackgroundColor = Color.FromHex("23A2B1");
             SlaveTimeStepper.GetPlayButton.IsVisible = false;
             MasterTimeStepper.GetPlayButton.IsVisible = false;
             SlaveTimeStepper.AreButtonsEnabled = false;
             MasterTimeStepper.AreButtonsEnabled = false;
-            
         }
 
         protected override void OnAppearing()
