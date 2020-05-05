@@ -170,10 +170,6 @@ namespace SINTEF.AutoActive.UI.Views
                 $"Could not import file \"{filename}\":\n{ex.Message}", "OK");
         }
 
-        private void MainPage_OnClicked(object sender, EventArgs e)
-        {
-            Navigation.PushAsync(new PlayerPage());
-        }
 
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)
         {
@@ -186,24 +182,78 @@ namespace SINTEF.AutoActive.UI.Views
 
         private SavingPage _savingPage;
 
-        private async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
+        
+        private void PlayerPage_OnClicked(object sender, EventArgs e)
         {
-            if (_savingPage == null)
+            if (Navigation.NavigationStack.Count == 0 || 
+                Navigation.NavigationStack.Last().GetType() != typeof(PlayerPage))
             {
-                _savingPage = new SavingPage();
+                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                {
+                    // Remove previous page, unless main page that must remain to have 
+                    // something to go back to
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
             }
-
-            await Navigation.PushAsync(_savingPage);
+            Navigation.PushAsync(new PlayerPage());
         }
 
-	    private void SynchronizationButton_OnClicked(object sender, EventArgs e)
+        private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
-	        Navigation.PushAsync(new PointSynchronizationPage());
-	    }
+            // Avoid reopening same page
+            if (Navigation.NavigationStack.Count == 0 ||
+                Navigation.NavigationStack.Last().GetType() != typeof(PointSynchronizationPage))
+            {
+                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                {
+                    // Remove previous page, unless main page that must remain to have 
+                    // something to go back to
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
+            }
+            Navigation.PushAsync(new PointSynchronizationPage());
+        }
 
         private void Head2Head_OnClicked(object sender, EventArgs e)
         {
-            Navigation.PushAsync(new HeadToHead());
+            // Avoid reopening same page
+            if (Navigation.NavigationStack.Count == 0 ||
+                Navigation.NavigationStack.Last().GetType() != typeof(HeadToHead))
+            {
+                // Avoid reopening same page
+                if (Navigation.NavigationStack.Count == 0 ||
+                    Navigation.NavigationStack.Last().GetType() != typeof(HeadToHead))
+                {
+                    if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                    {
+                        // Remove previous page, unless main page that must remain to have 
+                        // something to go back to
+                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                    }
+                }
+                Navigation.PushAsync(new HeadToHead());
+            }
         }
+        public async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
+        {
+            // Avoid reopening same page
+            if (Navigation.NavigationStack.Count == 0 ||
+                Navigation.NavigationStack.Last().GetType() != typeof(SavingPage))
+            {
+                if (_savingPage == null)
+                {
+                    _savingPage = new SavingPage();
+                }
+
+                if (XamarinHelpers.GetCurrentPage(Navigation) != Application.Current.MainPage)
+                {
+                    // Remove previous page, unless main page that must remain to have 
+                    // something to go back to
+                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                }
+                await Navigation.PushAsync(_savingPage);
+            }
+        }
+
     }
 }
