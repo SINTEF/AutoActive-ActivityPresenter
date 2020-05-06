@@ -22,6 +22,12 @@ namespace SINTEF.AutoActive.UI.Pages
             InitializeComponent();
             TimelineOverviewSwitch.IsToggled = false;
 
+            var versionGetter = DependencyService.Get<SINTEF.AutoActive.UI.Views.IVersionProvider>();
+
+            if (versionGetter != null)
+            {
+                VersionLabel.Text = versionGetter.Version;
+            }
         }
 
         public PlaybarView MyPlaybarView

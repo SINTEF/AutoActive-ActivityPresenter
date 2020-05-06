@@ -31,13 +31,6 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Critical error", "Could get file browser. Will not be able to open and save files.", "OK");
             }
-
-            var versionGetter = DependencyService.Get<IVersionProvider>();
-
-            if (versionGetter != null)
-            {
-                VersionLabel.Text = versionGetter.Version;
-            }
         }
 
 	    private async void OpenArchiveButton_OnClicked(object sender, EventArgs e)
