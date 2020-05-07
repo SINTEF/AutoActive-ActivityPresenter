@@ -491,7 +491,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         protected override bool OnBackButtonPressed()
         {
             base.OnBackButtonPressed();
-            
+
+            return CheckUnsavedSync();
+        }
+
+        public bool CheckUnsavedSync()
+        {
             if (_slaveContext == null || _slaveContext.Offset == 0L) return false;
 
             var displayTask = DisplayAlert("Unsaved offset",

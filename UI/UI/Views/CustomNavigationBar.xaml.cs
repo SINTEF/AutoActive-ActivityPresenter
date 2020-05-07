@@ -33,6 +33,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
+        // Open archive button
 	    private async void OpenArchiveButton_OnClicked(object sender, EventArgs e)
 	    {
 	        var file = await _browser.BrowseForLoad();
@@ -55,6 +56,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        }
         }
 
+        // Import files handling
         private static async void DoImportFiles(IEnumerable<IReadSeekStreamFactory> files)
         {
             var pluginPages = new Dictionary<IImportPlugin, (List<IReadSeekStreamFactory>, ImportParametersPage)>();
@@ -156,6 +158,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
+        // Show error message
         private static async Task ShowError(string filename, Exception ex)
         {
             Debug.WriteLine($"Could not import file {filename}: {ex.Message}");
@@ -163,7 +166,7 @@ namespace SINTEF.AutoActive.UI.Views
                 $"Could not import file \"{filename}\":\n{ex.Message}", "OK");
         }
 
-
+        // Import button
         private async void OpenImportButton_OnClicked(object sender, EventArgs e)
         {
             var files = await _browser.BrowseForImportFiles();
@@ -178,40 +181,58 @@ namespace SINTEF.AutoActive.UI.Views
         private static PointSynchronizationPage   _syncPage;
         private static HeadToHead _headToHeadPage;
 
+        // Main page button
         private void PlayerPage_OnClicked(object sender, EventArgs e)
         {
+            // Check if new page is same as current, avoid reopening same page
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(PlayerPage))
             {
+                // Check if current page is saving page
+                if (XamarinHelpers.GetCurrentPage(Navigation).GetType() == typeof(SavingPage))
+                {
+                    //Saving page, check if any ongoing operations
+                    if (_savingPage.CheckBeforeExit(false))
+                    {
+                        // Ongoing operation, quit
+                        return;
+                    }
+                }
+                // Check if current page is sync page
+                if (XamarinHelpers.GetCurrentPage(Navigation).GetType() == typeof(PointSynchronizationPage))
+                {
+                    //Saving page, check if any ongoing operations
+                    if (_syncPage.CheckUnsavedSync())
+                    {
+                        // Unsaved data, quit
+                        return;
+                    }
+                }
+                // Close page as there is no ongoing operations or unsaved data for this page
                 XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
             }
         }
 
+        // Sync page button
         private void SynchronizationButton_OnClicked(object sender, EventArgs e)
 	    {
-            // Avoid reopening same page
+            // Avoid reopening same page as current page
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(PointSynchronizationPage))
             {
                 if (_syncPage == null)
                 {
+                    //_syncPage = new PointSynchronizationPage();
                     _syncPage = new PointSynchronizationPage();
                 }
-
-                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
-                Navigation.PushAsync(_syncPage);
-                if (currPage.GetType() != typeof(PlayerPage))
-                {
-                    // Remove previous page, unless main page that must remain to have 
-                    // something to go back to
-                    Navigation.RemovePage(currPage);
-                }
+                switch_page(_syncPage);
             }
         }
 
+        // Head to head button
         private void Head2Head_OnClicked(object sender, EventArgs e)
         {
-            // Avoid reopening same page
+            // Avoid reopening same page as current page
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(HeadToHead))
             {
@@ -219,20 +240,14 @@ namespace SINTEF.AutoActive.UI.Views
                 {
                     _headToHeadPage = new HeadToHead();
                 }
-
-                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
-                Navigation.PushAsync(_headToHeadPage);
-                if (currPage.GetType() != typeof(PlayerPage))
-                {
-                    // Remove previous page, unless main page that must remain to have 
-                    // something to go back to
-                    Navigation.RemovePage(currPage);
-                }
+                switch_page(_headToHeadPage);
             }
         }
-        public async void SaveArchiveButton_OnClicked(object sender, EventArgs e)
+
+        // Save archive button
+        public void SaveArchiveButton_OnClicked(object sender, EventArgs e)
         {
-            // Avoid reopening same page
+            // Avoid reopening same page as current page
             if (Navigation.NavigationStack.Count == 0 ||
                 XamarinHelpers.GetCurrentPage(Navigation).GetType() != typeof(SavingPage))
             {
@@ -240,17 +255,44 @@ namespace SINTEF.AutoActive.UI.Views
                 {
                     _savingPage = new SavingPage();
                 }
-
-                Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
-                await Navigation.PushAsync(_savingPage);
-                if (currPage.GetType() != typeof(PlayerPage))
-                {
-                    // Remove previous page, unless main page that must remain to have 
-                    // something to go back to
-                    Navigation.RemovePage(currPage);
-                }
+                switch_page(_savingPage);
             }
         }
 
+        // Method to switch to new page
+        // Should not be used when switching to PlayerPage as this is the main page
+        // TBD - if an ongoing operation is aborted, it will always switch back to main page.
+        private async void switch_page(Page newPage)
+        {
+            // Check if current page is saving page
+            if (XamarinHelpers.GetCurrentPage(Navigation).GetType() == typeof(SavingPage))
+            {
+                //Saving page, check if any ongoing operations
+                if (_savingPage.CheckBeforeExit(false))
+                {
+                    // ongoing operation, quit change
+                    return;
+                }
+            }
+            // Check if current page is Sync page
+            if (XamarinHelpers.GetCurrentPage(Navigation).GetType() == typeof(PointSynchronizationPage))
+            {
+                //Sync page, check if any unsaved sync
+                if (_syncPage.CheckUnsavedSync())
+                {
+                    // unsaved data, quit change
+                    return;
+                }
+            }
+
+            // Start new page and remove current page
+            Page currPage = XamarinHelpers.GetCurrentPage(Navigation);
+            await Navigation.PushAsync(newPage);
+            // Remove current page unless main page (must keep one (main) page)
+            if (currPage.GetType() != typeof(PlayerPage))
+            {
+                Navigation.RemovePage(currPage);
+            }
+        }
     }
 }
