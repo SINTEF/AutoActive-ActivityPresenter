@@ -74,6 +74,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
             Playbar.ViewerContext = _masterContext;
             Playbar.DataTrackline.RegisterFigureContainer(this);
+            Playbar.GetTimeStepper.AreButtonsVisible = false;
+            Playbar.GetTimeStepper.GetPlayButton.IsVisible = true;
         }
 
 
@@ -516,6 +518,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void EnableButtons()
         {
+            Playbar.GetTimeStepper.GetPlayButton.IsEnabled = false;
             ResetPage.IsEnabled = false;
             RemoveSlave.IsEnabled = false;
             CommonStart.IsEnabled = false;
@@ -536,6 +539,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
             if ( _masterSet == true)
             {
+                Playbar.GetTimeStepper.GetPlayButton.IsEnabled = true;
                 MasterTimeStepper.AreButtonsEnabled = true;
                 MasterTimeButton.IsEnabled = true;
                 MasterTimeStepper.AreButtonsEnabled = true;
