@@ -19,6 +19,20 @@ namespace SINTEF.AutoActive.UI.Views
             get => PlayButton;
         }
 
+        public bool AreButtonsVisible
+        {
+            set
+            {
+                FarBack.IsVisible = value;
+                Back.IsVisible = value;
+                SligthlyBack.IsVisible = value;
+                PlayButton.IsVisible = value;
+                SligthlyForward.IsVisible = value;
+                Forward.IsVisible = value;
+                FarForward.IsVisible = value;
+            }
+        }
+
         public bool AreButtonsEnabled
         {
             set
