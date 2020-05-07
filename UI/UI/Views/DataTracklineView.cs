@@ -161,10 +161,6 @@ namespace SINTEF.AutoActive.UI.Views
         {
 
             _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
-            if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
-            { 
-                Playbar.GetTimeStepper.IsVisible = false; 
-            }
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.White);
