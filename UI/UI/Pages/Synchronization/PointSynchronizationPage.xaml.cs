@@ -512,6 +512,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 }
 
                 XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                return false;
             });
             return true;
         }

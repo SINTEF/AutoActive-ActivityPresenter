@@ -204,7 +204,7 @@ namespace SINTEF.AutoActive.UI.Views
                     //Saving page, check if any ongoing operations
                     if (_syncPage.CheckUnsavedSync())
                     {
-                        // Unsaved data, quit
+                        // Will run pop on page, no further action required
                         return;
                     }
                 }
@@ -280,8 +280,7 @@ namespace SINTEF.AutoActive.UI.Views
                 //Sync page, check if any unsaved sync
                 if (_syncPage.CheckUnsavedSync())
                 {
-                    // unsaved data, quit change
-                    return;
+                    // unsaved data, will run pop on page
                 }
             }
 
