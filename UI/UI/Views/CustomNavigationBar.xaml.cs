@@ -222,7 +222,6 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 if (_syncPage == null)
                 {
-                    //_syncPage = new PointSynchronizationPage();
                     _syncPage = new PointSynchronizationPage();
                 }
                 switch_page(_syncPage);
