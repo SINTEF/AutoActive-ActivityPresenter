@@ -379,7 +379,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 extraOffset = videoTime.VideoPlaybackOffset;
             }
 #endif
-            var offset = -(_slaveContext.Offset + extraOffset);
+            var offset = (long)(_selectedMasterTime - _selectedSlaveTime) + extraOffset;
             SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
             _lastOffset = offset;
