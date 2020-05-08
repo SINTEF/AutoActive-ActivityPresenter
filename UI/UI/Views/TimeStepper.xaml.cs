@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Diagnostics;
-
+using System.Linq;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -18,6 +18,36 @@ namespace SINTEF.AutoActive.UI.Views
         {
             get => PlayButton;
         }
+
+        public bool AreButtonsVisible
+        {
+            set
+            {
+                FarBack.IsVisible = value;
+                Back.IsVisible = value;
+                SligthlyBack.IsVisible = value;
+                PlayButton.IsVisible = value;
+                SligthlyForward.IsVisible = value;
+                Forward.IsVisible = value;
+                FarForward.IsVisible = value;
+            }
+        }
+
+        public bool AreButtonsEnabled
+        {
+            set
+            {
+                FarBack.IsEnabled = value;
+                Back.IsEnabled = value;
+                SligthlyBack.IsEnabled = value;
+                PlayButton.IsEnabled = value;
+                SligthlyForward.IsEnabled = value;
+                Forward.IsEnabled = value;
+                FarForward.IsEnabled = value;
+            }
+        }
+
+
 
         private void StepClicked(object sender, EventArgs e)
         {
@@ -81,7 +111,7 @@ namespace SINTEF.AutoActive.UI.Views
             OnStep?.Invoke(this, eventArgs);
         }
 
-        private void PlayButton_Clicked(object sender, EventArgs e)
+        public void PlayButton_Clicked(object sender, EventArgs e)
         {
             TimeStepEvent eventArgs;
             

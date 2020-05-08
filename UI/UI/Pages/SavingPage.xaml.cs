@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Pages
         public SavingPage()
         {
             InitializeComponent();
-
+            NavigationBar.SaveArchiveButton.BackgroundColor = Color.FromHex("23A2B1");
             DataRegistry.ProviderAdded += el => DataTree.Tree.Children.Add(el);
             DataRegistry.ProviderRemoved += el => DataTree.Tree.Children.Remove(el);
           
