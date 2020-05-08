@@ -380,7 +380,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             }
 #endif
             var offset = (long)(_selectedMasterTime - _selectedSlaveTime) + extraOffset;
-            SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
+            //TBD - removed update of slav time, will give exception for Back and save
+            //SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
             _lastOffset = offset;
             _slaveTime.TransformTime(offset, _slaveContext.Scale);
