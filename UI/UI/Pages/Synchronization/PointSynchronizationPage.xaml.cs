@@ -487,8 +487,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             {
                 _offsetOnFeatureMarkSet = TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
                 _totalOffsetOnFeatureMarkSet = _totalOffset;
-                var scaleFacotr = Playbar.GetTimeSlider.Value / Playbar.GetTimeSlider.Maximum;
-                masterFeatureTime = masterMin + ((masterMax - masterMin) * scaleFacotr);
+                var scaleFactor = Playbar.GetTimeSlider.Value / Playbar.GetTimeSlider.Maximum;
+                masterFeatureTime = masterMin + ((masterMax - masterMin) * scaleFactor);
                 slaveFeatureTime = masterFeatureTime;
             }
             else
@@ -497,16 +497,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 long slaveSliderOffset = TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
                 long offsetBetweenSliderAndMarker = slaveSliderOffset - _offsetOnFeatureMarkSet;
                 long offsetBetweenTotalAndMarker = _totalOffset - _totalOffsetOnFeatureMarkSet;
-                //if (_totalOffset != 0)
-                //{
-                //    offsetBetweenTotalAndMarker = _totalOffset - _totalOffsetOnFeatureMarkSet;
-                    
-                //}
                 slaveFeatureTime = masterFeatureTime - offsetBetweenSliderAndMarker + offsetBetweenTotalAndMarker;
             }
 
             
-
             if (masterMin <= masterFeatureTime && masterFeatureTime <= masterMax)
             {
                 _masterContext.MarkedFeature = masterFeatureTime;
