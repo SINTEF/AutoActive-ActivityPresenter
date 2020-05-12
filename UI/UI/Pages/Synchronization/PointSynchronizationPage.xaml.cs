@@ -23,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private ITimePoint _slaveTime;
         private RelativeSlider _slaveSlider;
         private SynchronizationContext _slaveContext;
+        
 
         private long? _selectedMasterTime;
         private long? SelectedMasterTime
@@ -54,6 +55,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private long _totalOffset;
 
         private static long _lastOffset;
+
+        private long _offsetOnFeatureMarkSet;
+        private long _totalOffsetOnFeatureMarkSet;
 
         public PointSynchronizationPage()
         {
@@ -218,18 +222,18 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SlaveSliderOnOffsetChanged(object sender, ValueChangedEventArgs args)
         {
             _slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
-            if (_masterContext.MarkedFeature == null && _slaveContext == null)
+            if (_masterContext.MarkedFeature != null)
             {
-                Playbar.DataTrackline.InvalidateSurface();
+                MarkFeatures_OnClicked(this, new EventArgs());
             }
             else
             {
-                MarkFeatures_OnClicked(this, new EventArgs());
+                Playbar.DataTrackline.InvalidateSurface();
             }
             XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
             
 
-        }
+            }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
@@ -476,10 +480,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var (slaveMin, slaveMax) = _slaveContext.GetAvailableTimeMinMax(true);
             slaveMin -= TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
             slaveMax -= TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
-            var scaleFacotr = Playbar.GetTimeSlider.Value / Playbar.GetTimeSlider.Maximum;
-            double masterFeatureTime = masterMin + ((masterMax - masterMin) * scaleFacotr);
-            double slaveFeatureTime = masterFeatureTime - TimeFormatter.TimeFromSeconds(_slaveSlider.Offset + _totalOffset);
+            double masterFeatureTime;
+            double slaveFeatureTime;
 
+            if (sender.GetType() == typeof(Button))
+            {
+                _offsetOnFeatureMarkSet = TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
+                _totalOffsetOnFeatureMarkSet = _totalOffset;
+                var scaleFactor = Playbar.GetTimeSlider.Value / Playbar.GetTimeSlider.Maximum;
+                masterFeatureTime = masterMin + ((masterMax - masterMin) * scaleFactor);
+                slaveFeatureTime = masterFeatureTime;
+            }
+            else
+            {
+                masterFeatureTime = (double)_masterContext.MarkedFeature;
+                long slaveSliderOffset = TimeFormatter.TimeFromSeconds(_slaveSlider.Offset);
+                long offsetBetweenSliderAndMarker = slaveSliderOffset - _offsetOnFeatureMarkSet;
+                long offsetBetweenTotalAndMarker = _totalOffset - _totalOffsetOnFeatureMarkSet;
+                slaveFeatureTime = masterFeatureTime - offsetBetweenSliderAndMarker + offsetBetweenTotalAndMarker;
+            }
+
+            
             if (masterMin <= masterFeatureTime && masterFeatureTime <= masterMax)
             {
                 _masterContext.MarkedFeature = masterFeatureTime;
