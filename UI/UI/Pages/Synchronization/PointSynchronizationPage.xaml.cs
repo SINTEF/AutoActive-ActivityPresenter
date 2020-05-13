@@ -422,14 +422,26 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             var context = _masterContext;
             var diff = context.SelectedTimeTo - context.SelectedTimeFrom;
-
             var offset = GetOffsetFromTimeStep(e);
             var from = context.SelectedTimeFrom + offset;
             var to = from + diff;
+            var (min, max) = _masterContext.GetAvailableTimeMinMax(true);
+            var direction = e.Direction.ToString();
 
+            if ((from < min) && (direction is "Backward"))
+            {
+                from = min;
+                to = from + diff;
+            }
+            else if((max < to) && (direction is "Forward"))
+            {
+                from = max;
+                to = from + diff;
+            }
+            
             context.SetSelectedTimeRange(from, to);
             var value = Playbar.TimeToSliderValue(from);
-            Playbar.GetTimeSlider.Value = value;   
+            Playbar.GetTimeSlider.Value = value;
         }
 
         private void SlaveTimeStepper_OnOnStep(object sender, TimeStepEvent e)
