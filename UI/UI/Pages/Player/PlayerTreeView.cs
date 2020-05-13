@@ -126,7 +126,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 cell._frame.CornerRadius = 0;
                 cell._frame.BorderColor = Color.Transparent;
             });
-        private readonly Label _label = new Label();
+
+        protected readonly Label _label = new Label();
         private readonly Frame _frame;
 
         protected DataItemCell()
@@ -230,7 +231,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             var dataPointItem = BindingContext as DataPointItem;
             dataPointItem?.OnUseInTimelineTapped();
+
+            // Toggle text colour if used as timeline
+            if (_label.TextColor == Color.White)
+            {
+                _label.TextColor = Color.Blue;
+            }
+            else
+            {
+                _label.TextColor = Color.White;
+            }
         }
+
     }
 
     /* ---- Classes for building the tree view ---- */
