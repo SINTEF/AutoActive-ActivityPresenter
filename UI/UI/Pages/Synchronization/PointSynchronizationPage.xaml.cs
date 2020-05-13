@@ -428,12 +428,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var (min, max) = _masterContext.GetAvailableTimeMinMax(true);
             var direction = e.Direction.ToString();
 
-            if (from < min & direction is "Backward")
+            if ((from < min) && (direction is "Backward"))
             {
                 from = min;
                 to = from + diff;
             }
-            else if(max < to & direction is "Forward")
+            else if((max < to) && (direction is "Forward"))
             {
                 from = max;
                 to = from + diff;
