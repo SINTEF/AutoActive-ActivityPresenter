@@ -13,6 +13,9 @@ using SINTEF.AutoActive.UI.UWP.Views;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms.Platform.UWP;
 
+//Branch view is a tree view used on Save Page
+//--------------------------------------------
+
 [assembly: ExportRenderer(typeof(BranchView), typeof(BranchViewRenderer))]
 namespace SINTEF.AutoActive.UI.UWP.Views
 {

@@ -6,6 +6,9 @@ using Xamarin.Forms;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
+//Branch view is a tree view used on Save Page
+//--------------------------------------------
+
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
