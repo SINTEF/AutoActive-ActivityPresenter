@@ -121,7 +121,10 @@ namespace SINTEF.AutoActive.UI.Figures
             get => _minYValue;
             set
             {
-                _minYValue = value;
+                if (!Double.IsNaN(value))
+                    {
+                    _minYValue = value;
+                    }
                 Parent?.InvalidateSurface();
             }
         }
@@ -131,7 +134,10 @@ namespace SINTEF.AutoActive.UI.Figures
             get => _maxYValue;
             set
             {
-                _maxYValue = value;
+                if (!Double.IsNaN(value))
+                {
+                    _maxYValue = value;
+                }
                 Parent?.InvalidateSurface();
             }
         }

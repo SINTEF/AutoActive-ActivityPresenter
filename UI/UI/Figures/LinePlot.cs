@@ -37,7 +37,10 @@ namespace SINTEF.AutoActive.UI.Figures
         /// \pre _lines cannot be empty when calling this.
         private void UpdateLineData()
         {
+            // Select min max without NaN
+            //_minYValue = (from x in _lines where !Double.IsNaN(x.Drawer.MinY) select x.Drawer.MinY).Min();
             _minYValue = _lines.Min(line => line.Drawer.MinY);
+            //_maxYValue = (from x in _lines where !Double.IsNaN(x.Drawer.MaxY) select x.Drawer.MaxY).Max();
             _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
             var yDelta = _maxYValue.Value - _minYValue.Value;
@@ -327,8 +330,16 @@ namespace SINTEF.AutoActive.UI.Figures
                     foreach (var line in _lines)
                     {
                         var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
-                        curMin = Math.Min(curMin, cMin);
-                        curMax = Math.Max(curMax, cMax);
+
+                        // Do not include NaN or Inf
+                        if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
+                        {
+                            curMin = Math.Min(curMin, cMin);
+                        }
+                        if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
+                        {
+                            curMax = Math.Max(curMax, cMax);
+                        }
                     }
 
                     if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
