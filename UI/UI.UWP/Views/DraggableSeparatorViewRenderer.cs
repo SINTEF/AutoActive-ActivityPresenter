@@ -41,7 +41,12 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             if (Control != null) return;
             if (_element != null) return;
 
-            _element = new Rectangle{};
+            _element = new Rectangle
+            {
+                Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(51, 0, 0, 0)),
+                Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(51, 0, 0, 0)),
+                StrokeThickness = 1
+            };
 
             _element.PointerPressed += PointerPressed;
             _element.PointerReleased += PointerReleased;
