@@ -24,7 +24,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         private readonly SKPaint _currentLinePaint = new SKPaint
         {
-            Color = SKColor.Parse("#F1304D"),
+            Color = SKColor.Parse("#1D2637"),
             Style = SKPaintStyle.Stroke,
             StrokeWidth = 3,
             StrokeJoin = SKStrokeJoin.Miter,
