@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.UI.Pages.HeadToHead;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
@@ -73,7 +74,7 @@ namespace SINTEF.AutoActive.UI.Views
             if (_timeViewers.Count == 0) { return; }
             if (e.MouseButton == SKMouseButton.Left)
             {
-                if (_currentPage is PlayerPage)
+                if ((_currentPage is PlayerPage) || (_currentPage is HeadToHead))
                 {
                     onTouchPlayerPage(sender, e);
                 }
@@ -288,7 +289,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             var yPos = YMargin;
 
-            if (_currentPage is PlayerPage)
+            if ((_currentPage is PlayerPage) || (_currentPage is HeadToHead))
             {
                 foreach (var (start, end, label) in times)
                 {

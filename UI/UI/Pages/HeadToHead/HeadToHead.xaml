@@ -34,7 +34,7 @@
                                 Property=Height,
                                 Factor=1}"/>
                     <Button x:Name="LeftButton"
-                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            Text=" " WidthRequest="30" HeightRequest="30"
                             BackgroundColor="LightSlateGray"
                             Clicked="SelectButton_Clicked"
                     />
@@ -48,7 +48,7 @@
                                              RelativeLayout.HeightConstraint=
                                              "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}" />
                     <Button x:Name="RightButton"
-                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            Text=" " WidthRequest="30" HeightRequest="30"
                             BackgroundColor="LightSlateGray"
                             Clicked="SelectButton_Clicked"
                     />
@@ -58,8 +58,8 @@
                 <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />
             </Frame>
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="3" Grid.Row="1"/>
-            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="Start"/>
-            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="End"/>
+            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="Start" IsVisible="False" IsEnabled="False"/>
+            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="End" IsVisible="False" IsEnabled="False"/>
             <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="1" x:Name="Playbar"/>
         </Grid>
     </ContentPage.Content>
