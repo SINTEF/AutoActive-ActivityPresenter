@@ -18,8 +18,8 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class HeadToHead : ContentPage, ISerializableView
     {
-        private const string SelectedText = "[X]";
-        private const string UnselectedText = "[ ]";
+        private const string SelectedText = "x";
+        private const string UnselectedText = " ";
 
         private Button _selectedButton;
         private Button SelectedButton
