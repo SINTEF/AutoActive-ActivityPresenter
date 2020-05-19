@@ -83,10 +83,21 @@ namespace SINTEF.AutoActive.Databus.Common
                 return true;
             }
 
-            public (long x, T y) Current
+            public (long x, double y) Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (_x[_index], _y[_index]);
+                get
+                {
+                    double y = Convert.ToSingle(_y[_index]);
+                    if (!Double.IsNaN(y))
+                    {
+                        return (_x[_index], y);
+                    }
+                    else
+                    {
+                        return (_x[_index], 0.0);
+                    }
+                }
             }
 
 
