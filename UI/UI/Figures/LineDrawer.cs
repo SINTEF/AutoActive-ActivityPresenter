@@ -80,6 +80,7 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             while (en.MoveNext())
             {
+                if(en.Current.isNan) continue;
                 var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
                 if (plotX > drawRect.Width)
                 {
