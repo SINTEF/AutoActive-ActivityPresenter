@@ -209,6 +209,8 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int PlotHeightMargin = 4;
 
         public bool AutoScale = true;
+        private double _previouseWindowHeight = 0;
+        private double _previouseWindowWidth = 0;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
         private (float? minYValue, float? maxYValue) _prevYValue;
@@ -307,11 +309,14 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts)
         {
+            double windowWidth = plotRect.Width;
+            double windowHight = plotRect.Height;
 
-            if (_scalingFrozen)
+            if (_scalingFrozen && windowWidth == _previouseWindowWidth && windowHight == _previouseWindowHeight)
             {
                 minYValue = _prevYValue.minYValue;
                 maxYValue = _prevYValue.maxYValue;
+                
                 allNumbAreInts = false;
                 return;
             }
@@ -320,7 +325,7 @@ namespace SINTEF.AutoActive.UI.Figures
             maxYValue = _maxYValue;
             allNumbAreInts = true;
 
-            if (AutoScale)
+            if (AutoScale || windowWidth != _previouseWindowWidth || windowHight != _previouseWindowHeight)
             {
                 if (!_autoScaleIndependent)
                 {
@@ -399,6 +404,10 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = maxYValue.Value;
                 }
             }
+
+            _previouseWindowHeight = windowHight;
+            _previouseWindowWidth = windowWidth;
+
         }
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
