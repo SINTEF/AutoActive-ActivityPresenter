@@ -83,7 +83,7 @@ namespace SINTEF.AutoActive.Databus.Common
                 return true;
             }
 
-            public (long x, double y) Current
+            public (long x, double y, bool isNan) Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
@@ -91,11 +91,11 @@ namespace SINTEF.AutoActive.Databus.Common
                     double y = Convert.ToSingle(_y[_index]);
                     if (!Double.IsNaN(y))
                     {
-                        return (_x[_index], y);
+                        return (_x[_index], y, false);
                     }
                     else
                     {
-                        return (_x[_index], 0.0);
+                        return (_x[_index], 0.0, true);
                     }
                 }
             }
