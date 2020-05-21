@@ -211,6 +211,7 @@ namespace SINTEF.AutoActive.UI.Figures
         public bool AutoScale = true;
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
+        private bool _previouseallNumbAreInts = true;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
         private (float? minYValue, float? maxYValue) _prevYValue;
@@ -312,20 +313,18 @@ namespace SINTEF.AutoActive.UI.Figures
             double windowWidth = plotRect.Width;
             double windowHight = plotRect.Height;
 
-            if (_scalingFrozen && windowWidth == _previouseWindowWidth && windowHight == _previouseWindowHeight)
-            {
-                minYValue = _prevYValue.minYValue;
-                maxYValue = _prevYValue.maxYValue;
-                
-                allNumbAreInts = false;
-                return;
-            }
-
             minYValue = _minYValue;
             maxYValue = _maxYValue;
             allNumbAreInts = true;
 
-            if (AutoScale || windowWidth != _previouseWindowWidth || windowHight != _previouseWindowHeight)
+            if (_scalingFrozen && windowWidth == _previouseWindowWidth && windowHight == _previouseWindowHeight)
+            {
+                minYValue = _prevYValue.minYValue;
+                maxYValue = _prevYValue.maxYValue;
+                allNumbAreInts = _previouseallNumbAreInts;
+                return;
+            }
+            else if (AutoScale || windowWidth != _previouseWindowWidth || windowHight != _previouseWindowHeight)
             {
                 if (!_autoScaleIndependent)
                 {
@@ -338,7 +337,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         curMax = Math.Max(curMax, cMax);
                         if (_allNumbAreInts == false) allNumbAreInts = _allNumbAreInts;
                     }
-
+                    _previouseallNumbAreInts = allNumbAreInts;
                     if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
                     {
                         _smoothScalingQueue.Dequeue();
@@ -373,7 +372,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     foreach (var line in _lines)
                     {
                         var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                        if (_allNumbAreInts == false) allNumbAreInts = _allNumbAreInts;
+                        if (_allNumbAreInts == false) allNumbAreInts = _allNumbAreInts;   
                         if (line.SmoothScalingQueue == null)
                         {
                             line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
@@ -393,6 +392,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = curMax - PlotHeightMargin / scaleY;
                         line.ScaleY = scaleY;
                     }
+                    _previouseallNumbAreInts = allNumbAreInts;
                 }
             }
             else
