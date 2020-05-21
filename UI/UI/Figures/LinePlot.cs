@@ -136,6 +136,15 @@ namespace SINTEF.AutoActive.UI.Figures
             return (v - offset) * scale;
         }
 
+        private readonly SKPaint _zeroLinePaint = new SKPaint
+        {
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = true,
+            PathEffect = SKPathEffect.CreateDash(new float[] {5,5}, 10)
+        };
 
         private readonly SKPaint _currentLinePaint = new SKPaint
         {
