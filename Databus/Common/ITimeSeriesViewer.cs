@@ -83,10 +83,25 @@ namespace SINTEF.AutoActive.Databus.Common
                 return true;
             }
 
-            public (long x, T y) Current
+            public (long x, double y, bool isNan) Current
             {
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
-                get => (_x[_index], _y[_index]);
+                get
+                {
+                    double y = Convert.ToSingle(_y[_index]);
+                    /* Ensures that we never return a NaN as it will break the 
+                    figure view. All NaNs are changed to 0. To know the difference
+                    between a NaN 0 and an actuall zero a boolean attribute is added,
+                    which is true if the 0 represents a NaN */
+                    if (!Double.IsNaN(y))
+                    {
+                        return (_x[_index], y, false);
+                    }
+                    else
+                    {
+                        return (_x[_index], 0.0, true);
+                    }
+                }
             }
 
 
