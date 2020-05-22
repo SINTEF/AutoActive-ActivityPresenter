@@ -210,6 +210,9 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int PlotHeightMargin = 4;
 
         public bool AutoScale = true;
+        private double _previouseWindowHeight = 0;
+        private double _previouseWindowWidth = 0;
+        private bool _previouseallNumbAreInts = true;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
         private (float? minYValue, float? maxYValue) _prevYValue;
@@ -260,7 +263,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleX = plotRect.Width / xDiff;
 
-            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts);
 
             foreach (var line in _lines)
             {
@@ -303,23 +306,28 @@ namespace SINTEF.AutoActive.UI.Figures
             var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts);
         }
 
-        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts)
         {
-
-            if (_scalingFrozen)
-            {
-                minYValue = _prevYValue.minYValue;
-                maxYValue = _prevYValue.maxYValue;
-                return;
-            }
+            double windowWidth = plotRect.Width;
+            double windowHight = plotRect.Height;
 
             minYValue = _minYValue;
             maxYValue = _maxYValue;
+            allNumbAreInts = true;
 
-            if (AutoScale)
+            //Should only enter if, if scalingFrozen is true and window size has not changed
+            if ((_scalingFrozen) && (windowWidth == _previouseWindowWidth) && (windowHight == _previouseWindowHeight))
+            {
+                minYValue = _prevYValue.minYValue;
+                maxYValue = _prevYValue.maxYValue;
+                allNumbAreInts = _previouseallNumbAreInts;
+                return;
+            }
+            //Should only enter else if, if autoscale is true or if window size has changed
+            else if ((AutoScale) || (windowWidth != _previouseWindowWidth) || (windowHight != _previouseWindowHeight))
             {
                 if (!_autoScaleIndependent)
                 {
@@ -327,7 +335,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     var curMax = float.MinValue;
                     foreach (var line in _lines)
                     {
-                        var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
+                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
 
                         // Do not include NaN or Inf
                         if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
@@ -338,8 +346,12 @@ namespace SINTEF.AutoActive.UI.Figures
                         {
                             curMax = Math.Max(curMax, cMax);
                         }
+                        if (_allNumbAreInts == false)
+                        { 
+                            allNumbAreInts = _allNumbAreInts;
+                        }
                     }
-
+                    _previouseallNumbAreInts = allNumbAreInts;
                     if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
                     {
                         _smoothScalingQueue.Dequeue();
@@ -373,8 +385,11 @@ namespace SINTEF.AutoActive.UI.Figures
                     maxYValue = null;
                     foreach (var line in _lines)
                     {
-                        var (cMin, cMax) = line.Drawer.GetVisibleYMinMax(MaxPointsFromWidth(plotRect.Width));
-
+                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+                        if (_allNumbAreInts == false)
+                        { 
+                            allNumbAreInts = _allNumbAreInts;
+                        }
                         if (line.SmoothScalingQueue == null)
                         {
                             line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
@@ -394,6 +409,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = curMax - PlotHeightMargin / scaleY;
                         line.ScaleY = scaleY;
                     }
+                    _previouseallNumbAreInts = allNumbAreInts;
                 }
             }
             else
@@ -405,6 +421,10 @@ namespace SINTEF.AutoActive.UI.Figures
                         line.OffsetY = maxYValue.Value;
                 }
             }
+
+            _previouseWindowHeight = windowHight;
+            _previouseWindowWidth = windowWidth;
+
         }
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
@@ -429,52 +449,63 @@ namespace SINTEF.AutoActive.UI.Figures
             if (diff < 100)
                 return (float)Math.Round(num / 10, 0) * 10;
 
-            return (float)Math.Round(num / 50, 0) * 50;
+            //Since the num might be <50 we need to keap at leat 1 decimal or else the axis become 0
+            return (float)Math.Round(num / 50, 1) * 50;
         }
 
-        private static (string, float) GetFormat(float minY, float maxY)
+        private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
         {
-            var yDiff = maxY - minY;
-
-            var offset = 0f;
-
-            if (minY > yDiff * 10)
+            //Only use e if we have very big or very small numbers
+            if ((Math.Abs(maxY) >= 100000) || (Math.Abs(minY) < 0.001))
             {
-                offset = minY;
+                return "0.0e0";
+            }
+            //Test if the data only consist of int, if both the min and the max of the dataset are ints
+            //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
+            //largest number is above 5
+            else if (allNumbAreInts || Math.Abs(maxY) > 5)
+            {
+ 
+                return "#####";
+            }
+            //If we have only numbers smaller then 5 and not all are ints, the ticks on the y axis 
+            //will be a decimal number
+            else
+            {
+                return "##.###";
             }
 
-            if (maxY > 10000 || maxY < 5)
-                return ("#0.0e0", offset);
-
-            if (maxY < 10 || yDiff < 100)
-                return ("##.###", offset);
-
-            return ("#####", offset);
-
         }
 
-        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY, bool allNumbAreInts)
         {
             var diffY = maxY - minY;
-            const uint nTicks = 8;
+            var valueFormat = GetFormat(minY, maxY, allNumbAreInts);
+            uint nTicks = 8;
+
+
             var tickStart = minY + (diffY / 2f);
 
             // If we cross the zero-axis, use zero as the tick center, if not round it smartly
             if (minY < 0 && 0 < maxY)
+            { 
                 tickStart = 0;
+            }
             else
+            { 
                 tickStart = SmartRound(tickStart, diffY);
+            }
 
             var tickDelta = SmartRound(diffY / nTicks, diffY);
             var scale = -drawRect.Height/diffY;
 
-            var (valueFormat, yOffset) = GetFormat(minY, maxY);
+            
 
             for (var i = -nTicks; i < nTicks; i++)
             {
                 var val = tickStart + i * tickDelta;
                 var drawVal = ScalePointY(val, maxY, scale);
-                var valueText = (val - yOffset).ToString(valueFormat);
+                var valueText = (val).ToString(valueFormat);
                 if (valueText == "")
                 {
                     continue;
@@ -483,13 +514,6 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin- textSize, drawVal, TickTextPaint);
                 canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
 
-                // ReSharper disable once CompareOfFloatsByEqualityOperator
-                if (yOffset == 0f) continue;
-                var offsetText = yOffset.ToString("+#0.0e0;-#0.0e0");
-
-                //TODO: instead of drawing this, skip drawing the text in the first place
-                canvas.DrawRect(0, drawRect.Height - TickTextPaint.TextSize -1, TickBoxMargin-1, drawRect.Height, _legendFill);
-                canvas.DrawText(offsetText, TickMargin, drawRect.Height - TickTextPaint.TextSize, TickTextPaint);
             }
 
         }
