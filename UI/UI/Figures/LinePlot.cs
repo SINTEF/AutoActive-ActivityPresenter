@@ -345,6 +345,7 @@ namespace SINTEF.AutoActive.UI.Figures
                         if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
                         {
                             curMax = Math.Max(curMax, cMax);
+                        }
                         if (_allNumbAreInts == false)
                         { 
                             allNumbAreInts = _allNumbAreInts;
