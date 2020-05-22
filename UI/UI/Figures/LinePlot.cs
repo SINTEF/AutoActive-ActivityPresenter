@@ -37,6 +37,7 @@ namespace SINTEF.AutoActive.UI.Figures
         /// \pre _lines cannot be empty when calling this.
         private void UpdateLineData()
         {
+
             _minYValue = _lines.Min(line => line.Drawer.MinY);
             _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
@@ -335,8 +336,15 @@ namespace SINTEF.AutoActive.UI.Figures
                     foreach (var line in _lines)
                     {
                         var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                        curMin = Math.Min(curMin, cMin);
-                        curMax = Math.Max(curMax, cMax);
+
+                        // Do not include NaN or Inf
+                        if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
+                        {
+                            curMin = Math.Min(curMin, cMin);
+                        }
+                        if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
+                        {
+                            curMax = Math.Max(curMax, cMax);
                         if (_allNumbAreInts == false)
                         { 
                             allNumbAreInts = _allNumbAreInts;

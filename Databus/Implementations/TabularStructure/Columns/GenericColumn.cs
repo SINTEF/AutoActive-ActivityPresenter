@@ -23,14 +23,32 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 
         protected override (double? min, double? max) GetDataMinMax()
         {
+            //changed to handle NaN in the data
             if (Data.Length == 0) return (null, null);
-            var min = Convert.ToDouble(Data[0]);
-            var max = Convert.ToDouble(Data[0]);
-            for (var i = 1; i < Data.Length; i++)
+            double min = Convert.ToDouble(Data[0]);
+            double max = Convert.ToDouble(Data[0]);
+            for (var i = 0; i < Data.Length; i++)
             {
                 var el = Convert.ToDouble(Data[i]);
-                if (el < min) min = el;
-                if (el > max) max = el;
+                if (Double.IsNaN(el)) continue;
+                //Ensures that we never compare a number with a NaN,
+                //since the result will be a NaN
+                if (!Double.IsNaN(min))
+                {
+                    if (el < min) min = el;
+                }
+                else
+                {
+                    min = el;
+                }
+                if (!Double.IsNaN(max))
+                {
+                    if (el > max) max = el;
+                }
+                else
+                {
+                    max = el;
+                }
             }
             return (min, max);
         }
