@@ -317,14 +317,16 @@ namespace SINTEF.AutoActive.UI.Figures
             maxYValue = _maxYValue;
             allNumbAreInts = true;
 
-            if (_scalingFrozen && windowWidth == _previouseWindowWidth && windowHight == _previouseWindowHeight)
+            //Should only enter if, if scalingFrozen is true and window size has not changed
+            if ((_scalingFrozen) && (windowWidth == _previouseWindowWidth) && (windowHight == _previouseWindowHeight))
             {
                 minYValue = _prevYValue.minYValue;
                 maxYValue = _prevYValue.maxYValue;
                 allNumbAreInts = _previouseallNumbAreInts;
                 return;
             }
-            else if (AutoScale || windowWidth != _previouseWindowWidth || windowHight != _previouseWindowHeight)
+            //Should only enter else if, if autoscale is true or if window size has changed
+            else if ((AutoScale) || (windowWidth != _previouseWindowWidth) || (windowHight != _previouseWindowHeight))
             {
                 if (!_autoScaleIndependent)
                 {
@@ -335,7 +337,10 @@ namespace SINTEF.AutoActive.UI.Figures
                         var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
                         curMin = Math.Min(curMin, cMin);
                         curMax = Math.Max(curMax, cMax);
-                        if (_allNumbAreInts == false) allNumbAreInts = _allNumbAreInts;
+                        if (_allNumbAreInts == false)
+                        { 
+                            allNumbAreInts = _allNumbAreInts;
+                        }
                     }
                     _previouseallNumbAreInts = allNumbAreInts;
                     if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
@@ -372,7 +377,10 @@ namespace SINTEF.AutoActive.UI.Figures
                     foreach (var line in _lines)
                     {
                         var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                        if (_allNumbAreInts == false) allNumbAreInts = _allNumbAreInts;   
+                        if (_allNumbAreInts == false)
+                        { 
+                            allNumbAreInts = _allNumbAreInts;
+                        }
                         if (line.SmoothScalingQueue == null)
                         {
                             line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
@@ -439,7 +447,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
         {
             //Only use e if we have very big or very small numbers
-            if ((Math.Abs(maxY) >= 100000) || Math.Abs(minY) < 0.001)
+            if ((Math.Abs(maxY) >= 100000) || (Math.Abs(minY) < 0.001))
             {
                 return "0.0e0";
             }
