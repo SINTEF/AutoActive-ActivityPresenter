@@ -17,7 +17,7 @@ namespace SINTEF.AutoActive.UI.Views
 {
 	public partial class FigureView : ContentView
 	{
-        public static Color ElementBackgroundColor = Color.CornflowerBlue.MultiplyAlpha(0.7d);
+        public static Color ElementBackgroundColor = Color.FromHex("23A2B1");
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
         public TimeSynchronizedContext Context { get; }
