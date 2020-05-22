@@ -445,7 +445,7 @@ namespace SINTEF.AutoActive.UI.Figures
             }
             //Test if the data only consist of int, if both the min and the max of the dataset are ints
             //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
-            //largest number is aboce 5
+            //largest number is above 5
             else if (allNumbAreInts || Math.Abs(maxY) > 5)
             {
  
