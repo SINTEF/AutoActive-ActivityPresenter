@@ -78,7 +78,7 @@
                 BackgroundColor="#1D2637" 
                 FontAttributes="None" 
                 TextColor="White"/>
-            
+
             <Button 
                 Grid.Column="2"
                 Grid.Row="2"
@@ -89,7 +89,8 @@
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637" 
                 FontAttributes="None" 
-                TextColor="White"/>
+                TextColor="White"
+                IsEnabled="False"/>
 
             <Button
                 Grid.Column="3"
