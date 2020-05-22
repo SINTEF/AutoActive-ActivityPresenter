@@ -37,10 +37,8 @@ namespace SINTEF.AutoActive.UI.Figures
         /// \pre _lines cannot be empty when calling this.
         private void UpdateLineData()
         {
-            // Select min max without NaN
-            //_minYValue = (from x in _lines where !Double.IsNaN(x.Drawer.MinY) select x.Drawer.MinY).Min();
+
             _minYValue = _lines.Min(line => line.Drawer.MinY);
-            //_maxYValue = (from x in _lines where !Double.IsNaN(x.Drawer.MaxY) select x.Drawer.MaxY).Max();
             _maxYValue = _lines.Max(line => line.Drawer.MaxY);
 
             var yDelta = _maxYValue.Value - _minYValue.Value;

@@ -31,6 +31,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
             {
                 var el = Convert.ToDouble(Data[i]);
                 if (Double.IsNaN(el)) continue;
+                //Ensures that we never compare a number with a NaN,
+                //since the result will be a NaN
                 if (!Double.IsNaN(min))
                 {
                     if (el < min) min = el;
