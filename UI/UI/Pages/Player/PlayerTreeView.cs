@@ -235,11 +235,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             // Toggle text colour if used as timeline
             if (_label.TextColor == Color.White)
             {
-                _label.TextColor = Color.Blue;
+                _label.TextColor = Color.FromHex("#1F77B4");
+                _label.FontAttributes = FontAttributes.Bold;
             }
             else
             {
                 _label.TextColor = Color.White;
+                _label.FontAttributes = FontAttributes.None;
             }
         }
 
