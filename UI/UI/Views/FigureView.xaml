@@ -40,12 +40,14 @@
                     </Grid.ColumnDefinitions>
                     <Button x:Name="ContextButton" HorizontalOptions="Start"
                             Text="•••" WidthRequest="40" HeightRequest="40"
-                            BackgroundColor="{x:Static views:FigureView.ElementBackgroundColor}"
+                            TextColor="Black"
+                            BorderColor="LightSlateGray"
                             Clicked="MenuButton_OnClicked"
                     />
                     <Label x:Name="Title" Grid.Column="1" VerticalOptions="Start" HorizontalOptions="Center"
                             Text="" HorizontalTextAlignment="Center"
-                            BackgroundColor="{x:Static views:FigureView.ElementBackgroundColor}"
+                            TextColor="Black"
+                            BackgroundColor="White"
                     />
                 </Grid>
             </RelativeLayout>
