@@ -41,7 +41,6 @@
                     <Button x:Name="ContextButton" HorizontalOptions="Start"
                             Text="•••" WidthRequest="40" HeightRequest="40"
                             TextColor="Black"
-                            BorderColor="LightSlateGray"
                             Clicked="MenuButton_OnClicked"
                     />
                     <Label x:Name="Title" Grid.Column="1" VerticalOptions="Start" HorizontalOptions="Center"

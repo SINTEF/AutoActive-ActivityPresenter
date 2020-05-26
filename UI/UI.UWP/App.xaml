@@ -4,5 +4,7 @@
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:local="using:SINTEF.AutoActive.UI.UWP"
     RequestedTheme="Dark">
-
+    <Application.Resources>
+        <SolidColorBrush x:Key="ButtonBackgroundPointerOver">DarkSlateGray</SolidColorBrush>
+    </Application.Resources>
 </Application>
