@@ -455,17 +455,18 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
         {
+            var diffY = maxY - minY;
             //Only use e if we have very big or very small numbers
-            if ((Math.Abs(maxY) >= 100000) || (Math.Abs(minY) < 0.001))
+            if ((Math.Abs(maxY) >= 100000) || (Math.Abs(maxY) < 0.001))
             {
                 return "0.0e0";
             }
             //Test if the data only consist of int, if both the min and the max of the dataset are ints
             //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
             //largest number is above 5
-            else if (allNumbAreInts || Math.Abs(maxY) > 5)
+            else if (((allNumbAreInts) && (diffY >= 8)) || ((Math.Abs(maxY) > 5) && (diffY >= 8)))
             {
- 
+
                 return "#####";
             }
             //If we have only numbers smaller then 5 and not all are ints, the ticks on the y axis 
