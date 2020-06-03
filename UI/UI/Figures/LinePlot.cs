@@ -263,7 +263,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleX = plotRect.Width / xDiff;
 
-            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts);
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts);
 
             foreach (var line in _lines)
             {
@@ -306,125 +306,136 @@ namespace SINTEF.AutoActive.UI.Figures
             var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts.Value);
         }
 
-        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts)
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
         {
             double windowWidth = plotRect.Width;
             double windowHight = plotRect.Height;
 
-            minYValue = _minYValue;
-            maxYValue = _maxYValue;
-            allNumbAreInts = true;
+
 
             //Should only enter if, if scalingFrozen is true and window size has not changed
             if ((_scalingFrozen) && (windowWidth == _previouseWindowWidth) && (windowHight == _previouseWindowHeight))
             {
-                minYValue = _prevYValue.minYValue;
-                maxYValue = _prevYValue.maxYValue;
-                allNumbAreInts = _previouseallNumbAreInts;
-                return;
+                frozenScaling(out minYValue, out maxYValue, out allNumbAreInts);
+                
             }
             //Should only enter else if, if autoscale is true or if window size has changed
-            else if ((AutoScale) || (windowWidth != _previouseWindowWidth) || (windowHight != _previouseWindowHeight))
-            {
-                if (!_autoScaleIndependent)
-                {
-                    var curMin = float.MaxValue;
-                    var curMax = float.MinValue;
-                    foreach (var line in _lines)
-                    {
-                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-
-                        // Do not include NaN or Inf
-                        if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
-                        {
-                            curMin = Math.Min(curMin, cMin);
-                        }
-                        if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
-                        {
-                            curMax = Math.Max(curMax, cMax);
-                        }
-                        if (_allNumbAreInts == false)
-                        { 
-                            allNumbAreInts = _allNumbAreInts;
-                        }
-                    }
-                    _previouseallNumbAreInts = allNumbAreInts;
-                    if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
-                    {
-                        _smoothScalingQueue.Dequeue();
-                    }
-
-                    _smoothScalingQueue.Enqueue((curMin, curMax));
-
-                    curMin = _smoothScalingQueue.Min(el => el.Item1);
-                    curMax = _smoothScalingQueue.Max(el => el.Item2);
-
-                    var yDelta = curMax - curMin;
-                    if (yDelta <= 0)
-                    {
-                        yDelta = 1;
-                        curMax -= yDelta / 2;
-                    }
-
-                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                    curMax -= PlotHeightMargin / scaleY;
-                    foreach (var line in _lines)
-                    {
-                        line.OffsetY = curMax;
-                        line.ScaleY = scaleY;
-                    }
-
-                    minYValue = curMin;
-                    maxYValue = curMax;
-                }
-                else
-                {
-                    maxYValue = null;
-                    foreach (var line in _lines)
-                    {
-                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                        if (_allNumbAreInts == false)
-                        { 
-                            allNumbAreInts = _allNumbAreInts;
-                        }
-                        if (line.SmoothScalingQueue == null)
-                        {
-                            line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
-                        }
-
-                        if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
-                        {
-                            line.SmoothScalingQueue.Dequeue();
-                        }
-
-                        line.SmoothScalingQueue.Enqueue((cMin, cMax));
-
-                        var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
-                        var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
-
-                        var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                        line.OffsetY = curMax - PlotHeightMargin / scaleY;
-                        line.ScaleY = scaleY;
-                    }
-                    _previouseallNumbAreInts = allNumbAreInts;
-                }
-            }
             else
             {
-                foreach (var line in _lines)
-                {
-                    line.ScaleY = -info.Height / (line.YDelta);
-                    if (maxYValue.HasValue)
-                        line.OffsetY = maxYValue.Value;
-                }
+                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts);
             }
+            //else
+            //{
+            //foreach (var line in _lines)
+            //{
+            //line.ScaleY = -info.Height / (line.YDelta);
+            //if (maxYValue.HasValue)
+            //line.OffsetY = maxYValue.Value;
+            //}
+            //}
 
             _previouseWindowHeight = windowHight;
             _previouseWindowWidth = windowWidth;
 
+        }
+
+        private void frozenScaling(out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
+        {
+            minYValue = _prevYValue.minYValue;
+            maxYValue = _prevYValue.maxYValue;
+            allNumbAreInts = _previouseallNumbAreInts;
+        }
+
+        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
+        {
+            minYValue = _minYValue;
+            maxYValue = _maxYValue;
+            allNumbAreInts = true;
+            if (!_autoScaleIndependent)
+            {
+                var curMin = float.MaxValue;
+                var curMax = float.MinValue;
+                foreach (var line in _lines)
+                {
+                    var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+
+                    // Do not include NaN or Inf
+                    if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
+                    {
+                        curMin = Math.Min(curMin, cMin);
+                    }
+                    if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
+                    {
+                        curMax = Math.Max(curMax, cMax);
+                    }
+                    if (_allNumbAreInts == false)
+                    {
+                        allNumbAreInts = _allNumbAreInts;
+                    }
+                }
+                _previouseallNumbAreInts = allNumbAreInts.Value;
+                if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+                {
+                    _smoothScalingQueue.Dequeue();
+                }
+
+                _smoothScalingQueue.Enqueue((curMin, curMax));
+
+                curMin = _smoothScalingQueue.Min(el => el.Item1);
+                curMax = _smoothScalingQueue.Max(el => el.Item2);
+
+                var yDelta = curMax - curMin;
+                if (yDelta <= 0)
+                {
+                    yDelta = 1;
+                    curMax -= yDelta / 2;
+                }
+
+                var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
+                curMax -= PlotHeightMargin / scaleY;
+                foreach (var line in _lines)
+                {
+                    line.OffsetY = curMax;
+                    line.ScaleY = scaleY;
+                }
+
+                minYValue = curMin;
+                maxYValue = curMax;
+            }
+            else
+            {
+                maxYValue = null;
+                foreach (var line in _lines)
+                {
+                    var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+                    if (_allNumbAreInts == false)
+                    {
+                        allNumbAreInts = _allNumbAreInts;
+                    }
+                    if (line.SmoothScalingQueue == null)
+                    {
+                        line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+                    }
+
+                    if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
+                    {
+                        line.SmoothScalingQueue.Dequeue();
+                    }
+
+                    line.SmoothScalingQueue.Enqueue((cMin, cMax));
+
+                    var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
+                    var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
+
+                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
+                    line.OffsetY = curMax - PlotHeightMargin / scaleY;
+                    line.ScaleY = scaleY;
+                }
+                _previouseallNumbAreInts = allNumbAreInts.Value;
+            }
         }
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
