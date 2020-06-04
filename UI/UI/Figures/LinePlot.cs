@@ -209,7 +209,6 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int TickMargin = 3;
         private const int PlotHeightMargin = 4;
 
-        public bool AutoScale = true;
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
         private bool _previouseallNumbAreInts = true;
@@ -278,18 +277,16 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
-            // TODO(sigurdal) this scales weirdly if frozen
-            // Draw zero-x axis
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
             {
-                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height);
-                 zeroY = ScalePointY(0, maxYValue.Value, scaleY);
+                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height); // 1 in value equals x in height (1:x)
+                 zeroY = ScalePointY(0, maxYValue.Value, scaleY); //Where is 0 localized, if it is localized between 0 and height it is seen on screen. Zero is top of screen
             } else
             {
                 zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             }
-            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint);
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint); //Draws 0
 
             foreach (var lineConfig in _lines)
             {
@@ -307,136 +304,159 @@ namespace SINTEF.AutoActive.UI.Figures
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
             DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts.Value);
+
         }
 
         private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
         {
-            double windowWidth = plotRect.Width;
-            double windowHight = plotRect.Height;
-
-
 
             //Should only enter if, if scalingFrozen is true and window size has not changed
-            if ((_scalingFrozen) && (windowWidth == _previouseWindowWidth) && (windowHight == _previouseWindowHeight))
+            if ((_scalingFrozen) && (plotRect.Width == _previouseWindowWidth) && (plotRect.Height == _previouseWindowHeight))
             {
                 frozenScaling(out minYValue, out maxYValue, out allNumbAreInts);
-                
             }
-            //Should only enter else if, if autoscale is true or if window size has changed
+            else if ((_scalingFrozen) && ((plotRect.Width != _previouseWindowWidth) || (plotRect.Height != _previouseWindowHeight)))
+            {
+                //in cases where scales are frozen but size of figure is updated these attributes should stay the same,
+                //therefore is frozenScaling run after autoscale
+                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, true);
+                frozenScaling(out minYValue, out maxYValue, out allNumbAreInts); 
+                _previouseWindowHeight = plotRect.Height;
+                _previouseWindowWidth = plotRect.Width;
+            }
             else
             {
-                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts);
+                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, false);
+                _previouseWindowHeight = plotRect.Height;
+                _previouseWindowWidth = plotRect.Width;
             }
-            //else
-            //{
-            //foreach (var line in _lines)
-            //{
-            //line.ScaleY = -info.Height / (line.YDelta);
-            //if (maxYValue.HasValue)
-            //line.OffsetY = maxYValue.Value;
-            //}
-            //}
 
-            _previouseWindowHeight = windowHight;
-            _previouseWindowWidth = windowWidth;
+
 
         }
 
         private void frozenScaling(out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
         {
-            minYValue = _prevYValue.minYValue;
+            minYValue = _prevYValue.minYValue; //I dont think this is correct, as _prevYValue = ()
             maxYValue = _prevYValue.maxYValue;
             allNumbAreInts = _previouseallNumbAreInts;
         }
 
-        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
+        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
+        {
+            if (!_autoScaleIndependent)
+            {
+                autoscaleDependent(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, resize);
+            }
+            else
+            {
+                autoscaleIndependet(info,  plotRect, out minYValue, out maxYValue, out allNumbAreInts, resize);
+            }
+        }
+
+        private void autoscaleDependent(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
         {
             minYValue = _minYValue;
             maxYValue = _maxYValue;
             allNumbAreInts = true;
-            if (!_autoScaleIndependent)
+
+            var curMin = float.MaxValue;
+            var curMax = float.MinValue;
+
+            foreach (var line in _lines)
             {
-                var curMin = float.MaxValue;
-                var curMax = float.MinValue;
-                foreach (var line in _lines)
+                var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+
+                // Do not include NaN or Inf
+                if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
                 {
-                    var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-
-                    // Do not include NaN or Inf
-                    if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
-                    {
-                        curMin = Math.Min(curMin, cMin);
-                    }
-                    if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
-                    {
-                        curMax = Math.Max(curMax, cMax);
-                    }
-                    if (_allNumbAreInts == false)
-                    {
-                        allNumbAreInts = _allNumbAreInts;
-                    }
+                    curMin = Math.Min(curMin, cMin);
                 }
-                _previouseallNumbAreInts = allNumbAreInts.Value;
-                if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+                if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
                 {
-                    _smoothScalingQueue.Dequeue();
+                    curMax = Math.Max(curMax, cMax);
                 }
-
-                _smoothScalingQueue.Enqueue((curMin, curMax));
-
-                curMin = _smoothScalingQueue.Min(el => el.Item1);
-                curMax = _smoothScalingQueue.Max(el => el.Item2);
-
-                var yDelta = curMax - curMin;
-                if (yDelta <= 0)
+                if (_allNumbAreInts == false)
                 {
-                    yDelta = 1;
-                    curMax -= yDelta / 2;
+                    allNumbAreInts = _allNumbAreInts;
                 }
+            }
+            _previouseallNumbAreInts = allNumbAreInts.Value;
+            if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+            {
+                _smoothScalingQueue.Dequeue();
+            }
 
-                var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                curMax -= PlotHeightMargin / scaleY;
-                foreach (var line in _lines)
+            _smoothScalingQueue.Enqueue((curMin, curMax));
+
+            curMin = _smoothScalingQueue.Min(el => el.Item1);
+            curMax = _smoothScalingQueue.Max(el => el.Item2);
+
+            var yDelta = curMax - curMin;
+            if (yDelta <= 0)
+            {
+                yDelta = 1;
+                curMax -= yDelta / 2;
+            }
+
+            var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
+            curMax -= PlotHeightMargin / scaleY;
+            foreach (var line in _lines)
+            {
+                //Should not be updated if scales are freezed and size of figure is updated at the same time
+                if (!resize)
                 {
                     line.OffsetY = curMax;
-                    line.ScaleY = scaleY;
                 }
-
-                minYValue = curMin;
-                maxYValue = curMax;
+                line.ScaleY = scaleY;
             }
-            else
+
+            minYValue = curMin;
+            maxYValue = curMax;
+        }
+
+        private void autoscaleIndependet(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
+        {
+            maxYValue = null;
+            minYValue = null;
+            allNumbAreInts = null;
+                
+            foreach (var line in _lines)
             {
-                maxYValue = null;
-                foreach (var line in _lines)
+                var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+                if (_allNumbAreInts == false)
                 {
-                    var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                    if (_allNumbAreInts == false)
-                    {
-                        allNumbAreInts = _allNumbAreInts;
-                    }
-                    if (line.SmoothScalingQueue == null)
-                    {
-                        line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
-                    }
-
-                    if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
-                    {
-                        line.SmoothScalingQueue.Dequeue();
-                    }
-
-                    line.SmoothScalingQueue.Enqueue((cMin, cMax));
-
-                    var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
-                    var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
-
-                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                    line.OffsetY = curMax - PlotHeightMargin / scaleY;
-                    line.ScaleY = scaleY;
+                    allNumbAreInts = _allNumbAreInts;
                 }
-                _previouseallNumbAreInts = allNumbAreInts.Value;
+                if (line.SmoothScalingQueue == null)
+                {
+                    line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+                }
+
+                if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
+                {
+                    line.SmoothScalingQueue.Dequeue();
+                }
+
+                line.SmoothScalingQueue.Enqueue((cMin, cMax));
+
+                var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
+                var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
+
+                var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
+                //Should not be updated if scales are freezed and size of figure is updated at the same time
+                if (!resize)
+                {
+                    line.OffsetY = curMax - PlotHeightMargin / scaleY;
+                }
+                line.ScaleY = scaleY;
             }
         }
+        
+
+
+
+
 
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
@@ -509,9 +529,7 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             var tickDelta = SmartRound(diffY / nTicks, diffY);
-            var scale = -drawRect.Height/diffY;
-
-            
+            var scale = -drawRect.Height / diffY;
 
             for (var i = -nTicks; i < nTicks; i++)
             {
