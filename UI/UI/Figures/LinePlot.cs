@@ -401,6 +401,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
             curMax -= PlotHeightMargin / scaleY;
+            curMin += PlotHeightMargin / scaleY;
             foreach (var line in _lines)
             {
                 //Should not be updated if scales are freezed and size of figure is updated at the same time
