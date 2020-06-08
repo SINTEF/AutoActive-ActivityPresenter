@@ -278,19 +278,37 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _viewerContext.IsPlaying = false;
             }
         }
-
-        private void PlaybackSpeed_SelectedIndexChanged(object sender, EventArgs e)
+        private void PlaybackSpeedButton_Clicked(object sender, EventArgs e)
         {
-            if (!(PlaybackSpeedPicker?.SelectedItem is string playbackText))
+            if (PlaybackSpeedButton.Text == "1x")
             {
-                return;
+                PlaybackSpeedButton.Text = "2x";
             }
-
-            var trimChars = new[] {'x', ' '};
-            PlaybackSpeed = double.Parse(playbackText.TrimEnd(trimChars));
+            else if(PlaybackSpeedButton.Text == "2x")
+            {
+                PlaybackSpeedButton.Text = "5x";
+            }
+            else if(PlaybackSpeedButton.Text == "5x")
+            {
+                PlaybackSpeedButton.Text = "0.1x";
+            }
+            else if(PlaybackSpeedButton.Text == "0.1x")
+            {
+                PlaybackSpeedButton.Text = "0.25x";
+            }
+            else if(PlaybackSpeedButton.Text == "0.25x")
+            {
+                PlaybackSpeedButton.Text = "0.5x";
+            }
+            else if(PlaybackSpeedButton.Text == "0.5x")
+            {
+                PlaybackSpeedButton.Text = "1x";
+            }
+            var trimChars = new[] { 'x', ' ' };
+            PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
             _viewerContext.PlaybackRate = PlaybackSpeed;
         }
-
+ 
         private void ButtonUpExpand_OnClicked(object sender, EventArgs e)
         {
             WindowSliderSelector.IsVisible ^= true;
