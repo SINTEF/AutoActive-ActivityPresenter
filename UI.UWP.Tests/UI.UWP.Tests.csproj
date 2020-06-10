@@ -195,9 +195,9 @@
       <Project>{277C3564-0353-4A6F-9AE1-886DBBB84DE5}</Project>
       <Name>UI.Helpers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\UI\UI.UWP\UI.UWP.csproj">
+    <ProjectReference Include="..\UI\UI.UWP\ActivityPresenter.UWP.csproj">
       <Project>{0a97484a-05d2-4c7b-8c81-ac779ffaf77e}</Project>
-      <Name>UI.UWP</Name>
+      <Name>ActivityPresenter.UWP</Name>
     </ProjectReference>
     <ProjectReference Include="..\UI\UI\UI.csproj">
       <Project>{49095d3f-92c6-40c6-87e6-27fc06e493ef}</Project>
