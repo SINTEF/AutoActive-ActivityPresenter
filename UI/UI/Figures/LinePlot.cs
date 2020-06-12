@@ -392,11 +392,13 @@ namespace SINTEF.AutoActive.UI.Figures
             curMin = _smoothScalingQueue.Min(el => el.Item1);
             curMax = _smoothScalingQueue.Max(el => el.Item2);
 
-            var yDelta = curMax - curMin;
+            //This is done to prevent tickdelta to become 0 and scale to become inf in DrawTicks()
+            var yDelta = curMax - curMin; 
             if (yDelta <= 0)
             {
-                yDelta = 1;
-                curMax -= yDelta / 2;
+                yDelta = 2;
+                curMax += yDelta / 2;
+                curMin -= yDelta / 2;
             }
 
             var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
@@ -471,18 +473,14 @@ namespace SINTEF.AutoActive.UI.Figures
             if (diff < 0.01)
                 return num;
             if (diff < 0.1)
-                return (float)Math.Round(num, 2);
+                return (float)Math.Round(num, 3);
             if (diff < 5)
-                return (float)Math.Round(num, 1);
+                return (float)Math.Round(num, 2);
             if (diff < 10)
-                return (float)Math.Round(num*5, 1)/5;
-            if (diff < 50)
-                return (float)Math.Round(num, 0);
-            if (diff < 100)
-                return (float)Math.Round(num / 10, 0) * 10;
-
-            //Since the num might be <50 we need to keap at leat 1 decimal or else the axis become 0
-            return (float)Math.Round(num / 50, 1) * 50;
+                return (float)Math.Round(num, 1);
+            
+            return (float)Math.Round(num, 0);
+            
         }
 
         private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
@@ -496,7 +494,7 @@ namespace SINTEF.AutoActive.UI.Figures
             //Test if the data only consist of int, if both the min and the max of the dataset are ints
             //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
             //largest number is above 5
-            else if (((allNumbAreInts) && (diffY >= 8)) || ((Math.Abs(maxY) > 5) && (diffY >= 8)))
+            else if (((allNumbAreInts) && (diffY >= 8)) || ((Math.Abs(maxY) > 5) && (diffY >= 8)))                 
             {
 
                 return "#####";
@@ -529,7 +527,9 @@ namespace SINTEF.AutoActive.UI.Figures
                 tickStart = SmartRound(tickStart, diffY);
             }
 
-            var tickDelta = SmartRound(diffY / nTicks, diffY);
+            var tickDelta = SmartRound(diffY / nTicks, diffY); 
+
+
             var scale = -drawRect.Height / diffY;
 
             for (var i = -nTicks; i < nTicks; i++)
