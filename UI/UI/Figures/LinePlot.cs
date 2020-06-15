@@ -211,7 +211,6 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
-        private bool _previouseallNumbAreInts = true;
         private bool _showOnlyInts = false;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
@@ -263,7 +262,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleX = plotRect.Width / xDiff;
 
-            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts);
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
 
             foreach (var line in _lines)
             {
@@ -304,30 +303,30 @@ namespace SINTEF.AutoActive.UI.Figures
             var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts.Value);
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
 
         }
 
-        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
         {
 
             //Should only enter if, if scalingFrozen is true and window size has not changed
             if ((_scalingFrozen) && (plotRect.Width == _previouseWindowWidth) && (plotRect.Height == _previouseWindowHeight))
             {
-                frozenScaling(out minYValue, out maxYValue, out allNumbAreInts);
+                frozenScaling(out minYValue, out maxYValue);
             }
             else if ((_scalingFrozen) && ((plotRect.Width != _previouseWindowWidth) || (plotRect.Height != _previouseWindowHeight)))
             {
                 //in cases where scales are frozen but size of figure is updated these attributes should stay the same,
                 //therefore is frozenScaling run after autoscale
-                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, true);
-                frozenScaling(out minYValue, out maxYValue, out allNumbAreInts); 
+                autoscale(info, plotRect, out minYValue, out maxYValue, true);
+                frozenScaling(out minYValue, out maxYValue); 
                 _previouseWindowHeight = plotRect.Height;
                 _previouseWindowWidth = plotRect.Width;
             }
             else
             {
-                autoscale(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, false);
+                autoscale(info, plotRect, out minYValue, out maxYValue, false);
                 _previouseWindowHeight = plotRect.Height;
                 _previouseWindowWidth = plotRect.Width;
             }
@@ -336,37 +335,36 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        private void frozenScaling(out float? minYValue, out float? maxYValue, out bool? allNumbAreInts)
+        private void frozenScaling(out float? minYValue, out float? maxYValue)
         {
             minYValue = _prevYValue.minYValue; //I dont think this is correct, as _prevYValue = ()
             maxYValue = _prevYValue.maxYValue;
-            allNumbAreInts = _previouseallNumbAreInts;
         }
 
-        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
+        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
             if (!_autoScaleIndependent)
             {
-                autoscaleDependent(info, plotRect, out minYValue, out maxYValue, out allNumbAreInts, resize);
+                autoscaleDependent(info, plotRect, out minYValue, out maxYValue, resize);
             }
             else
             {
-                autoscaleIndependet(info,  plotRect, out minYValue, out maxYValue, out allNumbAreInts, resize);
+                autoscaleIndependet(info,  plotRect, out minYValue, out maxYValue, resize);
             }
         }
 
-        private void autoscaleDependent(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
+        private void autoscaleDependent(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
             minYValue = _minYValue;
             maxYValue = _maxYValue;
-            allNumbAreInts = true;
+           
 
             var curMin = float.MaxValue;
             var curMax = float.MinValue;
 
             foreach (var line in _lines)
             {
-                var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
 
                 // Do not include NaN or Inf
                 if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
@@ -377,12 +375,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 {
                     curMax = Math.Max(curMax, cMax);
                 }
-                if (_allNumbAreInts == false)
-                {
-                    allNumbAreInts = _allNumbAreInts;
-                }
+
             }
-            _previouseallNumbAreInts = allNumbAreInts.Value;
             if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
             {
                 _smoothScalingQueue.Dequeue();
@@ -419,19 +413,16 @@ namespace SINTEF.AutoActive.UI.Figures
             maxYValue = curMax;
         }
 
-        private void autoscaleIndependet(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool? allNumbAreInts, bool resize)
+        private void autoscaleIndependet(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
             maxYValue = null;
             minYValue = null;
-            allNumbAreInts = null;
+            
                 
             foreach (var line in _lines)
             {
-                var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                if (_allNumbAreInts == false)
-                {
-                    allNumbAreInts = _allNumbAreInts;
-                }
+                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+
                 if (line.SmoothScalingQueue == null)
                 {
                     line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
@@ -494,7 +485,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY, bool allNumbAreInts)
+        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             // If the difference is large enough we should only show ints, or should we just make it as a tick option?
             if(_showOnlyInts)
