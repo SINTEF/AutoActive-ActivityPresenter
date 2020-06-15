@@ -639,8 +639,8 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string ScatterPlotText = "Scatter Plot";
         protected const string LinePlotText = "Line Plot";
         protected const string ColumnPlotText = "Column Plot";
-        protected const string ScaleShowOnlyInts = "Show Only Whole Numbers";
-        protected const string ScaleShowDecimals = "Show Decimal Numbers";
+        protected const string ScaleShowOnlyInts = "Force Y-Scale to show whole numbers";
+        protected const string ScaleSearchForResolution = "Find optimal Y-scale resoltuion";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
@@ -648,7 +648,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
             parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
-            parameters.Add(_showOnlyInts ? ScaleShowDecimals : ScaleShowOnlyInts);
+            parameters.Add(_showOnlyInts ? ScaleSearchForResolution : ScaleShowOnlyInts);
 
             switch (PlotType)
             {
@@ -691,7 +691,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     _showOnlyInts = true;
                     InvalidateSurface();
                     return;
-                case ScaleShowDecimals:
+                case ScaleSearchForResolution:
                     _showOnlyInts = false;
                     InvalidateSurface();
                     return;
