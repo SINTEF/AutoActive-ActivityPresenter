@@ -212,6 +212,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
         private bool _previouseallNumbAreInts = true;
+        private bool _showOnlyInts = false;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
         private (float? minYValue, float? maxYValue) _prevYValue;
@@ -496,7 +497,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY, bool allNumbAreInts)
         {
             // If the difference is large enough we should only show ints, or should we just make it as a tick option?
-            if(allNumbAreInts)
+            if(_showOnlyInts)
             {
                 DrawIntTicks(canvas, drawRect, minY, maxY);
             }
@@ -647,6 +648,8 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string ScatterPlotText = "Scatter Plot";
         protected const string LinePlotText = "Line Plot";
         protected const string ColumnPlotText = "Column Plot";
+        protected const string ScaleShowOnlyInts = "Show Only Whole Numbers";
+        protected const string ScaleShowDecimals = "Show Decimal Numbers";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
@@ -654,6 +657,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
             parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
+            parameters.Add(_showOnlyInts ? ScaleShowDecimals : ScaleShowOnlyInts);
 
             switch (PlotType)
             {
@@ -691,6 +695,14 @@ namespace SINTEF.AutoActive.UI.Figures
                     return;
                 case UnfreezeScalingText:
                     _scalingFrozen = false;
+                    return;
+                case ScaleShowOnlyInts:
+                    _showOnlyInts = true;
+                    InvalidateSurface();
+                    return;
+                case ScaleShowDecimals:
+                    _showOnlyInts = false;
+                    InvalidateSurface();
                     return;
                 case LinePlotText:
                     PlotType = PlotTypes.Line;
