@@ -207,7 +207,7 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int TickBoxMargin = 45;
         private const int TickLength = 3;
         private const int TickMargin = 3;
-        private const int PlotHeightMargin = 4;
+        private const int PlotHeightMargin = 10;
 
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
@@ -396,7 +396,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var yDelta = curMax - curMin; 
             if (yDelta <= 0)
             {
-                yDelta = 2;
+                yDelta = 2f;
                 curMax += yDelta / 2;
                 curMin -= yDelta / 2;
             }
@@ -456,11 +456,6 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
         
-
-
-
-
-
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
             return -(height - PlotHeightMargin * 2) / (yMax - yMin);
@@ -483,7 +478,7 @@ namespace SINTEF.AutoActive.UI.Figures
             
         }
 
-        private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
+        private static string GetFormat(float minY, float maxY)
         {
             var diffY = maxY - minY;
             //Only use e if we have very big or very small numbers
@@ -491,16 +486,6 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 return "0.0e0";
             }
-            //Test if the data only consist of int, if both the min and the max of the dataset are ints
-            //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
-            //largest number is above 5
-            else if (((allNumbAreInts) && (diffY >= 8)) || ((Math.Abs(maxY) > 5) && (diffY >= 8)))                 
-            {
-
-                return "#####";
-            }
-            //If we have only numbers smaller then 5 and not all are ints, the ticks on the y axis 
-            //will be a decimal number
             else
             {
                 return "##.###";
@@ -510,12 +495,55 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY, bool allNumbAreInts)
         {
+            // If the difference is large enough we should only show ints, or should we just make it as a tick option?
+            if(allNumbAreInts)
+            {
+                DrawIntTicks(canvas, drawRect, minY, maxY);
+            }
+            else
+            {
+                DrawFloatTicks(canvas, drawRect, minY, maxY);
+            }
+        }
+
+        private void DrawIntTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        {
+            //This is necessary because have added margins to the min and max values
+            int maxValue = (int)Math.Floor(maxY);
+            int minValue = (int)Math.Ceiling(minY);
+
+            int diffMinMiax = maxValue - minValue;
             var diffY = maxY - minY;
-            var valueFormat = GetFormat(minY, maxY, allNumbAreInts);
+            int tickDelta = 1;
+            const int maxTicks = 8;
+            float scale = (float) (-drawRect.Height /diffY);
+
+            //If the difference between the min and max value is too large we can not have a tick for every value
+            if (diffMinMiax > maxTicks)
+            { 
+                tickDelta = (int)Math.Ceiling((float)diffY / (maxTicks));
+            }
+
+            for ( int i = (int)Math.Ceiling(minY); i <= Math.Floor(maxY); i += tickDelta )
+            {
+                var val = i;
+                var drawVal = ScalePointY(val, maxY, scale);
+                var valueText = val.ToString();
+                var textSize = TickTextPaint.MeasureText(valueText);
+                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin - textSize, drawVal, TickTextPaint);
+                canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
+
+            }
+
+        }
+
+        private void DrawFloatTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        {
+            var diffY = maxY - minY;
+            var valueFormat = GetFormat(minY, maxY);
             uint nTicks = 8;
 
-
-            var tickStart = minY + (diffY / 2f);
+            float tickStart = minY + (diffY / 2f);
 
             // If we cross the zero-axis, use zero as the tick center, if not round it smartly
             if (minY < 0 && 0 < maxY)
