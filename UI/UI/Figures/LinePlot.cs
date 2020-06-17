@@ -280,13 +280,13 @@ namespace SINTEF.AutoActive.UI.Figures
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
             {
-                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height); // 1 in value equals x in height (1:x)
+                float scaleY = -info.Height / (maxYValue.Value - minYValue.Value);
                 zeroY = ScalePointY(0, maxYValue.Value, scaleY); //Where is 0 localized, if it is localized between 0 and height it is seen on screen. Zero is top of screen
             } else
             {
                 zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             }
-            canvas.DrawLine(plotRect.Left, zeroY + 2*PlotHeightMargin, plotRect.Right, zeroY + 2*PlotHeightMargin, _zeroLinePaint); //Draws 0
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint); //Draws 0
 
             foreach (var lineConfig in _lines)
             {
@@ -396,8 +396,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 curMin -= yDelta / 2;
             }
 
-            var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-            curMax -= PlotHeightMargin / scaleY;
+            var scaleY = YScaleFromDiff(curMin, curMax, info.Height); //The margins are subtracted in the function
             curMin += PlotHeightMargin / scaleY;
             foreach (var line in _lines)
             {
