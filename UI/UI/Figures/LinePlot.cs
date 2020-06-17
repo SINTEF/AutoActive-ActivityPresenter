@@ -516,9 +516,31 @@ namespace SINTEF.AutoActive.UI.Figures
                 tickDelta = (int)Math.Ceiling((float)diffY / (maxTicks));
             }
 
-            for ( int i = (int)Math.Ceiling(minY); i <= Math.Floor(maxY); i += tickDelta )
+            List<int> ticks = new List<int>();
+            for (int i = minValue; i <= maxValue; i += tickDelta)
             {
-                var val = i;
+                ticks.Add(i);
+            }
+
+            if ((minValue < 0) && (0 < maxValue) && (!ticks.Contains(0)))
+            {
+ 
+                int maxNegativeNumber = ticks.Select(i => i).Where(i => i < 0).ToList().Max();
+                int maxPositiveNumber = ticks.Select(i => i).Where(i => i > 0).ToList().Max();
+
+                var offset = Math.Min(Math.Abs(maxNegativeNumber), maxPositiveNumber);
+
+                if (maxPositiveNumber == -offset)
+                {
+                    offset = -offset;
+                }
+
+                ticks = ticks.Select(i => i + offset).ToList(); 
+        
+            }
+
+            foreach (int val in ticks)
+            {
                 var drawVal = ScalePointY(val, maxY, scale);
                 var valueText = val.ToString();
                 var textSize = TickTextPaint.MeasureText(valueText);
