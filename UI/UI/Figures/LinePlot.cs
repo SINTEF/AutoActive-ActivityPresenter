@@ -522,6 +522,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 ticks.Add(i);
             }
 
+            //Zero centers the ticks if we have both positive and negative numbers and not zero as a tick
             if ((minValue < 0) && (0 < maxValue) && (!ticks.Contains(0)))
             {
  
