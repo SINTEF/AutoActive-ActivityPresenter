@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Threading;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
+using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -174,6 +175,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 _availableTime = (from, to);
                 _previewContext.SetAvailableTime(from, to);
                 _previewContext?.SetSelectedTimeRange(from, to);
+                RangeSlider.SetAvailableTime(from, to);
 
                 // Ensure that the current selected time is in a valid range.
                 if (ViewerContext.SelectedTimeFrom < ViewerContext.AvailableTimeFrom)
@@ -308,7 +310,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
             _viewerContext.PlaybackRate = PlaybackSpeed;
         }
- 
+
         private void ButtonUpExpand_OnClicked(object sender, EventArgs e)
         {
             WindowSliderSelector.IsVisible ^= true;
@@ -331,6 +333,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 LabelTimeFrom.Text =
                     TimeFormatter.FormatTime(!_fromTimeIsCurrent ? ViewerContext.AvailableTimeFrom : context.SelectedTimeFrom);
             }
+        }
+
+        private void RangeSlider_OnSelectedValueChanged(object sender, MinMaxValueChanged e)
+        {
+            //throw new NotImplementedException($"Range slider changed: {e.Min} {e.Max}");
+            //TODO(sigurdal): Implement this
         }
     }
 }

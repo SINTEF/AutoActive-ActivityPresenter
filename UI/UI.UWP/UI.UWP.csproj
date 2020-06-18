@@ -111,11 +111,15 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Video\VideoLengthExtractor.cs" />
     <Compile Include="Views\BranchViewRenderer.cs" />
+    <Compile Include="Views\MinMaxRangeSlider.xaml.cs">
+      <DependentUpon>MinMaxRangeSlider.xaml</DependentUpon>
+    </Compile>
     <Compile Include="Views\MultiButtonRenderer.cs" />
     <Compile Include="Views\NativeUwpDeltaSliderRenderer.cs" />
     <Compile Include="Views\DraggableSeparatorViewRenderer.cs" />
     <Compile Include="Video\VideoPlayerRenderer.cs" />
     <Compile Include="Views\PlayerTreeView.cs" />
+    <Compile Include="Views\RangeSliderRenderer.cs" />
     <Compile Include="Views\VersionProvider.cs" />
   </ItemGroup>
   <ItemGroup>
@@ -182,6 +186,10 @@
     <Page Include="MainPage.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
+    </Page>
+    <Page Include="Views\MinMaxRangeSlider.xaml">
+      <SubType>Designer</SubType>
+      <Generator>MSBuild:Compile</Generator>
     </Page>
   </ItemGroup>
   <ItemGroup>
