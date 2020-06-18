@@ -56,6 +56,7 @@ namespace SINTEF.AutoActive.UI.Views
         private bool _syncIsSetMaster;
         private bool _syncIsSetSlave;
         private Page _currentPage;
+        private static bool _timeWarningShown = false;
 
         NavigationPage GetNavigationPage()
         {
@@ -219,6 +220,30 @@ namespace SINTEF.AutoActive.UI.Views
             if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
             { 
                 Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
+            }
+        }
+
+        private async Task CheckTimeOffset()
+        {
+
+            int nrOfTimeViewers = _timeViewers.Count;
+            if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+            {
+                return;
+            }
+            if ((nrOfTimeViewers <= 1) || (_timeWarningShown == true))
+            {
+                return;
+            }
+
+            long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
+            long endTime = _timeViewers.Select(i => i.Item1.End).Min();
+            
+            // if the offset between videos is above one day it might not be visible
+            if ((startTime - endTime) > 86400000000)
+            {
+                await GetNavigationPage().DisplayAlert("Warning","The offset between the start and the end of two videos is more then one day, and might therefore not be visible in the timeline", "Ok");
+                _timeWarningShown = true;
             }
         }
 
@@ -448,6 +473,7 @@ namespace SINTEF.AutoActive.UI.Views
             context.SyncIsSetChanged += ChangeColor;
             context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
+            CheckTimeOffset();
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
