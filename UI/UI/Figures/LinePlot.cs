@@ -207,12 +207,11 @@ namespace SINTEF.AutoActive.UI.Figures
         private const int TickBoxMargin = 45;
         private const int TickLength = 3;
         private const int TickMargin = 3;
-        private const int PlotHeightMargin = 4;
+        private const int PlotHeightMargin = 10;
 
-        public bool AutoScale = true;
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
-        private bool _previouseallNumbAreInts = true;
+        private bool _showOnlyInts = false;
         private bool _autoScaleIndependent;
         private bool _scalingFrozen;
         private (float? minYValue, float? maxYValue) _prevYValue;
@@ -263,7 +262,9 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleX = plotRect.Width / xDiff;
 
-            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts);
+            //Takes thes margins of the plot into consideration when calculating min
+            //and max values
+            ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
 
             foreach (var line in _lines)
             {
@@ -278,18 +279,16 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawLine(zeroX + plotRect.Left, plotRect.Top, zeroX + plotRect.Left, plotRect.Bottom, _currentLinePaint);
             }
 
-            // TODO(sigurdal) this scales weirdly if frozen
-            // Draw zero-x axis
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
             {
-                var scaleY = YScaleFromDiff(minYValue.Value, maxYValue.Value, info.Height);
-                 zeroY = ScalePointY(0, maxYValue.Value, scaleY);
+                float scaleY = -info.Height / (maxYValue.Value - minYValue.Value); //calculate the scale, 1 data value equals x pixels
+                zeroY = ScalePointY(0, maxYValue.Value, scaleY); //Where is 0 localized, if it is localized between 0 and height it is seen on screen. Zero is top of screen
             } else
             {
                 zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             }
-            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint);
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint); //Draws 0 line
 
             foreach (var lineConfig in _lines)
             {
@@ -306,132 +305,187 @@ namespace SINTEF.AutoActive.UI.Figures
             var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
-            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value, allNumbAreInts);
+            //Draws the ticks of the y scale the min and max value is not for the data, but it is the data
+            //pluss the marigns which are added in scale lines
+            DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
+
         }
 
-        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, out bool allNumbAreInts)
+        /// <summary>
+        /// Scales the lines in lineplot accordingly to the min and max of data and the plot margins
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
+        private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
         {
-            double windowWidth = plotRect.Width;
-            double windowHight = plotRect.Height;
-
-            minYValue = _minYValue;
-            maxYValue = _maxYValue;
-            allNumbAreInts = true;
 
             //Should only enter if, if scalingFrozen is true and window size has not changed
-            if ((_scalingFrozen) && (windowWidth == _previouseWindowWidth) && (windowHight == _previouseWindowHeight))
+            if ((_scalingFrozen) && (plotRect.Width == _previouseWindowWidth) && (plotRect.Height == _previouseWindowHeight))
             {
-                minYValue = _prevYValue.minYValue;
-                maxYValue = _prevYValue.maxYValue;
-                allNumbAreInts = _previouseallNumbAreInts;
-                return;
+                frozenScaling(out minYValue, out maxYValue);
             }
-            //Should only enter else if, if autoscale is true or if window size has changed
-            else if ((AutoScale) || (windowWidth != _previouseWindowWidth) || (windowHight != _previouseWindowHeight))
+            else if ((_scalingFrozen) && ((plotRect.Width != _previouseWindowWidth) || (plotRect.Height != _previouseWindowHeight)))
             {
-                if (!_autoScaleIndependent)
-                {
-                    var curMin = float.MaxValue;
-                    var curMax = float.MinValue;
-                    foreach (var line in _lines)
-                    {
-                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-
-                        // Do not include NaN or Inf
-                        if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
-                        {
-                            curMin = Math.Min(curMin, cMin);
-                        }
-                        if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
-                        {
-                            curMax = Math.Max(curMax, cMax);
-                        }
-                        if (_allNumbAreInts == false)
-                        { 
-                            allNumbAreInts = _allNumbAreInts;
-                        }
-                    }
-                    _previouseallNumbAreInts = allNumbAreInts;
-                    if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
-                    {
-                        _smoothScalingQueue.Dequeue();
-                    }
-
-                    _smoothScalingQueue.Enqueue((curMin, curMax));
-
-                    curMin = _smoothScalingQueue.Min(el => el.Item1);
-                    curMax = _smoothScalingQueue.Max(el => el.Item2);
-
-                    var yDelta = curMax - curMin;
-                    if (yDelta <= 0)
-                    {
-                        yDelta = 1;
-                        curMax -= yDelta / 2;
-                    }
-
-                    var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                    curMax -= PlotHeightMargin / scaleY;
-                    foreach (var line in _lines)
-                    {
-                        line.OffsetY = curMax;
-                        line.ScaleY = scaleY;
-                    }
-
-                    minYValue = curMin;
-                    maxYValue = curMax;
-                }
-                else
-                {
-                    maxYValue = null;
-                    foreach (var line in _lines)
-                    {
-                        var (cMin, cMax, _allNumbAreInts) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
-                        if (_allNumbAreInts == false)
-                        { 
-                            allNumbAreInts = _allNumbAreInts;
-                        }
-                        if (line.SmoothScalingQueue == null)
-                        {
-                            line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
-                        }
-
-                        if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
-                        {
-                            line.SmoothScalingQueue.Dequeue();
-                        }
-
-                        line.SmoothScalingQueue.Enqueue((cMin, cMax));
-
-                        var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
-                        var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
-
-                        var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
-                        line.OffsetY = curMax - PlotHeightMargin / scaleY;
-                        line.ScaleY = scaleY;
-                    }
-                    _previouseallNumbAreInts = allNumbAreInts;
-                }
+                //in cases where scales are frozen but size of figure is updated these attributes should stay the same,
+                //therefore is frozenScaling run after autoscale
+                autoscale(info, plotRect, out minYValue, out maxYValue, true);
+                frozenScaling(out minYValue, out maxYValue); 
+                _previouseWindowHeight = plotRect.Height;
+                _previouseWindowWidth = plotRect.Width;
             }
             else
             {
-                foreach (var line in _lines)
-                {
-                    line.ScaleY = -info.Height / (line.YDelta);
-                    if (maxYValue.HasValue)
-                        line.OffsetY = maxYValue.Value;
-                }
+                autoscale(info, plotRect, out minYValue, out maxYValue, false);
+                _previouseWindowHeight = plotRect.Height;
+                _previouseWindowWidth = plotRect.Width;
             }
 
-            _previouseWindowHeight = windowHight;
-            _previouseWindowWidth = windowWidth;
+
 
         }
+        /// <summary>
+        /// Sets the scale equal to the previouse iteration
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
+        private void frozenScaling(out float? minYValue, out float? maxYValue)
+        {
+            minYValue = _prevYValue.minYValue; //I dont think this is correct, as _prevYValue = ()
+            maxYValue = _prevYValue.maxYValue;
+        }
 
+        /// <summary>
+        /// Scales the lines in plot according to the available data
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
+
+        private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
+        {
+            if (!_autoScaleIndependent)
+            {
+                autoscaleDependent(info, plotRect, out minYValue, out maxYValue, resize);
+            }
+            else
+            {
+                autoscaleIndependet(info,  plotRect, out minYValue, out maxYValue, resize);
+            }
+        }
+
+        /// <summary>
+        /// Scales all lines dependently. uses the global min and max to scale all the lines if multiple
+        /// lines are plottet in one lineplot.
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
+        private void autoscaleDependent(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
+        {
+            minYValue = _minYValue;
+            maxYValue = _maxYValue;
+           
+
+            var curMin = float.MaxValue;
+            var curMax = float.MinValue;
+
+            foreach (var line in _lines)
+            {
+                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+
+                // Do not include NaN or Inf
+                if (!Double.IsNaN(cMin) && !Double.IsInfinity(cMin))
+                {
+                    curMin = Math.Min(curMin, cMin);
+                }
+                if (!Double.IsNaN(cMax) && !Double.IsInfinity(cMax))
+                {
+                    curMax = Math.Max(curMax, cMax);
+                }
+
+            }
+            if (_smoothScalingQueue.Count >= SmoothScalingQueueSize)
+            {
+                _smoothScalingQueue.Dequeue();
+            }
+
+            _smoothScalingQueue.Enqueue((curMin, curMax));
+
+            curMin = _smoothScalingQueue.Min(el => el.Item1);
+            curMax = _smoothScalingQueue.Max(el => el.Item2);
+
+            //This is done to prevent tickdelta to become 0 and scale to become inf in DrawTicks()
+            var yDelta = curMax - curMin; 
+            if (yDelta <= 0)
+            {
+                yDelta = 2f;
+                curMax += yDelta / 2;
+                curMin -= yDelta / 2;
+            }
+
+            var scaleY = YScaleFromDiff(curMin, curMax, info.Height); //The margins are subtracted in the function
+            curMin += PlotHeightMargin / scaleY;
+            curMax -= PlotHeightMargin / scaleY;
+            foreach (var line in _lines)
+            {
+                //Should not be updated if scales are freezed and size of figure is updated at the same time
+                if (!resize)
+                {
+                    line.OffsetY = curMax;
+                }
+                line.ScaleY = scaleY;
+            }
+
+            minYValue = curMin;
+            maxYValue = curMax;
+        }
+
+        /// <summary>
+        /// All lines are scaled independely of each other, all though they are plottet in the same lineplot.
+        /// This means that no y scale is shown since the scale is dependent on each line in lineplot
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
+        private void autoscaleIndependet(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
+        {
+            maxYValue = null;
+            minYValue = null;
+            
+                
+            foreach (var line in _lines)
+            {
+                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+
+                if (line.SmoothScalingQueue == null)
+                {
+                    line.SmoothScalingQueue = new Queue<(float, float)>(SmoothScalingQueueSize);
+                }
+
+                if (line.SmoothScalingQueue.Count >= SmoothScalingQueueSize)
+                {
+                    line.SmoothScalingQueue.Dequeue();
+                }
+
+                line.SmoothScalingQueue.Enqueue((cMin, cMax));
+
+                var curMin = line.SmoothScalingQueue.Min(el => el.Item1);
+                var curMax = line.SmoothScalingQueue.Max(el => el.Item2);
+
+                var scaleY = YScaleFromDiff(curMin, curMax, info.Height);
+                //Should not be updated if scales are freezed and size of figure is updated at the same time
+                if (!resize)
+                {
+                    line.OffsetY = curMax - PlotHeightMargin / scaleY;
+                }
+                line.ScaleY = scaleY;
+            }
+        }
+        
+        /// <summary>
+        /// Calculates the scale between the data and pixels. Be aware that the marigns are subtracted, 
+        /// the min and the max must therefore be of the data
+        /// </summary>
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
             return -(height - PlotHeightMargin * 2) / (yMax - yMin);
         }
 
+        /// <summary>
+        /// Finds the best resolution of the y scale. 
+        /// </summary>
         private static float SmartRound(float num, float diff)
         {
             // This method should round to the nearest 1, 5, 10, 0.1 in a smart way
@@ -439,21 +493,21 @@ namespace SINTEF.AutoActive.UI.Figures
             if (diff < 0.01)
                 return num;
             if (diff < 0.1)
-                return (float)Math.Round(num, 2);
+                return (float)Math.Round(num, 3);
             if (diff < 5)
-                return (float)Math.Round(num, 1);
+                return (float)Math.Round(num, 2);
             if (diff < 10)
-                return (float)Math.Round(num*5, 1)/5;
-            if (diff < 50)
-                return (float)Math.Round(num, 0);
-            if (diff < 100)
-                return (float)Math.Round(num / 10, 0) * 10;
-
-            //Since the num might be <50 we need to keap at leat 1 decimal or else the axis become 0
-            return (float)Math.Round(num / 50, 1) * 50;
+                return (float)Math.Round(num, 1);
+            
+            return (float)Math.Round(num, 0);
+            
         }
 
-        private static string GetFormat(float minY, float maxY, bool allNumbAreInts)
+        /// <summary>
+        /// Finds the best format of the nr in y scale. Be aware that "##.###" can be ints, if difference
+        /// between min and bax is >10. The min and the max is after the margins are taken into consideration.
+        /// </summary>
+        private static string GetFormat(float minY, float maxY)
         {
             var diffY = maxY - minY;
             //Only use e if we have very big or very small numbers
@@ -461,16 +515,6 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 return "0.0e0";
             }
-            //Test if the data only consist of int, if both the min and the max of the dataset are ints
-            //the dataset probably only consist of ints. The ticks on y axis will also be ints if the
-            //largest number is above 5
-            else if (((allNumbAreInts) && (diffY >= 8)) || ((Math.Abs(maxY) > 5) && (diffY >= 8)))
-            {
-
-                return "#####";
-            }
-            //If we have only numbers smaller then 5 and not all are ints, the ticks on the y axis 
-            //will be a decimal number
             else
             {
                 return "##.###";
@@ -478,14 +522,92 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY, bool allNumbAreInts)
+        /// <summary>
+        /// Draws the ticks of the y scale
+        /// The min and the max is after the margins are taken into consideration.
+        /// </summary>
+        private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        {
+            // If the difference is large enough we should only show ints, or should we just make it as a tick option?
+            if(_showOnlyInts)
+            {
+                DrawIntTicks(canvas, drawRect, minY, maxY);
+            }
+            else
+            {
+                DrawOptimalTicks(canvas, drawRect, minY, maxY);
+            }
+        }
+
+        /// <summary>
+        ///  Draws the y ticks if the ticks are forced to be ints.
+        ///  The min and the max is after the margins are taken into consideration.
+        /// </summary>
+        private void DrawIntTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        {
+            //This is necessary because have added margins to the min and max values
+            int maxValue = (int)Math.Floor(maxY);
+            int minValue = (int)Math.Ceiling(minY);
+
+            int diffMinMiax = maxValue - minValue;
+            var diffY = maxY - minY;
+            int tickDelta = 1;
+            const int maxTicks = 8;
+            float scale = (float) (-drawRect.Height /diffY);
+
+            //If the difference between the min and max value is too large we can not have a tick for every value
+            if (diffMinMiax > maxTicks)
+            { 
+                tickDelta = (int)Math.Ceiling((float)diffY / (maxTicks));
+            }
+
+            List<int> ticks = new List<int>();
+            for (int i = minValue; i <= maxValue; i += tickDelta)
+            {
+                ticks.Add(i);
+            }
+
+            //Zero centers the ticks if we have both positive and negative numbers and not zero as a tick
+            if ((minValue < 0) && (0 < maxValue) && (!ticks.Contains(0)))
+            {
+ 
+                int maxNegativeNumber = ticks.Select(i => i).Where(i => i < 0).ToList().Max();
+                int maxPositiveNumber = ticks.Select(i => i).Where(i => i > 0).ToList().Max();
+
+                var offset = Math.Min(Math.Abs(maxNegativeNumber), maxPositiveNumber);
+
+                if (maxPositiveNumber == -offset)
+                {
+                    offset = -offset;
+                }
+
+                ticks = ticks.Select(i => i + offset).ToList(); 
+        
+            }
+
+            foreach (int val in ticks)
+            {
+                var drawVal = ScalePointY(val, maxY, scale);
+                var valueText = val.ToString();
+                var textSize = TickTextPaint.MeasureText(valueText);
+                canvas.DrawText(valueText, TickBoxMargin - TickLength - TickMargin - textSize, drawVal, TickTextPaint);
+                canvas.DrawLine(TickBoxMargin - TickLength, drawVal, TickBoxMargin, drawVal, _legendStroke);
+
+            }
+
+        }
+
+        /// <summary>
+        /// Searches for the optimal resolution and format of y scale and draws the ticks accordlingly.
+        /// The min and the max is after the margins are taken into consideration.
+        /// </summary>
+        private void DrawOptimalTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             var diffY = maxY - minY;
-            var valueFormat = GetFormat(minY, maxY, allNumbAreInts);
+            var valueFormat = GetFormat(minY, maxY);
             uint nTicks = 8;
 
-
-            var tickStart = minY + (diffY / 2f);
+            float tickStart = minY + (diffY / 2f);
 
             // If we cross the zero-axis, use zero as the tick center, if not round it smartly
             if (minY < 0 && 0 < maxY)
@@ -497,10 +619,10 @@ namespace SINTEF.AutoActive.UI.Figures
                 tickStart = SmartRound(tickStart, diffY);
             }
 
-            var tickDelta = SmartRound(diffY / nTicks, diffY);
-            var scale = -drawRect.Height/diffY;
+            var tickDelta = SmartRound(diffY / nTicks, diffY); 
 
-            
+
+            var scale = -drawRect.Height / diffY;
 
             for (var i = -nTicks; i < nTicks; i++)
             {
@@ -589,6 +711,8 @@ namespace SINTEF.AutoActive.UI.Figures
         protected const string ScatterPlotText = "Scatter Plot";
         protected const string LinePlotText = "Line Plot";
         protected const string ColumnPlotText = "Column Plot";
+        protected const string ScaleShowOnlyInts = "Force Y-Scale to show whole numbers";
+        protected const string ScaleSearchForResolution = "Find optimal Y-scale resoltuion";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
@@ -596,6 +720,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             parameters.Add(_autoScaleIndependent ? AutoScaleCommonText : AutoScaleIndependentText);
             parameters.Add(_scalingFrozen ? UnfreezeScalingText : FreezeScalingText);
+            parameters.Add(_showOnlyInts ? ScaleSearchForResolution : ScaleShowOnlyInts);
 
             switch (PlotType)
             {
@@ -633,6 +758,14 @@ namespace SINTEF.AutoActive.UI.Figures
                     return;
                 case UnfreezeScalingText:
                     _scalingFrozen = false;
+                    return;
+                case ScaleShowOnlyInts:
+                    _showOnlyInts = true;
+                    InvalidateSurface();
+                    return;
+                case ScaleSearchForResolution:
+                    _showOnlyInts = false;
+                    InvalidateSurface();
                     return;
                 case LinePlotText:
                     PlotType = PlotTypes.Line;

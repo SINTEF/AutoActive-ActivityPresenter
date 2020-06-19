@@ -11,7 +11,7 @@ namespace SINTEF.AutoActive.UI.Figures
         float MinY { get; }
         float MaxY { get; }
 
-        (float, float, bool) GetVisibleYStatistics(int maxPoints);
+        (float, float) GetVisibleYStatistics(int maxPoints);
 
         ITimeSeriesViewer Viewer { get; }
         LinePlot Parent { get; set; }
@@ -146,21 +146,19 @@ namespace SINTEF.AutoActive.UI.Figures
 
 
 
-        public (float,float,bool) GetVisibleYStatistics(int maxPoints)
+        public (float,float) GetVisibleYStatistics(int maxPoints)
         {
             var en = Viewer.GetCurrentData<T>().GetEnumerator(maxPoints);
             var (min, max) = (float.MaxValue, float.MinValue);
-            bool allNumbAreInts = true;
             while (en.MoveNext())
             {
                 var el = Convert.ToSingle(en.Current.y);
                 min = Math.Min(el, min);
                 max = Math.Max(el, max);
-                if (el != (int)el) allNumbAreInts = false;
 
             }
 
-            return (min, max, allNumbAreInts);
+            return (min, max);
         }
     }
 }
