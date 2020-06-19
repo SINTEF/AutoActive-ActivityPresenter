@@ -262,6 +262,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var scaleX = plotRect.Width / xDiff;
 
+            //Takes thes margins of the plot into consideration when calculating min
+            //and max values
             ScaleLines(info, plotRect, out float? minYValue, out float? maxYValue);
 
             foreach (var line in _lines)
@@ -280,13 +282,13 @@ namespace SINTEF.AutoActive.UI.Figures
             float zeroY;
             if (maxYValue.HasValue && minYValue.HasValue)
             {
-                float scaleY = -info.Height / (maxYValue.Value - minYValue.Value);
+                float scaleY = -info.Height / (maxYValue.Value - minYValue.Value); //calculate the scale, 1 data value equals x pixels
                 zeroY = ScalePointY(0, maxYValue.Value, scaleY); //Where is 0 localized, if it is localized between 0 and height it is seen on screen. Zero is top of screen
             } else
             {
                 zeroY = ScalePointY(0, _lines.First().OffsetY, _lines.First().ScaleY);
             }
-            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint); //Draws 0
+            canvas.DrawLine(plotRect.Left, zeroY, plotRect.Right, zeroY, _zeroLinePaint); //Draws 0 line
 
             foreach (var lineConfig in _lines)
             {
@@ -303,10 +305,16 @@ namespace SINTEF.AutoActive.UI.Figures
             var axisValueRect = new SKRect(0, plotRect.Top, TickBoxMargin, plotRect.Bottom);
             canvas.Restore();
             canvas.ClipRect(axisValueRect);
+            //Draws the ticks of the y scale the min and max value is not for the data, but it is the data
+            //pluss the marigns which are added in scale lines
             DrawTicks(canvas, axisValueRect, minYValue.Value, maxYValue.Value);
 
         }
 
+        /// <summary>
+        /// Scales the lines in lineplot accordingly to the min and max of data and the plot margins
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
         private void ScaleLines(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue)
         {
 
@@ -334,12 +342,20 @@ namespace SINTEF.AutoActive.UI.Figures
 
 
         }
-
+        /// <summary>
+        /// Sets the scale equal to the previouse iteration
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
         private void frozenScaling(out float? minYValue, out float? maxYValue)
         {
             minYValue = _prevYValue.minYValue; //I dont think this is correct, as _prevYValue = ()
             maxYValue = _prevYValue.maxYValue;
         }
+
+        /// <summary>
+        /// Scales the lines in plot according to the available data
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
 
         private void autoscale(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
@@ -353,6 +369,11 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
+        /// <summary>
+        /// Scales all lines dependently. uses the global min and max to scale all the lines if multiple
+        /// lines are plottet in one lineplot.
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
         private void autoscaleDependent(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
             minYValue = _minYValue;
@@ -413,6 +434,11 @@ namespace SINTEF.AutoActive.UI.Figures
             maxYValue = curMax;
         }
 
+        /// <summary>
+        /// All lines are scaled independely of each other, all though they are plottet in the same lineplot.
+        /// This means that no y scale is shown since the scale is dependent on each line in lineplot
+        /// The returned min and max is after the margins have been taken into consideration
+        /// </summary>
         private void autoscaleIndependet(SKImageInfo info, SKRect plotRect, out float? minYValue, out float? maxYValue, bool resize)
         {
             maxYValue = null;
@@ -448,11 +474,18 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
         
+        /// <summary>
+        /// Calculates the scale between the data and pixels. Be aware that the marigns are subtracted, 
+        /// the min and the max must therefore be of the data
+        /// </summary>
         private static float YScaleFromDiff(float yMin, float yMax, int height)
         {
             return -(height - PlotHeightMargin * 2) / (yMax - yMin);
         }
 
+        /// <summary>
+        /// Finds the best resolution of the y scale. 
+        /// </summary>
         private static float SmartRound(float num, float diff)
         {
             // This method should round to the nearest 1, 5, 10, 0.1 in a smart way
@@ -470,6 +503,10 @@ namespace SINTEF.AutoActive.UI.Figures
             
         }
 
+        /// <summary>
+        /// Finds the best format of the nr in y scale. Be aware that "##.###" can be ints, if difference
+        /// between min and bax is >10. The min and the max is after the margins are taken into consideration.
+        /// </summary>
         private static string GetFormat(float minY, float maxY)
         {
             var diffY = maxY - minY;
@@ -485,6 +522,10 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
+        /// <summary>
+        /// Draws the ticks of the y scale
+        /// The min and the max is after the margins are taken into consideration.
+        /// </summary>
         private void DrawTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             // If the difference is large enough we should only show ints, or should we just make it as a tick option?
@@ -494,10 +535,14 @@ namespace SINTEF.AutoActive.UI.Figures
             }
             else
             {
-                DrawFloatTicks(canvas, drawRect, minY, maxY);
+                DrawOptimalTicks(canvas, drawRect, minY, maxY);
             }
         }
 
+        /// <summary>
+        ///  Draws the y ticks if the ticks are forced to be ints.
+        ///  The min and the max is after the margins are taken into consideration.
+        /// </summary>
         private void DrawIntTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             //This is necessary because have added margins to the min and max values
@@ -552,7 +597,11 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        private void DrawFloatTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
+        /// <summary>
+        /// Searches for the optimal resolution and format of y scale and draws the ticks accordlingly.
+        /// The min and the max is after the margins are taken into consideration.
+        /// </summary>
+        private void DrawOptimalTicks(SKCanvas canvas, SKRect drawRect, float minY, float maxY)
         {
             var diffY = maxY - minY;
             var valueFormat = GetFormat(minY, maxY);
