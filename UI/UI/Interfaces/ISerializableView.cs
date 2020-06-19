@@ -1,10 +1,12 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
 
 namespace SINTEF.AutoActive.UI.Interfaces
 {
     public interface ISerializableView
     {
-        void DeserializeView(JObject root);
+        string ViewType { get; }
+        Task DeserializeView(JObject root);
 
         JObject SerializeView(JObject root = null);
     }
