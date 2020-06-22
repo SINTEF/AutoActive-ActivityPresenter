@@ -360,6 +360,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                     while (csv.Read())
                     {
+                        if (csv.Parser.FieldReader.IsBufferEmpty)
+                        {
+                            // incomplete record at end of file
+                            break;
+                        }
                         record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
                         var ix = 0;
