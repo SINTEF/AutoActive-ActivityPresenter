@@ -17,7 +17,6 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         public BranchView()
         {
             InitializeComponent();
-
             ChildElements.Margin = new Thickness(MarginPerLevel, 0, 0, 0);
         }
 

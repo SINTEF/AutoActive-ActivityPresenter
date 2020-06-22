@@ -6,19 +6,27 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Archive;
+using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-	public partial class FigureView : ContentView
-	{
+	public partial class FigureView : ContentView, ISerializableView
+    {
         public static Color ElementBackgroundColor = Color.CornflowerBlue.MultiplyAlpha(0.7d);
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
+
+        public static string StaticViewType => "no.sintef.ui.figureview";
+        public string ViewType => StaticViewType;
 
         public TimeSynchronizedContext Context { get; }
 	    protected static readonly SKPaint FramePaint = new SKPaint
@@ -298,6 +306,92 @@ namespace SINTEF.AutoActive.UI.Views
         protected virtual void RemoveDataPoint(IDataPoint datapoint)
         {
             throw new NotImplementedException();
+        }
+
+
+        private static IDataPoint GetDataPointFromIdentifier(JToken serializedObject)
+        {
+            IDataStructure dataStructure = DataRegistry.Providers.First();
+            var indexes = (JArray)serializedObject["data_point_indexes"];
+            for (var i = 0; i < indexes.Count - 1; i++)
+            {
+                var ix = indexes[i];
+                dataStructure = dataStructure.Children.Skip(ix.Value<int>()).First();
+            }
+            var dataPoint = dataStructure.DataPoints[indexes[indexes.Count - 1].Value<int>()];
+            return dataPoint;
+        }
+
+        public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context)
+        {
+            if (root["type"].Value<string>() != StaticViewType)
+            {
+                Debug.WriteLine("Illegal type");
+                return null;
+            }
+
+            var dataPoint = GetDataPointFromIdentifier(root);
+            var view = await GetView(dataPoint, context);
+            return view;
+        }
+
+        Task ISerializableView.DeserializeView(JObject root)
+        {
+            throw new NotImplementedException();
+        }
+
+        public JObject SerializeView(JObject root = null)
+        {
+            if (root == null)
+            {
+                root = new JObject();
+            }
+
+            var dataPoints = new JArray();
+            var dataPointIndexes = new JArray();
+            foreach (var dataPoint in DataPoints)
+            {
+                var parentNames = new JArray();
+                dataPoints.Add(parentNames);
+                var parents = DataRegistry.GetParents(dataPoint);
+                parents.Reverse();
+                var prev = parents.First();
+                Debug.WriteLine(dataPoint.Name);
+                if (prev is ArchiveSession session)
+                {
+                    Debug.WriteLine($"  {prev.Name} - {session.Id}");
+                }
+
+                foreach (var parent in parents.Skip(1))
+                {
+                    var ix = prev.Children.IndexOf(parent);
+                    dataPointIndexes.Add(ix);
+                    var line = $"  {ix} - {parent.Name}";
+                    if (parent is ArchiveStructure structure)
+                    {
+                        line += $" - {structure.Type}";
+                    }
+                    parentNames.Add(parent.Name);
+                    Debug.WriteLine(line);
+
+                    prev = parent;
+                }
+
+                {
+                    var ix = prev.DataPoints.IndexOf(dataPoint);
+                    dataPointIndexes.Add(ix);
+                    var line = $"  {ix} - {dataPoint.Name}";
+                    Debug.WriteLine(line);
+
+                    parentNames.Add(dataPoint.Name);
+                }
+                Debug.WriteLine("");
+            }
+            root["data_points"] = dataPoints;
+            root["data_point_indexes"] = dataPointIndexes;
+            root["type"] = ViewType;
+
+            return root;
         }
     }
 }

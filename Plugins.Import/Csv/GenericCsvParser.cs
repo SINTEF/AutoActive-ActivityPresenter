@@ -26,7 +26,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
-
+            // Add option to specify that time coloumn is in milliseconds
+            parameters["EpochTime"] = (false, "in milliseconds");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -41,11 +42,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
     public class GenericCsvImporter : BaseDataProvider
     {
         private readonly string _filename;
+        private readonly Dictionary<string, object> _parameters;
 
         public GenericCsvImporter(Dictionary<string, object> parameters, string filename)
         {
             Name = parameters["Name"] as string;
             _filename = filename;
+            _parameters = parameters;
         }
 
         protected virtual string TableName => "CSV";
@@ -128,17 +131,28 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return arr.Select(TimeFormatter.TimeFromDateTime).ToArray();
         }
 
-        private static Array EnsureTimeArray(Array array)
+        private Array EnsureTimeArray(Array array)
         {
             switch (array)
             {
-                case long[] _:
+                case long[] longArray:
+                    // Time as long array, check if specified to be in ms
+                    if ((_parameters.ContainsKey("EpochTime")) && 
+                        ((bool)_parameters["EpochTime"]))
+                    {
+                        // Time in ms, convert to us
+                        return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
+                    }
+                    // Time already in us
                     return array;
                 case double[] doubleArray:
+                    // Convert from seconds to microseconds
                     return doubleArray.Select(TimeFormatter.TimeFromSeconds).ToArray();
                 case DateTime[] dateTimeArray:
+                    // Time is date time format, convert to us
                     return dateTimeArray.Select(TimeFormatter.TimeFromDateTime).ToArray();
                 default:
+                    // Unknown time format
                     throw new NotImplementedException();
             }
         }
@@ -487,6 +501,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return list;
         }
 
+        // This method fails if there is a line that includes a , (comma) before the 'header' (e.g. Hyper IMU files)
         public static (List<string>, List<Type>, List<Array>) Parse(Stream stream)
         {
             // I'm assuming that it is quicker to count the number of lines to initialize the lists for the output

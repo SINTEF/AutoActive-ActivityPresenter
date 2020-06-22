@@ -14,13 +14,13 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlayerPage : ContentPage
-    {
+	public partial class PlayerPage : ContentPage
+	{
         private IFileBrowser _browser;
-        private const double SplitViewWidthMin = 1000;
+        private static bool _fistStart = true;
+        private const double SplitViewWidthMin = 10000;
         private const double OverlayModeWidth = 0.9;
         private const double OverlayModeShadeOpacity = 0.5;
-        private static bool _fistStart = true;
         public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
 
         public PlayerPage()

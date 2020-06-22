@@ -210,7 +210,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
                 if (_slaveSet && !isMaster && datapoint.Time != _slaveTime)
                 {
-                    await DisplayAlert("Illegal datapoint selected", "Can only show data sets with common time", "OK");
+                    await DisplayAlert("Invalid datapoint selected", "Can only show data sets with common time", "OK");
                     return;
                 }
 

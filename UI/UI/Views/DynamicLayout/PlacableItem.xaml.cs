@@ -1,5 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Linq;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
@@ -7,8 +15,9 @@ using Xamarin.Forms.Xaml;
 namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class PlaceableItem : ContentView
+    public partial class PlaceableItem : ContentView, ISerializableView
     {
+        public string ViewType => "no.sintef.ui.placeableitem";
         public PlaceableItem()
         {
             InitializeComponent();
@@ -176,8 +185,82 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return;
             }
         }
+
+        public TimeSynchronizedContext Context { get; set; }
+
+        public async Task DeserializeView(JObject root)
+        {
+            if (root["type"].ToString() != ViewType)
+            {
+                Debug.WriteLine("Unknown type for view.");
+                return;
+            }
+
+            Item = await FigureView.DeserializeView((JObject)root["item"], Context);
+
+            return;
+            foreach (var vertChild in (JArray)root["vertical"])
+            {
+
+                var layout = HorizontalLayout.Children.Count == 0 ? HorizontalLayout : new ResizableStackLayout();
+
+                foreach (var horChild in (JArray) vertChild)
+                {
+                    var item = new PlaceableItem {Context = Context};
+                    await item.DeserializeView((JObject)horChild);
+
+                    layout.AddChild(item);
+                }
+                VerticalLayout.AddChild(layout);
+            }
+        }
+
+        public JObject SerializeView(JObject root = null)
+        {
+            if (root == null) root = new JObject();
+            root["type"] = ViewType;
+            root["item"] = Item.SerializeView();
+
+            var vertical = new JArray();
+
+            var children = new JObject();
+            root["vertical"] = vertical;
+
+            foreach (var el in VerticalLayout.Children)
+            {
+                if (el is DraggableSeparator) continue;
+
+                if (!(el is ResizableStackLayout stackLayout)) continue;
+                var horizontal = new JArray();
+                if (stackLayout.Children.Count == 1 && stackLayout.Children[0] is AbsoluteLayout)
+                {
+                    continue;
+                }
+
+                foreach (var el2 in stackLayout.Children)
+                {
+
+                    if (el2 is DraggableSeparator) continue;
+
+                    if (!(el2 is PlaceableItem placableItem))
+                    {
+                        continue;
+                    }
+
+                    horizontal.Add(placableItem.SerializeView());
+                }
+
+                vertical.Add(horizontal);
+            }
+
+
+            children["vertical"] = vertical;
+
+            return root;
+        }
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PlaceableLocation
     {
         Up, Down, Left, Right, Center

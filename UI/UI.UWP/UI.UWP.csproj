@@ -128,6 +128,26 @@
     </AppxManifest>
   </ItemGroup>
   <ItemGroup>
+    <Content Include="Assets\ActivityPresenterIcon.altform-unplated_targetsize-16.png" />
+    <Content Include="Assets\ActivityPresenterIcon.altform-unplated_targetsize-24.png" />
+    <Content Include="Assets\ActivityPresenterIcon.altform-unplated_targetsize-256.png" />
+    <Content Include="Assets\ActivityPresenterIcon.altform-unplated_targetsize-32.png" />
+    <Content Include="Assets\ActivityPresenterIcon.altform-unplated_targetsize-48.png" />
+    <Content Include="Assets\ActivityPresenterIcon.scale-100.png" />
+    <Content Include="Assets\ActivityPresenterIcon.scale-125.png" />
+    <Content Include="Assets\ActivityPresenterIcon.scale-150.png" />
+    <Content Include="Assets\ActivityPresenterIcon.scale-200.png" />
+    <Content Include="Assets\ActivityPresenterIcon.scale-400.png" />
+    <Content Include="Assets\ActivityPresenterIcon.targetsize-16.png" />
+    <Content Include="Assets\ActivityPresenterIcon.targetsize-24.png" />
+    <Content Include="Assets\ActivityPresenterIcon.targetsize-256.png" />
+    <Content Include="Assets\ActivityPresenterIcon.targetsize-32.png" />
+    <Content Include="Assets\ActivityPresenterIcon.targetsize-48.png" />
+    <Content Include="Assets\ActivityPresenterLogo.scale-100.png" />
+    <Content Include="Assets\ActivityPresenterLogo.scale-125.png" />
+    <Content Include="Assets\ActivityPresenterLogo.scale-150.png" />
+    <Content Include="Assets\ActivityPresenterLogo.scale-200.png" />
+    <Content Include="Assets\ActivityPresenterLogo.scale-400.png" />
     <Content Include="Assets\LargeTile.scale-100.png" />
     <Content Include="Assets\LargeTile.scale-200.png" />
     <Content Include="Assets\LargeTile.scale-400.png" />
@@ -155,6 +175,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-100.png" />
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
+    <EmbeddedResource Include="Assets\AutoActive-logo.png" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
   <ItemGroup>

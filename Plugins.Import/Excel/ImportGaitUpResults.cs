@@ -22,7 +22,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             using (var reader = new StreamReader(stream))
             {
                 var line = reader.ReadLine();
-                return line != null && line.Contains("PK");
+                var line2 = reader.ReadLine();
+                return (line != null) && (line2.Contains("worksheets/sheet1.xml"));
             }
         }
 

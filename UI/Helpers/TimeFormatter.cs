@@ -5,6 +5,7 @@ namespace SINTEF.AutoActive.UI.Helpers
     public static class TimeFormatter
     {
         public const long MicrosPerSecond = 1000000L;
+        public const long MicroPerMilliSecond = 1000L;
         public static string FormatTime(long time, long offset = 0, char dateSeparator='\n')
         {
             var remTime = time - offset;
@@ -34,6 +35,10 @@ namespace SINTEF.AutoActive.UI.Helpers
         public static long TimeFromSeconds(double time)
         {
             return (long) (MicrosPerSecond * time);
+        }
+        public static long TimeFromMilliSeconds(long time)
+        {
+            return (long)(MicroPerMilliSecond * time);
         }
         public static double SecondsFromTime(long time)
         {

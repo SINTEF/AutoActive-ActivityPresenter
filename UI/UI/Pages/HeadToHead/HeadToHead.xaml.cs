@@ -18,6 +18,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class HeadToHead : ContentPage, ISerializableView
     {
+        public string ViewType => "no.sintef.ui.head2head";
         private const string SelectedText = "[X]";
         private const string UnselectedText = "[ ]";
 
@@ -151,20 +152,20 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                     return;
                 }
 
-                DeserializeView(headToHead);
+                await DeserializeView(headToHead);
             }
         }
 
-        public void DeserializeView(JObject root)
+        public async Task DeserializeView(JObject root)
         {
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
-                LeftGrid.DeserializeView(left);
+                await LeftGrid.DeserializeView(left);
             }
 
             if (root.TryGetValue("Right", out var rightRaw) && rightRaw is JObject right)
             {
-                RightGrid.DeserializeView(right);
+                await RightGrid.DeserializeView(right);
 
                 if (right.TryGetValue("Offset", out var offset))
                 {
