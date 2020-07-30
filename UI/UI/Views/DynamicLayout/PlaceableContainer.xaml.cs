@@ -163,7 +163,10 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             container.SetItem(null);
 
             var ix = _placeableItems.FindIndex(it => it.item == container);
-            _placeableItems.RemoveAt(ix);
+            if (ix != -1)
+            {
+                _placeableItems.RemoveAt(ix);
+            }
 
             var placeableParent = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(container.Parent);
             if (!(container.Parent is ResizableStackLayout layout))
