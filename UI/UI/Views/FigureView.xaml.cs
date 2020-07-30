@@ -308,18 +308,40 @@ namespace SINTEF.AutoActive.UI.Views
             throw new NotImplementedException();
         }
 
-
-        private static IDataPoint GetDataPointFromIdentifier(JToken serializedObject)
+        private static IDataPoint GetDataPointsFromIdentifierFromDataProvider(JArray indexes,
+            IDataStructure dataStructure)
         {
-            IDataStructure dataStructure = DataRegistry.Providers.First();
-            var indexes = (JArray)serializedObject["data_point_indexes"];
             for (var i = 0; i < indexes.Count - 1; i++)
             {
-                var ix = indexes[i];
-                dataStructure = dataStructure.Children.Skip(ix.Value<int>()).First();
+                var ix = indexes[i].Value<int>();
+                dataStructure = dataStructure.Children.Skip(ix).First();
             }
             var dataPoint = dataStructure.DataPoints[indexes[indexes.Count - 1].Value<int>()];
+
+            // TODO(sigurdal): Check the datapoint, not only the indexes.
+
             return dataPoint;
+        }
+
+
+        private static IList<IDataPoint> GetDataPointsFromIdentifier(JToken serializedObject)
+        {
+            var dataPoints = new List<IDataPoint>();
+            var indexesList = ((JArray)serializedObject["data_point_indexes"]).Cast<JArray>();
+
+            foreach(var indexes in indexesList) {
+                //IDataStructure dataStructure = DataRegistry.Providers.First();
+                var dataPoint = DataRegistry.Providers.Select(dataStructure => GetDataPointsFromIdentifierFromDataProvider(indexes, dataStructure)).FirstOrDefault();
+
+                if (dataPoint == null)
+                {
+                    //TODO(sigurdal): Show warning message
+                }
+
+                dataPoints.Add(dataPoint);
+            }
+
+            return dataPoints;
         }
 
         public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context)
@@ -332,8 +354,27 @@ namespace SINTEF.AutoActive.UI.Views
 
             try
             {
-                var dataPoint = GetDataPointFromIdentifier(root);
+                var dataPoints = GetDataPointsFromIdentifier(root);
+                if (dataPoints.Count == 0)
+                {
+                    await XamarinHelpers.ShowOkMessage("Deserialization failed.", $"Could not find any DataPoints for figure during deserialization");
+                    return null;
+                }
+                var dataPoint = dataPoints.First();
                 var view = await GetView(dataPoint, context);
+                if (dataPoints.Count <= 1) return view;
+
+                if (!(view is LinePlot linePlot))
+                {
+                    await XamarinHelpers.ShowOkMessage("Deserialization failed.", "View trying to add multiple data points to unsupported view.");
+                    return null;
+                }
+
+                foreach (var extraDataPoint in dataPoints.Skip(1))
+                {
+                    await linePlot.AddLine(extraDataPoint);
+                }
+
                 return view;
             }
             catch (Exception ex)
@@ -359,6 +400,8 @@ namespace SINTEF.AutoActive.UI.Views
             var dataPointIndexes = new JArray();
             foreach (var dataPoint in DataPoints)
             {
+                var dataPointIndex = new JArray();
+                dataPointIndexes.Add(dataPointIndex);
                 var parentNames = new JArray();
                 dataPoints.Add(parentNames);
                 var parents = DataRegistry.GetParents(dataPoint);
@@ -373,7 +416,7 @@ namespace SINTEF.AutoActive.UI.Views
                 foreach (var parent in parents.Skip(1))
                 {
                     var ix = prev.Children.IndexOf(parent);
-                    dataPointIndexes.Add(ix);
+                    dataPointIndex.Add(ix);
                     var line = $"  {ix} - {parent.Name}";
                     if (parent is ArchiveStructure structure)
                     {
@@ -387,7 +430,7 @@ namespace SINTEF.AutoActive.UI.Views
 
                 {
                     var ix = prev.DataPoints.IndexOf(dataPoint);
-                    dataPointIndexes.Add(ix);
+                    dataPointIndex.Add(ix);
                     var line = $"  {ix} - {dataPoint.Name}";
                     Debug.WriteLine(line);
 
