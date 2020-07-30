@@ -330,9 +330,17 @@ namespace SINTEF.AutoActive.UI.Views
                 return null;
             }
 
-            var dataPoint = GetDataPointFromIdentifier(root);
-            var view = await GetView(dataPoint, context);
-            return view;
+            try
+            {
+                var dataPoint = GetDataPointFromIdentifier(root);
+                var view = await GetView(dataPoint, context);
+                return view;
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Deserialization failed.", $"Could not get DataPoint: {ex}");
+                return null;
+            }
         }
 
         Task ISerializableView.DeserializeView(JObject root)
