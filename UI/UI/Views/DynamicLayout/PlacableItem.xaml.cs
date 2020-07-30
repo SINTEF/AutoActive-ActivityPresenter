@@ -189,80 +189,116 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public TimeSynchronizedContext Context { get; set; }
 
-        public async Task DeserializeView(JObject root)
+        public Task DeserializeView(JObject root)
         {
+            return DeserializeView(root, false);
+        }
+
+        public async Task DeserializeView(JObject root, bool recursive, PlaceableItem rootParent = null)
+        {
+            if (rootParent == null)
+            {
+                rootParent = this;
+            }
             if (root["type"].ToString() != ViewType)
             {
                 Debug.WriteLine("Unknown type for view.");
                 return;
             }
 
-            var guidString = root["id"]?.Value<string>();
-            ViewId = guidString != null ? Guid.Parse(guidString) : Guid.Empty;
+            var item = await FigureView.DeserializeView((JObject) root["item"], Context);
+            SetItem(item);
 
-            //Item = await FigureView.DeserializeView((JObject)root["item"], Context);
-            SetItem(await FigureView.DeserializeView((JObject)root["item"], Context));
-
-            return;
-            foreach (var vertChild in (JArray)root["vertical"])
+            if (!recursive)
             {
-
-                var layout = HorizontalLayout.Children.Count == 0 ? HorizontalLayout : new ResizableStackLayout();
-
-                foreach (var horChild in (JArray) vertChild)
-                {
-                    var item = new PlaceableItem {Context = Context};
-                    await item.DeserializeView((JObject)horChild);
-
-                    layout.AddChild(item);
-                }
-                VerticalLayout.AddChild(layout);
+                var guidString = root["id"]?.Value<string>();
+                ViewId = guidString != null ? Guid.Parse(guidString) : Guid.Empty;
+                return;
             }
+
+            if (rootParent == this)
+            {
+                rootParent.ItemDeserialized?.Invoke(this, (this, PlaceableLocation.Center, Guid.Empty));
+            }
+
+            var children = ((JArray)root["children"]).Cast<JObject>();
+            foreach (var child in children)
+            {
+                var plItem = new PlaceableItem {Context = Context};
+                await plItem.DeserializeView((JObject)child["item"], true, rootParent);
+                if(plItem.Item == null) continue;
+
+                var locString = child["location"].Value<string>();
+                var location = JsonConvert.DeserializeObject<PlaceableLocation>(locString);
+                PlaceRelative(plItem, location);
+
+                rootParent.ItemDeserialized?.Invoke(this, (plItem, location, ViewId));
+            }
+
+
         }
 
+        public event EventHandler<(PlaceableItem item, PlaceableLocation location, Guid parentId)> ItemDeserialized;
+
         public JObject SerializeView(JObject root = null)
+        {
+            return SerializeView(root, false);
+        }
+        public JObject SerializeView(JObject root, bool recursive)
         {
             if (root == null) root = new JObject();
             root["type"] = ViewType;
             root["item"] = Item.SerializeView();
             root["id"] = ViewId.ToString();
 
-            return root;
-
-            var vertical = new JArray();
-
-            var children = new JObject();
-            root["vertical"] = vertical;
-
-            foreach (var el in VerticalLayout.Children)
+            if (!recursive)
             {
-                if (el is DraggableSeparator) continue;
-
-                if (!(el is ResizableStackLayout stackLayout)) continue;
-                var horizontal = new JArray();
-                if (stackLayout.Children.Count == 1 && stackLayout.Children[0] is AbsoluteLayout)
+                var vertical = new JArray();
+                foreach (var el in VerticalLayout.Children)
                 {
-                    continue;
-                }
+                    if (el is DraggableSeparator) continue;
 
-                foreach (var el2 in stackLayout.Children)
-                {
-
-                    if (el2 is DraggableSeparator) continue;
-
-                    if (!(el2 is PlaceableItem placableItem))
+                    if (!(el is ResizableStackLayout stackLayout)) continue;
+                    var horizontal = new JArray();
+                    if (stackLayout.Children.Count == 1 && stackLayout.Children[0] is AbsoluteLayout)
                     {
                         continue;
                     }
 
-                    horizontal.Add(placableItem.SerializeView());
+                    foreach (var el2 in stackLayout.Children)
+                    {
+
+                        if (el2 is DraggableSeparator) continue;
+
+                        if (!(el2 is PlaceableItem placeableItem))
+                        {
+                            continue;
+                        }
+
+                        horizontal.Add(placeableItem.SerializeView(null, false));
+                    }
+
+                    vertical.Add(horizontal);
                 }
 
-                vertical.Add(horizontal);
+                root["vertical"] = vertical;
             }
+            else
+            {
 
+                var items = new JArray();
 
-            children["vertical"] = vertical;
+                foreach (var (item, location) in PlaceableItems)
+                {
+                    items.Add(new JObject
+                    {
+                        ["item"] = item.SerializeView(null, true),
+                        ["location"] = JsonConvert.SerializeObject(location)
+                    });
+                }
+
+                root["children"] = items;
+            }
 
             return root;
         }
