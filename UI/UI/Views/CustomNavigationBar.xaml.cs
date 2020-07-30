@@ -1,8 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.Databus.Interfaces;
@@ -11,6 +14,7 @@ using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.Import;
 using SINTEF.AutoActive.UI.Pages;
 using SINTEF.AutoActive.UI.Pages.HeadToHead;
+using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 
@@ -198,6 +202,21 @@ namespace SINTEF.AutoActive.UI.Views
         private void Head2Head_OnClicked(object sender, EventArgs e)
         {
             Navigation.PushAsync(new HeadToHead());
+        }
+
+        private void SaveView_Clicked(object sender, EventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage(Navigation) is PlayerPage playerPage)
+            {
+                playerPage.SaveView();
+            }
+        }
+        private void LoadView_Clicked(object sender, EventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage(Navigation) is PlayerPage playerPage)
+            {
+                playerPage.LoadView();
+            }
         }
     }
 }

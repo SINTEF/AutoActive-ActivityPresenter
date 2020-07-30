@@ -18,6 +18,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
     public partial class PlaceableItem : ContentView, ISerializableView
     {
         public string ViewType => "no.sintef.ui.placeableitem";
+        public Guid ViewId = Guid.NewGuid();
         public PlaceableItem()
         {
             InitializeComponent();
@@ -196,7 +197,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return;
             }
 
-            Item = await FigureView.DeserializeView((JObject)root["item"], Context);
+            var guidString = root["id"]?.Value<string>();
+            ViewId = guidString != null ? Guid.Parse(guidString) : Guid.Empty;
+
+            //Item = await FigureView.DeserializeView((JObject)root["item"], Context);
+            SetItem(await FigureView.DeserializeView((JObject)root["item"], Context));
 
             return;
             foreach (var vertChild in (JArray)root["vertical"])
@@ -220,6 +225,9 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             if (root == null) root = new JObject();
             root["type"] = ViewType;
             root["item"] = Item.SerializeView();
+            root["id"] = ViewId.ToString();
+
+            return root;
 
             var vertical = new JArray();
 
