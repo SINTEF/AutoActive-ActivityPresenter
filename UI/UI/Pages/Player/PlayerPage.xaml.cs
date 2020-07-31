@@ -2,6 +2,10 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
@@ -9,7 +13,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 {
 	public partial class PlayerPage : ContentPage
 	{
-	    private const double SplitViewWidthMin = 10000;
+        private IFileBrowser _browser;
+        private const double SplitViewWidthMin = 10000;
 	    private const double OverlayModeWidth = 0.9;
 	    private const double OverlayModeShadeOpacity = 0.5;
 	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
@@ -17,6 +22,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlayerPage()
         {
             InitializeComponent();
+            _browser = DependencyService.Get<IFileBrowser>();
+            if (_browser == null)
+            {
+                XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Critical error",
+                    "Could get file browser. Will not be able to open and save files.", "OK");
+            }
+
 
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
@@ -199,5 +211,68 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 ColumnTree.Width = _treeViewWidth = new GridLength(newWidth);
             }
         }
-	}
+
+        public async void SaveView(string uri = null)
+        {
+            IReadWriteSeekStreamFactory file = null;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForSave((".aav", "AutoActive View"));
+            }
+#if Feature_BroadSystemAccess
+            else
+            {
+                file = await _browser.SaveFromUri(uri);
+            }
+#endif
+
+            if (file == null) return;
+
+            var root = new JObject();
+            PlayerContainer.SerializeView(root);
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, root);
+            }
+        }
+
+        public async void LoadView(string uri = null)
+        {
+            IReadSeekStreamFactory file = null;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForLoad((".aav", "AutoActive View"));
+            }
+#if Feature_BroadSystemAccess
+            else
+            {
+                file = await _browser.LoadFromUri(uri);
+            }
+#endif
+            if (file == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "Could not read file");
+                return;
+            }
+
+            JObject root;
+            var stream = await file.GetReadStream();
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                var serializer = new JsonSerializer();
+                root = serializer.Deserialize(reader) as JObject;
+            }
+
+            PlayerContainer.ViewerContext = ViewerContext;
+            await PlayerContainer.DeserializeView(root);
+        }
+    }
 }
