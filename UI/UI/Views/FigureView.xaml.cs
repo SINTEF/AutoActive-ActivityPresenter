@@ -344,6 +344,17 @@ namespace SINTEF.AutoActive.UI.Views
             return dataPoints;
         }
 
+        public static bool DeserializationFailedWarned;
+
+        private static async Task ShowDeserializationWarning(string message)
+        {
+            if (!DeserializationFailedWarned)
+            {
+                await XamarinHelpers.ShowOkMessage("Deserialization failed.", message);
+                DeserializationFailedWarned = true;
+            }
+        }
+
         public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context)
         {
             if (root["type"].Value<string>() != StaticViewType)
@@ -355,18 +366,19 @@ namespace SINTEF.AutoActive.UI.Views
             try
             {
                 var dataPoints = GetDataPointsFromIdentifier(root);
-                if (dataPoints.Count == 0)
+                if (dataPoints.Count == 0 || dataPoints.First() == null)
                 {
-                    await XamarinHelpers.ShowOkMessage("Deserialization failed.", $"Could not find any DataPoints for figure during deserialization");
+                    await ShowDeserializationWarning("Could not find any DataPoints for figure during deserialization");
                     return null;
                 }
+
                 var dataPoint = dataPoints.First();
                 var view = await GetView(dataPoint, context);
                 if (dataPoints.Count <= 1) return view;
 
                 if (!(view is LinePlot linePlot))
                 {
-                    await XamarinHelpers.ShowOkMessage("Deserialization failed.", "View trying to add multiple data points to unsupported view.");
+                    await ShowDeserializationWarning("View trying to add multiple data points to unsupported view.");
                     return null;
                 }
 
@@ -379,7 +391,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
             catch (Exception ex)
             {
-                await XamarinHelpers.ShowOkMessage("Deserialization failed.", $"Could not get DataPoint: {ex}");
+                await ShowDeserializationWarning($"Could not get DataPoint: {ex}");
                 return null;
             }
         }

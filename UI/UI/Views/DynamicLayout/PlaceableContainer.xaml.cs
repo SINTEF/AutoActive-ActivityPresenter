@@ -357,8 +357,10 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         private void PlaceableItemOnItemDeserialized(object sender, (PlaceableItem item, PlaceableLocation location, Guid parent) args)
         {
-            _placeableItems.Add(args);
             var view = args.item.Item;
+            if (view == null)
+                return;
+            _placeableItems.Add(args);
             foreach (var dataPoint in view.DataPoints)
             {
                 InvokeDatapointAdded(dataPoint, view.Context);

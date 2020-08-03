@@ -6,6 +6,7 @@ using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.UI.Views;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
@@ -272,6 +273,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             PlayerContainer.ViewerContext = ViewerContext;
+            FigureView.DeserializationFailedWarned = false;
             await PlayerContainer.DeserializeView(root);
         }
     }
