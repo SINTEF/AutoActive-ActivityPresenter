@@ -11,7 +11,6 @@
                 <RowDefinition Height ="Auto"/>
             </Grid.RowDefinitions>
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="75" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
                 <ColumnDefinition Width="Auto" />
@@ -28,44 +27,45 @@
                 IsVisible="False"
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637"
-                FontAttributes="Bold"
+                FontAttributes="None"
                 TextColor="White"
             />
 
             <Button
-                Grid.Column="2"
+                Grid.Column="0"
                 Grid.Row="1"
                 x:Name="OpenArchiveButton"
-                Text="Open archive"
+                Text="OPEN"
                 Clicked="OpenArchiveButton_OnClicked"
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637"
-                FontAttributes="Bold"
+                FontAttributes="None"
                 TextColor="White"
             />
 
             <Button
-                Grid.Column="3"
+                Grid.Column="1"
                 Grid.Row="1"
                 x:Name="OpenImportButton"
-                Text="Import file"
+                Text="IMPORT FILE"
                 Clicked="OpenImportButton_OnClicked"
                 BorderColor="#23A2B1"
+
                 BackgroundColor="#1D2637"
-                FontAttributes="Bold"
+                FontAttributes="None"
                 TextColor="White"
             />
 
             <Button
-                Grid.Column="2"
+                Grid.Column="0"
                 Grid.Row="2"
-                x:Name="SaveArchiveButton"
+                x:Name="MainPageButton"
                 x:FieldModifier="public"
-                Text="Save"
-                Clicked="SaveArchiveButton_OnClicked"
+                Text="MAIN PAGE"
+                Clicked="PlayerPage_OnClicked"
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637"
-                FontAttributes="Bold"
+                FontAttributes="None"
                 TextColor="White"
             />
 
@@ -76,18 +76,7 @@
                 Clicked="SynchronizationButton_OnClicked"
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637"
-                FontAttributes="Bold"
-                TextColor="White"/>
-
-
-            <Button
-                Grid.Column="4"
-                Grid.Row="2"
-                Text="Head2Head"
-                Clicked="Head2Head_OnClicked"
-                BorderColor="#23A2B1"
-                BackgroundColor="#1D2637"
-                FontAttributes="Bold"
+                FontAttributes="None"
                 TextColor="White"/>
 
             <StackLayout Grid.Row="1" Grid.Column="5"  Orientation="Horizontal">
@@ -102,6 +91,44 @@
             </StackLayout>
 
             <Label Grid.Column="7" Grid.Row="1" x:Name="VersionLabel" TextColor="White" />
+
+            <Button
+                Grid.Column="1"
+                Grid.Row="2"
+                x:Name="SyncPageButton"
+                x:FieldModifier="public"
+                Text="SYNCHRONIZE"
+                Clicked="SynchronizationButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637"
+                FontAttributes="None"
+                TextColor="White"/>
+
+            <Button
+                Grid.Column="2"
+                Grid.Row="2"
+                x:Name="Head2HeadPageButton"
+                x:FieldModifier="public"
+                Text="HEAD2HEAD"
+                Clicked="Head2Head_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637"
+                FontAttributes="None"
+                TextColor="White"
+                IsEnabled="False"/>
+
+            <Button
+                Grid.Column="3"
+                Grid.Row="2"
+                x:Name="SaveArchiveButton"
+                x:FieldModifier="public"
+                Text="SAVE PROJECT"
+                Clicked="SaveArchiveButton_OnClicked"
+                BorderColor="#23A2B1"
+                BackgroundColor="#1D2637"
+                FontAttributes="None"
+                TextColor="White"
+            />
 
             <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="2" Aspect="AspectFit" HorizontalOptions="End" Source="Assets\ActivityPresenterLogo.png" />
 

@@ -19,8 +19,8 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
     public partial class HeadToHead : ContentPage, ISerializableView
     {
         public string ViewType => "no.sintef.ui.head2head";
-        private const string SelectedText = "[X]";
-        private const string UnselectedText = "[ ]";
+        private const string SelectedText = "x";
+        private const string UnselectedText = " ";
 
         private Button _selectedButton;
         private Button SelectedButton
@@ -39,6 +39,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         public HeadToHead()
         {
             InitializeComponent();
+            NavigationBar.Head2HeadPageButton.BackgroundColor = Color.FromHex("23A2B1");
         }
 
         protected override void OnAppearing()

@@ -4,6 +4,7 @@ using System.Data;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using ExcelDataReader;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations;
@@ -26,7 +27,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
             // Add option to specify that time coloumn is in milliseconds
-            parameters["EpochTime"] = (false, "in milliseconds");
+            parameters["Time"] = (false, "The time column can be in milliseconds or microseconds.\nImport as milliseconds (Yes) or microseconds (No)");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -122,7 +123,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
 
         protected static string ReplaceIllegalNameCharacters(string el)
         {
-            return el.Replace(".", "");
+            return Regex.Replace(el, @"[-.() ]", "_");
         }
 
         private static int FindTimeDataIndex(List<string> names)
@@ -161,8 +162,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
             {
                 case long[] longArray:
                     // Time as long array, check if specified to be in ms
-                    if ((_parameters.ContainsKey("EpochTime")) &&
-                        ((bool)_parameters["EpochTime"]))
+                    if ((_parameters.ContainsKey("Time")) &&
+                        ((bool)_parameters["Time"]))
                     {
                         // Time in ms, convert to us
                         return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
@@ -220,7 +221,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Excel
                 var name = names[i];
                 var type = types[i];
 
-                var colInfo = new ColInfo(name, null);
+                var colInfo = new ColInfo(name, "-");
 
                 var uri = base.Name + "/" + colInfo.Name;
 

@@ -69,6 +69,31 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
         }
 
         public event EventHandler<double> PlaybackRateChanged;
+
+        private bool _syncIsSet;
+        public event EventHandler<bool> SyncIsSetChanged;
+        public bool SyncIsSet
+        {
+            get => _syncIsSet;
+            set
+            {
+                _syncIsSet = value;
+                SyncIsSetChanged?.Invoke(this, value);
+            }
+        }
+
+        private double? _MarkedFeature;
+        public event EventHandler<double?> MarkedFeatureChanged;
+
+        public double? MarkedFeature
+        {
+            get => _MarkedFeature;
+            set
+            {
+                _MarkedFeature = value;
+                MarkedFeatureChanged?.Invoke(this, value);
+            }
+        }
     }
 
     public delegate void DataViewerContextSelectedRangeChangedHandler(SingleSetDataViewerContext sender, long from, long to);

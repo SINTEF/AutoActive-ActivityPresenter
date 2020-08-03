@@ -11,7 +11,7 @@ namespace SINTEF.AutoActive.UI.Figures
         float MinY { get; }
         float MaxY { get; }
 
-        (float, float) GetVisibleYMinMax(int maxPoints);
+        (float, float) GetVisibleYStatistics(int maxPoints);
 
         ITimeSeriesViewer Viewer { get; }
         LinePlot Parent { get; set; }
@@ -80,6 +80,7 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             while (en.MoveNext())
             {
+                if(en.Current.isNan) continue;
                 var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
                 if (plotX > drawRect.Width)
                 {
@@ -96,11 +97,12 @@ namespace SINTEF.AutoActive.UI.Figures
         {
 
             if (!en.MoveNext()) return;
-
+            
             var startX = Math.Max(LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX), 0);
             plot.MoveTo(startX + drawRect.Left, LinePlot.ScalePointY(Convert.ToSingle(en.Current.y), lineConfig.OffsetY, lineConfig.ScaleY));
             while (en.MoveNext())
             {
+                if (en.Current.isNan) continue;
                 var plotX = LinePlot.ScalePointX(en.Current.x, lineConfig.OffsetX, lineConfig.ScaleX);
                 if (plotX > drawRect.Width)
                 {
@@ -121,7 +123,10 @@ namespace SINTEF.AutoActive.UI.Figures
             get => _minYValue;
             set
             {
-                _minYValue = value;
+                if (!Double.IsNaN(value))
+                    {
+                    _minYValue = value;
+                    }
                 Parent?.InvalidateSurface();
             }
         }
@@ -131,14 +136,17 @@ namespace SINTEF.AutoActive.UI.Figures
             get => _maxYValue;
             set
             {
-                _maxYValue = value;
+                if (!Double.IsNaN(value))
+                {
+                    _maxYValue = value;
+                }
                 Parent?.InvalidateSurface();
             }
         }
 
 
 
-        public (float,float) GetVisibleYMinMax(int maxPoints)
+        public (float,float) GetVisibleYStatistics(int maxPoints)
         {
             var en = Viewer.GetCurrentData<T>().GetEnumerator(maxPoints);
             var (min, max) = (float.MaxValue, float.MinValue);
@@ -147,6 +155,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 var el = Convert.ToSingle(en.Current.y);
                 min = Math.Min(el, min);
                 max = Math.Max(el, max);
+
             }
 
             return (min, max);

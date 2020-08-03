@@ -29,7 +29,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             {
                 _placeableItems.Add((el, PlaceableLocation.Center, Guid.Empty));
             }
-
         }
 
         private bool PlacementLocationVisible

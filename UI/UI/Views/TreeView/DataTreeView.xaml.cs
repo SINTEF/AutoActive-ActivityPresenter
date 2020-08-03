@@ -11,6 +11,8 @@ using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
+//Data tree view is a tree view used for selecting data on all pages except of save page
+//--------------------------------------------------------------------------------------
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]

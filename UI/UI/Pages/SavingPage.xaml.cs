@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Pages
         public SavingPage()
         {
             InitializeComponent();
-
+            NavigationBar.SaveArchiveButton.BackgroundColor = Color.FromHex("23A2B1");
             DataRegistry.ProviderAdded += el => DataTree.Tree.Children.Add(el);
             DataRegistry.ProviderRemoved += el => DataTree.Tree.Children.Remove(el);
           
@@ -62,6 +62,11 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             var ret = base.OnBackButtonPressed();
 
+            return CheckBeforeExit(ret);
+        }
+
+        public bool CheckBeforeExit(bool ret)
+        {
             if (_treeMightHaveChanged)
             {
                 var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
@@ -70,12 +75,12 @@ namespace SINTEF.AutoActive.UI.Pages
                 {
                     if (displayAlert.Result)
                     {
+                        // Switch back to player page (main page)
                         XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
                     }
                 });
                 return true;
             }
-
 
             if (!_isSaving) return ret;
 
@@ -85,6 +90,7 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 if (displayTask.Result)
                 {
+                    // Switch back to player page (main page)
                     XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
                 }
             });

@@ -15,7 +15,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 {
     public class PlayerTreeView : ListView
     {
-        public static readonly GridLength DefaultWidth = 200;
+        public static readonly GridLength DefaultWidth = 180;
 
         public PlayerTreeView () : base(ListViewCachingStrategy.RecycleElementAndDataTemplate)
 		{
@@ -95,8 +95,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // View data cell class
     public abstract class DataItemCell : ViewCell
     {
+        // Create datacell at top level, no indentation
         public readonly BindableProperty TextProperty = BindableProperty.Create(nameof(Text), typeof(string),
             typeof(DataItemCell),
             propertyChanged: (boundObject, _, value) =>
@@ -106,9 +108,15 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
                 var text = value as string;
                 cell._label.Text = text;
+                // Set text color for session name
                 cell._label.TextColor = Color.White;
-                cell._label.FontAttributes = FontAttributes.Bold;
+                cell._frame.BackgroundColor = Color.FromHex("23A2B1");
+                cell._frame.CornerRadius = 0;
+                cell._frame.BorderColor = Color.Transparent;
+                cell._frame.HorizontalOptions = LayoutOptions.FillAndExpand;
             });
+
+        // Create datacell with indentation
         public readonly BindableProperty UIntProperty = BindableProperty.Create(nameof(Indentation), typeof(uint), typeof(DataItemCell),
             propertyChanged: (boundObject, _, value) =>
             {
@@ -117,8 +125,14 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 var indent = value as uint?;
                 if (!indent.HasValue) return;
                 cell._frame.Margin = new Thickness(10 * indent.Value, 0, 0, 0);
+                // Set text color for session data
+                cell._label.TextColor = Color.White;
+                cell._frame.BackgroundColor = Color.Transparent;
+                cell._frame.CornerRadius = 0;
+                cell._frame.BorderColor = Color.Transparent;
             });
-        private readonly Label _label = new Label();
+
+        protected readonly Label _label = new Label();
         private readonly Frame _frame;
 
         protected DataItemCell()
@@ -177,6 +191,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell at top level, data provider
     internal class DataProviderCell : DataStructureCell
     {
         private readonly IFileBrowser _browser;
@@ -232,6 +247,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell with no data
     internal class DataStructureCell : DataItemCell
     {
         public DataStructureCell()
@@ -240,6 +256,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
     }
 
+    // Class for cell with data
     internal class DataPointCell : DataItemCell
     {
         public DataPointCell()
@@ -256,7 +273,20 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             var dataPointItem = BindingContext as DataPointItem;
             dataPointItem?.OnUseInTimelineTapped();
+
+            // Toggle text colour if used as timeline
+            if (_label.TextColor == Color.White)
+            {
+                _label.TextColor = Color.FromHex("#1F77B4");
+                _label.FontAttributes = FontAttributes.Bold;
+            }
+            else
+            {
+                _label.TextColor = Color.White;
+                _label.FontAttributes = FontAttributes.None;
+            }
         }
+
     }
 
     /* ---- Classes for building the tree view ---- */
@@ -409,6 +439,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             ChildItems.Remove(item);
         }
 
+        // Build three structure data points
         private void DataPointAdded(IDataStructure sender, IDataPoint datapoint)
         {
             if (_pointItems.ContainsKey(datapoint)) return;

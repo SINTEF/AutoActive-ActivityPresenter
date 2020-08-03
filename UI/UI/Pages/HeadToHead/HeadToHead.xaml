@@ -9,16 +9,20 @@
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Frame Grid.Column="0" Grid.Row="0" BorderColor="Red" MinimumHeightRequest="200">
+            <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
+            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200">
                 <RelativeLayout>
                     <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -30,13 +34,13 @@
                                 Property=Height,
                                 Factor=1}"/>
                     <Button x:Name="LeftButton"
-                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            Text=" " WidthRequest="30" HeightRequest="30"
                             BackgroundColor="LightSlateGray"
                             Clicked="SelectButton_Clicked"
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="1" Grid.Row="0" BorderColor="Blue">
+            <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue">
                 <RelativeLayout VerticalOptions="StartAndExpand">
                     <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -44,20 +48,19 @@
                                              RelativeLayout.HeightConstraint=
                                              "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}" />
                     <Button x:Name="RightButton"
-                            Text="[ ]" WidthRequest="40" HeightRequest="40"
+                            Text=" " WidthRequest="30" HeightRequest="30"
                             BackgroundColor="LightSlateGray"
                             Clicked="SelectButton_Clicked"
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Blue">
+            <Frame Grid.Column="2" Grid.Row="2" BorderColor="Blue">
                 <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />
             </Frame>
-
-            <player:PlayerTreeView x:Name="TreeView" Grid.Column="2" Grid.Row="0"/>
-            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="Start"/>
-            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" VerticalOptions="End"/>
-            <player:PlaybarView Grid.Row="2" Grid.ColumnSpan="3" Grid.Column="0" x:Name="Playbar"/>
+            <player:PlayerTreeView x:Name="TreeView" Grid.Column="3" Grid.Row="1"/>
+            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="Start" IsVisible="False" IsEnabled="False"/>
+            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="End" IsVisible="False" IsEnabled="False"/>
+            <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="1" x:Name="Playbar"/>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

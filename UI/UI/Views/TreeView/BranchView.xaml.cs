@@ -6,6 +6,9 @@ using Xamarin.Forms;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
+//Branch view is a tree view used on Save Page
+//--------------------------------------------
+
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
@@ -53,7 +56,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 UpdateExpandedName();
                 if (!IsClickable())
                 {
-                    BranchButton.BackgroundColor = Color.White;
+                    BranchButton.BackgroundColor = Color.FromHex("#23A2B1");
                 }
             }
         }

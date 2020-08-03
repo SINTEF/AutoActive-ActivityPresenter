@@ -15,7 +15,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         private IReadOnlyList<View> _children;
         private bool _childrenChanged = true;
         public const double MinimumWeight = 1;
-
+        
+        
         public new IReadOnlyList<View> Children
         {
             //This can't just be casted due to strange Xamarin implementation
@@ -33,7 +34,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             Orientation = StackOrientation.Vertical;
             OriginalChildren = new ObservableCollection<Element>();
-            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;
+            OriginalChildren.CollectionChanged += OriginalChildrenOnCollectionChanged;        
         }
 
         public ObservableCollection<Element> OriginalChildren { get; set; }
@@ -68,7 +69,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             _childrenChanged = true;
         }
 
-        public const double SeparatorSize = 2d;
+        public const double SeparatorSize = 8d;
 
         public const double DefaultPercentageValue = 100d;
         public static readonly BindableProperty SizeWeightProperty = BindableProperty.CreateAttached(
@@ -80,7 +81,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             (bindable, value) => (double)value >= MinimumWeight,
             SizeWeightPropertyChanged
             );
-
+        
         private static void SizeWeightPropertyChanged(BindableObject bindable, object oldValue, object newValue)
         {
             if (!(bindable is View view) || oldValue == newValue)
@@ -108,7 +109,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var totalWeight = Children.Where(child => child.IsVisible && !(child is DraggableSeparator)).Sum(child => GetSizeWeight(child));
 
             var numSeparators = Children.Count(child => child.IsVisible && child is DraggableSeparator);
-
 
             // Reset all weights if they are very small
             if (Math.Abs(totalWeight) < 1d)
@@ -144,6 +144,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             }
             else
             {
+                var childHeights = height - numSeparators * SeparatorSize;
                 var yPos = y;
                 foreach (var child in Children)
                 {
@@ -156,7 +157,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                     }
                     else
                     {
-                        childHeight = height * GetSizeWeight(child) / totalWeight;
+                        childHeight = childHeights * GetSizeWeight(child) / totalWeight;
                     }
 
                     LayoutChildIntoBoundingRegion(child, new Rectangle(x, yPos, width, childHeight));

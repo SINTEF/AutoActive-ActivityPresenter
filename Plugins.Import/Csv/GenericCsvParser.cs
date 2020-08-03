@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using CsvHelper;
 using CsvHelper.Configuration;
 using Newtonsoft.Json.Linq;
@@ -27,7 +28,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         public void GetExtraConfigurationParameters(Dictionary<string, (object, string)> parameters)
         {
             // Add option to specify that time coloumn is in milliseconds
-            parameters["EpochTime"] = (false, "in milliseconds");
+            parameters["Time"] = (false, "The time column can be in milliseconds or microseconds.\nImport as milliseconds (Yes) or microseconds (No)");
         }
 
         public async Task<IDataProvider> Import(IReadSeekStreamFactory readerFactory,
@@ -91,7 +92,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
         private static string ReplaceIllegalNameCharacters(string el)
         {
-            return el.Replace(".", "");
+            return Regex.Replace(el, @"[-.() ]", "_");
         }
 
         private static int FindTimeDataIndex(List<string> names)
@@ -137,8 +138,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 case long[] longArray:
                     // Time as long array, check if specified to be in ms
-                    if ((_parameters.ContainsKey("EpochTime")) && 
-                        ((bool)_parameters["EpochTime"]))
+                    if ((_parameters.ContainsKey("Time")) && 
+                        ((bool)_parameters["Time"]))
                     {
                         // Time in ms, convert to us
                         return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
@@ -181,7 +182,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 var name = names[i];
                 var type = types[i];
 
-                var colInfo = new ColInfo(name, null);
+                var colInfo = new ColInfo(name, "-");
 
                 var uri = base.Name + "/" + colInfo.Name;
 
@@ -359,6 +360,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                     while (csv.Read())
                     {
+                        if (csv.Parser.FieldReader.IsBufferEmpty)
+                        {
+                            // incomplete record at end of file
+                            break;
+                        }
                         record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
                         var ix = 0;

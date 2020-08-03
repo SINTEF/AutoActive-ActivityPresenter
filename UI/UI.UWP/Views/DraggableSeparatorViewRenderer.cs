@@ -43,8 +43,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
             _element = new Rectangle
             {
-                Fill = new SolidColorBrush(Colors.LightGray),
-                Stroke = new SolidColorBrush(Colors.DarkGray),
+                Fill = new SolidColorBrush(Windows.UI.Color.FromArgb(29, 38, 55, 0)),
+                Stroke = new SolidColorBrush(Windows.UI.Color.FromArgb(29, 38, 55, 0)),
                 StrokeThickness = 1
             };
 

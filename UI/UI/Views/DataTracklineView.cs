@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.UI.Pages.HeadToHead;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
+using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
 namespace SINTEF.AutoActive.UI.Views
@@ -22,9 +24,9 @@ namespace SINTEF.AutoActive.UI.Views
 
         private readonly SKPaint _currentLinePaint = new SKPaint
         {
-            Color = SKColors.Lime,
+            Color = SKColor.Parse("#1D2637"),
             Style = SKPaintStyle.Stroke,
-            StrokeWidth = 1,
+            StrokeWidth = 3,
             StrokeJoin = SKStrokeJoin.Miter,
             IsAntialias = true
         };
@@ -47,33 +49,120 @@ namespace SINTEF.AutoActive.UI.Views
             WidthMargins = 10;
             Touch += OnTouch;
             EnableTouchEvents = true;
+
+        }
+
+
+        private bool _syncIsSetMaster;
+        private bool _syncIsSetSlave;
+        private Page _currentPage;
+        private static bool _timeWarningShown = false;
+
+        NavigationPage GetNavigationPage()
+        {
+            var mainPage = Application.Current.MainPage;
+
+            if (mainPage is MasterDetailPage page)
+            {
+                mainPage = page.Detail;
+            }
+
+            return (NavigationPage)mainPage;
         }
 
         private void OnTouch(object sender, SKTouchEventArgs e)
         {
-            if (e.ActionType != SKTouchAction.Pressed) return;
-
-            if (e.MouseButton == SKMouseButton.Right)
+            if (_timeViewers.Count == 0) { return; }
+            if (e.MouseButton == SKMouseButton.Left)
             {
-                if (Playbar == null) return;
-
-                var height = GetTracklineHeight(_previousHeight);
-                if (height < 1) return;
-
-                height += YMargin;
-
-                var selectedItem = (int) (e.Location.Y / height);
-                if (selectedItem >= _dataTimeList.Count) return;
-
-                var (_, timeViewer, _) = _dataTimeList[selectedItem];
-                Playbar.SetSliderTime(timeViewer.Start);
+                if ((_currentPage is PlayerPage) || (_currentPage is HeadToHead))
+                {
+                    onTouchPlayerPage(sender, e);
+                }
+                else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+                {
+                    
+                    onTouchSyncPage(sender, e);
+                }
+                else
+                {
+                    throw new NotImplementedException();
+                }
             }
+            if (e.MouseButton == SKMouseButton.Right && e.ActionType == SKTouchAction.Released)
+            {
+                Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
+            }
+        }
+
+        private void onTouchPlayerPage(object sender, SKTouchEventArgs e)
+        {
+            var mouseClickLocationX = e.Location.X;
+            var totalWindowLength = this.CanvasSize.Width;
+            var relativeMouseClickLocationX = mouseClickLocationX / totalWindowLength;
+            var maximumSliderValue = Playbar.GetTimeSlider.Maximum;
+            Playbar.GetTimeSlider.Value = maximumSliderValue * relativeMouseClickLocationX;
+        }
+
+        private void onTouchSyncPage(object sender, SKTouchEventArgs e)
+        {
+            var mouseClickLocationX = e.Location.X;
+            var times = new List<(long, long, string)>();
+
+            foreach (var (viewer, context, label) in _timeViewers)
+            {
+                int counterMaster = times.Where(x => x.Item3.Contains("Master")).Count();
+                int counterSlave = times.Where(x => x.Item3.Contains("Slave")).Count();
+                if (counterMaster == 1 && counterSlave == 1) { break; }
+                try
+                {
+                    SynchronizationContext slaveContext = (SynchronizationContext)context;
+                    long offset = slaveContext.Offset;
+                    long start = viewer.Start - offset;
+                    long end = viewer.End - offset;
+                    string newLabel = label + "_Slave";
+                    times.Add((start, end, label));
+                }
+                catch
+                {
+                    if (counterMaster == 0)
+                    {
+                        string newLabel = label + "_Master";
+                        times.Add((viewer.Start, viewer.End, newLabel));
+                    }
+                }
+            }
+
+            double xMin = times.Min(el => el.Item1);
+            double xMax = times.Max(el => el.Item2);
+
+            foreach (var (start, end, label) in times)
+            {
+                double scaleX = (this.CanvasSize.Width / (xMax - xMin));
+                double rectStartX = (start - xMin) * scaleX;
+                double rectEndX = (end - xMin) * scaleX;
+
+                if (label.Contains("Master"))
+                {
+                    Slider slider = Playbar.GetTimeSlider;
+                    setSliderValue(rectStartX, rectEndX, mouseClickLocationX, slider);
+                }
+            }
+        }
+
+        private void setSliderValue(double rectStartX, double rectEndX, double mouseClickLocationX, Slider slider)
+        {
+            double totalWindowLength = rectEndX - rectStartX;
+            double relativeMouseClick = (mouseClickLocationX - rectStartX) / totalWindowLength;
+            slider.Value = slider.Maximum * relativeMouseClick;
         }
 
         public int WidthMargins { get; set; }
 
         protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
+
+            _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
             var canvas = e.Surface.Canvas;
 
             canvas.Clear(SKColors.White);
@@ -103,9 +192,59 @@ namespace SINTEF.AutoActive.UI.Views
             canvas.SetMatrix(trans);
 
             var (xMin, xScale) = DrawDataSegments(e.Surface.Canvas, drawRect, _timeViewers);
+            ActivateDeactivateTimeStepper(_timeViewers);
+            EnsurePlayerIsDeactivatedIfEmpty(_timeViewers);
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
+            
+            
+        }
+
+        private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        {
+            var nrOfTimeViewers = _timeViewers.Count();
+            if (nrOfTimeViewers == 0)
+            {
+                Playbar.GetTimeStepper.AreButtonsEnabled = false;
+            }
+            else
+            {
+                Playbar.GetTimeStepper.AreButtonsEnabled = true;
+            }
+        }
+
+        private void EnsurePlayerIsDeactivatedIfEmpty(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
+        {
+            var nrOfTimeViewers = _timeViewers.Count();
+            if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
+            { 
+                Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
+            }
+        }
+
+        private async Task CheckTimeOffset()
+        {
+
+            int nrOfTimeViewers = _timeViewers.Count;
+            if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+            {
+                return;
+            }
+            if ((nrOfTimeViewers <= 1) || (_timeWarningShown == true))
+            {
+                return;
+            }
+
+            long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
+            long endTime = _timeViewers.Select(i => i.Item1.End).Min();
+            
+            // if the offset between videos is above one day it might not be visible
+            if ((startTime - endTime) > 86400000000)
+            {
+                await GetNavigationPage().DisplayAlert("Warning","The offset between the start and the end of two videos is more then one day, and might therefore not be visible in the timeline", "Ok");
+                _timeWarningShown = true;
+            }
         }
 
         private void DrawCurrentTime(SKCanvas canvas, long xMin, float xScale)
@@ -134,23 +273,6 @@ namespace SINTEF.AutoActive.UI.Views
             return (times, xMin, xScale);
         }
 
-        private readonly SKPaint _dataTrackPaint = new SKPaint
-        {
-            Color = new SKColor(100,108,119),
-            StrokeWidth = 1,
-            Style = SKPaintStyle.Fill,
-            IsAntialias = true
-        };
-
-        private readonly SKPaint _textPaint = new SKPaint
-        {
-            Color = SKColors.White,
-            Style = SKPaintStyle.Fill,
-            IsAntialias = true,
-            SubpixelText = true,
-            Typeface = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold)
-        };
-
         private const float MaxTrackHeight = 30f;
         private const float YMargin = 2f;
         private float _previousHeight;
@@ -161,7 +283,6 @@ namespace SINTEF.AutoActive.UI.Views
             if (yHeight > MaxTrackHeight) yHeight = MaxTrackHeight;
             return yHeight;
         }
-
 
         private (long, float) DrawDataSegments(SKCanvas canvas, SKRect drawRect, IReadOnlyCollection<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
         {
@@ -176,8 +297,6 @@ namespace SINTEF.AutoActive.UI.Views
             var (times, xMin, xScale) = GetMinTimeAndScale(timeViewers, drawRect);
 
             var yHeight = GetTracklineHeight(drawRect.Height);
-
-
 
             var fontHeight = _textPaint.FontMetrics.Bottom - _textPaint.FontMetrics.Top;
             var textSize = _textPaint.TextSize;
@@ -194,20 +313,146 @@ namespace SINTEF.AutoActive.UI.Views
                     : 0f;
 
             var yPos = YMargin;
-            foreach (var (start, end, label) in times)
-            {
-                var xPos = (start - xMin) * xScale;
-                var width = Math.Max((end - start) * xScale, 1f);
-                canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, _dataTrackPaint);
-                canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, _textPaint);
 
-                yPos += yHeight + YMargin;
+            if ((_currentPage is PlayerPage) || (_currentPage is HeadToHead))
+            {
+                foreach (var (start, end, label) in times)
+                {
+                    var xPos = (start - xMin) * xScale;
+                    var width = Math.Max((end - start) * xScale, 1f);
+                    canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, _dataTrackPaint);
+                    canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, _textPaint);
+                    yPos += yHeight + YMargin;
+                }
+            }
+            else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+            {
+                var minTime = times.Select(x => x.Item1).Min();
+                var maxTime = times.Select(x => x.Item2).Max();
+                foreach (var tup in times.Zip(timeViewers, (i1, i2) => Tuple.Create(i1, i2)))
+                {
+                    var (start, end, label) = tup.Item1;
+                    var (timeViwer, context, name) = tup.Item2;
+                    SKPaint trackPaint = DecideColor(context);
+                    var xPos = (start - xMin) * xScale;
+                    var width = Math.Max((end - start) * xScale, 1f);
+                    canvas.DrawRoundRect(xPos, yPos, width, yHeight, boxRoundnessX, boxRoundnessY, trackPaint);
+                    canvas.DrawText(label, xPos + labelXMargin, yPos + yHeight - fontBottom, _textPaint);
+                    yPos += yHeight + YMargin;
+                    if (context.MarkedFeature != null)
+                    {
+                        var canvasWidth = this.CanvasSize.Width;
+                        DrawFeatureMarkings(canvas, context, xPos, yPos, canvasWidth, yHeight, minTime, maxTime);
+                    }
+                }
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
 
             return (xMin, xScale);
         }
 
+        private void DrawFeatureMarkings(SKCanvas canvas, TimeSynchronizedContext timeViewers, float xPos, float yPos, float width, float yHeight, float minTime, float maxTime)
+        {
+            var yStart = yPos - yHeight- YMargin;
+            var yEnd = yPos- YMargin;
+            float scaleFactor = (maxTime- minTime) / width;
+            float featureMarikingXPos = (float)((timeViewers.MarkedFeature - minTime) / scaleFactor);
+            canvas.DrawLine(featureMarikingXPos, yStart, featureMarikingXPos, yEnd, _TrackPaintfeatureMark);
+        }
+
+        private void ChangeColor(object sender, bool value)
+        {
+
+            if (sender is SynchronizationContext)
+            {
+                _syncIsSetSlave = value;
+            }
+            else
+            {
+                _syncIsSetMaster = value;
+            }
+
+            InvalidateSurface();
+
+        }
+
+        private SKPaint DecideColor(TimeSynchronizedContext context)
+        {
+            if (context is SynchronizationContext)
+            {
+                if (_syncIsSetSlave == true)
+                {
+                    return _dataTrackPaintOnSync;
+                }
+                else
+                {
+                    return _dataTrackPaintNoSync;
+                }
+            }
+            else
+            {
+                if (_syncIsSetMaster == true)
+                {
+                    return _dataTrackPaintOnSync;
+                }
+                else
+                {
+                    return _dataTrackPaintNoSync;
+                }
+            }
+
+        }
+
+        private readonly SKPaint _dataTrackPaint = new SKPaint
+        {
+            Color = new SKColor(100, 108, 119),
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _dataTrackPaintOnSync = new SKPaint
+        {
+            Color = new SKColor(29, 185, 84),
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _dataTrackPaintNoSync = new SKPaint
+        {
+            Color = new SKColor(241, 48, 77),
+            StrokeWidth = 1,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _TrackPaintfeatureMark = new SKPaint
+        {
+            Color = new SKColor(0, 0, 0),
+            StrokeWidth = 2,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true
+        };
+
+        private readonly SKPaint _textPaint = new SKPaint
+        {
+            Color = SKColors.White,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
+            SubpixelText = true,
+            Typeface = SKTypeface.FromFamilyName(SKTypeface.Default.FamilyName, SKFontStyle.Bold)
+        };
+
         private void ContextOnAvailableTimeRangeChanged(DataViewerContext sender, long @from, long to)
+        {
+            InvalidateSurface();
+        }
+
+        private void ContextOnMarkedFeatureChanged(object sender, double? value)
         {
             InvalidateSurface();
         }
@@ -225,7 +470,10 @@ namespace SINTEF.AutoActive.UI.Views
             _timeViewers.Add((timeViewer, context, dataPoint.Name));
             timeViewer.TimeChanged += ViewerOnTimeChanged;
             context.SelectedTimeRangeChanged += ContextOnSelectedTimeRangeChanged;
+            context.SyncIsSetChanged += ChangeColor;
+            context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
+            CheckTimeOffset();
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
@@ -254,8 +502,14 @@ namespace SINTEF.AutoActive.UI.Views
             timeViewer.TimeChanged -= ViewerOnTimeChanged;
             context.Remove(dataViewer);
             context.SelectedTimeRangeChanged -= ContextOnSelectedTimeRangeChanged;
+            context.SyncIsSet = false;
+            context.SyncIsSetChanged -= ChangeColor;
+            context.MarkedFeatureChanged -= ContextOnMarkedFeatureChanged;
             _timeViewers.RemoveAt(index);
-
+            int masterCount = _timeViewers.Where(x => x.Item2 is TimeSynchronizedContext).Count();
+            int slaveCount = _timeViewers.Where(x => x.Item2 is SynchronizationContext).Count();
+            if (masterCount == 0){ _syncIsSetMaster = false;}
+            if (slaveCount == 0) { _syncIsSetSlave = false; }
             InvalidateSurface();
         }
 

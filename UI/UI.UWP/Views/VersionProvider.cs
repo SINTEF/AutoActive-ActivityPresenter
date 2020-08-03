@@ -14,9 +14,9 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             {
                 var version = Package.Current.Id.Version;
 #if DEBUG
-                return "vD.B.G";
+                return $"Version {version.Major}.{version.Minor}.{version.Build} - DEBUG";
 #else
-                return $"v{version.Major}.{version.Minor}.{version.Build}";
+                return $"Version {version.Major}.{version.Minor}.{version.Build}";
 #endif
             }
         }

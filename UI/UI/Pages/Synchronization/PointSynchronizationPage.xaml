@@ -7,73 +7,101 @@
              x:Class="SINTEF.AutoActive.UI.Pages.Synchronization.PointSynchronizationPage">
     <ContentPage.Content>
         <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+            
             <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition x:Name="ColumnSplitter" Width="*" />
                 <ColumnDefinition x:Name="ColumnSplitter2" Width="Auto" />
                 <ColumnDefinition x:Name="ColumnTree" Width="{x:Static player:PlayerTreeView.DefaultWidth}" />
+                <ColumnDefinition x:Name="ColumnMargin" Width="20" />
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
+                <RowDefinition Height="Auto"/>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
-            <Grid Grid.Column="0" Grid.Row="0" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
+
+            <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
+
+            <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="FillAndExpand" HorizontalOptions="FillAndExpand">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                 </Grid.ColumnDefinitions>
                 <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto" />
                     <RowDefinition Height="*" />
                     <RowDefinition Height="Auto" />
                 </Grid.RowDefinitions>
-                <Label Text="Master" Grid.Column="0" Grid.Row="0" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White"/>
-                <Frame Grid.Column="0" Grid.Row="1" Margin="1" Padding="5" BackgroundColor="#1D2637">
-                    <StackLayout x:Name="MasterLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" />
-                </Frame>
-                <StackLayout Grid.Column="0" Grid.Row="2" >
-                    <views:TimeStepper x:Name="MasterTimeStepper" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep"/>
+
+                
+                <StackLayout x:Name="MasterLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" Grid.Column="0" Grid.Row="0" />
+                <StackLayout Grid.Column="0" Grid.Row="1" >
+                    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Text="Master" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
+                        <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="MasterTimeStepper_OnOnStep" />
+                    </Grid>
                     <StackLayout  HorizontalOptions="Center" Orientation="Horizontal">
-                        <Button x:Name="MasterTimeButton" Text="SET SYNC POINT" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="Center" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                        <Button x:Name="MasterTimeButton" Text="SET SYNC POINT" Clicked="MasterTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                     </StackLayout>
                 </StackLayout>
-                <Label Text="Slave" Grid.Column="1" Grid.Row="0" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White" />
-                <Frame Grid.Column="1" Grid.Row="1" Margin="1" Padding="5" BackgroundColor="#1D2637"  VerticalOptions="FillAndExpand">
-                    <StackLayout x:Name="SlaveLayout" Orientation="Vertical" HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
-                </Frame>
-                <StackLayout Grid.Column="1" Grid.Row="2">
-                    <views:TimeStepper x:Name="SlaveTimeStepper" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
+
+
+                <StackLayout x:Name="SlaveLayout" Orientation="Vertical" Grid.Column="1" Grid.Row="0" 
+                              HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand" />
+                <StackLayout Grid.Column="1" Grid.Row="1">
+                    <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
+                        <views:TimeStepper x:Name="SlaveTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="SlaveTimeStepper_OnOnStep"/>
+                    </Grid>
                     <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
-                        <Button x:Name="SlaveTimeButton" Text="SET SYNC POINT" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="Center" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                        <Button x:Name="SlaveTimeButton" Text="SET SYNC POINT" Clicked="SlaveTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                     </StackLayout>
                 </StackLayout>
             </Grid>
-            <player:PlayerTreeView Grid.Column="2" Grid.Row="0" x:Name="TreeView"/>
+            
+            <player:PlayerTreeView Grid.Column="3" Grid.Row="1" x:Name="TreeView"/>
 
-            <player:PlaybarView Grid.Column="0" Grid.Row="1" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
-            <Grid Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center"  HorizontalOptions="EndAndExpand">
+            <player:PlaybarView Grid.Column="0" Grid.Row="2" Grid.ColumnSpan="4" x:Name="Playbar" VerticalOptions="FillAndExpand"/>
+            <Grid Grid.Column="1" Grid.Row="3" Grid.ColumnSpan="2" VerticalOptions="Center"  HorizontalOptions="Center">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition />
-                    <RowDefinition />
-                </Grid.RowDefinitions>
-                <Button Grid.Column="0" Grid.Row="0" Text="Reset" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="1" Grid.Row="0" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="2" Grid.Row="0" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button x:Name="LastOffset" Grid.Column="0" Grid.Row="1" Text="Load Previous Offset" Clicked ="LastOffset_OnClicked" IsEnabled="True" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="1" Grid.Row="1" Text="Point Sync" Clicked ="Sync_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-                <Button Grid.Column="2" Grid.Row="1" Text="Save" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+                <Button x:Name="LastOffset" Grid.Column="5" Text="Load Previous Sync" Clicked ="LastSync_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
+                <Button x:Name="ResetPage" Grid.Column="0" Text="Reset Page" Clicked ="Reset_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
+                <Button x:Name="RemoveSlave" Grid.Column="1" Text="Remove Slave" Clicked ="ResetSlave_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="CommonStart" Grid.Column="2" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="SaveSync" Grid.Column="4" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="MarkFeature" Grid.Column="3" Text="Mark Features" Clicked ="MarkFeatures_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
     </ContentPage.Content>

@@ -6,12 +6,9 @@
     <ContentView.Content>
         <Grid x:Name="ContentGrid" RowSpacing="0" ColumnSpacing="0">
             <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="Auto"/>
+                <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="Auto"/>
-                <ColumnDefinition Width="30"/>
-                <ColumnDefinition Width="55"/>
+                <ColumnDefinition Width="188"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
@@ -19,53 +16,50 @@
                 <RowDefinition x:Name="RowPlaybarSettings" Height="Auto" />
                 <RowDefinition Height="*" />
             </Grid.RowDefinitions>
-            <Button x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
-                   Grid.Row="3" Grid.Column="0" MinimumWidthRequest="50"
-                    VerticalOptions="End" HorizontalOptions="EndAndExpand"
-                    Clicked="LabelTimeFrom_OnClicked"  BorderColor="#23A2B1" 
+
+
+            <Button x:Name="Settings" Clicked="OpenSettings" Grid.Row="1" Grid.Column="2"
+                  ImageSource="Assets\settings.png" VerticalOptions="Center" HorizontalOptions="Center"
                     BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
-            />
+             />
+
+            <views:DataTracklineView Grid.Row="1" Grid.Column="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
+
             <Slider x:Name="TimeSlider" Minimum="0" Maximum="10000" ValueChanged="Slider_ValueChanged"
-                    Grid.Row="3" Grid.Column="1"  VerticalOptions="Center" ThumbColor="#f1304d" MinimumTrackColor="#1D2637"
-                    MaximumTrackColor="#1D2637" 
-            />
-            <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
-                   Grid.Row="3" Grid.Column="2"  MinimumWidthRequest="50"
-                   VerticalTextAlignment="End" HorizontalTextAlignment="End" 
-                   TextColor="White" FontAttributes="Bold"
+                    Grid.Row="2" Grid.Column="1"  VerticalOptions="Center" ThumbColor="#f1304d" MinimumTrackColor="#1D2637"
+                    MaximumTrackColor="#1D2637" IsVisible="False"
             />
 
-            <Button x:Name="TimelineExpand" Grid.Row="3" Grid.Column="2" Text="^"
-                    Clicked="TimelineExpand_OnClickedExpand_OnClicked"
-                    HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
-                    BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" 
-                    TextColor="White"
-            />
-            <Button x:Name="ButtonUpExpand" Grid.Row="3" Grid.Column="3" Text="v"
-                    Clicked="ButtonUpExpand_OnClicked"
-                    HorizontalOptions="CenterAndExpand" VerticalOptions="Start"
-                    BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
-            />
-            <Button x:Name="PlayButton" Text=">" Grid.Row="3" Grid.Column="4" Clicked="PlayButton_Clicked"
-                     BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
 
-            <Button x:Name="PlaybackSpeedButton" Text="1x" Grid.Row="3" Grid.Column="5" Clicked="PlaybackSpeedButton_Clicked"
-                     BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" HorizontalOptions="FillAndExpand"/>
-
-            <Grid x:Name="WindowSliderSelector"  Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="6" IsVisible="False">
+            <Grid x:Name="TimeStepperGrid" Grid.Row="2" Grid.Column="1" IsVisible="True">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
                     <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-                <Label Grid.Column="0"  Text="Window length [s]" VerticalTextAlignment="Center" TextColor="White" FontAttributes="Bold"/>
-                <Slider Grid.Column="1" x:Name="WindowSlider" Maximum="7200" Value="10"
-                        Minimum="1" ValueChanged="WindowSlider_OnValueChanged"
-                        ThumbColor="#f1304d" MinimumTrackColor="#1D2637"
-                        MaximumTrackColor="#1D2637" />
-                <Label Grid.Column="2"  x:Name="WindowLengthLabel" TextColor="White" FontAttributes="Bold"/>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>            
+            
+            
+                <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="1" OnStep="TimeStepper_OnOnStep"
+                                    VerticalOptions="Center" HorizontalOptions="CenterAndExpand"
+                />
+
+
+                <Button x:Name="LabelTimeFrom" Text="00:00:00" FontSize="Micro"
+                        Grid.Column="0" MinimumWidthRequest="50"
+                        VerticalOptions="Center" HorizontalOptions="Start"
+                        Clicked="LabelTimeFrom_OnClicked"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
+                />
+
+
+                <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
+                        Grid.Column="2"  MinimumWidthRequest="50"
+                       VerticalTextAlignment="Center" HorizontalTextAlignment="End" 
+                       TextColor="White" FontAttributes="Bold"
+                />
             </Grid>
-            <views:DataTracklineView Grid.Row="1" Grid.Column="1" Grid.ColumnSpan="1" x:Name="DataTrackline" x:FieldModifier="public" WidthMargins="0" />
+            
+            
         </Grid>
     </ContentView.Content>
 </ContentView>

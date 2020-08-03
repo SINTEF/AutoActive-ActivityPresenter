@@ -7,12 +7,13 @@
              x:Class="SINTEF.AutoActive.UI.Views.TimeStepper">
   <ContentView.Content>
         <StackLayout Orientation="Horizontal">
-            <Button Text="&lt;&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Button Text="&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Button Text="&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Button Text="&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Button Text="&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
-            <Button Text="&gt;&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="FarBack" Text="&lt;&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="Back" Text="&lt;&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="SligthlyBack" Text="&lt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="PlayButton" BorderColor="#23A2B1" BackgroundColor="#1D2637"  Clicked="PlayButton_Clicked" TextColor="White" Text="PLAY"/>
+            <Button x:Name="SligthlyForward" Text="&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="Forward" Text="&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
+            <Button x:Name="FarForward" Text="&gt;&gt;&gt;" Clicked="StepClicked" BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"/>
         </StackLayout>
     </ContentView.Content>
 </ContentView>
