@@ -116,7 +116,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly Archive.Archive _archive;
 
         public string URI { get; }
-        public Type DataType => throw new NotImplementedException();
+        public Type DataType => typeof(ArchiveVideoVideo);
         public string Name { get; set; }
         public ArchiveVideoTime VideoTime { get; }
         public ITimePoint Time => VideoTime;
@@ -213,7 +213,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public async Task<ITimeViewer> CreateViewer()
         {
             var viewer = new ArchiveVideoTimeViewer(this, await GetVideoLengthExtractor());
-            
+
             _viewers.Add(viewer);
             return viewer;
         }
