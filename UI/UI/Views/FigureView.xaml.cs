@@ -219,7 +219,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             GetExtraMenuParameters(parameters);
 
-            if (Title.Text != "")
+            if (Title.Text.Length == 0)
             {
                 parameters.Add(ToggleTitleText);
             }
@@ -308,34 +308,77 @@ namespace SINTEF.AutoActive.UI.Views
             throw new NotImplementedException();
         }
 
-        private static IDataPoint GetDataPointsFromIdentifierFromDataProvider(JArray indexes,
+        private static IDataPoint SearchForDataPoint(DataPointDescription obj,
             IDataStructure dataStructure)
         {
+            var indexes = obj.Indexes;
+
+            // TODO(sigurdal): Check the datapoint info, not only the indexes.
             for (var i = 0; i < indexes.Count - 1; i++)
             {
-                var ix = indexes[i].Value<int>();
+                var ix = indexes[i];
+                if (!dataStructure.Children.Any())
+                    continue;
                 dataStructure = dataStructure.Children.Skip(ix).First();
             }
-            var dataPoint = dataStructure.DataPoints[indexes[indexes.Count - 1].Value<int>()];
 
-            // TODO(sigurdal): Check the datapoint, not only the indexes.
+            var lastIx = indexes[indexes.Count - 1];
+            if (dataStructure.DataPoints.Count <= lastIx) return null;
+
+            var dataPoint = dataStructure.DataPoints[lastIx];
+
+            var dataPointNames = obj.Names;
+
+            if (dataPoint.Name != dataPointNames.Last())
+            {
+                Debug.WriteLine($"WARNING: Deserialization - Data point name does not match stored value: {dataPoint.Name} - {dataPointNames}");
+            }
 
             return dataPoint;
         }
 
-
-        private static IList<IDataPoint> GetDataPointsFromIdentifier(JToken serializedObject)
+        private static IList<IDataPoint> GetDataPointsFromIdentifier(JToken serializedObject, IDataStructure archive=null)
         {
             var dataPoints = new List<IDataPoint>();
-            var indexesList = ((JArray)serializedObject["data_point_indexes"]).Cast<JArray>();
+            var dataPointObjects =
+                JsonConvert.DeserializeObject<List<DataPointDescription>>(serializedObject["data_point_objects"].Value<string>());
 
-            foreach(var indexes in indexesList) {
-                //IDataStructure dataStructure = DataRegistry.Providers.First();
-                var dataPoint = DataRegistry.Providers.Select(dataStructure => GetDataPointsFromIdentifierFromDataProvider(indexes, dataStructure)).FirstOrDefault();
+            foreach (var dataPointObject in dataPointObjects)
+            {
+                IDataPoint dataPoint = null;
+
+                if (archive != null)
+                {
+                    dataPoint = SearchForDataPoint(dataPointObject, archive);
+                }
+                else
+                {
+                    // If an archive was not provided, search through the loaded data
+                    var found = false;
+                    foreach (var dataStructure in DataRegistry.Providers)
+                    {
+                        if (!(dataStructure is ArchiveSession session)) continue;
+                        if (session.Id != dataPointObject.ArchiveId) continue;
+
+                        dataPoint = SearchForDataPoint(dataPointObject, dataStructure);
+                        if (dataPoint != null) break;
+                        found = true;
+                    }
+
+                    if (!found)
+                    {
+                        foreach (var dataStructure in DataRegistry.Providers)
+                        {
+                            dataPoint = SearchForDataPoint(dataPointObject, dataStructure);
+                            if (dataPoint != null) break;
+                        }
+                    }
+                }
 
                 if (dataPoint == null)
                 {
                     //TODO(sigurdal): Show warning message
+                    continue;
                 }
 
                 dataPoints.Add(dataPoint);
@@ -397,9 +440,9 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
-        Task ISerializableView.DeserializeView(JObject root)
+        public Task DeserializeView(JObject root, IDataStructure archive = null)
         {
-            throw new NotImplementedException();
+            return DeserializeView(root, Context, archive);
         }
 
         public JObject SerializeView(JObject root = null)
@@ -409,53 +452,79 @@ namespace SINTEF.AutoActive.UI.Views
                 root = new JObject();
             }
 
-            var dataPoints = new JArray();
-            var dataPointIndexes = new JArray();
+            var dataPointObjects = new List<DataPointDescription>(DataPoints.Count);
+
             foreach (var dataPoint in DataPoints)
             {
-                var dataPointIndex = new JArray();
-                dataPointIndexes.Add(dataPointIndex);
-                var parentNames = new JArray();
-                dataPoints.Add(parentNames);
+                var dataIndices = new List<int>();
+                var parentNames = new List<string>();
+                var parentTypes = new List<Type>();
+
                 var parents = DataRegistry.GetParents(dataPoint);
                 parents.Reverse();
                 var prev = parents.First();
+
                 Debug.WriteLine(dataPoint.Name);
+                var archiveId = Guid.Empty;
                 if (prev is ArchiveSession session)
                 {
                     Debug.WriteLine($"  {prev.Name} - {session.Id}");
+                    archiveId = session.Id;
                 }
 
                 foreach (var parent in parents.Skip(1))
                 {
                     var ix = prev.Children.IndexOf(parent);
-                    dataPointIndex.Add(ix);
+                    dataIndices.Add(ix);
                     var line = $"  {ix} - {parent.Name}";
                     if (parent is ArchiveStructure structure)
                     {
                         line += $" - {structure.Type}";
                     }
-                    parentNames.Add(parent.Name);
+                    parentTypes.Add(parent.GetType());
                     Debug.WriteLine(line);
 
+                    parentNames.Add(parent.Name);
                     prev = parent;
                 }
 
                 {
                     var ix = prev.DataPoints.IndexOf(dataPoint);
-                    dataPointIndex.Add(ix);
-                    var line = $"  {ix} - {dataPoint.Name}";
-                    Debug.WriteLine(line);
-
+                    dataIndices.Add(ix);
                     parentNames.Add(dataPoint.Name);
+                    parentTypes.Add(dataPoint.DataType);
+
+                    Debug.WriteLine($"  {ix} - {dataPoint.Name}");
                 }
                 Debug.WriteLine("");
+
+                dataPointObjects.Add(new DataPointDescription
+                {
+                    ArchiveId = archiveId,
+                    Indexes = dataIndices,
+                    Names = parentNames,
+                    DataTypes = parentTypes
+                });
             }
-            root["data_points"] = dataPoints;
-            root["data_point_indexes"] = dataPointIndexes;
+            root["data_point_objects"] = JsonConvert.SerializeObject(dataPointObjects);
             root["type"] = ViewType;
 
             return root;
         }
+    }
+
+    internal class DataPointDescription
+    {
+        // The indexes where the data is stored in the archive
+        public List<int> Indexes;
+
+        // The name of the data elements when it was stored
+        public List<string> Names;
+
+        // The parent types can be used to identify sensor types
+        public List<Type> DataTypes;
+
+        // The archive ID that the data point originates from
+        public Guid ArchiveId;
     }
 }
