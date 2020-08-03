@@ -3,18 +3,20 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	public partial class PlayerPage : ContentPage
+	public partial class PlayerPage : ContentPage, ISerializableView
 	{
-        private IFileBrowser _browser;
+        private readonly IFileBrowser _browser;
         private const double SplitViewWidthMin = 10000;
 	    private const double OverlayModeWidth = 0.9;
 	    private const double OverlayModeShadeOpacity = 0.5;
@@ -229,8 +231,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             if (file == null) return;
 
-            var root = new JObject();
-            PlayerContainer.SerializeView(root);
+            var root = SerializeView();
 
             var stream = await file.GetReadWriteStream();
             using (var streamWriter = new StreamWriter(stream))
@@ -271,6 +272,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 root = serializer.Deserialize(reader) as JObject;
             }
 
+            await DeserializeView(root);
+        }
+
+        public string ViewType => "PlayerPage";
+        public async Task DeserializeView(JObject root, IDataStructure archive = null)
+        {
             var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
 
             foreach (var figure in figures)
@@ -281,6 +288,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             PlayerContainer.ViewerContext = ViewerContext;
             FigureView.DeserializationFailedWarned = false;
             await PlayerContainer.DeserializeView(root, archive);
+        }
+
+        public JObject SerializeView(JObject root = null)
+        {
+            if (root == null)
+                root = new JObject();
+
+            PlayerContainer.SerializeView(root);
+
+            return root;
         }
     }
 }

@@ -4,6 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.IO;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -127,11 +132,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var layout = new StackLayout
             {
                 Orientation = StackOrientation.Horizontal
-               
+
             };
             _frame = new Frame
             {
-                BorderColor = Color.FromHex("#1D2637"), Content = layout, HorizontalOptions = LayoutOptions.Start, 
+                BorderColor = Color.FromHex("#1D2637"), Content = layout, HorizontalOptions = LayoutOptions.Start,
                 Padding = 5, Margin = 0
             };
 
@@ -174,19 +179,56 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
     internal class DataProviderCell : DataStructureCell
     {
+        private readonly IFileBrowser _browser;
+
         public DataProviderCell()
         {
+            _browser = DependencyService.Get<IFileBrowser>();
             Detail = "DataProvider";
 
             var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
             closeAction.Clicked += CloseClicked;
             ContextActions.Add(closeAction);
+
+            var loadViewAction = new MenuItem { Text = "Load View", IsDestructive = true };
+            loadViewAction.Clicked += LoadViewClicked;
+            ContextActions.Add(loadViewAction);
         }
 
         private void CloseClicked(object sender, EventArgs e)
         {
             var dataProviderItem = BindingContext as DataProviderItem;
             dataProviderItem?.DataProvider.Unregister();
+        }
+
+        private async void LoadViewClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataProviderItem;
+            IReadSeekStreamFactory file = await _browser.BrowseForLoad((".aav", "AutoActive View"));
+
+            if (file == null)
+            {
+                return;
+            }
+
+            JObject root;
+            var stream = await file.GetReadStream();
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                var serializer = new JsonSerializer();
+                root = serializer.Deserialize(reader) as JObject;
+            }
+
+            var page = XamarinHelpers.GetCurrentPage();
+            if (page is ISerializableView view)
+            {
+                await view.DeserializeView(root, dataProviderItem?.DataProvider);
+            }
+            else
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "Current does not support loading views yet.", page);
+            }
         }
     }
 
@@ -284,7 +326,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         public abstract void OnTapped();
 
-        
+
     }
 
     internal class DataProviderItem : DataStructureItem, IDisposable
