@@ -1,21 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
-using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Databus;
-using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins;
 using SINTEF.AutoActive.Plugins.Import;
 using SINTEF.AutoActive.UI.Pages;
 using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages.HeadToHead;
-using SINTEF.AutoActive.UI.Pages.Player;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using Xamarin.Forms;
 
