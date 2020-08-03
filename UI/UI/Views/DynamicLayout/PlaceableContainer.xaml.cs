@@ -341,6 +341,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
                 }
 
+                pItem.LocationSelected += PlaceableItem_OnLocationSelected;
+
                 pItem.Context = ViewerContext;
 
                 pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
@@ -360,6 +362,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var view = args.item.Item;
             if (view == null)
                 return;
+            args.item.LocationSelected += PlaceableItem_OnLocationSelected;
             _placeableItems.Add(args);
             foreach (var dataPoint in view.DataPoints)
             {
