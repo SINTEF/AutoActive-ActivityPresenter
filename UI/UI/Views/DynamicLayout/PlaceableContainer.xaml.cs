@@ -266,7 +266,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             DatapointAdded?.Invoke(this, (dataPoint, context));
         }
 
-        public async Task DeserializeView(JObject root)
+        public async Task DeserializeView(JObject root, IDataStructure archive)
         {
             var recursive = true;
             if (!recursive)
@@ -315,7 +315,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
                 var pItem = new PlaceableItem {Context = ViewerContext};
                 pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
-                await pItem.DeserializeView((JObject)vertical, true);
+                await pItem.DeserializeView((JObject)vertical, true, archive);
                 pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
                 if (pItem.Item == null)
                 {

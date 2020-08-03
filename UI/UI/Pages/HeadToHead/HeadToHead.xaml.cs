@@ -156,16 +156,21 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             }
         }
 
-        public async Task DeserializeView(JObject root)
+        public async Task DeserializeView(JObject root, IDataStructure archive=null)
+        {
+            await DeserializeView(root, archive, archive);
+        }
+
+        public async Task DeserializeView(JObject root, IDataStructure archiveLeft, IDataStructure archiveRight)
         {
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
-                await LeftGrid.DeserializeView(left);
+                await LeftGrid.DeserializeView(left, archiveLeft);
             }
 
             if (root.TryGetValue("Right", out var rightRaw) && rightRaw is JObject right)
             {
-                await RightGrid.DeserializeView(right);
+                await RightGrid.DeserializeView(right, archiveRight);
 
                 if (right.TryGetValue("Offset", out var offset))
                 {

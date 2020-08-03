@@ -244,7 +244,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        public async void LoadView(string uri = null)
+        public async void LoadView(IDataStructure archive = null, string uri = null)
         {
             IReadSeekStreamFactory file = null;
             if (uri == null)
@@ -280,7 +280,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             PlayerContainer.ViewerContext = ViewerContext;
             FigureView.DeserializationFailedWarned = false;
-            await PlayerContainer.DeserializeView(root);
+            await PlayerContainer.DeserializeView(root, archive);
         }
     }
 }

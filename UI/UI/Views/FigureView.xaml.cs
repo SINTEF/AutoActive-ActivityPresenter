@@ -348,6 +348,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         private static async Task ShowDeserializationWarning(string message)
         {
+            // Make sure the warning is only shown once per deserialization step
             if (!DeserializationFailedWarned)
             {
                 await XamarinHelpers.ShowOkMessage("Deserialization failed.", message);
@@ -355,7 +356,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
-        public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context)
+        public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context, IDataStructure archive=null)
         {
             if (root["type"].Value<string>() != StaticViewType)
             {
@@ -365,8 +366,8 @@ namespace SINTEF.AutoActive.UI.Views
 
             try
             {
-                var dataPoints = GetDataPointsFromIdentifier(root);
-                if (dataPoints.Count == 0 || dataPoints.First() == null)
+                var dataPoints = GetDataPointsFromIdentifier(root, archive);
+                if (dataPoints.Count == 0)
                 {
                     await ShowDeserializationWarning("Could not find any DataPoints for figure during deserialization");
                     return null;

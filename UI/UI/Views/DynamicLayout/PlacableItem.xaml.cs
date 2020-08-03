@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
@@ -189,12 +190,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public TimeSynchronizedContext Context { get; set; }
 
-        public Task DeserializeView(JObject root)
+        public Task DeserializeView(JObject root, IDataStructure archive = null)
         {
-            return DeserializeView(root, false);
+            return DeserializeView(root, false, archive);
         }
 
-        public async Task DeserializeView(JObject root, bool recursive, PlaceableItem rootParent = null)
+        public async Task DeserializeView(JObject root, bool recursive, IDataStructure archive=null, PlaceableItem rootParent = null)
         {
             if (rootParent == null)
             {
@@ -206,7 +207,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return;
             }
 
-            var item = await FigureView.DeserializeView((JObject) root["item"], Context);
+            var item = await FigureView.DeserializeView((JObject) root["item"], Context, archive);
             SetItem(item);
 
             if (!recursive)
@@ -225,7 +226,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             foreach (var child in children)
             {
                 var plItem = new PlaceableItem {Context = Context};
-                await plItem.DeserializeView((JObject)child["item"], true, rootParent);
+                await plItem.DeserializeView((JObject)child["item"], true, archive, rootParent);
                 if(plItem.Item == null) continue;
 
                 var locString = child["location"].Value<string>();
