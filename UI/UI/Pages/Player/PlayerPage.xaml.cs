@@ -259,7 +259,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 #endif
             if (file == null)
             {
-                await XamarinHelpers.ShowOkMessage("Error", "Could not read file");
                 return;
             }
 
@@ -270,6 +269,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 var serializer = new JsonSerializer();
                 root = serializer.Deserialize(reader) as JObject;
+            }
+
+            var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
+
+            foreach (var figure in figures)
+            {
+                figure.RemoveThisView();
             }
 
             PlayerContainer.ViewerContext = ViewerContext;
