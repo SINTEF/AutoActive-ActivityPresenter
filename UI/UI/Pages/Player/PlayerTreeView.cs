@@ -186,13 +186,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _browser = DependencyService.Get<IFileBrowser>();
             Detail = "DataProvider";
 
-            var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
-            closeAction.Clicked += CloseClicked;
-            ContextActions.Add(closeAction);
-
             var loadViewAction = new MenuItem { Text = "Load View", IsDestructive = true };
             loadViewAction.Clicked += LoadViewClicked;
             ContextActions.Add(loadViewAction);
+
+            var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
+            closeAction.Clicked += CloseClicked;
+            ContextActions.Add(closeAction);
         }
 
         private void CloseClicked(object sender, EventArgs e)
