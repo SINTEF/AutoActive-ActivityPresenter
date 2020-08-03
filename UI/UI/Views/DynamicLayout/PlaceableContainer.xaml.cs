@@ -346,7 +346,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 pItem.Context = ViewerContext;
 
                 pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
-                await pItem.DeserializeView((JObject)horizontal, true);
+                await pItem.DeserializeView((JObject)horizontal, true, archive);
                 pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
 
                 if (pItem.Item != null && shouldAdd)
