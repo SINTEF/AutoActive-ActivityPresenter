@@ -267,46 +267,9 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public async Task DeserializeView(JObject root, IDataStructure archive)
         {
-            var recursive = true;
-            if (!recursive)
-            {
-                var items = (JArray) root["items"];
-                foreach (var serItem in items)
-                {
-                    var serObj = (JObject) serItem;
-                    var item = new PlaceableItem {Context = ViewerContext};
-                    await item.DeserializeView((JObject) serObj["item"]);
-                    if (item.Item == null)
-                    {
-                        //TODO(sigurdal): couldn't deserialize view. What should be done here?
-                        continue;
-                    }
-
-                    var locString = serObj["location"].Value<string>();
-                    var location = JsonConvert.DeserializeObject<PlaceableLocation>(locString);
-
-
-                    var guidString = serItem["sender_id"]?.Value<string>();
-                    var guid = guidString != null ? Guid.Parse(guidString) : Guid.Empty;
-
-                    var senderItem = PlaceableItems.FirstOrDefault(el => el.Item1.ViewId == guid).Item1;
-
-                    if (senderItem == null)
-                    {
-                        senderItem = MainHorizontalStackLayout.Children.First() as PlaceableItem;
-                    }
-
-                    var plItem = await PlaceItem(senderItem, item.Item.DataPoints.First(), ViewerContext, location);
-                    plItem.ViewId = item.ViewId;
-
-                }
-                return;
-            }
-
             var children = (JObject) root["children"];
             var verticalChildren = (JArray) children["vertical"];
             var horizontalChildren = (JArray) children["horizontal"];
-
 
             foreach (var vertical in verticalChildren)
             {
