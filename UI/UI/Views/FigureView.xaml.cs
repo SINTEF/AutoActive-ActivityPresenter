@@ -339,6 +339,12 @@ namespace SINTEF.AutoActive.UI.Views
             return dataPoint;
         }
 
+        /// <summary>
+        /// Look for the data points specified by the serialized object. If the archive specified, look only through that, if not, look through all loaded data providers
+        /// </summary>
+        /// <param name="serializedObject">JSON serialized object describing the data points</param>
+        /// <param name="archive">If not null, look only through this archive</param>
+        /// <returns>List of DataPoints that are </returns>
         private static IList<IDataPoint> GetDataPointsFromIdentifier(JToken serializedObject, IDataStructure archive=null)
         {
             var dataPoints = new List<IDataPoint>();
@@ -403,6 +409,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context, IDataStructure archive=null)
         {
+            // Verify that the object to be deserialized is of the correct type
             if (root["type"].Value<string>() != StaticViewType)
             {
                 Debug.WriteLine("Illegal type");
@@ -418,9 +425,12 @@ namespace SINTEF.AutoActive.UI.Views
                     return null;
                 }
 
+                // For the first datapoint, create a new view
                 var dataPoint = dataPoints.First();
                 var view = await GetView(dataPoint, context);
                 if (dataPoints.Count <= 1) return view;
+
+                // If there are more data points, check that the view is a line plot and add the other lines
 
                 if (!(view is LinePlot linePlot))
                 {
@@ -442,6 +452,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
+        // Deserializes the view with the currently set context
         public Task DeserializeView(JObject root, IDataStructure archive = null)
         {
             return DeserializeView(root, Context, archive);
@@ -462,6 +473,7 @@ namespace SINTEF.AutoActive.UI.Views
                 var parentNames = new List<string>();
                 var parentTypes = new List<Type>();
 
+                // To get the indexes where the data is stored in the archive, get all the parents of the data points
                 var parents = DataRegistry.GetParents(dataPoint);
                 parents.Reverse();
                 var prev = parents.First();
@@ -474,6 +486,9 @@ namespace SINTEF.AutoActive.UI.Views
                     archiveId = session.Id;
                 }
 
+                // From the first object in the archive, find the index of the ancestor of the datapoint.
+                // If the found indexes are i, j and k. The datapoint could be find by doing archive[i][j][k].
+                // Also stores the name and the type for later access.
                 foreach (var parent in parents.Skip(1))
                 {
                     var ix = prev.Children.IndexOf(parent);
@@ -490,6 +505,7 @@ namespace SINTEF.AutoActive.UI.Views
                     prev = parent;
                 }
 
+                // Finally add the index of the datapoint
                 {
                     var ix = prev.DataPoints.IndexOf(dataPoint);
                     dataIndices.Add(ix);
