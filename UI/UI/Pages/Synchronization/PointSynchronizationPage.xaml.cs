@@ -191,8 +191,26 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             EnableButtons();
         }
 
+        private List<IDataPoint> GetVisibleDataPoints(StackLayout layout)
+        {
+            List<IDataPoint> visibleDataPoints = new List<IDataPoint>();
+
+            foreach (var figure in GetFigureViewChildren(SlaveLayout))
+            {
+                foreach (var datapoint in figure.DataPoints)
+                {
+                    visibleDataPoints.Add(datapoint);
+                }
+                
+            }
+
+            return visibleDataPoints;
+        }
+
         private void AutoSync_OnClicked(object sender, EventArgs e)
         {
+            List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(MasterLayout);
+            List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(SlaveLayout);
             
         }
 
