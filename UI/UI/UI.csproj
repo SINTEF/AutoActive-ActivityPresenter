@@ -21,6 +21,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Archive\Archive.csproj" />
+    <ProjectReference Include="..\..\AutoSync\AutoSync.csproj" />
     <ProjectReference Include="..\..\Databus\Databus.csproj" />
     <ProjectReference Include="..\..\FileSystem\FileSystem.csproj" />
     <ProjectReference Include="..\..\Plugins.Archive\Plugins.Archive.csproj" />

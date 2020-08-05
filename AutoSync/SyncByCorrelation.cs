@@ -5,8 +5,8 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.Statistics;
-
-
+using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.Common;
 
 
 
@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.AutoSync
     /// </remarks>
     internal class timeseries
     {
-        private List<double[]> _data;
+        private List<double[]> _data = new List<double[]>();
         private long[] _time;
 
         /// <summary>
@@ -44,7 +44,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// </summary>
         public long[] Time
         {
-            get => Time;
+            get => _time;
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// </summary>
         public double[] DataAsSignleArray
         {
-            get => _data.SelectMany(x => x).Distinct().ToArray();
+            get => _data.SelectMany(x => x).ToArray();
         }
 
         /// <summary>
@@ -68,7 +68,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// </summary>
         public int SamplingFreq 
         {
-            get => (int)(1 / _time[1] - _time[0]);
+            get => (int)Math.Round((1000000f / (_time[1] - _time[0])),0);
         }
 
         /// <summary>
@@ -77,47 +77,25 @@ namespace SINTEF.AutoActive.AutoSync
         /// <param name="inputData"></param>
         public void AddData(IDataPoint inputData)
         {
-            double[] data = inputData.GetData;
-            long[] time = inputData.Time.GetData;
-            bool error = anyInputErrors(data, time);
-            if (error)
-            {
-                return;
-            }
-
+            Task dataViewTask = inputData.CreateViewer();
+            Task timeViewTask = inputData.Time.CreateViewer();
+            Task[] tasks = new Task[]{ dataViewTask, timeViewTask };
+            var dataView = Task.Run(() => inputData.CreateViewer()).Result;
+            var timeView = Task.Run(() => inputData.Time.CreateViewer()).Result;
+            Task.WaitAll(tasks);
+            ITimeSeriesViewer viewer = (ITimeSeriesViewer)dataView;
+            viewer.SetTimeRange(timeView.Start, timeView.End);
+            var span = viewer.GetCurrentData<double>();
+            long[] time = span.X.ToArray();
+            double[] data = span.Y.ToArray();
             _data.Add(data);
-
-            if (_time.Length == 0);
+            if (_time == null);
             {
-                _time = time.Select(x => x).ToArray();
+                _time = time.Cast<long>().ToArray(); ;
             }
+
         }
 
-        /// <summary>
-        /// chekcs for errors in the input data
-        /// </summary>
-        /// <param name="signal"></param>
-        /// <param name="time"></param>
-        /// <returns></returns>
-        private bool anyInputErrors(double[] signal, long[] time)
-        {
-            bool error = false;
-            if (signal.Length != time.Length)
-            {
-                error = true;
-                new Exception("The time vector and data vector must have the same length");
-            }
-
-            if (_time.Length != 0)
-            {
-                if (time != _time)
-                {
-                    error = true;
-                    new Exception("The time vectors must be the same");
-                }
-            }
-            return error;
-        }
 
         /// <summary>
         /// Adds zeros to the end of each signal in the timeseries 
@@ -224,30 +202,18 @@ namespace SINTEF.AutoActive.AutoSync
 
         public void AddMasterSignal(IDataPoint signal)
         {
-            bool usableDatatype = CheckDataType(signal);
-            if (usableDatatype)
-            {
-                 _masterTimerseries.Add(signal);
-            }
-            else
-            {
-                throw new NotImplementedException("The entries in the array must be of type double");
-            }
+
+            _masterTimerseries.Add(signal);
+
         }
 
         private List<IDataPoint>  _slaveTimerseries = new List<IDataPoint> ();
 
         public void AddSlaveSignal(IDataPoint signal)
         {
-            bool usableDatatype = CheckDataType(signal);
-            if (usableDatatype)
-            {
-                 _slaveTimerseries.Add(signal);
-            }
-            else
-            {
-                throw new NotImplementedException("The entries in the array must be of type double");
-            }
+
+            _slaveTimerseries.Add(signal);
+
         }
 
         public SyncByCorrelation()
@@ -352,11 +318,6 @@ namespace SINTEF.AutoActive.AutoSync
 
         }
 
-
-        private bool CheckDataType(IDataPoint datapoint)
-        {
-            return false;
-        }
 
         /// <summary>
         /// Resamples the timeseries. The timeseries is resampled to the highest frequency of either the master or slave

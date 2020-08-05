@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using SINTEF.AutoActive.AutoSync;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -211,6 +212,16 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(MasterLayout);
             List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(SlaveLayout);
+            if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+            {
+                return;
+            }
+
+            SyncByCorrelation sync = new SyncByCorrelation();
+            visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
+            visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
+            (double[] lag, double[] correlation ) = sync.CorrelateSignals();
+
             
         }
 
