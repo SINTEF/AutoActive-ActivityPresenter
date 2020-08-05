@@ -277,7 +277,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
                 var pItem = new PlaceableItem {Context = ViewerContext};
                 pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
-                await pItem.DeserializeView((JObject)vertical, true, archive);
+                await pItem.DeserializeView((JObject)vertical, archive);
                 pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
                 if (pItem.Item == null)
                 {
@@ -308,7 +308,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 pItem.Context = ViewerContext;
 
                 pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
-                await pItem.DeserializeView((JObject)horizontal, true, archive);
+                await pItem.DeserializeView((JObject)horizontal, archive);
                 pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
 
                 if (pItem.Item != null && shouldAdd)
@@ -344,21 +344,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             root["type"] = ViewType;
             root["container"] = arr;
 
-            var items = new JArray();
-            foreach (var (item, location, senderId) in PlaceableItems)
-            {
-                var loc = JsonConvert.SerializeObject(location);
-                var obj = new JObject
-                {
-                    ["item"] = item.SerializeView(null, false),
-                    ["location"] = loc,
-                    ["sender_id"] = senderId
-                };
-                items.Add(obj);
-            }
-
-            root["items"] = items;
-
             var horizontal = new JArray();
             var vertical = new JArray();
 
@@ -371,14 +356,14 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 }
                 if (!(el is PlaceableItem placeableItem)) continue;
 
-                vertical.Add(placeableItem.SerializeView(null, true));
+                vertical.Add(placeableItem.SerializeView(null));
             }
 
             foreach (var el in MainHorizontalStackLayout.Children)
             {
                 if (!(el is PlaceableItem placeableItem)) continue;
 
-                horizontal.Add(placeableItem.SerializeView(null, true));
+                horizontal.Add(placeableItem.SerializeView(null));
 
             }
 

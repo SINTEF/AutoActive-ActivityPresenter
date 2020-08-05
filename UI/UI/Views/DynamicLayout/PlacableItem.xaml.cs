@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             PlacementLocationVisible = false;
 
             SizeChanged += OnSizeChanged;
-            
+
         }
 
         private void OnSizeChanged(object sender, EventArgs e)
@@ -194,15 +194,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public Task DeserializeView(JObject root, IDataStructure archive = null)
         {
-            return DeserializeView(root, false, archive);
+            return DeserializeView(root, archive, this);
         }
 
-        public async Task DeserializeView(JObject root, bool recursive, IDataStructure archive=null, PlaceableItem rootParent = null)
+        private async Task DeserializeView(JObject root, IDataStructure archive, PlaceableItem rootParent)
         {
-            if (rootParent == null)
-            {
-                rootParent = this;
-            }
             if (root["type"].ToString() != ViewType)
             {
                 Debug.WriteLine("Unknown type for view.");
@@ -211,13 +207,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             var item = await FigureView.DeserializeView((JObject) root["item"], Context, archive);
             SetItem(item);
-
-            if (!recursive)
-            {
-                var guidString = root["id"]?.Value<string>();
-                ViewId = guidString != null ? Guid.Parse(guidString) : Guid.Empty;
-                return;
-            }
 
             if (rootParent == this)
             {
@@ -228,7 +217,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             foreach (var child in children)
             {
                 var plItem = new PlaceableItem {Context = Context};
-                await plItem.DeserializeView((JObject)child["item"], true, archive, rootParent);
+                await plItem.DeserializeView((JObject)child["item"], archive, rootParent);
                 if(plItem.Item == null) continue;
 
                 var locString = child["location"].Value<string>();
@@ -245,63 +234,23 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public JObject SerializeView(JObject root = null)
         {
-            return SerializeView(root, false);
-        }
-        public JObject SerializeView(JObject root, bool recursive)
-        {
             if (root == null) root = new JObject();
             root["type"] = ViewType;
             root["item"] = Item.SerializeView();
             root["id"] = ViewId.ToString();
 
-            if (!recursive)
+            var items = new JArray();
+
+            foreach (var (item, location) in PlaceableItems)
             {
-                var vertical = new JArray();
-                foreach (var el in VerticalLayout.Children)
+                items.Add(new JObject
                 {
-                    if (el is DraggableSeparator) continue;
-
-                    if (!(el is ResizableStackLayout stackLayout)) continue;
-                    var horizontal = new JArray();
-                    if (stackLayout.Children.Count == 1 && stackLayout.Children[0] is AbsoluteLayout)
-                    {
-                        continue;
-                    }
-
-                    foreach (var el2 in stackLayout.Children)
-                    {
-
-                        if (el2 is DraggableSeparator) continue;
-
-                        if (!(el2 is PlaceableItem placeableItem))
-                        {
-                            continue;
-                        }
-
-                        horizontal.Add(placeableItem.SerializeView(null, false));
-                    }
-
-                    vertical.Add(horizontal);
-                }
-
-                root["vertical"] = vertical;
+                    ["item"] = item.SerializeView(null),
+                    ["location"] = JsonConvert.SerializeObject(location)
+                });
             }
-            else
-            {
 
-                var items = new JArray();
-
-                foreach (var (item, location) in PlaceableItems)
-                {
-                    items.Add(new JObject
-                    {
-                        ["item"] = item.SerializeView(null, true),
-                        ["location"] = JsonConvert.SerializeObject(location)
-                    });
-                }
-
-                root["children"] = items;
-            }
+            root["children"] = items;
 
             return root;
         }
