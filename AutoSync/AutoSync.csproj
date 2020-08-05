@@ -1,0 +1,14 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.AutoSync</AssemblyName>
+    <RootNamespace>SINTEF.AutoActive.AutoSync</RootNamespace>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Databus\Databus.csproj" />
+  </ItemGroup>
+
+</Project>
