@@ -20,14 +20,14 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
     public partial class PlaceableContainer : ContentView, IFigureContainer, ISerializableView
     {
         public string ViewType => "no.sintef.ui.placeablecontainer";
-        private readonly List<(PlaceableItem item, PlaceableLocation location, Guid sender)> _placeableItems = new List<(PlaceableItem, PlaceableLocation, Guid)>();
-        public IReadOnlyList<(PlaceableItem, PlaceableLocation, Guid)> PlaceableItems => _placeableItems;
+        private readonly List<(PlaceableItem item, PlaceableLocation location)> _placeableItems = new List<(PlaceableItem, PlaceableLocation)>();
+
         public PlaceableContainer()
         {
             InitializeComponent();
             foreach (var el in XamarinHelpers.GetAllChildElements<PlaceableItem>(this))
             {
-                _placeableItems.Add((el, PlaceableLocation.Center, Guid.Empty));
+                _placeableItems.Add((el, PlaceableLocation.Center));
             }
         }
 
@@ -35,7 +35,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         {
             set
             {
-                foreach (var (item, _, _) in _placeableItems)
+                foreach (var (item, _) in _placeableItems)
                     item.PlacementLocationVisible = value;
             }
         }
@@ -134,7 +134,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var placeableItem = new PlaceableItem();
             placeableItem.LocationSelected += PlaceableItem_OnLocationSelected;
             placeableItem.SetItem(visualizer);
-            _placeableItems.Add((placeableItem, location, placeableSender.ViewId));
+            _placeableItems.Add((placeableItem, location));
             placeableItem.HorizontalOptions = LayoutOptions.FillAndExpand;
             placeableItem.VerticalOptions = LayoutOptions.FillAndExpand;
             placeableSender.PlaceRelative(placeableItem, location);
@@ -237,7 +237,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             // Ensure at least one item
             var view = new PlaceableItem();
-            _placeableItems.Add((view, PlaceableLocation.Center, Guid.Empty));
+            _placeableItems.Add((view, PlaceableLocation.Center));
             view.LocationSelected += PlaceableItem_OnLocationSelected;
             MainHorizontalStackLayout.InsertChild(0, view);
             return view;
@@ -319,7 +319,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         }
 
-        private void PlaceableItemOnItemDeserialized(object sender, (PlaceableItem item, PlaceableLocation location, Guid parent) args)
+        private void PlaceableItemOnItemDeserialized(object sender, (PlaceableItem item, PlaceableLocation location) args)
         {
             var view = args.item.Item;
             if (view == null)

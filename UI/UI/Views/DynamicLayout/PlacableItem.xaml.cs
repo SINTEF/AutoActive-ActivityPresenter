@@ -210,7 +210,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             if (rootParent == this)
             {
-                rootParent.ItemDeserialized?.Invoke(this, (this, PlaceableLocation.Center, Guid.Empty));
+                rootParent.ItemDeserialized?.Invoke(this, (this, PlaceableLocation.Center));
             }
 
             var children = ((JArray)root["children"]).Cast<JObject>();
@@ -224,13 +224,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 var location = JsonConvert.DeserializeObject<PlaceableLocation>(locString);
                 PlaceRelative(plItem, location);
 
-                rootParent.ItemDeserialized?.Invoke(this, (plItem, location, ViewId));
+                rootParent.ItemDeserialized?.Invoke(this, (plItem, location));
             }
 
 
         }
 
-        public event EventHandler<(PlaceableItem item, PlaceableLocation location, Guid parentId)> ItemDeserialized;
+        public event EventHandler<(PlaceableItem item, PlaceableLocation location)> ItemDeserialized;
 
         public JObject SerializeView(JObject root = null)
         {
