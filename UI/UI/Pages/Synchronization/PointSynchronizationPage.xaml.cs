@@ -191,6 +191,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             EnableButtons();
         }
 
+        private void AutoSync_OnClicked(object sender, EventArgs e)
+        {
+            
+        }
+
         private FigureView _selected;
         public FigureView Selected
         {
@@ -564,6 +569,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SlaveTimeButton.IsEnabled = false;
             MasterTimeButton.IsEnabled = false;
             MarkFeature.IsEnabled = false;
+            AutoSyncButton.IsEnabled = false;
 
             if (_slaveSet == true)
             {                
@@ -591,6 +597,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 RemoveSlave.IsEnabled = true;
                 CommonStart.IsEnabled = true;
                 MarkFeature.IsEnabled = true;
+                AutoSyncButton.IsEnabled = true;
 
                 if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
                 {

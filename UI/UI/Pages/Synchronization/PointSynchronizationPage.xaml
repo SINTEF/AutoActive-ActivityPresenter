@@ -89,6 +89,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="LastOffset" Grid.Column="5" Text="Load Previous Sync" Clicked ="LastSync_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False" />
@@ -101,6 +102,8 @@
                 <Button x:Name="SaveSync" Grid.Column="4" Text="Save Sync" Clicked ="Save_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="MarkFeature" Grid.Column="3" Text="Mark Features" Clicked ="MarkFeatures_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="AutoSyncButton" Grid.Column="6" Text="AutoSync" Clicked ="AutoSync_OnClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
