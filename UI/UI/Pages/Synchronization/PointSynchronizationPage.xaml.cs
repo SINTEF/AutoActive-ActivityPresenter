@@ -2,7 +2,10 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using SINTEF.AutoActive.AutoSync;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Helpers;
@@ -221,9 +224,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
             (long[] lag, float[] correlation) = sync.CorrelateSignals();
+            var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
+            GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor" );
 
-
-            
         }
 
         private FigureView _selected;
@@ -247,7 +250,6 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             if (masterFigure == null) return;
             masterFigure.ContextButtonIsVisible = true;
             MasterLayout.Children.Add(masterFigure);
-
             _masterTime = dataPoint.Time;
             _masterSet = true;
 
