@@ -7,7 +7,10 @@ using System.Linq;
 using MathNet.Numerics.Statistics;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Common;
-
+using MathNet.Numerics;
+using MathNet.Numerics.IntegralTransforms;
+using System.Numerics;
+using MathNet.Numerics.LinearAlgebra.Complex32;
 
 
 namespace SINTEF.AutoActive.AutoSync
@@ -233,7 +236,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// Correlates the master and slave timeseries
         /// </summary>
         /// <returns>A tuple containing the lag and correlation</returns>
-        public (double[], double[]) CorrelateSignals()
+        public (long[], float[]) CorrelateSignals()
         {
             if (( _masterTimerseries.Count) != ( _slaveTimerseries.Count))
             {
@@ -260,7 +263,8 @@ namespace SINTEF.AutoActive.AutoSync
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
             AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
-            (double[] lag,double[] cor) = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
+            var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
+            var lag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
             return (lag, cor);
         }
 
@@ -269,11 +273,10 @@ namespace SINTEF.AutoActive.AutoSync
         /// </summary>
         /// <param name="lag">The lag to be converted</param>
         /// <returns>The timeshift</returns>
-        private long IndexToTimeShift(timeseries master, timeseries slave, double[] correlation, int nrZeros, int index)
+        private long IndexToTimeShift(timeseries master, timeseries slave, int nrZeros, int index)
         {
             int irrelevantBefore = ((master.Length) * (master.Count - 1)) + nrZeros;
             int irrelevantAfter = master.Length * 2;
-            correlation = correlation.Skip(irrelevantBefore).Take(irrelevantAfter - irrelevantBefore).ToArray();
             int zeroCenter = master.Length - 1;
 
             int shiftedFromZero = index - zeroCenter;
@@ -284,39 +287,30 @@ namespace SINTEF.AutoActive.AutoSync
             return timeShift;
         }
 
-        /// <summary>
-        /// Computes the cross correlation between two signals
-        /// </summary>
-        /// <param name="x1">signal 1</param>
-        /// <param name="x2">signal 2</param>
-        /// <returns>A tuple returning the lag and correlation between the signals</returns>
-        /// <remarks>
-        /// Inspiration taken from https://stackoverflow.com/questions/46419323/cross-correlation-using-mathdotnet 
-        /// </remarks>
-        private (double[], double[]) CrossCorrelation(double[] x1, double[] x2)
+
+
+        private float[] CrossCorrelation(double[] x1, double[] x2)
         {
-            var len = x1.Length;
-            var len2 = 2 * len;
-            var len3 = 3 * len;
-            var s1 = new double[len3];
-            var s2 = new double[len3];
-            var cor = new double[len2];
-            var lag = new double[len2];
+            int length = x1.Length + x2.Length - 1;
+            var zeroArray = DenseVector.Create(length - x1.Length, 0);
+            x2.Reverse();
+            Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
 
-            Array.Copy(x1, 0, s1, len, len);
-            Array.Copy(x2, 0, s2, 0, len);
 
-            for (int i = 0; i < len2; i++)
-            {
-                cor[i] = Correlation.Pearson(s1, s2);
-                lag[i] = i - len;
-                Array.Copy(s2, 0, s2, 1, s2.Length - 1);
-                s2[0] = 0;
-            }
+            var comX1 = DenseVector.OfArray(convertToComplex(x1));
+            var comX2 = DenseVector.OfArray(convertToComplex(x2));
+            var zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
+            var zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
 
-            return (lag, cor);
-
+            Fourier.Forward(zeroPaddedComX1, FourierOptions.Matlab);
+            Fourier.Forward(zeroPaddedcomX2, FourierOptions.Matlab);
+            var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
+            
+            Fourier.Inverse(results, FourierOptions.Matlab);
+            return results.Select(x => x.Real).ToArray();
+             
         }
+
 
 
         /// <summary>

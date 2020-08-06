@@ -220,7 +220,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
-            (double[] lag, double[] correlation ) = sync.CorrelateSignals();
+            (long[] lag, float[] correlation) = sync.CorrelateSignals();
+
 
             
         }
