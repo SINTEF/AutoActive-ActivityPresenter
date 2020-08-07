@@ -226,7 +226,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             (long[] lag, float[] correlation) = sync.CorrelateSignals();
             var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
             GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor" );
-
+            Playbar.CorrelationPreview(correlationColumn);
         }
 
         private FigureView _selected;

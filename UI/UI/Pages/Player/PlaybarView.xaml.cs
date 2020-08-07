@@ -61,7 +61,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        public Slider GetTimeSlider 
+        public Slider GetTimeSlider
         {
             get => TimeSlider;
         }
@@ -88,6 +88,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private readonly ManualTimeSynchronizedContext _previewContext = new ManualTimeSynchronizedContext();
         private LinePlot _previewView;
+        private CorrelationPlot _correlationView;
+
 
         public PlaybarView()
         {
@@ -159,8 +161,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 return 0;
             }
-            var value = TimeSlider.Maximum * (time - ViewerContext.AvailableTimeFrom) ;
-            return  value / divider;
+            var value = TimeSlider.Maximum * (time - ViewerContext.AvailableTimeFrom);
+            return value / divider;
         }
 
         public void SetSliderTime(long time)
@@ -259,11 +261,61 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }
-            _previewView.ContextButtonIsVisible = false;
+            _previewView.ContextButtonIsVisible = true;
             _previewView.AxisValuesVisible = false;
             _previewView.CurrentTimeVisible = false;
 
             ContentGrid.Children.Add(_previewView, 1, 0);
+            _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
+            _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
+        }
+
+        public async void CorrelationPreview(IDataPoint datapoint)
+        {
+            if (_correlationView != null)
+            {
+                ContentGrid.Children.Remove(_correlationView);
+            }
+
+            // This implements toggling
+            if (PreviewDataPoint == datapoint)
+            {
+                PreviewDataPoint = null;
+                return;
+            }
+
+            if (!(datapoint is TableColumn))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "Only lines are supported for timeline view.",
+                    XamarinHelpers.GetCurrentPage(Navigation));
+                return;
+            }
+
+            try
+            {
+                _correlationView = await CorrelationPlot.Create(datapoint, _previewContext);
+            }
+            catch (Exception ex)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview:\n{ex}",
+                    XamarinHelpers.GetCurrentPage(Navigation));
+                return;
+            }
+
+            PreviewDataPoint = datapoint;
+            if (PreviewDataPoint == null)
+            {
+                return;
+            }
+
+            if (_correlationView == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview",
+                    XamarinHelpers.GetCurrentPage(Navigation));
+                return;
+            }
+
+            ContentGrid.Children.Add(_correlationView, 1, 0);
             _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
