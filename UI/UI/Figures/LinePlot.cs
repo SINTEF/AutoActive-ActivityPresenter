@@ -300,7 +300,6 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
         
-
         /// <summary>
         /// Finds the best resolution of the y scale. 
         /// </summary>
