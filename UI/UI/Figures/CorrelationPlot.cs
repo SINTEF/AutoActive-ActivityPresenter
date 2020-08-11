@@ -1,11 +1,11 @@
-﻿using SINTEF.AutoActive.Databus.Interfaces;
+﻿using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
-using SINTEF.AutoActive.UI.Views;
+using SINTEF.AutoActive.UI.Pages.Synchronization;
 using SkiaSharp;
-using System;
+using SkiaSharp.Views.Forms;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Xamarin.Forms;
 
@@ -13,16 +13,46 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public class CorrelationPlot : DrawPlot
     {
-        public static async Task<CorrelationPlot> Create(IDataPoint datapoint, TimeSynchronizedContext context)
+        public static async Task<CorrelationPlot> Create(IDataPoint datapoint, TimeSynchronizedContext context, PointSynchronizationPage pointSyncPage)
         {
-            var correlationPlot = new CorrelationPlot(context, datapoint);
+            var correlationPlot = new CorrelationPlot(context, datapoint, pointSyncPage);
 
             var lineDrawer = await correlationPlot.CreateLineDrawer(datapoint);
             correlationPlot.AddLine(lineDrawer);
             return correlationPlot;
         }
-        protected CorrelationPlot(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
+
+        private readonly PointSynchronizationPage _pointSyncPage;
+        private CorrelationPlot(TimeSynchronizedContext context, IDataPoint dataPoint, PointSynchronizationPage pointSyncPage) : base(context, dataPoint)
         {
+            this.Canvas.EnableTouchEvents = true;
+            this.Canvas.Touch += OnTouch;
+            this._pointSyncPage = pointSyncPage;
+        
+        }
+
+        ~CorrelationPlot()
+        {
+            this.Canvas.Touch -= OnTouch;
+        }
+
+        private void OnTouch(object sender, SKTouchEventArgs e)
+        {
+            if (e.MouseButton != SKMouseButton.Left)
+            {
+                return;
+            }
+
+            var mouseClickLocationX = e.Location.X;
+            var totalWindowLength = this.Canvas.Width;
+            var relativeMouseClickLocationX = mouseClickLocationX / totalWindowLength;
+
+            ITimeSeriesViewer viewer = (ITimeSeriesViewer)Viewers[0];
+            var span = viewer.GetCurrentData<float>();
+            int lenTimeVec = span.X.Length;
+            int relevantIndex = (int)(relativeMouseClickLocationX * lenTimeVec);
+            long timeOffset = span.X.ToArray()[relevantIndex];
+            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffset));
 
         }
 
@@ -153,6 +183,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.ScaleY = scaleY;
             }
         }
+
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {

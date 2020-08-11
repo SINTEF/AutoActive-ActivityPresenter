@@ -10,6 +10,7 @@ using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
 using SINTEF.AutoActive.UI.Views;
+using SINTEF.AutoActive.UI.Pages.Synchronization;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -270,7 +271,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
 
-        public async void CorrelationPreview(IDataPoint datapoint)
+        public async void CorrelationPreview(IDataPoint datapoint, PointSynchronizationPage pointSyncPage)
         {
             if (_correlationView != null)
             {
@@ -293,7 +294,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             try
             {
-                _correlationView = await CorrelationPlot.Create(datapoint, _previewContext);
+                _correlationView = await CorrelationPlot.Create(datapoint, _previewContext, pointSyncPage);
+
             }
             catch (Exception ex)
             {

@@ -43,6 +43,11 @@ namespace SINTEF.AutoActive.UI.Views
 
         public PlaybarView Playbar { get; set; }
 
+        public List<(ITimeViewer, TimeSynchronizedContext, string)> TimeViewers
+        {
+            get { return _timeViewers; }
+        }
+
         public DataTracklineView() : base()
         {
             PaintSurface += OnPaintSurface;
