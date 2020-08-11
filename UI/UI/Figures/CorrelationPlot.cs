@@ -184,10 +184,15 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
+        protected const string SyncBasedOnMax = "synchronize based on Max Correlation";
+        
+
+
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
-
+            parameters.Clear();
+            parameters.Add(SyncBasedOnMax);
             return true;
         }
 
