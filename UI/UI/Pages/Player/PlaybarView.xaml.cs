@@ -262,7 +262,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }
-            _previewView.ContextButtonIsVisible = true;
+            _previewView.ContextButtonIsVisible = false;
             _previewView.AxisValuesVisible = false;
             _previewView.CurrentTimeVisible = false;
 
