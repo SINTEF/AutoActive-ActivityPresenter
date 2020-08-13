@@ -9,11 +9,12 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
+using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlaybarView : ContentView
+    public partial class PlaybarView : ContentView, IFigureContainer
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
@@ -61,7 +62,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        public Slider GetTimeSlider 
+        public Slider GetTimeSlider
         {
             get => TimeSlider;
         }
@@ -267,7 +268,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
-        
+
         public void TimelineExpand_OnClickedExpand_OnClicked()
         {
             var wasVisible = RowTimelineView.Height.Value == 0d;
@@ -364,5 +365,31 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             return offset;
         }
 
+        public FigureView Selected { get; set; }
+        public void RemoveChild(FigureView figureView)
+        {
+            if (figureView != _previewView)
+            {
+                return;
+            }
+            ContentGrid.Children.Remove(_previewView);
+        }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
+        {
+            if (dataPoint != PreviewDataPoint)
+            {
+                return;
+            }
+
+            PreviewDataPoint = null;
+        }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
