@@ -164,6 +164,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public async Task DeserializeView(JObject root, IDataStructure archiveLeft, IDataStructure archiveRight)
         {
+            SerializableViewHelper.EnsureViewType(root, this);
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
                 await LeftGrid.DeserializeView(left, archiveLeft);
@@ -183,10 +184,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public JObject SerializeView(JObject root = null)
         {
-            if (root == null)
-            {
-                root = new JObject();
-            }
+            root = SerializableViewHelper.SerializeDefaults(root, this);
 
             root["Left"] = LeftGrid.SerializeView();
             root["Right"] = RightGrid.SerializeView();

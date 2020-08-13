@@ -277,9 +277,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             await DeserializeView(root);
         }
 
-        public string ViewType => "PlayerPage";
+        public string ViewType => "no.sintef.ui.player_page";
         public async Task DeserializeView(JObject root, IDataStructure archive = null)
         {
+            SerializableViewHelper.EnsureViewType(root, this);
+
             var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
 
             foreach (var figure in figures)
@@ -289,15 +291,18 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             PlayerContainer.ViewerContext = ViewerContext;
             FigureView.DeserializationFailedWarned = false;
-            await PlayerContainer.DeserializeView(root, archive);
+            if(root["player_container"] is JObject playerContainerJson)
+                await PlayerContainer.DeserializeView(playerContainerJson, archive);
+            if (root["playbar"] is JObject playbarJson)
+                await Playbar.DeserializeView(playbarJson, archive);
         }
 
         public JObject SerializeView(JObject root = null)
         {
-            if (root == null)
-                root = new JObject();
+            root = SerializableViewHelper.SerializeDefaults(root, this);
 
-            PlayerContainer.SerializeView(root);
+            root["player_container"] = PlayerContainer.SerializeView();
+            root["playbar"] = Playbar.SerializeView();
 
             return root;
         }
