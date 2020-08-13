@@ -64,7 +64,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        public Slider GetTimeSlider 
+        public Slider GetTimeSlider
         {
             get => TimeSlider;
         }
@@ -270,7 +270,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
-        
+
         public void TimelineExpand_OnClickedExpand_OnClicked()
         {
             var wasVisible = RowTimelineView.Height.Value == 0d;
@@ -346,6 +346,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             long offset;
             switch (timeStep.Length)
             {
+                case TimeStepLength.None:
+                    return 0L;
                 case TimeStepLength.Step:
                     offset = TimeFormatter.TimeFromSeconds(1d / 30);
                     break;
