@@ -293,6 +293,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             FigureView.DeserializationFailedWarned = false;
             if(root["player_container"] is JObject playerContainerJson)
                 await PlayerContainer.DeserializeView(playerContainerJson, archive);
+            if (root["playbar"] is JObject playbarJson)
+                await Playbar.DeserializeView(playbarJson, archive);
         }
 
         public JObject SerializeView(JObject root = null)
@@ -300,6 +302,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             root = SerializableViewHelper.SerializeDefaults(root, this);
 
             root["player_container"] = PlayerContainer.SerializeView();
+            root["playbar"] = Playbar.SerializeView();
 
             return root;
         }
