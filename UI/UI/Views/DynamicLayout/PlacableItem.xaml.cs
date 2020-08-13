@@ -234,9 +234,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public JObject SerializeView(JObject root = null)
         {
-            if (root == null) root = new JObject();
+            root = SerializableViewHelper.SerializeDefaults(root, this);
 
-            root["type"] = ViewType;
             root["item"] = Item?.SerializeView();
             root["id"] = ViewId.ToString();
 
