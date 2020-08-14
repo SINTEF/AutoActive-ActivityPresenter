@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Figures
             this.Canvas.EnableTouchEvents = true;
             this.Canvas.Touch += OnTouch;
             this._pointSyncPage = pointSyncPage;
-        
+            
         }
 
         ~CorrelationPlot()
@@ -184,16 +184,43 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
-        protected const string SyncBasedOnMax = "synchronize based on Max Correlation";
+        private void syncOnMaxValue()
+        {
+            ITimeSeriesViewer viewer = (ITimeSeriesViewer)Viewers[0];
+            var span = viewer.GetCurrentData<float>();
+            var valueArray = span.Y.ToArray().Select((index, value) => index);
+            int maxIndex = valueArray.Select((value, index) => new { Value = value, Index = index }).Aggregate((a, b) => (a.Value > b.Value) ? a : b).Index;
+            long timeOffset = span.X.ToArray()[maxIndex];
+            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffset));
+        }
+
+
+        private const string SyncBasedOnMax = "synchronize based on Max Correlation";
         
-
-
-
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
             parameters.Clear();
             parameters.Add(SyncBasedOnMax);
             return true;
+
+        }
+
+        protected override async void OnHandleMenuResult(Page page, string action)
+        {
+            switch (action)
+            {
+                case SyncBasedOnMax:
+                    syncOnMaxValue();
+                    InvalidateSurface();
+                    return;
+
+            }
+            base.OnHandleMenuResult(page, action);
+        }
+
+        protected override void RemoveThisView()
+        {
+            _pointSyncPage.removeCorrelationPreview(this.DataPoints[0]);
         }
 
     }

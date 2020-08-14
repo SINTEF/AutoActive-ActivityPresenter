@@ -285,13 +285,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 return;
             }
 
-            if (!(datapoint is TableColumn))
-            {
-                await XamarinHelpers.ShowOkMessage("Error", "Only lines are supported for timeline view.",
-                    XamarinHelpers.GetCurrentPage(Navigation));
-                return;
-            }
-
             try
             {
                 _correlationView = await CorrelationPlot.Create(datapoint, _previewContext, pointSyncPage);
@@ -299,7 +292,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
             catch (Exception ex)
             {
-                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview:\n{ex}",
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create correlation figure:\n{ex}",
                     XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }
@@ -312,7 +305,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             if (_correlationView == null)
             {
-                await XamarinHelpers.ShowOkMessage("Error", $"Could not create timeline preview",
+                await XamarinHelpers.ShowOkMessage("Error", $"Could not create correlation figure",
                     XamarinHelpers.GetCurrentPage(Navigation));
                 return;
             }

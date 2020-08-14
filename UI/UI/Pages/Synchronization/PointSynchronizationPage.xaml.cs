@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private RelativeSlider _slaveSlider;
         private SynchronizationContext _slaveContext;
         
-
+        
         private long? _selectedMasterTime;
         private long? SelectedMasterTime
         {
@@ -71,6 +71,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             MasterTimeStepper.GetPlayButton.IsVisible = false;
             SlaveTimeStepper.AreButtonsEnabled = false;
             MasterTimeStepper.AreButtonsEnabled = false;
+
         }
 
         protected override void OnAppearing()
@@ -227,6 +228,12 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
             GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor" );
             Playbar.CorrelationPreview(correlationColumn, this);
+        }
+
+        public void removeCorrelationPreview(IDataPoint datapoint)
+        {
+            Playbar.CorrelationPreview(datapoint,this);
+
         }
 
         private FigureView _selected;

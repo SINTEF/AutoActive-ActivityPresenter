@@ -241,7 +241,7 @@ namespace SINTEF.AutoActive.UI.Views
 	    }
 
         /// Remove this view from the selecting view that contains it.
-        protected void RemoveThisView()
+        protected virtual void RemoveThisView()
         {
             var figureContainer = XamarinHelpers.GetFigureContainerFromParents(Parent);
             figureContainer.RemoveChild(this);
