@@ -79,17 +79,6 @@
                 FontAttributes="None"
                 TextColor="White"/>
 
-            <StackLayout Grid.Row="1" Grid.Column="5"  Orientation="Horizontal">
-                <Button Text="Save View" Clicked="SaveView_Clicked" BorderColor="#23A2B1"
-                        BackgroundColor="#1D2637"
-                        FontAttributes="Bold"
-                        TextColor="White"/>
-                <Button Text="Load View" Clicked="LoadView_Clicked" BorderColor="#23A2B1"
-                        BackgroundColor="#1D2637"
-                        FontAttributes="Bold"
-                        TextColor="White"/>
-            </StackLayout>
-
             <Label Grid.Column="7" Grid.Row="1" x:Name="VersionLabel" TextColor="White" />
 
             <Button
