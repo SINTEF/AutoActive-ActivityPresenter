@@ -208,6 +208,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var item = await FigureView.DeserializeView((JObject) root["item"], Context, archive);
             SetItem(item);
 
+            ResizableStackLayout.SetSizeWeight(this, root["weight"].Value<double>());
+            ResizableStackLayout.SetSizeWeight(MasterLayout, root["master_layout_weight"].Value<double>());
+
+            ResizableStackLayout.SetSizeWeight(HorizontalLayout, root["size_weight_horizontal"].Value<double>());
+            ResizableStackLayout.SetSizeWeight(VerticalLayout, root["size_weight_vertical"].Value<double>());
+
             if (rootParent == this)
             {
                 rootParent.ItemDeserialized?.Invoke(this, (this, PlaceableLocation.Center));
@@ -224,6 +230,15 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 var location = JsonConvert.DeserializeObject<PlaceableLocation>(locString);
                 PlaceRelative(plItem, location);
 
+                var horizParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(plItem.Parent);
+                var vertParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(horizParent.Parent);
+                var horizWeight = child["item"]["parent_size_weight_horizontal"]?.Value<double>();
+                var vertWeight = child["item"]["parent_size_weight_vertical"]?.Value<double>();
+                if(horizWeight.HasValue)
+                    ResizableStackLayout.SetSizeWeight(horizParent, horizWeight.Value);
+                if(vertWeight.HasValue)
+                    ResizableStackLayout.SetSizeWeight(vertParent, vertWeight.Value);
+
                 rootParent.ItemDeserialized?.Invoke(this, (plItem, location));
             }
 
@@ -237,20 +252,28 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             root = SerializableViewHelper.SerializeDefaults(root, this);
 
             root["item"] = Item?.SerializeView();
-            root["id"] = ViewId.ToString();
+            root["view_id"] = ViewId.ToString();
+            root["weight"] = ResizableStackLayout.GetSizeWeight(this);
+            root["master_layout_weight"] = ResizableStackLayout.GetSizeWeight(MasterLayout);
 
             var items = new JArray();
-
             foreach (var (item, location) in PlaceableItems)
             {
                 items.Add(new JObject
                 {
-                    ["item"] = item.SerializeView(null),
+                    ["item"] = item.SerializeView(),
                     ["location"] = JsonConvert.SerializeObject(location)
-                });
+            });
             }
 
             root["children"] = items;
+
+            var horizParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(Parent);
+            var vertParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(horizParent.Parent);
+            root["parent_size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(horizParent);
+            root["parent_size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(vertParent);
+            root["size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(HorizontalLayout);
+            root["size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(VerticalLayout);
 
             return root;
         }
