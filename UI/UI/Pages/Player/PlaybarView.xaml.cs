@@ -393,7 +393,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public JObject SerializeView(JObject root = null)
         {
             root = SerializableViewHelper.SerializeDefaults(root, this);
-            root["preview_figure"] = _previewView.SerializeView();
+            root["preview_figure"] = _previewView?.SerializeView();
 
             return root;
         }
