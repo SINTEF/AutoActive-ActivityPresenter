@@ -238,8 +238,24 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 var serializer = new JsonSerializer();
                 root = serializer.Deserialize(reader) as JObject;
             }
-
             var page = XamarinHelpers.GetCurrentPage();
+
+            if (root == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Error reading file", "Could not parse JSON file.", page);
+                return;
+            }
+
+            var version = root["serializer_version"].Value<string>();
+            if (version != SerializableViewHelper.Version)
+            {
+                var message =
+                    $"Stored view version ({version}) is not the same as current version ({SerializableViewHelper.Version})";
+                // await XamarinHelpers.ShowOkMessage("Deserialization warning", message, page);
+                //TODO(sigurdal): this should probably be shown to the user in some way
+                Debug.WriteLine(message);
+            }
+
             if (page is ISerializableView view)
             {
                 await view.DeserializeView(root, dataProviderItem?.DataProvider);
@@ -268,6 +284,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             var root = view.SerializeView();
+            root["serializer_version"] = SerializableViewHelper.Version;
 
             var stream = await file.GetReadWriteStream();
             using (var streamWriter = new StreamWriter(stream))

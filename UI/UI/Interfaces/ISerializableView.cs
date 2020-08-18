@@ -15,6 +15,7 @@ namespace SINTEF.AutoActive.UI.Interfaces
 
     public static class SerializableViewHelper
     {
+        public static string Version = "1.0.0";
         public static bool EnsureViewType(JObject root, ISerializableView view, bool throwException = true)
         {
             var viewType = root["type"].Value<string>();
