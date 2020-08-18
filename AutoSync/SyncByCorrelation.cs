@@ -99,7 +99,6 @@ namespace SINTEF.AutoActive.AutoSync
 
         }
 
-
         /// <summary>
         /// Adds zeros to the end of each signal in the timeseries 
         /// </summary>
@@ -262,11 +261,12 @@ namespace SINTEF.AutoActive.AutoSync
             }
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
-            AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
+            //AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
             var lag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
             return (lag, cor);
         }
+
 
         /// <summary>
         /// Converts Index to timeshift
@@ -275,14 +275,13 @@ namespace SINTEF.AutoActive.AutoSync
         /// <returns>The timeshift</returns>
         private long IndexToTimeShift(timeseries master, timeseries slave, int nrZeros, int index)
         {
-            int irrelevantBefore = ((master.Length) * (master.Count - 1)) + nrZeros;
-            int irrelevantAfter = master.Length * 2;
-            int zeroCenter = master.Length - 1;
+            //int irrelevantBefore = ((master.Length) * (master.Count - 1)) + nrZeros;
+            //int irrelevantAfter = master.Length * 2;
+            //int zeroCenter = master.Length - 1;
 
-            int shiftedFromZero = index - zeroCenter;
+            var shiftedFromZero = slave.Time[0] - master.Time[master.Length - 1];
             long timeResolution = master.Time[1] - master.Time[0];
-            long newStartTime = master.Time[0] + (timeResolution * shiftedFromZero);
-            long timeShift = newStartTime - slave.Time[0];
+            long timeShift = shiftedFromZero + (timeResolution * index);
 
             return timeShift;
         }
@@ -292,22 +291,30 @@ namespace SINTEF.AutoActive.AutoSync
         private float[] CrossCorrelation(double[] x1, double[] x2)
         {
             int length = x1.Length + x2.Length - 1;
-            var zeroArray = DenseVector.Create(length - x1.Length, 0);
+            Complex32[] zeroArray = DenseVector.Create(length - x1.Length, 0).ToArray();
             x2.Reverse();
             Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
+            double[] test = new double[9];
+            for (int i = 1; i < 10 ; i++)
+            {
+                test[i-1] = i;
+            }
+            Complex32[] testComplex = convertToComplex(test);
+            Complex32[] testComplex2 = convertToComplex(test);
+            Fourier.Forward(testComplex, FourierOptions.Matlab);
+            Fourier.Forward(testComplex2);
 
-
-            var comX1 = DenseVector.OfArray(convertToComplex(x1));
-            var comX2 = DenseVector.OfArray(convertToComplex(x2));
-            var zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
-            var zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
-
+            Complex32[] comX1 = convertToComplex(x1);
+            Complex32[] comX2 = convertToComplex(x2);
+            Complex32[] zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
+            Complex32[] zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
+            
             Fourier.Forward(zeroPaddedComX1, FourierOptions.Matlab);
             Fourier.Forward(zeroPaddedcomX2, FourierOptions.Matlab);
             var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
             
             Fourier.Inverse(results, FourierOptions.Matlab);
-            return results.Select(x => x.Real).ToArray();
+            return results.Select(x => Math.Abs(x.Real)).ToArray();
              
         }
 

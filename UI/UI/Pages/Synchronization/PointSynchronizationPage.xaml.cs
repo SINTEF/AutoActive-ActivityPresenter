@@ -200,7 +200,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         {
             List<IDataPoint> visibleDataPoints = new List<IDataPoint>();
 
-            foreach (var figure in GetFigureViewChildren(SlaveLayout))
+            foreach (var figure in GetFigureViewChildren(layout))
             {
                 foreach (var datapoint in figure.DataPoints)
                 {
