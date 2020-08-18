@@ -27,10 +27,12 @@ namespace SINTEF.AutoActive.UI.Interfaces
             }
             return false;
         }
+
         public static JObject SerializeDefaults(JObject root, ISerializableView view)
         {
-            if(root == null) root = new JObject();
-            root["type"] = view.ViewType;
+            if (root == null) root = new JObject();
+            if (!root.ContainsKey("type"))
+                root["type"] = view.ViewType;
             return root;
         }
     }
