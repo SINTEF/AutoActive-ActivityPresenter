@@ -428,10 +428,14 @@ namespace SINTEF.AutoActive.UI.Views
                 // For the first datapoint, create a new view
                 var dataPoint = dataPoints.First();
                 var view = await GetView(dataPoint, context);
+
+                if (root["lineParameters"] is JObject plotParameters && view is LinePlot linePlotter)
+                    linePlotter.DeserializeParameters(plotParameters);
+
+
                 if (dataPoints.Count <= 1) return view;
 
                 // If there are more data points, check that the view is a line plot and add the other lines
-
                 if (!(view is LinePlot linePlot))
                 {
                     await ShowDeserializationWarning("View trying to add multiple data points to unsupported view.");
@@ -526,6 +530,9 @@ namespace SINTEF.AutoActive.UI.Views
             }
             root["data_point_objects"] = JsonConvert.SerializeObject(dataPointObjects);
             root["type"] = ViewType;
+
+            if (this is LinePlot linePlot)
+                root["lineParameters"] = linePlot.SerializeParameters();
 
             return root;
         }
