@@ -88,8 +88,17 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public bool FromTimeIsCurrent = true;
 
         private readonly ManualTimeSynchronizedContext _previewContext = new ManualTimeSynchronizedContext();
+        private ManualTimeSynchronizedContext _correlationContext = new ManualTimeSynchronizedContext();
         private LinePlot _previewView;
         private CorrelationPlot _correlationView;
+
+        public void SetAvailableTimeForCorrelationView(long from, long to)
+        {
+
+            _correlationContext.SetAvailableTime(from, to);
+            _correlationContext?.SetSelectedTimeRange(from, to);
+
+        }
 
 
         public PlaybarView()
@@ -287,8 +296,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             try
             {
-                _correlationView = await CorrelationPlot.Create(datapoint, _previewContext, pointSyncPage);
-
+                _correlationView = await CorrelationPlot.Create(datapoint, _correlationContext, pointSyncPage);
             }
             catch (Exception ex)
             {
@@ -311,8 +319,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             ContentGrid.Children.Add(_correlationView, 1, 0);
-            _previewContext.SetAvailableTime(_availableTime.Item1, _availableTime.Item2);
-            _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
+
         }
         
         public void TimelineExpand_OnClickedExpand_OnClicked()

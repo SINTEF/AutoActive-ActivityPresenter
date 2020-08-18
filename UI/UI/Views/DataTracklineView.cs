@@ -256,7 +256,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var timeViewerItem = _timeViewers.First();
             var currentTimePos = timeViewerItem.Item2.SelectedTimeFrom;
-
+            
             var xPos = (currentTimePos - xMin) * xScale;
             canvas.DrawLine(xPos, 0, xPos, canvas.LocalClipBounds.Height, _currentLinePaint);
         }
@@ -462,13 +462,25 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
+        private void SetCorrelationContext()
+        {
+            if (!_dataTimeList.Any())
+            {
+                Playbar.SetAvailableTimeForCorrelationView(0, 0);
+            }
+
+            var startTime = _dataTimeList.Select(x => x.Item2.Start).Min();
+            var endTime = _dataTimeList.Select(x => x.Item2.End).Max();
+            Playbar.SetAvailableTimeForCorrelationView(startTime, endTime);
+        }
+
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             if (!_dataTimeList.Any())
             {
                 context.AvailableTimeRangeChanged += ContextOnAvailableTimeRangeChanged;
             }
-
+            
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
             _dataTimeList.Add((dataPoint, timeViewer, dataViewer));
@@ -479,6 +491,7 @@ namespace SINTEF.AutoActive.UI.Views
             context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
             CheckTimeOffset();
+            SetCorrelationContext();
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
@@ -516,6 +529,7 @@ namespace SINTEF.AutoActive.UI.Views
             if (masterCount == 0){ _syncIsSetMaster = false;}
             if (slaveCount == 0) { _syncIsSetSlave = false; }
             InvalidateSurface();
+            SetCorrelationContext();
         }
 
         private async void DataPointAddedHandler(object sender, (IDataPoint, DataViewerContext) args)
