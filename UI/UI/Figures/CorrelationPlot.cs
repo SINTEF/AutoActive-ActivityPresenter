@@ -4,6 +4,7 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -191,7 +192,8 @@ namespace SINTEF.AutoActive.UI.Figures
             var valueArray = span.Y.ToArray().Select((index, value) => index);
             int maxIndex = valueArray.Select((value, index) => new { Value = value, Index = index }).Aggregate((a, b) => (a.Value > b.Value) ? a : b).Index;
             long timeOffset = span.X.ToArray()[maxIndex];
-            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffset/1000000f));
+            float timeOffsetSec = (float)Math.Round(timeOffset / 1000000f, 2);
+            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffsetSec));
         }
 
 
@@ -205,7 +207,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        protected override async void OnHandleMenuResult(Page page, string action)
+        protected override void OnHandleMenuResult(Page page, string action)
         {
             switch (action)
             {
