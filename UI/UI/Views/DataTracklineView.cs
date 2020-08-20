@@ -467,6 +467,7 @@ namespace SINTEF.AutoActive.UI.Views
             if (!_dataTimeList.Any())
             {
                 Playbar.SetAvailableTimeForCorrelationView(0, 0);
+                return;
             }
 
             var startTime = _dataTimeList.Select(x => x.Item2.Start).Min();
