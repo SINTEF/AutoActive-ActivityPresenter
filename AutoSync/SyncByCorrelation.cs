@@ -249,7 +249,7 @@ namespace SINTEF.AutoActive.AutoSync
             timeseries masterTimerseries = new timeseries();
             timeseries slaveTimerseries = new timeseries();
 
-            for (int i = 0; i <  _masterTimerseries.Count; i++)
+            for (int i = _masterTimerseries.Count - 1; i >  -1; i--)
             {
                 masterTimerseries.AddData( _masterTimerseries[i]);
                 slaveTimerseries.AddData( _slaveTimerseries[i]);
@@ -263,6 +263,13 @@ namespace SINTEF.AutoActive.AutoSync
             ResampleSignals(masterTimerseries, slaveTimerseries);
             //AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
+            if (masterTimerseries.Count != 1)
+            {
+                int zeroIndex = (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
+                int fromIndex = zeroIndex -  masterTimerseries.Length;
+                int nrInterestingSamples = (masterTimerseries.Length * 2) + 1;
+                cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
+            }
             var lag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
             return (lag, cor);
         }
@@ -292,17 +299,9 @@ namespace SINTEF.AutoActive.AutoSync
         {
             int length = x1.Length + x2.Length - 1;
             Complex32[] zeroArray = DenseVector.Create(length - x1.Length, 0).ToArray();
-            x2.Reverse();
+            Array.Reverse(x2);
             Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
-            double[] test = new double[9];
-            for (int i = 1; i < 10 ; i++)
-            {
-                test[i-1] = i;
-            }
-            Complex32[] testComplex = convertToComplex(test);
-            Complex32[] testComplex2 = convertToComplex(test);
-            Fourier.Forward(testComplex, FourierOptions.Matlab);
-            Fourier.Forward(testComplex2);
+
 
             Complex32[] comX1 = convertToComplex(x1);
             Complex32[] comX2 = convertToComplex(x2);
