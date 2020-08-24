@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -462,17 +463,49 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
+        private int CalculateAdjustedLength(double duration, int oldSampFreq, int newSampFreq, int length)
+        {
+            if (oldSampFreq > newSampFreq)
+            {
+                return length;
+            }
+
+            int samplingDiff = newSampFreq - oldSampFreq;
+            int nrNewSamples = (int)Math.Ceiling(duration * samplingDiff); //We round up, since it is better to show a little bit to much, instead of too little
+            int adjustedLength = length + nrNewSamples;
+            return adjustedLength;
+        }
+
         private void SetCorrelationContext()
         {
-            if (!_dataTimeList.Any())
+            if (_dataTimeList.Count < 2)
             {
                 Playbar.SetAvailableTimeForCorrelationView(0, 0);
                 return;
             }
 
-            var startTime = _dataTimeList.Select(x => x.Item2.Start).Min();
-            var endTime = _dataTimeList.Select(x => x.Item2.End).Max();
-            Playbar.SetAvailableTimeForCorrelationView(startTime, endTime);
+            long startTime = _dataTimeList.Select(x => x.Item2.Start).Min();
+            long endTime = _dataTimeList.Select(x => x.Item2.End).Max();
+            int masterLength = _dataTimeList[0].Item2.Length;
+            int slaveLength = _dataTimeList[1].Item2.Length;
+            double masterDurationSec = Math.Abs(_dataTimeList[0].Item2.End +  - _dataTimeList[0].Item2.Start) / 1000000f;
+            double slaveDurationSec = Math.Abs(_dataTimeList[1].Item2.End - _dataTimeList[1].Item2.Start) / 1000000f;
+            int masterSamplingFreq = (int)Math.Round((masterLength - 1)/masterDurationSec, 0);
+            int slaveSamplingFreq = (int)Math.Round((slaveLength - 1)/slaveDurationSec,0);
+            int maxSamplingFreq = masterSamplingFreq >= slaveSamplingFreq ? masterSamplingFreq : slaveSamplingFreq;
+            int masterLengthFreqAdjusted = CalculateAdjustedLength(masterDurationSec, masterSamplingFreq, slaveSamplingFreq, masterLength);
+            int slaveLengthFreqAdjusted = CalculateAdjustedLength(slaveDurationSec, slaveSamplingFreq, masterSamplingFreq, slaveLength);
+            int relevantIndexes = masterLengthFreqAdjusted + slaveLengthFreqAdjusted - 1;
+            long relevantTime = (long)Math.Round(relevantIndexes * ((1f/maxSamplingFreq) * 1000000),0);
+
+            if (_dataTimeList[0].Item2.Start < _dataTimeList[1].Item2.Start)
+            { 
+                Playbar.SetAvailableTimeForCorrelationView(endTime - relevantTime, endTime);
+            }
+            else
+            {
+                Playbar.SetAvailableTimeForCorrelationView(-endTime, -endTime + relevantTime);
+            }
         }
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
