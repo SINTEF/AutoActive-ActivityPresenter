@@ -244,6 +244,10 @@ namespace SINTEF.AutoActive.UI.Views
         protected virtual void RemoveThisView()
         {
             var figureContainer = XamarinHelpers.GetFigureContainerFromParents(Parent);
+            if (figureContainer == null)
+            {
+                return;
+            }
             figureContainer.RemoveChild(this);
 
             foreach (var viewer in _viewers)
