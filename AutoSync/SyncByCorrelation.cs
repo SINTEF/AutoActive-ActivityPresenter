@@ -11,6 +11,7 @@ using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using System.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
+//using MathNet.Numerics.Interpolation;
 
 
 namespace SINTEF.AutoActive.AutoSync
@@ -117,8 +118,8 @@ namespace SINTEF.AutoActive.AutoSync
         internal void ResampleSignals(int newSamplingFreq)
         {
             int arraySize = Length * (newSamplingFreq/SamplingFreq);
-            long[] newTimeline = ComputeNewTimeline(arraySize);
-            _data = _data.Select(x => InterpolateSignal(newTimeline, x)).ToList();
+            long[] newTimeline = ComputeNewTimeline(arraySize); 
+            _data = _data.Select(x => InterpolateSignal(x, Time, newTimeline)).ToList();
             _time = newTimeline;
         }
 
@@ -133,7 +134,7 @@ namespace SINTEF.AutoActive.AutoSync
 
             var startTime = _time[0];
             var endTime = _time[Length - 1];
-            var stepSize = (endTime - startTime) / (arraySize - 1);
+            var stepSize = (endTime - startTime) / (arraySize-2);
 
             for (int i = 0; i < arraySize; i++)
             {
@@ -143,48 +144,14 @@ namespace SINTEF.AutoActive.AutoSync
             return newTimeline;
         }
 
-        /// <summary>
-        /// Interpolates the signal.
-        /// </summary>
-        /// <param name="newTimeline"> The timeline of the new interpolated signal</param>
-        /// <param name="oldSignal"> The old signal to be interpolated</param>
-        /// <returns>The new interpolated signal</returns>
-        private double[] InterpolateSignal(long[] newTimeline, double[] oldSignal)
+        private double[] InterpolateSignal(double[] signal, long[] timeline, long[] newTimeline)
         {
-            int arraySize = newTimeline.Length;
-            double[] newDataseries = new double[arraySize];
-            long stepSizeOldTimeline = _time[1] - _time[0];
-            long stepSizeNewTimeline = newTimeline[1] - newTimeline[0];
-            long startNewTimeline = newTimeline[0];
-
-
-            for (int i = 1; i < arraySize; i++)
-            {
-                int indexBefore =(int) ((startNewTimeline + (i*stepSizeNewTimeline))/stepSizeOldTimeline);
-                int indexAfter = indexBefore + 1;
-                double dataBefore = oldSignal[indexBefore];
-                double dataAfter = oldSignal[indexAfter];
-                long distanceToDataBefore = Math.Abs(newTimeline[i] - _time[indexBefore]);
-                long distanceToDataAfter = Math.Abs(newTimeline[i] - _time[indexAfter]);
-                long totalDistance = distanceToDataAfter + distanceToDataBefore;
-                double weightedMean;
-                if (distanceToDataBefore == 0)
-                {
-                    weightedMean = dataBefore;
-                }
-                else if (distanceToDataAfter == 0)
-                {
-                    weightedMean = dataAfter;
-                }
-                else
-                {
-                    weightedMean = ((distanceToDataAfter / totalDistance) * dataBefore) + ((distanceToDataBefore / totalDistance) * dataAfter);
-                }
-                newDataseries[i] = weightedMean;
-            }
-
-            return newDataseries;
+            double[] doubleTimeline = timeline.Select((x,i) => (double)x).ToArray();
+            var interpolationScheme = Interpolate.Linear(doubleTimeline, signal);
+            double[] interpolatedSignal = newTimeline.Select((x, i) => interpolationScheme.Interpolate(x)).ToArray();
+            return interpolatedSignal;
         }
+
     }
 
 
@@ -261,7 +228,7 @@ namespace SINTEF.AutoActive.AutoSync
             }
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
-            //AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
+            AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
             if (masterTimerseries.Count != 1)
             {
@@ -274,7 +241,6 @@ namespace SINTEF.AutoActive.AutoSync
             return (lag, cor);
         }
 
-
         /// <summary>
         /// Converts Index to timeshift
         /// </summary>
@@ -282,18 +248,12 @@ namespace SINTEF.AutoActive.AutoSync
         /// <returns>The timeshift</returns>
         private long IndexToTimeShift(timeseries master, timeseries slave, int nrZeros, int index)
         {
-            //int irrelevantBefore = ((master.Length) * (master.Count - 1)) + nrZeros;
-            //int irrelevantAfter = master.Length * 2;
-            //int zeroCenter = master.Length - 1;
-
             var shiftedFromZero = slave.Time[0] - master.Time[master.Length - 1];
             long timeResolution = master.Time[1] - master.Time[0];
             long timeShift = shiftedFromZero + (timeResolution * index);
 
             return timeShift;
         }
-
-
 
         private float[] CrossCorrelation(double[] x1, double[] x2)
         {
@@ -316,8 +276,6 @@ namespace SINTEF.AutoActive.AutoSync
             return results.Select(x => Math.Abs(x.Real)).ToArray();
              
         }
-
-
 
         /// <summary>
         /// Resamples the timeseries. The timeseries is resampled to the highest frequency of either the master or slave
