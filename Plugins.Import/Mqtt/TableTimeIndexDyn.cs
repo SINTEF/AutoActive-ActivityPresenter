@@ -73,6 +73,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public long Start => time.data[0];
         public long End => time.data[time.length - 1];
 
+        public int Length => time.length;
+
         public event TimeViewerWasChangedHandler TimeChanged;
 
         public void UpdatedTimeIndex()

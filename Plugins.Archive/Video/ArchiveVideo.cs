@@ -271,6 +271,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public ITimePoint TimePoint => _time;
 
+        public int Length =>(int) _videoLength;
+
         public long Start
         {
             get => _time.Offset;
@@ -282,6 +284,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         }
 
         public long End => Start + _videoLength;
+
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }

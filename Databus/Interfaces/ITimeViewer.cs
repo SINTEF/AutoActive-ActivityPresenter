@@ -9,6 +9,8 @@
         long Start { get; }
         long End { get; }
 
+        int Length { get; }
+
         event TimeViewerWasChangedHandler TimeChanged;
 
         void UpdatedTimeIndex();
