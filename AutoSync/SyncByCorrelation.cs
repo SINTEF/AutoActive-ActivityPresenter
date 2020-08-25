@@ -75,6 +75,11 @@ namespace SINTEF.AutoActive.AutoSync
             get => (int)Math.Round((1000000f / (_time[1] - _time[0])),0);
         }
 
+        public double Duration
+        {
+            get => _time[_time.Length - 1] - _time[0];
+        }
+
         /// <summary>
         /// Function for adding signals to the timeseries
         /// </summary>
@@ -222,7 +227,7 @@ namespace SINTEF.AutoActive.AutoSync
                 slaveTimerseries.AddData( _slaveTimerseries[i]);
             }
 
-            if (slaveTimerseries.Length > masterTimerseries.Length)
+            if (slaveTimerseries.Duration > masterTimerseries.Duration)
             {
                 throw new Exception("The length of the slave datapoints must be shorter then the master");
             }
