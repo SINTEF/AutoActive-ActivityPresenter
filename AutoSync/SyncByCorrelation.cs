@@ -11,6 +11,7 @@ using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using System.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
+using System.IO;
 //using MathNet.Numerics.Interpolation;
 
 
@@ -26,6 +27,7 @@ namespace SINTEF.AutoActive.AutoSync
     {
         private List<double[]> _data = new List<double[]>();
         private long[] _time;
+        private int _nrZeros = 0;
 
         /// <summary>
         /// Returns the number of signals the simeseries consist of
@@ -80,6 +82,11 @@ namespace SINTEF.AutoActive.AutoSync
             get => _time[_time.Length - 1] - _time[0];
         }
 
+        public int NrZeros
+        {
+            get => _nrZeros;
+        }
+
         /// <summary>
         /// Function for adding signals to the timeseries
         /// </summary>
@@ -114,6 +121,17 @@ namespace SINTEF.AutoActive.AutoSync
             double[] zeroArray = new double[nrZeros];
             zeroArray = zeroArray.Select(x => x = 0).ToArray();
             _data = _data.Select(x => x.Concat(zeroArray).ToArray()).ToList();
+            
+            long timediff = Time[1] - Time[0];
+            long endtime = Time[Time.Length - 1];
+            long[] zeroPaddedTime = new long[zeroArray.Length];
+            for (int i = 0; i < zeroArray.Length; i++)
+            {
+                zeroPaddedTime[i] = endtime + ((i + 1) * timediff);
+            }
+
+            _time = _time.Concat(zeroPaddedTime).ToArray();
+            _nrZeros = zeroArray.Length;
         }
 
         /// <summary>
@@ -227,23 +245,24 @@ namespace SINTEF.AutoActive.AutoSync
                 slaveTimerseries.AddData( _slaveTimerseries[i]);
             }
 
-            if (slaveTimerseries.Duration > masterTimerseries.Duration)
-            {
-                throw new Exception("The length of the slave datapoints must be shorter then the master");
-            }
+            //if (slaveTimerseries.Duration > masterTimerseries.Duration)
+            //{
+            //    throw new Exception("The length of the slave datapoints must be shorter then the master");
+            //}
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
+            //if ((slaveTimerseries.Duration < masterTimerseries.Duration) & (masterTimerseries.Count > 1))
+            //{
             AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
+            //}
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
-            if (masterTimerseries.Count != 1)
-            {
-                int zeroIndex = (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
-                int fromIndex = zeroIndex -  masterTimerseries.Length;
-                int nrInterestingSamples = (masterTimerseries.Length * 2) + 1;
-                cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
-            }
-            var lag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
-            return (lag, cor);
+            int zeroIndex =  (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
+            int fromIndex = zeroIndex - masterTimerseries.Length + slaveTimerseries.NrZeros;
+            int nrInterestingSamples = (masterTimerseries.Length + slaveTimerseries.Length - slaveTimerseries.NrZeros) - 1;
+            string[] cor_string = cor.Select((x, i) => x.ToString()).ToArray();
+            cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
+            var timelag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
+            return (timelag, cor);
         }
 
         /// <summary>
@@ -278,7 +297,7 @@ namespace SINTEF.AutoActive.AutoSync
             var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
             
             Fourier.Inverse(results, FourierOptions.Matlab);
-            return results.Select(x => Math.Abs(x.Real)).ToArray();
+            return results.Select(x => x.Real).ToArray();
              
         }
 
@@ -304,8 +323,8 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
         /// <summary>
-        /// If the master signals consist of more indexes compared to slave signals, the slave signals are zero padded individually at the end 
-        /// of each signal
+        /// If the master timeseries have a longer duration compared to the slave timeseries and we use multiple timeseries to 
+        /// sync the timeseries, we need to zero pad the slaves, to not get a offset
         /// </summary>
         /// <param name="masterTimerseries"></param>
         /// <param name="slaveTimerseries"></param>
