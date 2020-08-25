@@ -175,6 +175,18 @@ namespace SINTEF.AutoActive.AutoSync
             return interpolatedSignal;
         }
 
+        internal void RemoveBias()
+        {
+            Func<double[], double[]> subtractMean = signal =>
+            {
+                double signalMean = signal.Mean();
+                signal = signal.Select(x => x - signalMean).ToArray();
+                return signal;
+            };
+
+            _data = Data.Select(x => subtractMean(x)).ToList();
+        }
+
     }
 
 
@@ -251,6 +263,8 @@ namespace SINTEF.AutoActive.AutoSync
             //}
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
+            masterTimerseries.RemoveBias();
+            slaveTimerseries.RemoveBias();
             //if ((slaveTimerseries.Duration < masterTimerseries.Duration) & (masterTimerseries.Count > 1))
             //{
             AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
