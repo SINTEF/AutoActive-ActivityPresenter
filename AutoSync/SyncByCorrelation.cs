@@ -233,19 +233,6 @@ namespace SINTEF.AutoActive.AutoSync
 
         }
 
-        public SyncByCorrelation()
-        {
-
-
-        }
-
-#if DEBUG
-        ~SyncByCorrelation()
-        {
-            Console.WriteLine("The object was destructed");
-        }
-#endif
-
         /// <summary>
         /// Correlates the master and slave timeseries
         /// </summary>
@@ -315,19 +302,17 @@ namespace SINTEF.AutoActive.AutoSync
             int length = x1.Length + x2.Length - 1;
             Complex32[] zeroArray = DenseVector.Create(length - x1.Length, 0).ToArray();
             Array.Reverse(x2);
-            Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
 
-
-            Complex32[] comX1 = convertToComplex(x1);
-            Complex32[] comX2 = convertToComplex(x2);
+            Complex32[] comX1 = FFT.ToComplex32Array(x1); 
+            Complex32[] comX2 = FFT.ToComplex32Array(x2);
             Complex32[] zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
             Complex32[] zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
 
-            Fourier.Forward(zeroPaddedComX1, FourierOptions.Matlab);
-            Fourier.Forward(zeroPaddedcomX2, FourierOptions.Matlab);
-            var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
-            
-            Fourier.Inverse(results, FourierOptions.Matlab);
+            zeroPaddedComX1 = FFT.fft(zeroPaddedComX1);
+            zeroPaddedComX1 = FFT.fft(zeroPaddedcomX2);
+
+            var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();            
+            results = FFT.ifft(results);
             return results.Select(x => x.Real).ToArray();
              
         }
