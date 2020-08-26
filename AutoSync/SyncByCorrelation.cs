@@ -1,7 +1,5 @@
 ﻿using System;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using static SINTEF.AutoActive.AutoSync.AutoSyncUtils;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,10 +7,7 @@ using MathNet.Numerics.Statistics;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Common;
 using MathNet.Numerics;
-using MathNet.Numerics.IntegralTransforms;
-using System.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
-using System.IO;
 using Accord.Math;
 
 //using MathNet.Numerics.Interpolation;
