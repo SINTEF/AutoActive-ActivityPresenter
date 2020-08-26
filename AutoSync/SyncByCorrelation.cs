@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using static SINTEF.AutoActive.AutoSync.AutoSyncUtils;
 using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics.Statistics;
@@ -12,6 +13,8 @@ using MathNet.Numerics.IntegralTransforms;
 using System.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
 using System.IO;
+using Accord.Math;
+
 //using MathNet.Numerics.Interpolation;
 
 
@@ -72,9 +75,9 @@ namespace SINTEF.AutoActive.AutoSync
         /// <summary>
         /// Returns the samplingfrequency of the timeseries
         /// </summary>
-        public int SamplingFreq 
+        public int SamplingFreq
         {
-            get => (int)Math.Round((1000000f / (_time[1] - _time[0])),0);
+            get => (int)Math.Round((1000000f / (_time[1] - _time[0])), 0);
         }
 
         public double Duration
@@ -95,7 +98,7 @@ namespace SINTEF.AutoActive.AutoSync
         {
             Task dataViewTask = inputData.CreateViewer();
             Task timeViewTask = inputData.Time.CreateViewer();
-            Task[] tasks = new Task[]{ dataViewTask, timeViewTask };
+            Task[] tasks = new Task[] { dataViewTask, timeViewTask };
             var dataView = Task.Run(() => inputData.CreateViewer()).Result;
             var timeView = Task.Run(() => inputData.Time.CreateViewer()).Result;
             Task.WaitAll(tasks);
@@ -105,7 +108,7 @@ namespace SINTEF.AutoActive.AutoSync
             long[] time = span.X.ToArray();
             double[] data = span.Y.ToArray();
             _data.Add(data);
-            if (_time == null);
+            if (_time == null) ;
             {
                 _time = time.Cast<long>().ToArray(); ;
             }
@@ -121,7 +124,7 @@ namespace SINTEF.AutoActive.AutoSync
             double[] zeroArray = new double[nrZeros];
             zeroArray = zeroArray.Select(x => x = 0).ToArray();
             _data = _data.Select(x => x.Concat(zeroArray).ToArray()).ToList();
-            
+
             long timediff = Time[1] - Time[0];
             long endtime = Time[Time.Length - 1];
             long[] zeroPaddedTime = new long[zeroArray.Length];
@@ -140,8 +143,8 @@ namespace SINTEF.AutoActive.AutoSync
         /// <param name="newSamplingFreq">The new sampling frequency</param>
         internal void ResampleSignals(int newSamplingFreq)
         {
-            int arraySize = Length * (newSamplingFreq/SamplingFreq);
-            long[] newTimeline = ComputeNewTimeline(arraySize); 
+            int arraySize = Length * (newSamplingFreq / SamplingFreq);
+            long[] newTimeline = ComputeNewTimeline(arraySize);
             _data = _data.Select(x => InterpolateSignal(x, Time, newTimeline)).ToList();
             _time = newTimeline;
         }
@@ -157,7 +160,7 @@ namespace SINTEF.AutoActive.AutoSync
 
             var startTime = _time[0];
             var endTime = _time[Length - 1];
-            var stepSize = (endTime - startTime) / (arraySize-2);
+            var stepSize = (endTime - startTime) / (arraySize - 2);
 
             for (int i = 0; i < arraySize; i++)
             {
@@ -169,7 +172,7 @@ namespace SINTEF.AutoActive.AutoSync
 
         private double[] InterpolateSignal(double[] signal, long[] timeline, long[] newTimeline)
         {
-            double[] doubleTimeline = timeline.Select((x,i) => (double)x).ToArray();
+            double[] doubleTimeline = timeline.Select((x, i) => (double)x).ToArray();
             var interpolationScheme = Interpolate.Linear(doubleTimeline, signal);
             double[] interpolatedSignal = newTimeline.Select((x, i) => interpolationScheme.Interpolate(x)).ToArray();
             return interpolatedSignal;
@@ -187,7 +190,17 @@ namespace SINTEF.AutoActive.AutoSync
             _data = Data.Select(x => subtractMean(x)).ToList();
         }
 
+        internal void HilbertFilter()
+        {
+            _data = Data.Select(x => Hilbert.GetHilbertEnvelope(x)).ToList();
+        }
+
     }
+
+
+
+
+
 
 
     /// <summary>
@@ -265,10 +278,14 @@ namespace SINTEF.AutoActive.AutoSync
             ResampleSignals(masterTimerseries, slaveTimerseries);
             masterTimerseries.RemoveBias();
             slaveTimerseries.RemoveBias();
-            //if ((slaveTimerseries.Duration < masterTimerseries.Duration) & (masterTimerseries.Count > 1))
-            //{
-            AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
-            //}
+            masterTimerseries.HilbertFilter();
+            slaveTimerseries.HilbertFilter();
+            
+            if ((slaveTimerseries.Duration < masterTimerseries.Duration))
+            {
+                AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
+            }
+            
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
             int zeroIndex =  (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
             int fromIndex = zeroIndex - masterTimerseries.Length + slaveTimerseries.NrZeros;
@@ -305,7 +322,7 @@ namespace SINTEF.AutoActive.AutoSync
             Complex32[] comX2 = convertToComplex(x2);
             Complex32[] zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
             Complex32[] zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
-            
+
             Fourier.Forward(zeroPaddedComX1, FourierOptions.Matlab);
             Fourier.Forward(zeroPaddedcomX2, FourierOptions.Matlab);
             var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
