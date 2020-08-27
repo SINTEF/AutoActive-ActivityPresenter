@@ -10,7 +10,6 @@ using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
 using Accord.Math;
 
-//using MathNet.Numerics.Interpolation;
 
 
 namespace SINTEF.AutoActive.AutoSync
@@ -192,12 +191,6 @@ namespace SINTEF.AutoActive.AutoSync
 
     }
 
-
-
-
-
-
-
     /// <summary>
     /// Synchronises timeseries by correlation
     /// </summary>
@@ -210,7 +203,7 @@ namespace SINTEF.AutoActive.AutoSync
     public class SyncByCorrelation
     {
 
-        private List<IDataPoint>  _masterTimerseries = new List<IDataPoint>();
+        private List<IDataPoint> _masterTimerseries = new List<IDataPoint>();
 
         public void AddMasterSignal(IDataPoint signal)
         {
@@ -219,7 +212,7 @@ namespace SINTEF.AutoActive.AutoSync
 
         }
 
-        private List<IDataPoint>  _slaveTimerseries = new List<IDataPoint> ();
+        private List<IDataPoint> _slaveTimerseries = new List<IDataPoint>();
 
         public void AddSlaveSignal(IDataPoint signal)
         {
@@ -234,11 +227,11 @@ namespace SINTEF.AutoActive.AutoSync
         /// <returns>A tuple containing the lag and correlation</returns>
         public (long[], float[]) CorrelateSignals()
         {
-            if (( _masterTimerseries.Count) != ( _slaveTimerseries.Count))
+            if ((_masterTimerseries.Count) != (_slaveTimerseries.Count))
             {
                 throw new Exception("");
             }
-            if ( _masterTimerseries.Count == 0)
+            if (_masterTimerseries.Count == 0)
             {
                 throw new Exception("");
             }
@@ -246,10 +239,10 @@ namespace SINTEF.AutoActive.AutoSync
             timeseries masterTimerseries = new timeseries();
             timeseries slaveTimerseries = new timeseries();
 
-            for (int i = _masterTimerseries.Count - 1; i >  -1; i--)
+            for (int i = _masterTimerseries.Count - 1; i > -1; i--)
             {
-                masterTimerseries.AddData( _masterTimerseries[i]);
-                slaveTimerseries.AddData( _slaveTimerseries[i]);
+                masterTimerseries.AddData(_masterTimerseries[i]);
+                slaveTimerseries.AddData(_slaveTimerseries[i]);
             }
 
             //if (slaveTimerseries.Duration > masterTimerseries.Duration)
@@ -262,14 +255,14 @@ namespace SINTEF.AutoActive.AutoSync
             slaveTimerseries.RemoveBias();
             masterTimerseries.HilbertFilter();
             slaveTimerseries.HilbertFilter();
-            
+
             if ((slaveTimerseries.Duration < masterTimerseries.Duration))
             {
                 AdjustLengthOfSignals(masterTimerseries, slaveTimerseries);
             }
-            
+
             var cor = CrossCorrelation(masterTimerseries.DataAsSignleArray, slaveTimerseries.DataAsSignleArray);
-            int zeroIndex =  (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
+            int zeroIndex = (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
             int fromIndex = zeroIndex - masterTimerseries.Length + slaveTimerseries.NrZeros;
             int nrInterestingSamples = (masterTimerseries.Length + slaveTimerseries.Length - slaveTimerseries.NrZeros) - 1;
             string[] cor_string = cor.Select((x, i) => x.ToString()).ToArray();
@@ -297,19 +290,21 @@ namespace SINTEF.AutoActive.AutoSync
             int length = x1.Length + x2.Length - 1;
             Complex32[] zeroArray = DenseVector.Create(length - x1.Length, 0).ToArray();
             Array.Reverse(x2);
+            Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
 
-            Complex32[] comX1 = FFT.ToComplex32Array(x1); 
+
+            Complex32[] comX1 = FFT.ToComplex32Array(x1);
             Complex32[] comX2 = FFT.ToComplex32Array(x2);
             Complex32[] zeroPaddedComX1 = comX1.Concat(zeroArray).ToArray();
             Complex32[] zeroPaddedcomX2 = comX2.Concat(zeroArray).ToArray();
 
             zeroPaddedComX1 = FFT.fft(zeroPaddedComX1);
-            zeroPaddedComX1 = FFT.fft(zeroPaddedcomX2);
+            zeroPaddedcomX2 = FFT.fft(zeroPaddedcomX2);
+            var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();
 
-            var results = zeroPaddedComX1.Zip(zeroPaddedcomX2, (a, b) => (a * b)).ToArray();            
             results = FFT.ifft(results);
             return results.Select(x => x.Real).ToArray();
-             
+
         }
 
         /// <summary>
