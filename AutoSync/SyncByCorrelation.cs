@@ -137,7 +137,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// <param name="newSamplingFreq">The new sampling frequency</param>
         internal void ResampleSignals(int newSamplingFreq)
         {
-            int arraySize = Length * (newSamplingFreq / SamplingFreq);
+            int arraySize = (int) (Length * ((newSamplingFreq * 1f)/ SamplingFreq));
             long[] newTimeline = ComputeNewTimeline(arraySize);
             _data = _data.Select(x => InterpolateSignal(x, Time, newTimeline)).ToList();
             _time = newTimeline;
@@ -169,6 +169,15 @@ namespace SINTEF.AutoActive.AutoSync
             double[] doubleTimeline = timeline.Select((x, i) => (double)x).ToArray();
             var interpolationScheme = Interpolate.Linear(doubleTimeline, signal);
             double[] interpolatedSignal = newTimeline.Select((x, i) => interpolationScheme.Interpolate(x)).ToArray();
+            
+            for (int i = 0; i < interpolatedSignal.Length; i++)
+            {
+                if (double.IsNaN(interpolatedSignal[i]))
+                {
+                    interpolatedSignal[i] = (interpolatedSignal[i - 1] + interpolatedSignal[i - 1]) / 2;
+                }
+            }
+
             return interpolatedSignal;
         }
 
@@ -189,7 +198,10 @@ namespace SINTEF.AutoActive.AutoSync
             _data = Data.Select(x => Hilbert.GetHilbertEnvelope(x)).ToList();
         }
 
+
     }
+
+
 
     /// <summary>
     /// Synchronises timeseries by correlation
@@ -244,11 +256,6 @@ namespace SINTEF.AutoActive.AutoSync
                 masterTimerseries.AddData(_masterTimerseries[i]);
                 slaveTimerseries.AddData(_slaveTimerseries[i]);
             }
-
-            //if (slaveTimerseries.Duration > masterTimerseries.Duration)
-            //{
-            //    throw new Exception("The length of the slave datapoints must be shorter then the master");
-            //}
 
             ResampleSignals(masterTimerseries, slaveTimerseries);
             masterTimerseries.RemoveBias();
