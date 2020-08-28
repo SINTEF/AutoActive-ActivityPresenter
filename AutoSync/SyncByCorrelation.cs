@@ -152,13 +152,14 @@ namespace SINTEF.AutoActive.AutoSync
         {
             long[] newTimeline = new long[arraySize];
 
-            var startTime = _time[0];
-            var endTime = _time[Length - 1];
-            var stepSize = (endTime - startTime) / (arraySize - 2);
+            double startTime = Convert.ToDouble(_time[0]);
+            double endTime = Convert.ToDouble(_time[Length - 1]);
+            double stepSize = (endTime - startTime) / (arraySize - 1f);
 
             for (int i = 0; i < arraySize; i++)
             {
-                newTimeline[i] = startTime + (i * stepSize);
+                double time = (startTime + (i * stepSize));
+                newTimeline[i] = Convert.ToInt64(time);
             }
 
             return newTimeline;
@@ -189,7 +190,6 @@ namespace SINTEF.AutoActive.AutoSync
                 signal = signal.Select(x => x - signalMean).ToArray();
                 return signal;
             };
-
             _data = Data.Select(x => subtractMean(x)).ToList();
         }
 
@@ -197,8 +197,6 @@ namespace SINTEF.AutoActive.AutoSync
         {
             _data = Data.Select(x => Hilbert.GetHilbertEnvelope(x)).ToList();
         }
-
-
     }
 
 
