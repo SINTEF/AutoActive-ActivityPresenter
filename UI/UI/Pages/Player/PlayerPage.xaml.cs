@@ -217,18 +217,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
+        /// <summary>
+        /// Select an .aav file and write the serialized view to the file in JSON.
+        /// </summary>
+        /// <param name="uri">If provided and broad file system access is enabled, the file is saved to the provided URI instead of through a prompt.</param>
         public async void SaveView(string uri = null)
         {
+
+#if Feature_BroadSystemAccess
             IReadWriteSeekStreamFactory file = null;
             if (uri == null)
             {
                 file = await _browser.BrowseForSave((".aav", "AutoActive View"));
             }
-#if Feature_BroadSystemAccess
             else
             {
                 file = await _browser.SaveFromUri(uri);
             }
+#else
+            var file = await _browser.BrowseForSave((".aav", "AutoActive View"));
 #endif
 
             if (file == null) return;
@@ -247,6 +254,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
+        /// <summary>
+        /// Load the view from a selected JSON style .aav file.
+        /// </summary>
+        /// <param name="archive">If provided, the data points are loaded from this archive</param>
+        /// <param name="uri">If provided and broad file system access is enabled, the file is saved to the provided URI instead of through a prompt.</param>
         public async void LoadView(IDataStructure archive = null, string uri = null)
         {
             IReadSeekStreamFactory file = null;
@@ -278,6 +290,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         }
 
         public string ViewType => "PlayerPage";
+        /// <summary>
+        /// Load the view from from the provided JSON
+        /// </summary>
+        /// <param name="root">The JSON-object containing the serialized view</param>
+        /// <param name="archive">Optional archive that the data points should be loaded from</param>
+        /// <returns></returns>
         public async Task DeserializeView(JObject root, IDataStructure archive = null)
         {
             var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
@@ -292,6 +310,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             await PlayerContainer.DeserializeView(root, archive);
         }
 
+        /// <summary>
+        /// Store the important parts of the objects in the provided JSON object (or a new one if the provided one is null)
+        /// </summary>
+        /// <param name="root">The JSON object the view should be stored in</param>
+        /// <returns>The serialized JSON-view</returns>
         public JObject SerializeView(JObject root = null)
         {
             if (root == null)
