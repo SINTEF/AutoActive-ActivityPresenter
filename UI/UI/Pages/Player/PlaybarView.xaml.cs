@@ -16,7 +16,7 @@ using SINTEF.AutoActive.UI.Views;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlaybarView : ContentView, ISerializableView
+    public partial class PlaybarView : ContentView, IFigureContainer, ISerializableView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
@@ -396,6 +396,33 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             root["preview_figure"] = _previewView?.SerializeView();
 
             return root;
+        }
+
+        public FigureView Selected { get; set; }
+        public void RemoveChild(FigureView figureView)
+        {
+            if (figureView != _previewView)
+            {
+                return;
+            }
+            ContentGrid.Children.Remove(_previewView);
+        }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
+        {
+            if (dataPoint != PreviewDataPoint)
+            {
+                return;
+            }
+
+            PreviewDataPoint = null;
+        }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            throw new NotImplementedException();
         }
     }
 }
