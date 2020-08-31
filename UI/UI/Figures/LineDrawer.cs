@@ -35,7 +35,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig)
         {
-            var en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
+            SpanPair<T>.Enumerator en;
+            if (lineConfig.Drawer.Parent is CorrelationPlot)
+            {
+                en = Viewer.GetCurrentData<T>().GetEnumerator(0);
+            }
+            else
+            {
+                en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
+            }
 
             switch (lineConfig.PlotType)
             {

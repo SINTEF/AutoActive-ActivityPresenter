@@ -163,7 +163,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var line in _lines)
             {
-                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
+                var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(0);
 
                 if (line.SmoothScalingQueue == null)
                 {
