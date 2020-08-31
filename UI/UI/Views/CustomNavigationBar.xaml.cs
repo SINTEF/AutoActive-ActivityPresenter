@@ -290,20 +290,5 @@ namespace SINTEF.AutoActive.UI.Views
                 Navigation.RemovePage(currPage);
             }
         }
-
-        private void SaveView_Clicked(object sender, EventArgs e)
-        {
-            if (XamarinHelpers.GetCurrentPage(Navigation) is PlayerPage playerPage)
-            {
-                playerPage.SaveView();
-            }
-        }
-        private void LoadView_Clicked(object sender, EventArgs e)
-        {
-            if (XamarinHelpers.GetCurrentPage(Navigation) is PlayerPage playerPage)
-            {
-                playerPage.LoadView();
-            }
-        }
     }
 }

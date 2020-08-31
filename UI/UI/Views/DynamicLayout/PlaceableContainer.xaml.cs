@@ -264,9 +264,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public async Task DeserializeView(JObject root, IDataStructure archive)
         {
+            SerializableViewHelper.EnsureViewType(root, this);
+
             var children = (JObject) root["children"];
             var verticalChildren = (JArray) children["vertical"];
-            var horizontalChildren = (JArray) children["horizontal"];
+
+            ResizableStackLayout.SetSizeWeight(MainHorizontalStackLayout, root["size_weight_horizontal"].Value<double>());
+            ResizableStackLayout.SetSizeWeight(MainVerticalStackLayout, root["size_weight_vertical"].Value<double>());
 
             foreach (var vertical in verticalChildren)
             {
@@ -283,6 +287,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 MainVerticalStackLayout.AddChild(pItem);
             }
 
+            var horizontalChildren = (JArray)children["horizontal"];
             foreach (var horizontal in horizontalChildren)
             {
                 PlaceableItem pItem;
@@ -332,16 +337,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public JObject SerializeView(JObject root = null)
         {
-            if (root == null)
-            {
-                root = new JObject();
-            }
+            root = SerializableViewHelper.SerializeDefaults(root, this);
 
             var arr = new JArray();
-            root["type"] = ViewType;
             root["container"] = arr;
+            root["size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(MainHorizontalStackLayout);
+            root["size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(MainVerticalStackLayout);
 
-            var horizontal = new JArray();
             var vertical = new JArray();
 
             foreach (var el in MainVerticalStackLayout.Children)
@@ -351,17 +353,18 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                     vertical.Add("horizontal");
                     continue;
                 }
+
                 if (!(el is PlaceableItem placeableItem)) continue;
 
-                vertical.Add(placeableItem.SerializeView(null));
+                vertical.Add(placeableItem.SerializeView());
             }
 
+            var horizontal = new JArray();
             foreach (var el in MainHorizontalStackLayout.Children)
             {
                 if (!(el is PlaceableItem placeableItem)) continue;
 
-                horizontal.Add(placeableItem.SerializeView(null));
-
+                horizontal.Add(placeableItem.SerializeView());
             }
 
             root["children"] = new JObject { ["vertical"] = vertical, ["horizontal"] = horizontal };

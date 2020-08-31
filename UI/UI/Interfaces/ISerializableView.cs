@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Runtime.Serialization;
+using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
 
@@ -25,5 +26,29 @@ namespace SINTEF.AutoActive.UI.Interfaces
         /// <param name="root">If provided, the view should be written into this JSON base</param>
         /// <returns>A JSON-serialized version of the view</returns>
         JObject SerializeView(JObject root = null);
+    }
+
+    public static class SerializableViewHelper
+    {
+        public static string Version = "1.0.0";
+        public static bool EnsureViewType(JObject root, ISerializableView view, bool throwException = true)
+        {
+            var viewType = root["type"].Value<string>();
+            if (viewType == view.ViewType) return true;
+
+            if (throwException)
+            {
+                throw new SerializationException("Could not serialize view - wrong view type detected.");
+            }
+            return false;
+        }
+
+        public static JObject SerializeDefaults(JObject root, ISerializableView view)
+        {
+            if (root == null) root = new JObject();
+            if (!root.ContainsKey("type"))
+                root["type"] = view.ViewType;
+            return root;
+        }
     }
 }

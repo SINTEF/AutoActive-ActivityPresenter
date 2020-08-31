@@ -201,6 +201,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _browser = DependencyService.Get<IFileBrowser>();
             Detail = "DataProvider";
 
+            var saveViewAction = new MenuItem { Text = "Save View", IsDestructive = true };
+            saveViewAction.Clicked += SaveViewClicked;
+            ContextActions.Add(saveViewAction);
+
             var loadViewAction = new MenuItem { Text = "Load View", IsDestructive = true };
             loadViewAction.Clicked += LoadViewClicked;
             ContextActions.Add(loadViewAction);
@@ -234,15 +238,63 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 var serializer = new JsonSerializer();
                 root = serializer.Deserialize(reader) as JObject;
             }
-
             var page = XamarinHelpers.GetCurrentPage();
+
+            if (root == null)
+            {
+                await XamarinHelpers.ShowOkMessage("Error reading file", "Could not parse JSON file.", page);
+                return;
+            }
+
+            var version = root["serializer_version"].Value<string>();
+            if (version != SerializableViewHelper.Version)
+            {
+                var message =
+                    $"Stored view version ({version}) is not the same as current version ({SerializableViewHelper.Version})";
+                // await XamarinHelpers.ShowOkMessage("Deserialization warning", message, page);
+                //TODO(sigurdal): this should probably be shown to the user in some way
+                Debug.WriteLine(message);
+            }
+
             if (page is ISerializableView view)
             {
                 await view.DeserializeView(root, dataProviderItem?.DataProvider);
             }
             else
             {
-                await XamarinHelpers.ShowOkMessage("Error", "Current does not support loading views yet.", page);
+                await XamarinHelpers.ShowOkMessage("Error", "Current page does not support loading views yet.", page);
+            }
+        }
+
+        private async void SaveViewClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataProviderItem;
+            IReadWriteSeekStreamFactory file = await _browser.BrowseForSave((".aav", "AutoActive View"));
+
+            if (file == null)
+            {
+                return;
+            }
+
+            var page = XamarinHelpers.GetCurrentPage();
+            if (!(page is ISerializableView view))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "Current page does not support saving views yet.", page);
+                return;
+            }
+
+            var root = view.SerializeView();
+            root["serializer_version"] = SerializableViewHelper.Version;
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, root);
             }
         }
     }
