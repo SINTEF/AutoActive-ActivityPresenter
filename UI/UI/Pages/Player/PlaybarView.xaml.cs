@@ -376,6 +376,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             if (root["preview_figure"] is JObject previewFigureObject)
             {
+                // If the previewView already exists, reuse it, if not create a new one.
                 if (_previewView == null)
                 {
                     var view = await FigureView.DeserializeView(previewFigureObject,

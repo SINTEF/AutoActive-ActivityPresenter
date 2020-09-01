@@ -214,6 +214,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             ResizableStackLayout.SetSizeWeight(HorizontalLayout, root["size_weight_horizontal"].Value<double>());
             ResizableStackLayout.SetSizeWeight(VerticalLayout, root["size_weight_vertical"].Value<double>());
 
+            // The children will be registered by the root when they are added placed, but the immediate children must be registered here
             if (rootParent == this)
             {
                 rootParent.ItemDeserialized?.Invoke(this, (this, PlaceableLocation.Center));
@@ -239,6 +240,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 if(vertWeight.HasValue)
                     ResizableStackLayout.SetSizeWeight(vertParent, vertWeight.Value);
 
+                // Register the serialized item with the root container (to show arrows when placing new items)
                 rootParent.ItemDeserialized?.Invoke(this, (plItem, location));
             }
 
@@ -253,9 +255,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             root["item"] = Item?.SerializeView();
             root["view_id"] = ViewId.ToString();
+
+            // As this might have been placed inside a ResizableStackLayout, we need to store its weight
             root["weight"] = ResizableStackLayout.GetSizeWeight(this);
+            // As the master layout might have children, we need to store the weight.
             root["master_layout_weight"] = ResizableStackLayout.GetSizeWeight(MasterLayout);
 
+            // Store all the children. This will recursively serialize all placed items.
             var items = new JArray();
             foreach (var (item, location) in PlaceableItems)
             {
@@ -268,6 +274,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             root["children"] = items;
 
+            // This stores the weight of the immediate parents to preserve the figure sizes
             var horizParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(Parent);
             var vertParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(horizParent.Parent);
             root["parent_size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(horizParent);
