@@ -484,28 +484,18 @@ namespace SINTEF.AutoActive.UI.Views
                 return;
             }
 
-            long startTime = _dataTimeList.Select(x => x.Item2.Start).Min();
-            long endTime = _dataTimeList.Select(x => x.Item2.End).Max();
-            int masterLength = _dataTimeList[0].Item2.Length;
-            int slaveLength = _dataTimeList[1].Item2.Length;
-            double masterDurationSec = Math.Abs(_dataTimeList[0].Item2.End +  - _dataTimeList[0].Item2.Start) / 1000000f;
-            double slaveDurationSec = Math.Abs(_dataTimeList[1].Item2.End - _dataTimeList[1].Item2.Start) / 1000000f;
-            int masterSamplingFreq = (int)Math.Round((masterLength - 1)/masterDurationSec, 0);
-            int slaveSamplingFreq = (int)Math.Round((slaveLength - 1)/slaveDurationSec,0);
-            int maxSamplingFreq = masterSamplingFreq >= slaveSamplingFreq ? masterSamplingFreq : slaveSamplingFreq;
-            int masterLengthFreqAdjusted = CalculateAdjustedLength(masterDurationSec, masterSamplingFreq, slaveSamplingFreq, masterLength);
-            int slaveLengthFreqAdjusted = CalculateAdjustedLength(slaveDurationSec, slaveSamplingFreq, masterSamplingFreq, slaveLength);
-            int relevantIndexes = masterLengthFreqAdjusted + slaveLengthFreqAdjusted - 1;
-            long relevantTime = (long)Math.Round(relevantIndexes * ((1f/maxSamplingFreq) * 1000000),0);
+            long startTimeMaster = _dataTimeList[0].Item2.Start;
+            long startTimeSlave = _dataTimeList[1].Item2.Start;
+            long endTimeSlave = _dataTimeList[1].Item2.End;
+            long endTimeMaster = _dataTimeList[0].Item2.End;
+            long shiftedFromZero = startTimeSlave - startTimeMaster;
+            long durationSlave = endTimeSlave - startTimeSlave;
+            long durationMaster = endTimeMaster - startTimeMaster; 
+            long startTime = shiftedFromZero + durationSlave;
+            long endTime = startTime - durationMaster - durationSlave;
 
-            if (_dataTimeList[0].Item2.Start < _dataTimeList[1].Item2.Start)
-            { 
-                Playbar.SetAvailableTimeForCorrelationView(endTime - relevantTime, endTime);
-            }
-            else
-            {
-                Playbar.SetAvailableTimeForCorrelationView(-endTime, -endTime + relevantTime);
-            }
+            Playbar.SetAvailableTimeForCorrelationView(-startTime, -endTime);
+
         }
 
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)

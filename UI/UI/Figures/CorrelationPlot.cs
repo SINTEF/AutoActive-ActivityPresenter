@@ -193,7 +193,7 @@ namespace SINTEF.AutoActive.UI.Figures
             int maxIndex = valueArray.Select((value, index) => new { Value = value, Index = index }).Aggregate((a, b) => (a.Value > b.Value) ? a : b).Index;
             long timeOffset = span.X.ToArray()[maxIndex];
             float timeOffsetSec = (float)Math.Round(timeOffset / 1000000f, 2);
-            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffsetSec));
+            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, -timeOffsetSec));
         }
 
 

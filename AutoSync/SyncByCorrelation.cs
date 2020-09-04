@@ -106,7 +106,6 @@ namespace SINTEF.AutoActive.AutoSync
             {
                 _time = time.Cast<long>().ToArray(); ;
             }
-
         }
 
         /// <summary>
@@ -270,24 +269,32 @@ namespace SINTEF.AutoActive.AutoSync
             int zeroIndex = (int)Math.Ceiling(((masterTimerseries.Length * masterTimerseries.Count * 2f) - 1) / 2);
             int fromIndex = zeroIndex - masterTimerseries.Length + slaveTimerseries.NrZeros;
             int nrInterestingSamples = (masterTimerseries.Length + slaveTimerseries.Length - slaveTimerseries.NrZeros) - 1;
-            string[] cor_string = cor.Select((x, i) => x.ToString()).ToArray();
             cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
-            var timelag = cor.Select((num, index) => IndexToTimeShift(masterTimerseries, slaveTimerseries, 0, index)).ToArray();
+            var timelag = IndexToTime(masterTimerseries, slaveTimerseries, cor.Length);
+
             return (timelag, cor);
         }
 
-        /// <summary>
-        /// Converts Index to timeshift
-        /// </summary>
-        /// <param name="lag">The lag to be converted</param>
-        /// <returns>The timeshift</returns>
-        private long IndexToTimeShift(timeseries master, timeseries slave, int nrZeros, int index)
+        private long[] IndexToTime(timeseries master, timeseries slave, int nrSamples)
         {
-            var shiftedFromZero = slave.Time[0] - master.Time[master.Length - 1];
-            long timeResolution = master.Time[1] - master.Time[0];
-            long timeShift = shiftedFromZero + (timeResolution * index);
+            long durationSlave = slave.Time[slave.Length - 1 - slave.NrZeros] - slave.Time[0];
+            long durationMaster = master.Time[master.Length - 1] - master.Time[0];
+            long shiftedFromZero = slave.Time[0] - master.Time[0];
+
+            long startTime = shiftedFromZero + durationSlave;
+            long endTime = startTime - durationMaster - durationSlave;
+            long duration = Math.Abs(startTime - endTime);
+
+            float sampleTime = duration / (nrSamples - 1);
+            long[] timeShift = new long[nrSamples];
+
+            for(int i = 0; i < nrSamples; i++)
+            {
+                timeShift[i] = (long) - (startTime - (i * sampleTime));
+            }
 
             return timeShift;
+
         }
 
         private float[] CrossCorrelation(double[] x1, double[] x2)
