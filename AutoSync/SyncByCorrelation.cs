@@ -43,7 +43,7 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
         /// <summary>
-        /// Returns the timeline 
+        /// Returns the timeline
         /// </summary>
         public long[] Time
         {
@@ -71,7 +71,13 @@ namespace SINTEF.AutoActive.AutoSync
         /// </summary>
         public int SamplingFreq
         {
-            get => (int)Math.Round((1000000f / (_time[1] - _time[0])), 0);
+            get
+            {
+                var denom = Duration / (Length - 1f);
+                var samplingFreq = 1000000f / denom;
+                int samplingFreqRound = (int)Math.Round(samplingFreq, 0);
+                return samplingFreqRound;
+            }
         }
 
         public double Duration
@@ -104,12 +110,12 @@ namespace SINTEF.AutoActive.AutoSync
             _data.Add(data);
             if (_time == null) ;
             {
-                _time = time.Cast<long>().ToArray(); ;
+                _time = time.Cast<long>().ToArray();
             }
         }
 
         /// <summary>
-        /// Adds zeros to the end of each signal in the timeseries 
+        /// Adds zeros to the end of each signal in the timeseries
         /// </summary>
         /// <param name="nrZeros">Number of zeros to add</param>
         internal void zeroPadSignals(int nrZeros)
@@ -136,7 +142,7 @@ namespace SINTEF.AutoActive.AutoSync
         /// <param name="newSamplingFreq">The new sampling frequency</param>
         internal void ResampleSignals(int newSamplingFreq)
         {
-            int arraySize = (int) (Length * ((newSamplingFreq * 1f)/ SamplingFreq));
+            int arraySize = (int)(Length * ((newSamplingFreq * 1f) / SamplingFreq));
             long[] newTimeline = ComputeNewTimeline(arraySize);
             _data = _data.Select(x => InterpolateSignal(x, Time, newTimeline)).ToList();
             _time = newTimeline;
@@ -169,7 +175,7 @@ namespace SINTEF.AutoActive.AutoSync
             double[] doubleTimeline = timeline.Select((x, i) => (double)x).ToArray();
             var interpolationScheme = Interpolate.Linear(doubleTimeline, signal);
             double[] interpolatedSignal = newTimeline.Select((x, i) => interpolationScheme.Interpolate(x)).ToArray();
-            
+
             for (int i = 0; i < interpolatedSignal.Length; i++)
             {
                 if (double.IsNaN(interpolatedSignal[i]))
@@ -288,9 +294,9 @@ namespace SINTEF.AutoActive.AutoSync
             float sampleTime = duration / (nrSamples - 1);
             long[] timeShift = new long[nrSamples];
 
-            for(int i = 0; i < nrSamples; i++)
+            for (int i = 0; i < nrSamples; i++)
             {
-                timeShift[i] = (long) - (startTime - (i * sampleTime));
+                timeShift[i] = (long)-(startTime - (i * sampleTime));
             }
 
             return timeShift;
@@ -303,7 +309,6 @@ namespace SINTEF.AutoActive.AutoSync
             Complex32[] zeroArray = DenseVector.Create(length - x1.Length, 0).ToArray();
             Array.Reverse(x2);
             Func<double[], Complex32[]> convertToComplex = x => x.Select((num, index) => new Complex32((float)num, 0)).ToArray();
-
 
             Complex32[] comX1 = FFT.ToComplex32Array(x1);
             Complex32[] comX2 = FFT.ToComplex32Array(x2);
@@ -341,7 +346,7 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
         /// <summary>
-        /// If the master timeseries have a longer duration compared to the slave timeseries and we use multiple timeseries to 
+        /// If the master timeseries have a longer duration compared to the slave timeseries and we use multiple timeseries to
         /// sync the timeseries, we need to zero pad the slaves, to not get a offset
         /// </summary>
         /// <param name="masterTimerseries"></param>
