@@ -1,9 +1,7 @@
 ﻿using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace SINTEF.AutoActive.AutoSync
 {
@@ -65,7 +63,5 @@ namespace SINTEF.AutoActive.AutoSync
                 return signal;
             }
         }
-
-
     }
 }
