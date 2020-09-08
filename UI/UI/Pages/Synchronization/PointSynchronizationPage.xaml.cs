@@ -27,8 +27,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private ITimePoint _slaveTime;
         private RelativeSlider _slaveSlider;
         private SynchronizationContext _slaveContext;
-        
-        
+
         private long? _selectedMasterTime;
         private long? SelectedMasterTime
         {
@@ -119,7 +118,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _masterSet = false;
             _masterTime = null;
             SelectedMasterTime = null;
-            
+
             foreach (var figure in GetFigureViewChildren(MasterLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
@@ -129,9 +128,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 MasterLayout.Children.Clear();
             }
 
-            if (_masterContext != null) 
-            { 
-                _masterContext.SyncIsSet = false;            
+            if (_masterContext != null)
+            {
+                _masterContext.SyncIsSet = false;
             }
             MasterTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             Playbar.DataTrackline.DeregisterFigureContainer(this);
@@ -152,7 +151,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SelectedSlaveTime = null;
             _totalOffset = 0L;
             _lastOffset = 0L;
-            
+
             foreach (var figure in GetFigureViewChildren(SlaveLayout))
             {
                 foreach (var datapoint in figure.DataPoints)
@@ -162,9 +161,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 SlaveLayout.Children.Clear();
             }
 
-            if (_slaveContext != null) 
-            { 
-                _slaveContext.SyncIsSet = false; 
+            if (_slaveContext != null)
+            {
+                _slaveContext.SyncIsSet = false;
             }
             SlaveTimeButton.BackgroundColor = Color.FromRgb(241, 48, 77);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
@@ -175,7 +174,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
         {
             if (_slaveContext == null)
-            {     
+            {
                 return;
             }
             SelectedSlaveTime = _slaveContext.SelectedTimeFrom;
@@ -187,7 +186,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         private void MasterTimeButton_OnClicked(object sender, EventArgs e)
         {
             if (_masterContext == null)
-            { 
+            {
                 return;
             }
             SelectedMasterTime = _masterContext.SelectedTimeFrom;
@@ -206,14 +205,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 {
                     visibleDataPoints.Add(datapoint);
                 }
-                
+
             }
 
             return visibleDataPoints;
         }
 
-        private void AutoSync_OnClicked(object sender, EventArgs e)
+        private async void AutoSync_OnClicked(object sender, EventArgs e)
         {
+            popupLoadingView.IsVisible = true;
+            activityIndicator.IsRunning = true;
+            activityIndicator.IsVisible = true;
             List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(MasterLayout);
             List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(SlaveLayout);
             if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
@@ -221,14 +223,31 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
 
+            (long[] lag, float[] correlation) =
+                await Task.Run(async () => {
+                    (long[] lagtemp, float[] correlationtemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
+                    return (lagtemp, correlationtemp);
+            });
+
+            activityIndicator.IsVisible = false;
+            activityIndicator.IsRunning = false;
+            popupLoadingView.IsEnabled = false;
+            popupLoadingView.IsVisible = false;
+            var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
+            GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor");
+            Playbar.CorrelationPreview(correlationColumn, this);
+
+        }
+
+        private Task<(long[], float[])> CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
+        {
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
             (long[] lag, float[] correlation) = sync.CorrelateSignals();
-            var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
-            GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor" );
-            Playbar.CorrelationPreview(correlationColumn, this);
+            return Task.FromResult((lag, correlation));
         }
+
 
         public void removeCorrelationPreview(IDataPoint datapoint)
         {
@@ -280,9 +299,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 Playbar.DataTrackline.InvalidateSurface();
             }
             XamarinHelpers.EnsureMainThread(() => { EnableButtons(); });
-            
-
-            }
+        }
 
         public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
         {
@@ -319,7 +336,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     _slaveTime = datapoint.Time;
                     _slaveContext = new SynchronizationContext(_masterContext);
                     LastOffset.IsEnabled = true;
-                    SlaveLayout.Children.Add(_slaveSlider);     
+                    SlaveLayout.Children.Add(_slaveSlider);
                 }
 
                 TimeSynchronizedContext context;
@@ -359,7 +376,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 InvokeDatapointAdded(datapoint, context);
 
 
-                
+
                 SetCommonStartTime(false);
             } catch(Exception ex)
             {
@@ -396,7 +413,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                         InvokeDatapointRemoved(dataPoint, figureView.Context);
                     }
                 }
-                
+
             }
             else if (figureView.Parent == SlaveLayout)
             {
@@ -413,7 +430,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                         InvokeDatapointRemoved(dataPoint, figureView.Context);
                     }
                 }
-                
+
             }
             else
             {
@@ -487,7 +504,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 from = max;
                 to = from + diff;
             }
-            
+
             context.SetSelectedTimeRange(from, to);
             var value = Playbar.TimeToSliderValue(from);
             Playbar.GetTimeSlider.Value = value;
@@ -561,14 +578,14 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 slaveFeatureTime = masterFeatureTime - offsetBetweenSliderAndMarker + offsetBetweenTotalAndMarker;
             }
 
-            
+
             if (masterMin <= masterFeatureTime && masterFeatureTime <= masterMax)
             {
                 _masterContext.MarkedFeature = masterFeatureTime;
             }
-            
+
             if (slaveMin <= slaveFeatureTime && slaveFeatureTime <= slaveMax)
-            { 
+            {
                 _slaveContext.MarkedFeature = slaveFeatureTime;
             }
         }
@@ -616,7 +633,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             AutoSyncButton.IsEnabled = false;
 
             if (_slaveSet == true)
-            {                
+            {
                 SlaveTimeStepper.AreButtonsEnabled = true;
                 SlaveTimeButton.IsEnabled = true;
                 SlaveTimeStepper.AreButtonsEnabled = true;
