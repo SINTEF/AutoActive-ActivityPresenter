@@ -17,7 +17,6 @@ namespace SINTEF.AutoActive.UI.Figures
         public static async Task<CorrelationPlot> Create(IDataPoint datapoint, TimeSynchronizedContext context, PointSynchronizationPage pointSyncPage)
         {
             var correlationPlot = new CorrelationPlot(context, datapoint, pointSyncPage);
-
             var lineDrawer = await correlationPlot.CreateLineDrawer(datapoint);
             correlationPlot.AddLine(lineDrawer);
             return correlationPlot;
@@ -29,7 +28,6 @@ namespace SINTEF.AutoActive.UI.Figures
             this.Canvas.EnableTouchEvents = true;
             this.Canvas.Touch += OnTouch;
             this._pointSyncPage = pointSyncPage;
-
         }
 
         ~CorrelationPlot()
@@ -39,7 +37,17 @@ namespace SINTEF.AutoActive.UI.Figures
 
         private void OnTouch(object sender, SKTouchEventArgs e)
         {
-            if (e.MouseButton != SKMouseButton.Left)
+
+            if (e.ActionType != SKTouchAction.Released)
+            {
+                return;
+            }
+            if (e.MouseButton == SKMouseButton.Right)
+            {
+                MenuButton_OnClicked(this, new EventArgs());
+                return;
+            }
+            if(e.MouseButton != SKMouseButton.Left)
             {
                 return;
             }
@@ -53,7 +61,8 @@ namespace SINTEF.AutoActive.UI.Figures
             int lenTimeVec = span.X.Length;
             int relevantIndex = (int)(relativeMouseClickLocationX * lenTimeVec);
             long timeOffset = span.X.ToArray()[relevantIndex];
-            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffset));
+            double timeOffsetSec = -timeOffset / 1000000;
+            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffsetSec));
 
         }
 

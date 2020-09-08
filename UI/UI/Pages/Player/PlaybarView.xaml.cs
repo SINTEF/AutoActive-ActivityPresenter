@@ -319,7 +319,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             ContentGrid.Children.Add(_correlationView, 1, 0);
-
+            _correlationView.ContextButtonIsVisible = false;
         }
 
         public void TimelineExpand_OnClickedExpand_OnClicked()
