@@ -142,7 +142,7 @@ namespace SINTEF.AutoActive.UI.Views
             // the GUI sluggish and unresponsive at large windows length.
             // Why is it correlated with the data window length?
             RedrawCanvas(e.Surface.Canvas, e.Info);
-            
+
         }
 
 
@@ -157,7 +157,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        var maxTextWidth = TextPaint.MeasureText(text);
 
             canvas.DrawText(text, info.Width/2f - maxTextWidth/2, info.Height/2f - textHeight/2, TextPaint);
-            
+
         }
 
         /// Create new view of the proper type to visualize datapoint.
