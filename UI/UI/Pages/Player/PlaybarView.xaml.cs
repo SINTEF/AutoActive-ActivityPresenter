@@ -321,7 +321,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             ContentGrid.Children.Add(_correlationView, 1, 0);
 
         }
-        
+
         public void TimelineExpand_OnClickedExpand_OnClicked()
         {
             var wasVisible = RowTimelineView.Height.Value == 0d;

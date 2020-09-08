@@ -29,7 +29,7 @@ namespace SINTEF.AutoActive.UI.Figures
             this.Canvas.EnableTouchEvents = true;
             this.Canvas.Touch += OnTouch;
             this._pointSyncPage = pointSyncPage;
-            
+
         }
 
         ~CorrelationPlot()
@@ -198,7 +198,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
 
         private const string SyncBasedOnMax = "synchronize based on Max Correlation";
-        
+
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
             parameters.Clear();
