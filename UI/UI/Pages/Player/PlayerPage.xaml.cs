@@ -2,14 +2,22 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using System.IO;
+using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.FileSystem;
+using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.UI.Views;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	public partial class PlayerPage : ContentPage
+	public partial class PlayerPage : ContentPage, ISerializableView
 	{
-	    private const double SplitViewWidthMin = 10000;
+        private readonly IFileBrowser _browser;
+        private const double SplitViewWidthMin = 10000;
 	    private const double OverlayModeWidth = 0.9;
 	    private const double OverlayModeShadeOpacity = 0.5;
 	    public TimeSynchronizedContext ViewerContext { get; } = new TimeSynchronizedContext();
@@ -17,6 +25,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public PlayerPage()
         {
             InitializeComponent();
+            _browser = DependencyService.Get<IFileBrowser>();
+            if (_browser == null)
+            {
+                XamarinHelpers.GetCurrentPage(Navigation).DisplayAlert("Critical error",
+                    "Could get file browser. Will not be able to open and save files.", "OK");
+            }
+
             NavigationBar.MainPageButton.BackgroundColor = Color.FromHex("23A2B1");
             ViewerContext?.SetSynchronizedToWorldClock(true);
 
@@ -201,5 +216,118 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 ColumnTree.Width = _treeViewWidth = new GridLength(newWidth);
             }
         }
-	}
+
+        /// <summary>
+        /// Select an .aav file and write the serialized view to the file in JSON.
+        /// </summary>
+        /// <param name="uri">If provided and broad file system access is enabled, the file is saved to the provided URI instead of through a prompt.</param>
+        public async void SaveView(string uri = null)
+        {
+
+#if Feature_BroadSystemAccess
+            IReadWriteSeekStreamFactory file = null;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForSave((".aav", "AutoActive View"));
+            }
+            else
+            {
+                file = await _browser.SaveFromUri(uri);
+            }
+#else
+            var file = await _browser.BrowseForSave((".aav", "AutoActive View"));
+#endif
+
+            if (file == null) return;
+
+            var root = SerializeView();
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, root);
+            }
+        }
+
+        /// <summary>
+        /// Load the view from a selected JSON style .aav file.
+        /// </summary>
+        /// <param name="archive">If provided, the data points are loaded from this archive</param>
+        /// <param name="uri">If provided and broad file system access is enabled, the file is saved to the provided URI instead of through a prompt.</param>
+        public async void LoadView(IDataStructure archive = null, string uri = null)
+        {
+            IReadSeekStreamFactory file = null;
+            if (uri == null)
+            {
+                file = await _browser.BrowseForLoad((".aav", "AutoActive View"));
+            }
+#if Feature_BroadSystemAccess
+            else
+            {
+                file = await _browser.LoadFromUri(uri);
+            }
+#endif
+            if (file == null)
+            {
+                return;
+            }
+
+            JObject root;
+            var stream = await file.GetReadStream();
+            using (var streamReader = new StreamReader(stream))
+            using (var reader = new JsonTextReader(streamReader))
+            {
+                var serializer = new JsonSerializer();
+                root = serializer.Deserialize(reader) as JObject;
+            }
+
+            await DeserializeView(root);
+        }
+
+        public string ViewType => "no.sintef.ui.player_page";
+        /// <summary>
+        /// Load the view from from the provided JSON
+        /// </summary>
+        /// <param name="root">The JSON-object containing the serialized view</param>
+        /// <param name="archive">Optional archive that the data points should be loaded from</param>
+        /// <returns></returns>
+        public async Task DeserializeView(JObject root, IDataStructure archive = null)
+        {
+            SerializableViewHelper.EnsureViewType(root, this);
+
+            var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
+
+            foreach (var figure in figures)
+            {
+                figure.RemoveThisView();
+            }
+
+            PlayerContainer.ViewerContext = ViewerContext;
+            FigureView.DeserializationFailedWarned = false;
+            if(root["player_container"] is JObject playerContainerJson)
+                await PlayerContainer.DeserializeView(playerContainerJson, archive);
+            if (root["playbar"] is JObject playbarJson)
+                await Playbar.DeserializeView(playbarJson, archive);
+        }
+
+        /// <summary>
+        /// Store the important parts of the objects in the provided JSON object (or a new one if the provided one is null)
+        /// </summary>
+        /// <param name="root">The JSON object the view should be stored in</param>
+        /// <returns>The serialized JSON-view</returns>
+        public JObject SerializeView(JObject root = null)
+        {
+            root = SerializableViewHelper.SerializeDefaults(root, this);
+
+            root["player_container"] = PlayerContainer.SerializeView();
+            root["playbar"] = Playbar.SerializeView();
+
+            return root;
+        }
+    }
 }

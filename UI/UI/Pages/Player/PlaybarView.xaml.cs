@@ -3,8 +3,10 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
@@ -14,7 +16,7 @@ using SINTEF.AutoActive.UI.Views;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlaybarView : ContentView, IFigureContainer
+    public partial class PlaybarView : ContentView, IFigureContainer, ISerializableView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
@@ -344,6 +346,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             long offset;
             switch (timeStep.Length)
             {
+                case TimeStepLength.None:
+                    return 0L;
                 case TimeStepLength.Step:
                     offset = TimeFormatter.TimeFromSeconds(1d / 30);
                     break;
@@ -363,6 +367,36 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             return offset;
+        }
+
+        public string ViewType => "no.sintef.ui.playbar_view";
+        public async Task DeserializeView(JObject root, IDataStructure archive = null)
+        {
+            SerializableViewHelper.EnsureViewType(root, this);
+
+            if (root["preview_figure"] is JObject previewFigureObject)
+            {
+                // If the previewView already exists, reuse it, if not create a new one.
+                if (_previewView == null)
+                {
+                    var view = await FigureView.DeserializeView(previewFigureObject,
+                        ViewerContext as TimeSynchronizedContext, archive);
+                    UseDataPointForTimelinePreview(view.DataPoints.FirstOrDefault());
+                }
+                else
+                {
+                    await _previewView.DeserializeView(previewFigureObject, archive);
+                }
+
+            }
+        }
+
+        public JObject SerializeView(JObject root = null)
+        {
+            root = SerializableViewHelper.SerializeDefaults(root, this);
+            root["preview_figure"] = _previewView?.SerializeView();
+
+            return root;
         }
 
         public FigureView Selected { get; set; }
