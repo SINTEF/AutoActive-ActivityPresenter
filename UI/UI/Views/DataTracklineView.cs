@@ -87,7 +87,7 @@ namespace SINTEF.AutoActive.UI.Views
                 }
                 else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
                 {
-                    
+
                     onTouchSyncPage(sender, e);
                 }
                 else
@@ -203,8 +203,8 @@ namespace SINTEF.AutoActive.UI.Views
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
-            
-            
+
+
         }
 
         private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
@@ -224,7 +224,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var nrOfTimeViewers = _timeViewers.Count();
             if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
-            { 
+            {
                 Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
             }
         }
@@ -244,7 +244,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
             long endTime = _timeViewers.Select(i => i.Item1.End).Min();
-            
+
             // if the offset between videos is above one day it might not be visible
             if ((startTime - endTime) > 86400000000)
             {
@@ -257,7 +257,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var timeViewerItem = _timeViewers.First();
             var currentTimePos = timeViewerItem.Item2.SelectedTimeFrom;
-            
+
             var xPos = (currentTimePos - xMin) * xScale;
             canvas.DrawLine(xPos, 0, xPos, canvas.LocalClipBounds.Height, _currentLinePaint);
         }
@@ -490,7 +490,7 @@ namespace SINTEF.AutoActive.UI.Views
             long endTimeMaster = _dataTimeList[0].Item2.End;
             long shiftedFromZero = startTimeSlave - startTimeMaster;
             long durationSlave = endTimeSlave - startTimeSlave;
-            long durationMaster = endTimeMaster - startTimeMaster; 
+            long durationMaster = endTimeMaster - startTimeMaster;
             long startTime = shiftedFromZero + durationSlave;
             long endTime = startTime - durationMaster - durationSlave;
 
@@ -504,7 +504,7 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 context.AvailableTimeRangeChanged += ContextOnAvailableTimeRangeChanged;
             }
-            
+
             var dataViewer = await context.GetDataViewerFor(dataPoint);
             var timeViewer = await dataViewer.DataPoint.Time.CreateViewer();
             _dataTimeList.Add((dataPoint, timeViewer, dataViewer));
