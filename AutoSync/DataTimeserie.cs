@@ -54,7 +54,10 @@ namespace SINTEF.AutoActive.AutoSync
             get => Data.SelectMany(x => x.Data).ToArray();
         }
 
-
+        /// <summary>
+        /// Adds a signal to the timeseries
+        /// </summary>
+        /// <param name="inputData"></param>
         public void AddData(IDataPoint inputData)
         {
             Task dataViewTask = inputData.CreateViewer();
@@ -75,6 +78,10 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Zero pads the signals in the timeseries
+        /// </summary>
+        /// <param name="nrZeros"></param>
         public void ZeroPad(int nrZeros)
         {
             double[] zeroArray = new double[nrZeros];
@@ -86,6 +93,11 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Resamples the timeseries,
+        /// each signal is resampled induvidually
+        /// </summary>
+        /// <param name="newSamplingFreq"></param>
         public void Resample(int newSamplingFreq)
         {
             int nrSamples = (int)(Time.Data.Length * ((newSamplingFreq * 1f) / Time.SamplingFreq));
@@ -97,6 +109,10 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Subtracts the bias of the timeseries,
+        /// bias for each signal is computed induvidually
+        /// </summary>
         public void RemoveBias()
         {
             foreach (Signal d in Data)
@@ -105,6 +121,10 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Computes the hilbert transform of the timeseries,
+        /// each signal is computed induvidually
+        /// </summary>
         public void ToHilbertEnvelope()
         {
             foreach (Signal d in Data)
@@ -140,12 +160,21 @@ namespace SINTEF.AutoActive.AutoSync
             _data = d;
         }
 
+        /// <summary>
+        /// Adds the zero array to te end of the signal
+        /// </summary>
+        /// <param name="zeroArray"></param>
         public void ZeroPad(double[] zeroArray)
         {
             _data = Data.Concat(zeroArray).ToArray();
             _nrZeros = zeroArray.Length;
         }
 
+        /// <summary>
+        /// Resamples the signal
+        /// </summary>
+        /// <param name="oldTimeline"></param>
+        /// <param name="timeline"></param>
         public void Resample(double[] oldTimeline, Timeline timeline)
         {
             double[] interpolatedData = new double[timeline.Length];
@@ -165,6 +194,9 @@ namespace SINTEF.AutoActive.AutoSync
             _data = interpolatedData;
         }
 
+        /// <summary>
+        /// Subtracts the bias of the signal
+        /// </summary>
         public void RemoveBias()
         {
             double total = 0;
@@ -180,6 +212,9 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Computes the hilbert envelope of the signal
+        /// </summary>
         public void HilbertEnvelope()
         {
             _data = Hilbert.GetHilbertEnvelope(Data);
@@ -227,6 +262,10 @@ namespace SINTEF.AutoActive.AutoSync
             }
         }
 
+        /// <summary>
+        /// Adds samples to the timeline
+        /// </summary>
+        /// <param name="nrSamples"></param>
         public void AddSamples(int nrSamples)
         {
             double samplingTime = (Data[Length - 1] - Data[0]) / (1f * Length);
@@ -239,6 +278,10 @@ namespace SINTEF.AutoActive.AutoSync
             _samplesAdded = nrSamples;
         }
 
+        /// <summary>
+        /// Resamples the timeline, the start and end time will remain the same
+        /// </summary>
+        /// <param name="nrSamples"></param>
         public void Resample(int nrSamples)
         {
             long[] newTime = new long[nrSamples];
