@@ -16,41 +16,41 @@ namespace SINTEF.AutoActive.AutoSync
     /// Synchronises timeseries by correlation
     /// </summary>
     /// <remarks>
-    /// A timeseries can possible consist of multiple signals
-    /// When using multiple signals in one tomeseries the timeline of the signals must be exactly the same.
-    /// The masterTimerseries must have a long duration compared to the slaveTimerseries.
-    /// The number of signals added to  _masterTimerseries must be the same as the number added to  _slaveTimerseries
+    /// A timeseries can consist of multiple signals
+    /// When using multiple signals in one timeserie the timeline of the signals must be exactly the same.
+    /// The masterTimerserie must have a longer duration compared to the slave Timerserie.
+    /// The number of signals added to  _masterTimerserie must be the same as the number added to _slaveTimerserie
     /// </remarks>>
     public class SyncByCorrelation
     {
 
-        private List<IDataPoint> _masterTimerseries = new List<IDataPoint>();
+        private List<IDataPoint> _masterTimerserie = new List<IDataPoint>();
 
         public void AddMasterSignal(IDataPoint signal)
         {
-            _masterTimerseries.Add(signal);
+            _masterTimerserie.Add(signal);
         }
 
-        private List<IDataPoint> _slaveTimerseries = new List<IDataPoint>();
+        private List<IDataPoint> _slaveTimerserie = new List<IDataPoint>();
 
         public void AddSlaveSignal(IDataPoint signal)
         {
-            _slaveTimerseries.Add(signal);
+            _slaveTimerserie.Add(signal);
         }
 
         /// <summary>
         /// Correlates the master and slave timeseries
         /// </summary>
-        /// <returns>A tuple containing the lag and correlation</returns>
+        /// <returns>A tuple containing the lag , correlation and any error messages</returns>
         public (long[], float[], string errorMessage) CorrelateSignals()
         {
             string errorMessage = null;
-            if ((_masterTimerseries.Count) != (_slaveTimerseries.Count))
+            if ((_masterTimerserie.Count) != (_slaveTimerserie.Count))
             {
                 errorMessage = "There must be equally many signals in the slave and master timeseries.";
                 return (null, null, errorMessage);
             }
-            if (_masterTimerseries.Count == 0)
+            if (_masterTimerserie.Count == 0)
             {
                 errorMessage = "The master timeseries must at least consist of one signal";
                 return (null, null, errorMessage);
@@ -59,10 +59,10 @@ namespace SINTEF.AutoActive.AutoSync
             Timeserie masterTimerserie = new Timeserie();
             Timeserie slaveTimerserie = new Timeserie();
 
-            for (int i = _masterTimerseries.Count - 1; i > -1; i--)
+            for (int i = _masterTimerserie.Count - 1; i > -1; i--)
             {
-                masterTimerserie.AddData(_masterTimerseries[i]);
-                slaveTimerserie.AddData(_slaveTimerseries[i]);
+                masterTimerserie.AddData(_masterTimerserie[i]);
+                slaveTimerserie.AddData(_slaveTimerserie[i]);
             }
 
             if (masterTimerserie.Duration < slaveTimerserie.Duration)
@@ -89,6 +89,13 @@ namespace SINTEF.AutoActive.AutoSync
             return (timelag, cor, errorMessage);
         }
 
+        /// <summary>
+        /// maps the index nr to a time lag
+        /// </summary>
+        /// <param name="master"></param>
+        /// <param name="slave"></param>
+        /// <param name="nrSamples"></param>
+        /// <returns> A array mapping index to a time lag </returns>
         private long[] IndexToTime(Timeserie master, Timeserie slave, int nrSamples)
         {
             long durationSlave = slave.Time.Data[slave.Length - 1 - slave.NrZeros] - slave.Time.Data[0];
@@ -111,6 +118,12 @@ namespace SINTEF.AutoActive.AutoSync
 
         }
 
+        /// <summary>
+        /// Computes the cross correlation between the two signals
+        /// </summary>
+        /// <param name="x1"></param>
+        /// <param name="x2"></param>
+        /// <returns>The cross correlation</returns>
         private float[] CrossCorrelation(double[] x1, double[] x2)
         {
             int length = x1.Length + x2.Length - 1;
@@ -133,7 +146,8 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
         /// <summary>
-        /// Resamples the timeseries. The timeseries is resampled to the highest frequency of either the master or slave
+        /// Resamples the timeseries. The timeserie of the lowest sampling frequency is resampled to
+        /// the same sampling frequency as the other timeserie
         /// </summary>
         /// <param name="masterTimerseries"></param>
         /// <param name="slaveTimerseries"></param>
@@ -154,8 +168,8 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
         /// <summary>
-        /// If the master timeseries have a longer duration compared to the slave timeseries and we use multiple timeseries to
-        /// sync the timeseries, we need to zero pad the slaves, to not get a offset
+        /// If the master timeseries have a longer duration compared to the slave timeseries and we use multiple signals to
+        /// sync the timeseries, we need to zero pad the slaves.
         /// </summary>
         /// <param name="masterTimerseries"></param>
         /// <param name="slaveTimerseries"></param>
