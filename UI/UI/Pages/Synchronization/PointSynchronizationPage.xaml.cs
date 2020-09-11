@@ -223,29 +223,34 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 return;
             }
 
-            (long[] lag, float[] correlation) =
+            (long[] lag, float[] correlation, string errorMessage) =
                 await Task.Run(async () => {
-                    (long[] lagtemp, float[] correlationtemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
-                    return (lagtemp, correlationtemp);
+                    (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
+                    return (lagtemp, correlationtemp, errorMessagetemp);
             });
 
             activityIndicator.IsVisible = false;
             activityIndicator.IsRunning = false;
             popupLoadingView.IsEnabled = false;
             popupLoadingView.IsVisible = false;
+            if (errorMessage != null)
+            {
+                await DisplayAlert("Warning", errorMessage, "OK");
+                return;
+            }
             var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
             GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor");
             Playbar.CorrelationPreview(correlationColumn, this);
 
         }
 
-        private Task<(long[], float[])> CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
+        private Task<(long[], float[], string)> CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
         {
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
-            (long[] lag, float[] correlation) = sync.CorrelateSignals();
-            return Task.FromResult((lag, correlation));
+            (long[] lag, float[] correlation, string errorMessage) = sync.CorrelateSignals();
+            return Task.FromResult((lag, correlation, errorMessage));
         }
 
 

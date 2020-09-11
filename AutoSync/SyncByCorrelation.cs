@@ -42,15 +42,18 @@ namespace SINTEF.AutoActive.AutoSync
         /// Correlates the master and slave timeseries
         /// </summary>
         /// <returns>A tuple containing the lag and correlation</returns>
-        public (long[], float[]) CorrelateSignals()
+        public (long[], float[], string errorMessage) CorrelateSignals()
         {
+            string errorMessage = null;
             if ((_masterTimerseries.Count) != (_slaveTimerseries.Count))
             {
-                throw new Exception("");
+                errorMessage = "There must be equally many signals in the slave and master timeseries.";
+                return (null, null, errorMessage);
             }
             if (_masterTimerseries.Count == 0)
             {
-                throw new Exception("");
+                errorMessage = "The master timeseries must at least consist of one signal";
+                return (null, null, errorMessage);
             }
 
             Timeserie masterTimerserie = new Timeserie();
@@ -62,16 +65,19 @@ namespace SINTEF.AutoActive.AutoSync
                 slaveTimerserie.AddData(_slaveTimerseries[i]);
             }
 
+            if (masterTimerserie.Duration < slaveTimerserie.Duration)
+            {
+                errorMessage = "The signals in the master timeserie must be equally long or longer then the " +
+                    "signals in the slave timeserie";
+                return (null, null, errorMessage);
+            }
+
             ResampleTimeserie(masterTimerserie, slaveTimerserie);
             masterTimerserie.RemoveBias();
             slaveTimerserie.RemoveBias();
             masterTimerserie.ToHilbertEnvelope();
             slaveTimerserie.ToHilbertEnvelope();
-
-            if ((slaveTimerserie.Duration < masterTimerserie.Duration))
-            {
-                AdjustLengthOfTimeserie(masterTimerserie, slaveTimerserie);
-            }
+            AdjustLengthOfTimeserie(masterTimerserie, slaveTimerserie);
 
             var cor = CrossCorrelation(masterTimerserie.DataAsSignleArray, slaveTimerserie.DataAsSignleArray);
             int zeroIndex = (int)Math.Ceiling(((masterTimerserie.Length * masterTimerserie.Count * 2f) - 1) / 2);
@@ -80,7 +86,7 @@ namespace SINTEF.AutoActive.AutoSync
             cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
             var timelag = IndexToTime(masterTimerserie, slaveTimerserie, cor.Length);
 
-            return (timelag, cor);
+            return (timelag, cor, errorMessage);
         }
 
         private long[] IndexToTime(Timeserie master, Timeserie slave, int nrSamples)
