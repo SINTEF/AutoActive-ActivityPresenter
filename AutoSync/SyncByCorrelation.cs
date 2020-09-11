@@ -18,7 +18,6 @@ namespace SINTEF.AutoActive.AutoSync
     /// <remarks>
     /// A timeseries can consist of multiple signals
     /// When using multiple signals in one timeserie the timeline of the signals must be exactly the same.
-    /// The masterTimerserie must have a longer duration compared to the slave Timerserie.
     /// The number of signals added to  _masterTimerserie must be the same as the number added to _slaveTimerserie
     /// </remarks>>
     public class SyncByCorrelation
@@ -65,13 +64,6 @@ namespace SINTEF.AutoActive.AutoSync
                 slaveTimerserie.AddData(_slaveTimerserie[i]);
             }
 
-            if (masterTimerserie.Duration < slaveTimerserie.Duration)
-            {
-                errorMessage = "The signals in the master timeserie must be equally long or longer then the " +
-                    "signals in the slave timeserie";
-                return (null, null, errorMessage);
-            }
-
             ResampleTimeserie(masterTimerserie, slaveTimerserie);
             masterTimerserie.RemoveBias();
             slaveTimerserie.RemoveBias();
@@ -82,7 +74,7 @@ namespace SINTEF.AutoActive.AutoSync
             var cor = CrossCorrelation(masterTimerserie.DataAsSignleArray, slaveTimerserie.DataAsSignleArray);
             int zeroIndex = (int)Math.Ceiling(((masterTimerserie.Length * masterTimerserie.Count * 2f) - 1) / 2);
             int fromIndex = zeroIndex - masterTimerserie.Length + slaveTimerserie.NrZeros;
-            int nrInterestingSamples = (masterTimerserie.Length + slaveTimerserie.Length - slaveTimerserie.NrZeros) - 1;
+            int nrInterestingSamples = (masterTimerserie.Length + slaveTimerserie.Length - slaveTimerserie.NrZeros - masterTimerserie.NrZeros) - 1;
             cor = cor.Skip(fromIndex).Take(nrInterestingSamples).ToArray();
             var timelag = IndexToTime(masterTimerserie, slaveTimerserie, cor.Length);
 
@@ -99,7 +91,7 @@ namespace SINTEF.AutoActive.AutoSync
         private long[] IndexToTime(Timeserie master, Timeserie slave, int nrSamples)
         {
             long durationSlave = slave.Time.Data[slave.Length - 1 - slave.NrZeros] - slave.Time.Data[0];
-            long durationMaster = master.Time.Data[master.Length - 1] - master.Time.Data[0];
+            long durationMaster = master.Time.Data[master.Length - 1 - master.NrZeros] - master.Time.Data[0];
             long shiftedFromZero = slave.Time.Data[0] - master.Time.Data[0];
 
             long startTime = shiftedFromZero + durationSlave;
@@ -179,6 +171,11 @@ namespace SINTEF.AutoActive.AutoSync
             {
                 int nrZeros = masterTimerserie.Length - slaveTimerserie.Length;
                 slaveTimerserie.ZeroPad(nrZeros);
+            }
+            if (slaveTimerserie.Length > masterTimerserie.Length)
+            {
+                int nrZeros = slaveTimerserie.Length - masterTimerserie.Length;
+                masterTimerserie.ZeroPad(nrZeros);
             }
         }
 
