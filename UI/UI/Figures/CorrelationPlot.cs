@@ -35,6 +35,7 @@ namespace SINTEF.AutoActive.UI.Figures
             this.Canvas.Touch -= OnTouch;
         }
 
+        private int _canvasWidth;
         private void OnTouch(object sender, SKTouchEventArgs e)
         {
 
@@ -53,8 +54,7 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             var mouseClickLocationX = e.Location.X;
-            var totalWindowLength = this.Canvas.Width;
-            var relativeMouseClickLocationX = mouseClickLocationX / totalWindowLength;
+            var relativeMouseClickLocationX = mouseClickLocationX / _canvasWidth;
 
             ITimeSeriesViewer viewer = (ITimeSeriesViewer)Viewers[0];
             var span = viewer.GetCurrentData<float>();
@@ -76,7 +76,7 @@ namespace SINTEF.AutoActive.UI.Figures
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
             var plotRect = new SKRect(AxisValuesVisible ? TickBoxMargin : 0, 0, info.Width, info.Height);
-
+            _canvasWidth = info.Width;
             canvas.DrawRect(plotRect, FramePaint);
 
             //TODO: choose first x and last x instead?
