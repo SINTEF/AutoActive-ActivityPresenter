@@ -231,7 +231,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public override void RemoveThisView()
         {
-            _pointSyncPage.removeCorrelationPreview(this.DataPoints[0]);
+            _pointSyncPage.RemoveCorrelationPreview(this.DataPoints[0]);
         }
 
     }
