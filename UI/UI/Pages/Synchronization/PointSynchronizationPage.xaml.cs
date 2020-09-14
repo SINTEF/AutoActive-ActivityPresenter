@@ -254,7 +254,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
         }
 
 
-        public void removeCorrelationPreview(IDataPoint datapoint)
+        public void RemoveCorrelationPreview(IDataPoint datapoint)
         {
             Playbar.CorrelationPreview(datapoint,this);
 
