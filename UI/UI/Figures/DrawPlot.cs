@@ -1,4 +1,6 @@
-﻿using SINTEF.AutoActive.Databus.Common;
+﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
@@ -354,12 +356,13 @@ namespace SINTEF.AutoActive.UI.Figures
         public float OffsetY { get; set; }
         public float ScaleY { get; set; }
         public SKPaint LinePaint { get; set; }
-        public PlotTypes PlotType { get => _linePlot.PlotType; }
+        public PlotTypes PlotType => _linePlot.PlotType;
 
         public Queue<(float, float)> SmoothScalingQueue;
         private DrawPlot _linePlot;
     }
 
+    [JsonConverter(typeof(StringEnumConverter))]
     public enum PlotTypes
     {
         Line, Scatter, Column

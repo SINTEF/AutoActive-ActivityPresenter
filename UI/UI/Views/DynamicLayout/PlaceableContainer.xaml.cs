@@ -16,20 +16,23 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class PlaceableContainer : ContentView, IFigureContainer, ISerializableView
     {
-        private readonly List<PlaceableItem> _placeableItems = new List<PlaceableItem>();
+        public string ViewType => "no.sintef.ui.placeablecontainer";
+        private readonly List<(PlaceableItem item, PlaceableLocation location)> _placeableItems = new List<(PlaceableItem, PlaceableLocation)>();
 
         public PlaceableContainer()
         {
             InitializeComponent();
-            _placeableItems.AddRange(XamarinHelpers.GetAllChildElements<PlaceableItem>(this));
-
+            foreach (var el in XamarinHelpers.GetAllChildElements<PlaceableItem>(this))
+            {
+                _placeableItems.Add((el, PlaceableLocation.Center));
+            }
         }
 
         private bool PlacementLocationVisible
         {
             set
             {
-                foreach (var item in _placeableItems)
+                foreach (var (item, _) in _placeableItems)
                     item.PlacementLocationVisible = value;
             }
         }
@@ -55,10 +58,10 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             PlacementLocationVisible = true;
             _selectedItem = item;
 
-            if (_placeableItems.Count == 1 && _placeableItems.First().Item == null)
+            if (_placeableItems.Count == 1 && _placeableItems.First().Item1.Item == null)
             {
-                PlaceableItem_OnLocationSelected(_placeableItems.First(), PlaceableLocation.Center);
-            } 
+                PlaceableItem_OnLocationSelected(_placeableItems.First().Item1, PlaceableLocation.Center);
+            }
         }
 
         private async void PlaceableItem_OnLocationSelected(object sender, PlaceableLocation e)
@@ -103,41 +106,42 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             return await FigureView.GetView(item, context);
         }
 
-        private async Task PlaceItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
+        public async Task<PlaceableItem> PlaceItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
             PlaceableLocation e)
         {
             if (e != PlaceableLocation.Center)
             {
-                await AddItem(placeableSender, item, context, e);
-                return;
+                return await AddItem(placeableSender, item, context, e);
             }
 
             if (placeableSender.Item != null)
             {
                 await ToggleDataPoint(placeableSender, item, context);
-                return;
+                return placeableSender;
             }
 
             placeableSender.SetItem(await CreateFigureView(item, context));
+            return placeableSender;
         }
 
-        private async Task AddItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
-            PlaceableLocation e)
+        private async Task<PlaceableItem> AddItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,
+            PlaceableLocation location)
         {
             var visualizer = await CreateFigureView(item, context);
             var placeableItem = new PlaceableItem();
             placeableItem.LocationSelected += PlaceableItem_OnLocationSelected;
             placeableItem.SetItem(visualizer);
-            _placeableItems.Add(placeableItem);
+            _placeableItems.Add((placeableItem, location));
             placeableItem.HorizontalOptions = LayoutOptions.FillAndExpand;
             placeableItem.VerticalOptions = LayoutOptions.FillAndExpand;
-            placeableSender.PlaceRelative(placeableItem, e);
+            placeableSender.PlaceRelative(placeableItem, location);
+            return placeableItem;
         }
 
         private async Task ToggleDataPoint(PlaceableItem container, IDataPoint item, TimeSynchronizedContext context)
         {
             await container.Item.ToggleDataPoint(item, context);
-            
+
             if (container.Item != null && container.Item.DataPoints.Any()) return;
 
             RemoveItem(container, context);
@@ -154,7 +158,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             }
             container.SetItem(null);
 
-            _placeableItems.Remove(container);
+            var ix = _placeableItems.FindIndex(it => it.item == container);
+            if (ix != -1)
+            {
+                _placeableItems.RemoveAt(ix);
+            }
 
             var placeableParent = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(container.Parent);
             if (!(container.Parent is ResizableStackLayout layout))
@@ -162,7 +170,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 return placeableParent;
             }
             placeableParent?.RemoveItem(container);
-            
+
             {
                 var index = layout.Children.IndexOf(container);
                 layout.RemoveChild(container);
@@ -226,13 +234,13 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
             // Ensure at least one item
             var view = new PlaceableItem();
-            _placeableItems.Add(view);
+            _placeableItems.Add((view, PlaceableLocation.Center));
             view.LocationSelected += PlaceableItem_OnLocationSelected;
             MainHorizontalStackLayout.InsertChild(0, view);
             return view;
         }
 
-        
+
 
         public FigureView Selected { get; set; }
 
@@ -254,14 +262,116 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             DatapointAdded?.Invoke(this, (dataPoint, context));
         }
 
-        public void DeserializeView(JObject root)
+        public async Task DeserializeView(JObject root, IDataStructure archive)
         {
-            throw new NotImplementedException();
+            SerializableViewHelper.EnsureViewType(root, this);
+
+            var children = (JObject) root["children"];
+            var verticalChildren = (JArray) children["vertical"];
+
+            ResizableStackLayout.SetSizeWeight(MainHorizontalStackLayout, root["size_weight_horizontal"].Value<double>());
+            ResizableStackLayout.SetSizeWeight(MainVerticalStackLayout, root["size_weight_vertical"].Value<double>());
+
+            foreach (var vertical in verticalChildren)
+            {
+                if (vertical.ToString() == "horizontal") continue;
+
+                var pItem = new PlaceableItem {Context = ViewerContext};
+                pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
+                await pItem.DeserializeView((JObject)vertical, archive);
+                pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
+                if (pItem.Item == null)
+                {
+                    continue;
+                }
+                MainVerticalStackLayout.AddChild(pItem);
+            }
+
+            var horizontalChildren = (JArray)children["horizontal"];
+            foreach (var horizontal in horizontalChildren)
+            {
+                PlaceableItem pItem;
+                bool shouldAdd;
+                if (MainHorizontalStackLayout.Children.Count == 1 &&
+                    ((PlaceableItem)MainHorizontalStackLayout.Children.First()).Item == null)
+                {
+                    pItem = (PlaceableItem)MainHorizontalStackLayout.Children.First();
+                    shouldAdd = false;
+                }
+                else
+                {
+                    pItem = new PlaceableItem();
+                    shouldAdd = true;
+
+                }
+
+                pItem.LocationSelected += PlaceableItem_OnLocationSelected;
+
+                pItem.Context = ViewerContext;
+
+                pItem.ItemDeserialized += PlaceableItemOnItemDeserialized;
+                await pItem.DeserializeView((JObject)horizontal, archive);
+                pItem.ItemDeserialized -= PlaceableItemOnItemDeserialized;
+
+                if (pItem.Item != null && shouldAdd)
+                {
+                    MainHorizontalStackLayout.AddChild(pItem);
+                }
+            }
+
         }
+
+        private void PlaceableItemOnItemDeserialized(object sender, (PlaceableItem item, PlaceableLocation location) args)
+        {
+            var view = args.item.Item;
+            if (view == null)
+                return;
+            args.item.LocationSelected += PlaceableItem_OnLocationSelected;
+            _placeableItems.Add(args);
+            foreach (var dataPoint in view.DataPoints)
+            {
+                InvokeDatapointAdded(dataPoint, view.Context);
+            }
+        }
+
 
         public JObject SerializeView(JObject root = null)
         {
-            throw new NotImplementedException();
+            root = SerializableViewHelper.SerializeDefaults(root, this);
+
+            var arr = new JArray();
+            root["container"] = arr;
+            root["size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(MainHorizontalStackLayout);
+            root["size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(MainVerticalStackLayout);
+
+            var vertical = new JArray();
+
+            foreach (var el in MainVerticalStackLayout.Children)
+            {
+                if (el == MainHorizontalStackLayout)
+                {
+                    vertical.Add("horizontal");
+                    continue;
+                }
+
+                if (!(el is PlaceableItem placeableItem)) continue;
+
+                vertical.Add(placeableItem.SerializeView());
+            }
+
+            var horizontal = new JArray();
+            foreach (var el in MainHorizontalStackLayout.Children)
+            {
+                if (!(el is PlaceableItem placeableItem)) continue;
+
+                horizontal.Add(placeableItem.SerializeView());
+            }
+
+            root["children"] = new JObject { ["vertical"] = vertical, ["horizontal"] = horizontal };
+
+            return root;
         }
+
+        public TimeSynchronizedContext ViewerContext { get; set; }
     }
 }

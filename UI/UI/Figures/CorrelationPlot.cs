@@ -229,7 +229,7 @@ namespace SINTEF.AutoActive.UI.Figures
             base.OnHandleMenuResult(page, action);
         }
 
-        protected override void RemoveThisView()
+        public override void RemoveThisView()
         {
             _pointSyncPage.removeCorrelationPreview(this.DataPoints[0]);
         }

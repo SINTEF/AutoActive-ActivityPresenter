@@ -9,6 +9,9 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 using ITimeSeriesViewer = SINTEF.AutoActive.Databus.Common.ITimeSeriesViewer;
@@ -32,7 +35,7 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
 
-        
+
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
         private bool _showOnlyInts = false;
@@ -154,7 +157,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 //in cases where scales are frozen but size of figure is updated these attributes should stay the same,
                 //therefore is frozenScaling run after autoscale
                 autoscale(info, plotRect, out minYValue, out maxYValue, true);
-                frozenScaling(out minYValue, out maxYValue); 
+                frozenScaling(out minYValue, out maxYValue);
                 _previouseWindowHeight = plotRect.Height;
                 _previouseWindowWidth = plotRect.Width;
             }
@@ -204,7 +207,7 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             minYValue = _minYValue;
             maxYValue = _maxYValue;
-           
+
 
             var curMin = float.MaxValue;
             var curMax = float.MinValue;
@@ -235,7 +238,7 @@ namespace SINTEF.AutoActive.UI.Figures
             curMax = _smoothScalingQueue.Max(el => el.Item2);
 
             //This is done to prevent tickdelta to become 0 and scale to become inf in DrawTicks()
-            var yDelta = curMax - curMin; 
+            var yDelta = curMax - curMin;
             if (yDelta <= 0)
             {
                 yDelta = 2f;
@@ -269,8 +272,8 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             maxYValue = null;
             minYValue = null;
-            
-                
+
+
             foreach (var line in _lines)
             {
                 var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
@@ -299,9 +302,10 @@ namespace SINTEF.AutoActive.UI.Figures
                 line.ScaleY = scaleY;
             }
         }
-        
+
         /// <summary>
-        /// Finds the best resolution of the y scale. 
+        /// Calculates the scale between the data and pixels. Be aware that the marigns are subtracted,
+        /// Finds the best resolution of the y scale.
         /// </summary>
         private static float SmartRound(float num, float diff)
         {
@@ -315,9 +319,9 @@ namespace SINTEF.AutoActive.UI.Figures
                 return (float)Math.Round(num, 2);
             if (diff < 10)
                 return (float)Math.Round(num, 1);
-            
+
             return (float)Math.Round(num, 0);
-            
+
         }
 
         /// <summary>
@@ -374,7 +378,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             //If the difference between the min and max value is too large we can not have a tick for every value
             if (diffMinMiax > maxTicks)
-            { 
+            {
                 tickDelta = (int)Math.Ceiling((float)diffY / (maxTicks));
             }
 
@@ -387,7 +391,7 @@ namespace SINTEF.AutoActive.UI.Figures
             //Zero centers the ticks if we have both positive and negative numbers and not zero as a tick
             if ((minValue < 0) && (0 < maxValue) && (!ticks.Contains(0)))
             {
- 
+
                 int maxNegativeNumber = ticks.Select(i => i).Where(i => i < 0).ToList().Max();
                 int maxPositiveNumber = ticks.Select(i => i).Where(i => i > 0).ToList().Max();
 
@@ -398,8 +402,8 @@ namespace SINTEF.AutoActive.UI.Figures
                     offset = -offset;
                 }
 
-                ticks = ticks.Select(i => i + offset).ToList(); 
-        
+                ticks = ticks.Select(i => i + offset).ToList();
+
             }
 
             foreach (int val in ticks)
@@ -428,15 +432,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
             // If we cross the zero-axis, use zero as the tick center, if not round it smartly
             if (minY < 0 && 0 < maxY)
-            { 
+            {
                 tickStart = 0;
             }
             else
-            { 
+            {
                 tickStart = SmartRound(tickStart, diffY);
             }
 
-            var tickDelta = SmartRound(diffY / nTicks, diffY); 
+            var tickDelta = SmartRound(diffY / nTicks, diffY);
 
 
             var scale = -drawRect.Height / diffY;
@@ -458,7 +462,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
         }
 
-        
+
         protected const string RemoveLineText = "Remove Line";
         protected const string AutoScaleIndependentText = "AutoScale Independent";
         protected const string AutoScaleCommonText = "AutoScale Common";
@@ -547,16 +551,50 @@ namespace SINTEF.AutoActive.UI.Figures
             base.OnHandleMenuResult(page, action);
         }
 
+        public void DeserializeParameters(JObject root)
+        {
+            _autoScaleIndependent = root["autoscale_independent"].Value<bool>();
+            _scalingFrozen = root["scaling_frozen"].Value<bool>();
+            _showOnlyInts = root["show_only_ints"].Value<bool>();
+            _minYValue = root["min_y_value"].Value<float?>();
+            _maxYValue = root["max_y_value"].Value<float?>();
+            _prevYValue.minYValue = root["prev_min_y_value"].Value<float?>();
+            _prevYValue.maxYValue = root["prev_max_y_value"].Value<float?>();
 
+            PlotType = JsonConvert.DeserializeObject<PlotTypes>(root["plot_type"].Value<string>());
 
+            var nLines = _lines.Count;
 
+            var lineYOffsets = root["line_offset_ys"].Values<float>();
+            var lineScaleYs = root["line_scale_ys"].Values<float>();
 
+            foreach (var (line, (yOffset, scaleY)) in _lines.Zip(lineYOffsets.Zip(lineScaleYs, Tuple.Create), Tuple.Create))
+            {
+                line.OffsetY = yOffset;
+                line.ScaleY = scaleY;
+            }
 
+            InvalidateSurface();
+        }
 
+        public JObject SerializeParameters()
+        {
+            var root = SerializableViewHelper.SerializeDefaults(null, this);
 
-        
+            root["autoscale_independent"] = _autoScaleIndependent;
+            root["scaling_frozen"] = _scalingFrozen;
+            root["show_only_ints"] = _showOnlyInts;
+            root["min_y_value"] = _minYValue;
+            root["max_y_value"] = _maxYValue;
+            root["prev_min_y_value"] = _prevYValue.minYValue;
+            root["prev_max_y_value"] = _prevYValue.maxYValue;
 
+            root["line_offset_ys"] = new JArray(_lines.Select(line => line.OffsetY));
+            root["line_scale_ys"] = new JArray(_lines.Select(line => line.ScaleY));
+
+            root["plot_type"] = JsonConvert.SerializeObject(PlotType);
+
+            return root;
+        }
     }
-
-    
 }

@@ -18,6 +18,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class HeadToHead : ContentPage, ISerializableView
     {
+        public string ViewType => "no.sintef.ui.head2head";
         private const string SelectedText = "x";
         private const string UnselectedText = " ";
 
@@ -152,20 +153,26 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                     return;
                 }
 
-                DeserializeView(headToHead);
+                await DeserializeView(headToHead);
             }
         }
 
-        public void DeserializeView(JObject root)
+        public async Task DeserializeView(JObject root, IDataStructure archive=null)
         {
+            await DeserializeView(root, archive, archive);
+        }
+
+        public async Task DeserializeView(JObject root, IDataStructure archiveLeft, IDataStructure archiveRight)
+        {
+            SerializableViewHelper.EnsureViewType(root, this);
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
-                LeftGrid.DeserializeView(left);
+                await LeftGrid.DeserializeView(left, archiveLeft);
             }
 
             if (root.TryGetValue("Right", out var rightRaw) && rightRaw is JObject right)
             {
-                RightGrid.DeserializeView(right);
+                await RightGrid.DeserializeView(right, archiveRight);
 
                 if (right.TryGetValue("Offset", out var offset))
                 {
@@ -177,10 +184,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public JObject SerializeView(JObject root = null)
         {
-            if (root == null)
-            {
-                root = new JObject();
-            }
+            root = SerializableViewHelper.SerializeDefaults(root, this);
 
             root["Left"] = LeftGrid.SerializeView();
             root["Right"] = RightGrid.SerializeView();

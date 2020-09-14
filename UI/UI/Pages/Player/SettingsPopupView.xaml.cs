@@ -48,23 +48,10 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private void onToggled(object sender, ToggledEventArgs e)
         {
-            try
-            {
 
-                if (e.Value)
-                {
-                    _myPlaybarView.DataTrackline.IsVisible = true;    
-                }
-                else
-                {
-                    _myPlaybarView.DataTrackline.IsVisible = false;
-                }
-            }
-            catch(NullReferenceException)
-            {
-                
-            }
+            if (_myPlaybarView?.DataTrackline == null) return;
 
+            _myPlaybarView.DataTrackline.IsVisible = e.Value;
         }
 
 

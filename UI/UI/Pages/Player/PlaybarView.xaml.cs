@@ -3,18 +3,21 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures;
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
+using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
+using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlaybarView : ContentView
+    public partial class PlaybarView : ContentView, IFigureContainer, ISerializableView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
@@ -397,6 +400,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             long offset;
             switch (timeStep.Length)
             {
+                case TimeStepLength.None:
+                    return 0L;
                 case TimeStepLength.Step:
                     offset = TimeFormatter.TimeFromSeconds(1d / 30);
                     break;
@@ -418,5 +423,61 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             return offset;
         }
 
+        public string ViewType => "no.sintef.ui.playbar_view";
+        public async Task DeserializeView(JObject root, IDataStructure archive = null)
+        {
+            SerializableViewHelper.EnsureViewType(root, this);
+
+            if (root["preview_figure"] is JObject previewFigureObject)
+            {
+                // If the previewView already exists, reuse it, if not create a new one.
+                if (_previewView == null)
+                {
+                    var view = await FigureView.DeserializeView(previewFigureObject,
+                        ViewerContext as TimeSynchronizedContext, archive);
+                    UseDataPointForTimelinePreview(view.DataPoints.FirstOrDefault());
+                }
+                else
+                {
+                    await _previewView.DeserializeView(previewFigureObject, archive);
+                }
+
+            }
+        }
+
+        public JObject SerializeView(JObject root = null)
+        {
+            root = SerializableViewHelper.SerializeDefaults(root, this);
+            root["preview_figure"] = _previewView?.SerializeView();
+
+            return root;
+        }
+
+        public FigureView Selected { get; set; }
+        public void RemoveChild(FigureView figureView)
+        {
+            if (figureView != _previewView)
+            {
+                return;
+            }
+            ContentGrid.Children.Remove(_previewView);
+        }
+
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointAdded;
+        public event EventHandler<(IDataPoint, DataViewerContext)> DatapointRemoved;
+        public void InvokeDatapointRemoved(IDataPoint dataPoint, DataViewerContext context)
+        {
+            if (dataPoint != PreviewDataPoint)
+            {
+                return;
+            }
+
+            PreviewDataPoint = null;
+        }
+
+        public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
