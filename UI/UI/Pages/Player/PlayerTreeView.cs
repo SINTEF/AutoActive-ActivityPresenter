@@ -142,6 +142,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var infoAction = new MenuItem { Text = "Info" };
             infoAction.Clicked += InfoClicked;
             ContextActions.Add(infoAction);
+            var createGroupAction = new MenuItem { Text = "Group Data" };
+            createGroupAction.Clicked += GroupClicked;
+            ContextActions.Add(createGroupAction);
 
             var layout = new StackLayout
             {
@@ -175,6 +178,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private void InfoClicked(object sender, EventArgs e)
         {
             Debug.WriteLine($"DataItem info clicked");
+        }
+
+        private void GroupClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataItem;
         }
 
         protected override void OnTapped()
