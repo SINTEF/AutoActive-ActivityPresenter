@@ -103,6 +103,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         }
 
+        public void RemoveCorrelationView()
+        {
+            if (_correlationView == null)
+            {
+                return;
+            }
+            _correlationView.RemoveThisView();
+            _correlationContext = new ManualTimeSynchronizedContext();
+        }
+
 
         public PlaybarView()
         {

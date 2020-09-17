@@ -169,6 +169,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
             _slaveSlider = new RelativeSlider();
             _slaveSlider.OffsetChanged += SlaveSliderOnOffsetChanged;
+            Playbar.RemoveCorrelationView();
         }
 
         private void SlaveTimeButton_OnClicked(object sender, EventArgs e)
