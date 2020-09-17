@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <AssemblyName>SINTEF.AutoActive.AutoSync</AssemblyName>
+    <RootNamespace>SINTEF.AutoActive.AutoSync</RootNamespace>
+    <LangVersion>7.2</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Accord.Math" Version="3.8.2-alpha" />
+    <PackageReference Include="MathNet.Numerics" Version="4.12.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Databus\Databus.csproj" />
+  </ItemGroup>
+
+</Project>

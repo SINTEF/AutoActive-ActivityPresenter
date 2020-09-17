@@ -61,6 +61,10 @@ namespace SINTEF.AutoActive.UI.Views
 	    };
 
         private readonly List<IDataViewer> _viewers = new List<IDataViewer>();
+        protected List<IDataViewer> Viewers
+        {
+            get => _viewers;
+        }
 
         public FigureView()
         {
@@ -147,9 +151,11 @@ namespace SINTEF.AutoActive.UI.Views
             // the GUI sluggish and unresponsive at large windows length.
             // Why is it correlated with the data window length?
             RedrawCanvas(e.Surface.Canvas, e.Info);
+
         }
 
-	    protected virtual void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
+
+        protected virtual void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
 	    {
 	        // Clear background and draw frame
 	        canvas.Clear(SKColors.White);
@@ -160,6 +166,7 @@ namespace SINTEF.AutoActive.UI.Views
 	        var maxTextWidth = TextPaint.MeasureText(text);
 
             canvas.DrawText(text, info.Width/2f - maxTextWidth/2, info.Height/2f - textHeight/2, TextPaint);
+
         }
 
         /// Create new view of the proper type to visualize datapoint.
@@ -243,9 +250,13 @@ namespace SINTEF.AutoActive.UI.Views
 	    }
 
         /// Remove this view from the selecting view that contains it.
-        public void RemoveThisView()
+        public virtual void RemoveThisView()
         {
             var figureContainer = XamarinHelpers.GetFigureContainerFromParents(Parent);
+            if (figureContainer == null)
+            {
+                return;
+            }
             figureContainer.RemoveChild(this);
 
             foreach (var viewer in _viewers)

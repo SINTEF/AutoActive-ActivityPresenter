@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Threading.Tasks;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -43,6 +44,11 @@ namespace SINTEF.AutoActive.UI.Views
 
         public PlaybarView Playbar { get; set; }
 
+        public List<(ITimeViewer, TimeSynchronizedContext, string)> TimeViewers
+        {
+            get { return _timeViewers; }
+        }
+
         public DataTracklineView() : base()
         {
             PaintSurface += OnPaintSurface;
@@ -81,7 +87,7 @@ namespace SINTEF.AutoActive.UI.Views
                 }
                 else if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
                 {
-                    
+
                     onTouchSyncPage(sender, e);
                 }
                 else
@@ -197,8 +203,8 @@ namespace SINTEF.AutoActive.UI.Views
             if (!_timeViewers.Any()) return;
             canvas.SetMatrix(SKMatrix.MakeIdentity());
             DrawCurrentTime(canvas, xMin, xScale);
-            
-            
+
+
         }
 
         private void ActivateDeactivateTimeStepper(IEnumerable<(ITimeViewer, TimeSynchronizedContext, string)> timeViewers)
@@ -218,7 +224,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var nrOfTimeViewers = _timeViewers.Count();
             if (nrOfTimeViewers == 0 && Playbar.GetTimeStepper.GetPlayButton.Text == "STOP")
-            { 
+            {
                 Playbar.GetTimeStepper.PlayButton_Clicked(this, new EventArgs());
             }
         }
@@ -238,7 +244,7 @@ namespace SINTEF.AutoActive.UI.Views
 
             long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
             long endTime = _timeViewers.Select(i => i.Item1.End).Min();
-            
+
             // if the offset between videos is above one day it might not be visible
             if ((startTime - endTime) > 86400000000)
             {
@@ -457,6 +463,41 @@ namespace SINTEF.AutoActive.UI.Views
             InvalidateSurface();
         }
 
+        private int CalculateAdjustedLength(double duration, int oldSampFreq, int newSampFreq, int length)
+        {
+            if (oldSampFreq > newSampFreq)
+            {
+                return length;
+            }
+
+            int samplingDiff = newSampFreq - oldSampFreq;
+            int nrNewSamples = (int)Math.Ceiling(duration * samplingDiff); //We round up, since it is better to show a little bit to much, instead of too little
+            int adjustedLength = length + nrNewSamples;
+            return adjustedLength;
+        }
+
+        private void SetCorrelationContext()
+        {
+            if (_dataTimeList.Count < 2)
+            {
+                Playbar.SetAvailableTimeForCorrelationView(0, 0);
+                return;
+            }
+
+            long startTimeMaster = _dataTimeList[0].Item2.Start;
+            long startTimeSlave = _dataTimeList[1].Item2.Start;
+            long endTimeSlave = _dataTimeList[1].Item2.End;
+            long endTimeMaster = _dataTimeList[0].Item2.End;
+            long shiftedFromZero = startTimeSlave - startTimeMaster;
+            long durationSlave = endTimeSlave - startTimeSlave;
+            long durationMaster = endTimeMaster - startTimeMaster;
+            long startTime = shiftedFromZero + durationSlave;
+            long endTime = startTime - durationMaster - durationSlave;
+
+            Playbar.SetAvailableTimeForCorrelationView(-startTime, -endTime);
+
+        }
+
         public async Task AddDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
         {
             if (!_dataTimeList.Any())
@@ -474,6 +515,7 @@ namespace SINTEF.AutoActive.UI.Views
             context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
             CheckTimeOffset();
+            SetCorrelationContext();
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint, TimeSynchronizedContext context)
@@ -511,6 +553,7 @@ namespace SINTEF.AutoActive.UI.Views
             if (masterCount == 0){ _syncIsSetMaster = false;}
             if (slaveCount == 0) { _syncIsSetSlave = false; }
             InvalidateSurface();
+            SetCorrelationContext();
         }
 
         private async void DataPointAddedHandler(object sender, (IDataPoint, DataViewerContext) args)

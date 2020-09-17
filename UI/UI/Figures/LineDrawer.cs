@@ -14,7 +14,7 @@ namespace SINTEF.AutoActive.UI.Figures
         (float, float) GetVisibleYStatistics(int maxPoints);
 
         ITimeSeriesViewer Viewer { get; }
-        LinePlot Parent { get; set; }
+        DrawPlot Parent { get; set; }
 
         string Legend { get; set; }
     }
@@ -22,7 +22,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
     public class LineDrawer<T> : ILineDrawer where T : IConvertible
     {
-        public LinePlot Parent { get; set; }
+        public DrawPlot Parent { get; set; }
         public string Legend { get; set; }
 
         public ITimeSeriesViewer Viewer { get; }
@@ -35,7 +35,15 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig)
         {
-            var en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
+            SpanPair<T>.Enumerator en;
+            if (lineConfig.Drawer.Parent is CorrelationPlot)
+            {
+                en = Viewer.GetCurrentData<T>().GetEnumerator(0);
+            }
+            else
+            {
+                en = Viewer.GetCurrentData<T>().GetEnumerator(LinePlot.MaxPointsFromWidth(drawRect.Width));
+            }
 
             switch (lineConfig.PlotType)
             {
