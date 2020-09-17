@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SINTEF.AutoActive.Databus.Interfaces;
 using static SINTEF.AutoActive.AutoSync.AutoSyncUtils;
 using System.Collections.Generic;

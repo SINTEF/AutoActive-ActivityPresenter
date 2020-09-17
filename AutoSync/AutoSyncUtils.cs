@@ -1,4 +1,4 @@
-﻿using MathNet.Numerics;
+using MathNet.Numerics;
 using MathNet.Numerics.IntegralTransforms;
 using System;
 using System.Linq;
