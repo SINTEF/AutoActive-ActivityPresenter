@@ -95,7 +95,7 @@ namespace SINTEF.AutoActive.AutoSync
 
         /// <summary>
         /// Resamples the timeseries,
-        /// each signal is resampled induvidually
+        /// each signal is resampled individually
         /// </summary>
         /// <param name="newSamplingFreq"></param>
         public void Resample(int newSamplingFreq)
