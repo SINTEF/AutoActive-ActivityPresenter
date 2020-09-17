@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -72,7 +72,7 @@ namespace SINTEF.AutoActive.AutoSync
             Timeline time = new Timeline(span.X.ToArray());
             Signal newSignal = new Signal(span.Y.ToArray());
             _data.Add(newSignal);
-            if (_time == null) ;
+            if (_time == null);
             {
                 _time = time;
             }
@@ -134,7 +134,6 @@ namespace SINTEF.AutoActive.AutoSync
         }
 
     }
-
     class Signal
     {
         private double[] _data;
