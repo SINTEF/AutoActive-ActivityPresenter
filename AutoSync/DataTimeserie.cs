@@ -72,7 +72,7 @@ namespace SINTEF.AutoActive.AutoSync
             Timeline time = new Timeline(span.X.ToArray());
             Signal newSignal = new Signal(span.Y.ToArray());
             _data.Add(newSignal);
-            if (_time == null);
+            if (_time == null)
             {
                 _time = time;
             }
