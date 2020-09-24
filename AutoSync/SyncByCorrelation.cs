@@ -5,8 +5,6 @@ using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
-using System.Threading.Tasks;
-
 
 
 namespace SINTEF.AutoActive.AutoSync
