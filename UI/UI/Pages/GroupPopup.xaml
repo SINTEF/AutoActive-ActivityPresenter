@@ -1,0 +1,53 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             xmlns:pages="clr-namespace:Rg.Plugins.Popup.Pages;assembly=Rg.Plugins.Popup"
+             x:Class="SINTEF.AutoActive.UI.Pages.GroupPopup"
+             xmlns:animations="clr-namespace:Rg.Plugins.Popup.Animations;assembly=Rg.Plugins.Popup"
+             xmlns:local="SINTEF.AutoActive.UI.Pages.DataGroups">
+
+
+
+    <pages:PopupPage.Animation>
+        <animations:MoveAnimation
+          PositionIn="Bottom"
+          PositionOut="Bottom"
+          DurationIn="400"
+          DurationOut="350"
+          EasingIn="SinOut"
+          EasingOut="SinIn"
+          HasBackgroundAnimation="False" />
+    </pages:PopupPage.Animation>
+
+    <Grid x:Name="LayoutGrid" VerticalOptions="CenterAndExpand" HorizontalOptions="CenterAndExpand" BackgroundColor="#1D2637">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="150"></RowDefinition>
+            <RowDefinition Height="100"></RowDefinition>
+            <RowDefinition Height="100"></RowDefinition>
+            <RowDefinition Height="100"></RowDefinition>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="300"/>
+            <ColumnDefinition Width="150"/>
+            <ColumnDefinition Width="150"/>
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Column="0" Grid.ColumnSpan="3" Grid.Row="0" TextColor="White" Text="Grouping Options" FontSize="Header"
+               VerticalOptions="Center" HorizontalOptions="CenterAndExpand"/>
+
+        <Picker x:Name="GroupPicker" ItemsSource="{x:Static local:DataGroups.Groups}" ItemDisplayBinding="{Binding GroupName}" 
+                Grid.Column="0" Grid.Row="1" HorizontalOptions="CenterAndExpand" VerticalOptions="Center" 
+                WidthRequest="100" HeightRequest="60" ></Picker>
+        <Button x:Name="SelectButton" Grid.Column="1" Grid.Row="1" Text="Select" Clicked="SelectButton_Clicked" VerticalOptions="Center" HorizontalOptions="Center" />
+        <Button x:Name="DeleteButton" Grid.Column="2" Grid.Row="1" Text="Delete" Clicked="DeleteButton_Clicked" VerticalOptions="Center" HorizontalOptions="Center"/>
+
+        <Entry x:Name="EntryName" Grid.Column="0" Grid.Row="2" HorizontalOptions="Center" VerticalOptions="Center" />
+        <Button x:Name="AddNameButton" Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="2" Text="Create New Group" Clicked="AddNameButton_Clicked" HorizontalOptions="Center" VerticalOptions="Center" />
+
+
+    </Grid>
+
+</pages:PopupPage>

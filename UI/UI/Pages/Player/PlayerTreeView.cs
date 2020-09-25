@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
+using Rg.Plugins.Popup.Services;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -130,6 +131,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 cell._frame.BackgroundColor = Color.Transparent;
                 cell._frame.CornerRadius = 0;
                 cell._frame.BorderColor = Color.Transparent;
+
             });
 
         protected readonly Label _label = new Label();
@@ -182,7 +184,11 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void GroupClicked(object sender, EventArgs e)
         {
-            var dataProviderItem = BindingContext as DataItem;
+            var dataProviderItem = BindingContext as DataStructureItem;
+            List<IDataPoint> datapoints = new List<IDataPoint>();
+            dataProviderItem.GetAllDatapopoints(datapoints);
+            var popupObject = new GroupPopup(datapoints);
+            PopupNavigation.Instance.PushAsync(popupObject);
         }
 
         protected override void OnTapped()
@@ -564,6 +570,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 structureItem.ShowChildItems(ref index);
             }
         }
+
+        internal List<IDataPoint> GetAllDatapopoints(List<IDataPoint> datapoints)
+        {
+            foreach (var child in ChildItems)
+            {
+                if (child is DataStructureItem structureItem)
+                {
+                    structureItem.GetAllDatapopoints(datapoints);
+                }
+                if (child is DataPointItem dataPoint)
+                {
+                    datapoints.Add(dataPoint.DataPoint);
+                }
+            }
+            return datapoints;
+        }
+
+
+
     }
 
     internal class DataPointItem : DataItem, IDisposable
