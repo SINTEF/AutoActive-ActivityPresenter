@@ -1,7 +1,6 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
-using System;
 using System.Collections.Generic;
-using System.Text;
+
 
 namespace SINTEF.AutoActive.UI.Pages
 {
@@ -41,7 +40,7 @@ namespace SINTEF.AutoActive.UI.Pages
             return names;
         }
 
-        private static DataGroup DataGroupContainingDatapoint(IDataPoint dataPoint)
+        public static DataGroup DataGroupContainingDatapoint(IDataPoint dataPoint)
         {
             DataGroup groupOfInterest = null;
             foreach (DataGroup group in _groups)
@@ -55,7 +54,7 @@ namespace SINTEF.AutoActive.UI.Pages
             return groupOfInterest;
         }
 
-        private static DataGroup SearchForDataGroupByName(string Name)
+        public static DataGroup SearchForDataGroupByName(string Name)
         {
             foreach (DataGroup group in _groups)
             {
@@ -67,11 +66,9 @@ namespace SINTEF.AutoActive.UI.Pages
             return null;
         }
 
-        public static void AddOffsetToGroup(IDataPoint dataPoint, long offset)
+        public static void AddOffsetToGroup(DataGroup group, long offset)
         {
-            DataGroup group = DataGroupContainingDatapoint(dataPoint);
             group.Offset = offset;
-
         }
 
         public static long GetOffsetForGroup(IDataPoint dataPoint)
@@ -87,6 +84,11 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 group.AddDataPoint(dataPoint);
             }
+        }
+
+        public static void SaveOffsetForGroup(DataGroup group)
+        {
+            group.SaveOffsetForGroup();
         }
 
     }
@@ -132,10 +134,24 @@ namespace SINTEF.AutoActive.UI.Pages
 
         internal void SaveOffsetForGroup()
         {
+            List<ITimePoint> timePoints = GetUniqueTimePoints();
+            foreach (ITimePoint timePoint in timePoints)
+            {
+                timePoint.TransformTime(_offset, 1);
+            }
+        }
+
+        private List<ITimePoint> GetUniqueTimePoints()
+        {
+            List<ITimePoint> uniqueTimePoints = new List<ITimePoint>();
             foreach (IDataPoint dataPoint in group)
             {
-                dataPoint.Time.TransformTime(Offset, 1);
+                if (uniqueTimePoints.Find(x => x == dataPoint.Time) == null)
+                {
+                    uniqueTimePoints.Add(dataPoint.Time);
+                }
             }
+            return uniqueTimePoints;
         }
 
 

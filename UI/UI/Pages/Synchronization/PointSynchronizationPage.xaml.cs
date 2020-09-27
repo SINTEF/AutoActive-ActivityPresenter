@@ -460,7 +460,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             //SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
             _totalOffset += offset;
             _lastOffset = offset;
-            _slaveTime.TransformTime(offset, _slaveContext.Scale);
+
+            List<IDataPoint> slaveDataPoints = GetVisibleDataPoints(SlaveLayout);
+            DataGroup group = null;
+            foreach(IDataPoint dataPoint in slaveDataPoints)
+            {
+                group = DataGroups.DataGroupContainingDatapoint(dataPoint);
+                if (group != null)
+                {
+                    break;
+                }
+            }
+
+            if (group != null)
+            {
+                DataGroups.AddOffsetToGroup(group, offset);
+                DataGroups.SaveOffsetForGroup(group);
+            }
+            else
+            {
+                _slaveTime.TransformTime(offset, _slaveContext.Scale);
+            }
             _slaveSlider.Offset = 0;
         }
 
