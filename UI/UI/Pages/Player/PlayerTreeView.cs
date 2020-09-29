@@ -11,6 +11,7 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
+using System.Linq;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -333,6 +334,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var useInTimelineAction = new MenuItem { Text = "Timeline" };
             useInTimelineAction.Clicked += UseInTimelineClicked;
             ContextActions.Add(useInTimelineAction);
+            for (int i = ContextActions.Count - 1; i > 0; i -= 1)
+            {
+                if (ContextActions[i].Text == "Group Data")
+                {
+                    ContextActions.RemoveAt(i);
+                }
+            }
         }
 
         private void UseInTimelineClicked(object sender, EventArgs e)

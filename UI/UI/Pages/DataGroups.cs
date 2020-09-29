@@ -86,7 +86,7 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        public static void SaveOffsetForGroup(DataGroup group)
+        public static void SaveOffsetToGroup(DataGroup group)
         {
             group.SaveOffsetForGroup();
         }

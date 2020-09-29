@@ -475,7 +475,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             if (group != null)
             {
                 DataGroups.AddOffsetToGroup(group, offset);
-                DataGroups.SaveOffsetForGroup(group);
+                DataGroups.SaveOffsetToGroup(group);
             }
             else
             {
