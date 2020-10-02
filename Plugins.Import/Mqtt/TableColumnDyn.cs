@@ -161,6 +161,34 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         public virtual SpanPair<bool> GetCurrentBools() { throw new NotSupportedException(); }
         public virtual SpanPair<string> GetCurrentStrings() { throw new NotSupportedException(); }
         public virtual SpanPair<T> GetCurrentData<T>() where T : IConvertible { throw new NotImplementedException(); }
+
+        private double[] _doubleData;
+
+        private static double[] ConvertDataToDouble(Span<IConvertible> data)
+        {
+            var doubleData = new double[data.Length];
+            for (var i = 0; i < data.Length; i++)
+            {
+                doubleData[i++] = Convert.ToDouble(data[i]);
+            }
+            return doubleData;
+        }
+        public SpanPair<double> GetDataAsDouble()
+        {
+            if (Column.DataType == typeof(double))
+            {
+                return GetCurrentData<double>();
+            }
+
+            var data = GetCurrentData<IConvertible>();
+
+            if (_doubleData == null)
+            {
+                _doubleData = ConvertDataToDouble(data.Y);
+            }
+
+            return new SpanPair<double>(0, data.X, new Span<double>(_doubleData));
+        }
     }
 
 

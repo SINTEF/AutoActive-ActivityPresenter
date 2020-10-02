@@ -14,6 +14,8 @@ namespace SINTEF.AutoActive.Databus.Common
         SpanPair<string> GetCurrentStrings();
 
         SpanPair<T> GetCurrentData<T>() where T : IConvertible;
+
+        SpanPair<double> GetDataAsDouble();
     }
 
     /* -- Helper struct for carrying both time and data in a single Span-like structure -- */
