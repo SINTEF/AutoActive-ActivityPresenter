@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MathNet.Numerics;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus;
 using static SINTEF.AutoActive.AutoSync.AutoSyncUtils;
 
 namespace SINTEF.AutoActive.AutoSync
@@ -68,9 +69,12 @@ namespace SINTEF.AutoActive.AutoSync
             Task.WaitAll(tasks);
             ITimeSeriesViewer viewer = (ITimeSeriesViewer)dataView;
             viewer.SetTimeRange(timeView.Start, timeView.End);
-            var span = viewer.GetCurrentData<double>();
-            Timeline time = new Timeline(span.X.ToArray());
-            Signal newSignal = new Signal(span.Y.ToArray());
+            var genericConstructor = typeof(DataReader<>).MakeGenericType(inputData.DataType)
+            .GetConstructor(new[] { typeof(ITimeSeriesViewer) });
+            var dataReader = (IDataReader)genericConstructor.Invoke(new object[] { viewer });
+            (long[] timeArray, double[] dataArray, bool[] isNaNArray) = dataReader.DataAsArrays();
+            Timeline time = new Timeline(timeArray);
+            Signal newSignal = new Signal(dataArray);
             _data.Add(newSignal);
             if (_time == null)
             {
