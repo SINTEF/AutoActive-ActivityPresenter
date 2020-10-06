@@ -9,6 +9,7 @@ using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.UI.Views;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -22,6 +23,9 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         private const string SelectedText = "x";
         private const string UnselectedText = " ";
 
+        private TimeSynchronizedContext _leftContext;
+        private SynchronizationContext _rightContext;
+
         private Button _selectedButton;
         private Button SelectedButton
         {
@@ -34,12 +38,41 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 if (value != null) XamarinHelpers.EnsureMainThread(() => value.Text = SelectedText);
             }
         }
-        private readonly Dictionary<Button, (TimeSynchronizedContext, PlaceableContainer)> _dictionary = new Dictionary<Button, (TimeSynchronizedContext, PlaceableContainer)>();
+
+        private long? _selectedLeftTime;
+        private long? SelectedLeftTime
+        {
+            get => _selectedLeftTime;
+            set
+            {
+                _selectedLeftTime = value;
+                LeftTimeButton.Text = _selectedLeftTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedLeftTime.Value, dateSeparator: ' ')
+                    : "SET SYNC POINT";
+            }
+        }
+
+        private long? _selectedRightTime;
+        private long? SelectedRightTime
+        {
+            get => _selectedRightTime;
+            set
+            {
+                _selectedRightTime = value;
+                RightTimeButton.Text = _selectedRightTime.HasValue
+                    ? TimeFormatter.FormatTime(_selectedRightTime.Value, dateSeparator: ' ')
+                    : "SET SYNC POINT";
+            }
+        }
 
         public HeadToHead()
         {
             InitializeComponent();
             NavigationBar.Head2HeadPageButton.BackgroundColor = Color.FromHex("23A2B1");
+            LeftTimeStepper.GetPlayButton.IsVisible = false;
+            RightTimeStepper.GetPlayButton.IsVisible = false;
+            LeftTimeStepper.AreButtonsEnabled = false;
+            RightTimeStepper.AreButtonsEnabled = false;
         }
 
         protected override void OnAppearing()
@@ -48,22 +81,16 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             TreeView.DataPointTapped += TreeViewOnDataPointTapped;
 
-            var masterContext = new TimeSynchronizedContext();
-            _dictionary[LeftButton] = (masterContext, LeftGrid);
-
-            var slaveContext = new SynchronizationContext(masterContext);
-            OffsetSlider.OffsetChanged += (sender, args) =>
-            {
-                slaveContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
-                Playbar.DataTrackline.InvalidateSurface();
-            };
-            _dictionary[RightButton] = (slaveContext, RightGrid);
-
+            _leftContext = new TimeSynchronizedContext();
+            _rightContext = new SynchronizationContext(_leftContext);
             SelectButton_Clicked(LeftButton, new EventArgs());
 
-            Playbar.ViewerContext = masterContext;
+            Playbar.ViewerContext = _leftContext;
             Playbar.DataTrackline.RegisterFigureContainer(LeftGrid);
             Playbar.DataTrackline.RegisterFigureContainer(RightGrid);
+
+            LeftGrid.DatapointAdded += OnDatapointAdded;
+            RightGrid.DatapointAdded += OnDatapointAdded;
         }
 
         protected override void OnDisappearing()
@@ -71,15 +98,34 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             base.OnDisappearing();
             TreeView.DataPointTapped -= TreeViewOnDataPointTapped;
 
+            LeftGrid.DatapointAdded -= OnDatapointAdded;
+            RightGrid.DatapointAdded -= OnDatapointAdded;
+
             Playbar.DataTrackline.DeregisterFigureContainer(LeftGrid);
             Playbar.DataTrackline.DeregisterFigureContainer(RightGrid);
         }
 
+        private void OnDatapointAdded(object sender, (IDataPoint point, DataViewerContext context) args)
+        {
+            if (args.context == _leftContext)
+                LeftTimeButton.IsEnabled = LeftTimeStepper.AreButtonsEnabled = true;
+            else
+                RightTimeButton.IsEnabled = RightTimeStepper.AreButtonsEnabled = true;
+
+            CommonStart.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
+
+        }
+
         private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
-            var (context, container) = _dictionary[SelectedButton];
-
-            container.SelectItem(dataPoint, context);
+            if (SelectedButton == LeftButton)
+            {
+                LeftGrid.SelectItem(dataPoint, _leftContext);
+            }
+            else if (SelectedButton == RightButton)
+            {
+                RightGrid.SelectItem(dataPoint, _rightContext);
+            }
         }
 
         private void SelectButton_Clicked(object sender, EventArgs e)
@@ -167,17 +213,19 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             SerializableViewHelper.EnsureViewType(root, this);
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
+                LeftGrid.ViewerContext = _leftContext;
                 await LeftGrid.DeserializeView(left, archiveLeft);
             }
 
             if (root.TryGetValue("Right", out var rightRaw) && rightRaw is JObject right)
             {
+                RightGrid.ViewerContext = _rightContext;
                 await RightGrid.DeserializeView(right, archiveRight);
+            }
 
-                if (right.TryGetValue("Offset", out var offset))
-                {
-                    OffsetSlider.Offset = offset.Value<double>();
-                }
+            if (root.ContainsKey("Offset"))
+            {
+                _rightContext.Offset = root.Value<long>("Offset");
             }
 
         }
@@ -188,11 +236,70 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             root["Left"] = LeftGrid.SerializeView();
             root["Right"] = RightGrid.SerializeView();
-            root["Right"]["Offset"] = OffsetSlider.Offset;
-
+            root["Offset"] = _rightContext.Offset;
 
             return root;
         }
 
+        private void LeftTimeStepper_OnOnStep(object sender, TimeStepEvent e)
+        {
+            var context = _leftContext;
+            var diff = context.SelectedTimeTo - context.SelectedTimeFrom;
+            var offset = e.AsOffset();
+            var from = context.SelectedTimeFrom + offset;
+            var to = from + diff;
+            var (minTime, _) = context.GetAvailableTimeMinMax(true);
+
+            if (from < minTime)
+            {
+                from = minTime;
+                to = from + diff;
+            }
+
+            context.SetSelectedTimeRange(from, to);
+        }
+
+        private void UpdateSyncButtonVisibility()
+        {
+            ApplySyncButton.IsEnabled = SelectedLeftTime.HasValue && SelectedRightTime.HasValue;
+        }
+
+        private void LeftTimeButton_OnClicked(object sender, EventArgs e)
+        {
+            SelectedLeftTime = _leftContext.SelectedTimeFrom;
+
+            UpdateSyncButtonVisibility();
+        }
+        private void RightTimeButton_OnClicked(object sender, EventArgs e)
+        {
+            SelectedRightTime = _rightContext.SelectedTimeFrom;
+
+            UpdateSyncButtonVisibility();
+        }
+
+        private void RightTimeStepper_OnOnStep(object sender, TimeStepEvent e)
+        {
+            _rightContext.Offset += e.AsOffset();
+        }
+
+
+        private long _totalOffset = 0L;
+        private void OnApplySync(object sender, EventArgs e)
+        {
+            var offset = _selectedRightTime - _selectedLeftTime;
+            if (!offset.HasValue) return;
+            var offsetDiff = offset.Value - _rightContext.Offset;
+            _totalOffset += offsetDiff;
+            _rightContext.Offset = _totalOffset;
+        }
+
+        private void SetCommonStart_OnClicked(object sender, EventArgs e)
+        {
+            var (masterMin, _) = _leftContext.GetAvailableTimeMinMax(true);
+            var (slaveMin, _) = _rightContext.GetAvailableTimeMinMax(true);
+
+            _rightContext.Offset = slaveMin - masterMin;
+            _totalOffset = _rightContext.Offset;
+        }
     }
 }

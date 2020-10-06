@@ -167,7 +167,7 @@ namespace SINTEF.AutoActive.UI.Views
 
         protected void OnPaintSurface(object sender, SKPaintSurfaceEventArgs e)
         {
-
+            //TODO(sigurdal): This should probably not be gotten every tick
             _currentPage = GetNavigationPage().Navigation.NavigationStack.LastOrDefault();
             var canvas = e.Surface.Canvas;
 
@@ -233,7 +233,7 @@ namespace SINTEF.AutoActive.UI.Views
         {
 
             int nrOfTimeViewers = _timeViewers.Count;
-            if (_currentPage is Pages.Synchronization.PointSynchronizationPage)
+            if (_currentPage is Pages.Synchronization.PointSynchronizationPage || _currentPage is HeadToHead)
             {
                 return;
             }
@@ -245,10 +245,11 @@ namespace SINTEF.AutoActive.UI.Views
             long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
             long endTime = _timeViewers.Select(i => i.Item1.End).Min();
 
+            //TODO(sigurdal): This warning should probably not be shown here (especially not based on time, maybe on pixels)
             // if the offset between videos is above one day it might not be visible
             if ((startTime - endTime) > 86400000000)
             {
-                await GetNavigationPage().DisplayAlert("Warning","The offset between the start and the end of two videos is more then one day, and might therefore not be visible in the timeline", "Ok");
+                await GetNavigationPage().DisplayAlert("Warning","The offset between the start and the end of two videos is more than one day, and might therefore not be visible in the timeline", "Ok");
                 _timeWarningShown = true;
             }
         }
@@ -514,7 +515,7 @@ namespace SINTEF.AutoActive.UI.Views
             context.SyncIsSetChanged += ChangeColor;
             context.MarkedFeatureChanged += ContextOnMarkedFeatureChanged;
             InvalidateSurface();
-            CheckTimeOffset();
+            await CheckTimeOffset();
             SetCorrelationContext();
         }
 

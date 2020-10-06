@@ -19,6 +19,8 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         public string ViewType => "no.sintef.ui.placeablecontainer";
         private readonly List<(PlaceableItem item, PlaceableLocation location)> _placeableItems = new List<(PlaceableItem, PlaceableLocation)>();
 
+        public bool HasAnyItems => !(_placeableItems.Count == 1 && _placeableItems.First().Item1.Item == null);
+
         public PlaceableContainer()
         {
             InitializeComponent();
@@ -58,7 +60,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             PlacementLocationVisible = true;
             _selectedItem = item;
 
-            if (_placeableItems.Count == 1 && _placeableItems.First().Item1.Item == null)
+            if (!HasAnyItems)
             {
                 PlaceableItem_OnLocationSelected(_placeableItems.First().Item1, PlaceableLocation.Center);
             }

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Linq;
+using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -114,17 +115,17 @@ namespace SINTEF.AutoActive.UI.Views
         public void PlayButton_Clicked(object sender, EventArgs e)
         {
             TimeStepEvent eventArgs;
-            
+
             if (PlayButton.Text == "PLAY")
             {
                 eventArgs = new TimeStepEvent
                 {
-                    
+
                     Play = StartPlay.Start
-                                  
+
                 };
             }
-            else 
+            else
             {
                 eventArgs = new TimeStepEvent
                 {
@@ -138,7 +139,7 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 PlayButton.Text = "STOP";
             }
-            else 
+            else
             {
                 PlayButton.Text = "PLAY";
             }
@@ -169,5 +170,31 @@ namespace SINTEF.AutoActive.UI.Views
         public TimeStepLength Length;
         public TimeStepDirection Direction;
         public StartPlay Play;
+
+        public long AsOffset()
+        {
+            long offset;
+            switch (Length)
+            {
+                case TimeStepLength.Step:
+                    offset = TimeFormatter.TimeFromSeconds(1d / 30);
+                    break;
+                case TimeStepLength.Short:
+                    offset = TimeFormatter.TimeFromSeconds(1);
+                    break;
+                case TimeStepLength.Large:
+                    offset = TimeFormatter.TimeFromSeconds(10);
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            if (Direction == TimeStepDirection.Backward)
+            {
+                offset = -offset;
+            }
+
+            return offset;
+        }
     }
 }
