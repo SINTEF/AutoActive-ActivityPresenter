@@ -302,7 +302,6 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
                 {
                     pItem = new PlaceableItem();
                     shouldAdd = true;
-
                 }
 
                 pItem.LocationSelected += PlaceableItem_OnLocationSelected;
@@ -327,7 +326,11 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             if (view == null)
                 return;
             args.item.LocationSelected += PlaceableItem_OnLocationSelected;
-            _placeableItems.Add(args);
+            if (!(_placeableItems.Count == 1 && _placeableItems.First().item == args.item))
+            {
+                _placeableItems.Add(args);
+            }
+
             foreach (var dataPoint in view.DataPoints)
             {
                 InvokeDatapointAdded(dataPoint, view.Context);
