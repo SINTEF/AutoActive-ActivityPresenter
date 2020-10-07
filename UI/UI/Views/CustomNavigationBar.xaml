@@ -93,8 +93,7 @@
                 BorderColor="#23A2B1"
                 BackgroundColor="#1D2637"
                 FontAttributes="None"
-                TextColor="White"
-                IsEnabled="False"/>
+                TextColor="White"/>
 
             <Button
                 Grid.Column="3"

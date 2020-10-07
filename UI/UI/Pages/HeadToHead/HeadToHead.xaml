@@ -20,6 +20,7 @@
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
+                <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
             <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200">
@@ -54,13 +55,60 @@
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="2" Grid.Row="2" BorderColor="Blue">
-                <views:RelativeSlider x:Name="OffsetSlider" HorizontalOptions="FillAndExpand" VerticalOptions="End" />
-            </Frame>
+            <StackLayout Grid.Column="1" Grid.Row="2">
+                <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
+                    <views:TimeStepper x:Name="LeftTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="LeftTimeStepper_OnOnStep"/>
+                </Grid>
+                <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
+                    <Button x:Name="LeftTimeButton" Text="SET SYNC POINT" Clicked="LeftTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                </StackLayout>
+            </StackLayout>
+
+            <StackLayout Grid.Column="2" Grid.Row="2">
+                <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
+                    <views:TimeStepper x:Name="RightTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="RightTimeStepper_OnOnStep"/>
+                </Grid>
+                <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
+                    <Button x:Name="RightTimeButton" Text="SET SYNC POINT" Clicked="RightTimeButton_OnClicked"  VerticalOptions="CenterAndExpand" BorderColor="#23A2B1"
+                            BackgroundColor="#F1304D" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                </StackLayout>
+            </StackLayout>
+
+
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="3" Grid.Row="1"/>
-            <Button Text="Load View" Clicked="LoadView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="Start" IsVisible="False" IsEnabled="False"/>
-            <Button Text="Save View" Clicked="SaveView_OnClicked" Grid.Row="2" Grid.Column="3" HorizontalOptions="End" VerticalOptions="End" IsVisible="False" IsEnabled="False"/>
+
             <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="1" x:Name="Playbar"/>
+            <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="Auto"/>
+                    <ColumnDefinition Width="*"/>
+                </Grid.ColumnDefinitions>
+                <Button x:Name="CommonStart" Grid.Column="1" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="ApplySyncButton" Grid.Column="2" Text="Apply Sync" Clicked ="OnApplySync" BorderColor="#23A2B1"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+            </Grid>
         </Grid>
     </ContentPage.Content>
 </ContentPage>

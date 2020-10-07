@@ -464,37 +464,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _slaveSlider.Offset = 0;
         }
 
-        private static long GetOffsetFromTimeStep(TimeStepEvent timeStep)
-        {
-            long offset;
-            switch (timeStep.Length)
-            {
-                case TimeStepLength.Step:
-                    offset = TimeFormatter.TimeFromSeconds(1d / 30);
-                    break;
-                case TimeStepLength.Short:
-                    offset = TimeFormatter.TimeFromSeconds(1);
-                    break;
-                case TimeStepLength.Large:
-                    offset = TimeFormatter.TimeFromSeconds(10);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            if (timeStep.Direction == TimeStepDirection.Backward)
-            {
-                offset = -offset;
-            }
-
-            return offset;
-        }
-
         private void MasterTimeStepper_OnOnStep(object sender, TimeStepEvent e)
         {
             var context = _masterContext;
             var diff = context.SelectedTimeTo - context.SelectedTimeFrom;
-            var offset = GetOffsetFromTimeStep(e);
+            var offset = e.AsOffset();
             var from = context.SelectedTimeFrom + offset;
             var to = from + diff;
             var (min, max) = _masterContext.GetAvailableTimeMinMax(true);
@@ -518,7 +492,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private void SlaveTimeStepper_OnOnStep(object sender, TimeStepEvent e)
         {
-            _slaveSlider.Offset += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
+            _slaveSlider.Offset += TimeFormatter.SecondsFromTime(e.AsOffset());
         }
 
         private void Reset_OnClicked(object sender, EventArgs e)
