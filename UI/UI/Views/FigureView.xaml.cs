@@ -326,6 +326,12 @@ namespace SINTEF.AutoActive.UI.Views
         {
             var indexes = obj.Indexes;
 
+            // Hack for accessing archives that weren't saved when the view was saved
+            if (obj.ArchiveId == Guid.Empty)
+            {
+                dataStructure = dataStructure.Children.Skip(0).First();
+            }
+
             // TODO(sigurdal): Check the datapoint info, not only the indexes.
             for (var i = 0; i < indexes.Count - 1; i++)
             {
