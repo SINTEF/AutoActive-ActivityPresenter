@@ -239,8 +239,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     await DisplayAlert("Warning", errorMessage, "OK");
                     return;
                 }
-                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
-                GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor");
+                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
+                GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
                 Playbar.CorrelationPreview(correlationColumn, this);
             }
             finally
