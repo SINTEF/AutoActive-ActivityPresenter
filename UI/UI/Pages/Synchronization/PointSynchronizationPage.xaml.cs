@@ -470,6 +470,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             _lastOffset = offset;
             _slaveTime.TransformTime(offset, _slaveContext.Scale);
             _slaveSlider.Offset = 0;
+            Playbar.RemoveCorrelationView();
+            Playbar.DataTrackline.SetCorrelationContext();
         }
 
         private void MasterTimeStepper_OnOnStep(object sender, TimeStepEvent e)

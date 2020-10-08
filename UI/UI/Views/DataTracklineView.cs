@@ -477,7 +477,7 @@ namespace SINTEF.AutoActive.UI.Views
             return adjustedLength;
         }
 
-        private void SetCorrelationContext()
+        public void SetCorrelationContext()
         {
             if (_dataTimeList.Count < 2)
             {
