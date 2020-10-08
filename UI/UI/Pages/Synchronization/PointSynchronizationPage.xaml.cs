@@ -214,34 +214,42 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         private async void AutoSync_OnClicked(object sender, EventArgs e)
         {
-            popupLoadingView.IsVisible = true;
-            activityIndicator.IsRunning = true;
-            activityIndicator.IsVisible = true;
-            List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(MasterLayout);
-            List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(SlaveLayout);
-            if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+            try
             {
-                return;
+                popupLoadingView.IsVisible = true;
+                activityIndicator.IsRunning = true;
+                activityIndicator.IsVisible = true;
+                List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(MasterLayout);
+                List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(SlaveLayout);
+                if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+                {
+                    return;
+                }
+
+                (long[] lag, float[] correlation, string errorMessage) =
+                    await Task.Run(async () =>
+                    {
+                        (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
+                        return (lagtemp, correlationtemp, errorMessagetemp);
+                    });
+
+
+                if (errorMessage != null)
+                {
+                    await DisplayAlert("Warning", errorMessage, "OK");
+                    return;
+                }
+                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
+                GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor");
+                Playbar.CorrelationPreview(correlationColumn, this);
             }
-
-            (long[] lag, float[] correlation, string errorMessage) =
-                await Task.Run(async () => {
-                    (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
-                    return (lagtemp, correlationtemp, errorMessagetemp);
-            });
-
-            activityIndicator.IsVisible = false;
-            activityIndicator.IsRunning = false;
-            popupLoadingView.IsEnabled = false;
-            popupLoadingView.IsVisible = false;
-            if (errorMessage != null)
+            finally
             {
-                await DisplayAlert("Warning", errorMessage, "OK");
-                return;
+                activityIndicator.IsVisible = false;
+                activityIndicator.IsRunning = false;
+                popupLoadingView.IsEnabled = false;
+                popupLoadingView.IsVisible = false;
             }
-            var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "test:/time", "t");
-            GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation_column", new Task<float[]>(() => correlation), time, "test:/corr_column", "cor");
-            Playbar.CorrelationPreview(correlationColumn, this);
 
         }
 
