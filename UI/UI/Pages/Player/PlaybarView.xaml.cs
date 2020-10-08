@@ -111,6 +111,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
             _correlationView.RemoveThisView();
             _correlationContext = new ManualTimeSynchronizedContext();
+            _correlationView = null;
         }
 
 
