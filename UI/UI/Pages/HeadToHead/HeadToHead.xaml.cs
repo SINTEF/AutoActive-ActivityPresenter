@@ -210,7 +210,10 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public async Task DeserializeView(JObject root, IDataStructure archiveLeft, IDataStructure archiveRight)
         {
-            SerializableViewHelper.EnsureViewType(root, this);
+            if (!await SerializableViewHelper.EnsureViewType(root, this, false, true))
+            {
+                return;
+            }
             if (root.TryGetValue("Left", out var leftRaw) && leftRaw is JObject left)
             {
                 LeftGrid.ViewerContext = _leftContext;

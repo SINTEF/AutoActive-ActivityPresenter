@@ -298,7 +298,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         /// <returns></returns>
         public async Task DeserializeView(JObject root, IDataStructure archive = null)
         {
-            SerializableViewHelper.EnsureViewType(root, this);
+            if (!await SerializableViewHelper.EnsureViewType(root, this, false, true))
+            {
+                return;
+            }
 
             var figures = XamarinHelpers.GetAllChildElements<FigureView>(PlayerContainer);
 

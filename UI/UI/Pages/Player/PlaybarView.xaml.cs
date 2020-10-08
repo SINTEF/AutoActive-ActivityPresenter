@@ -436,7 +436,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public string ViewType => "no.sintef.ui.playbar_view";
         public async Task DeserializeView(JObject root, IDataStructure archive = null)
         {
-            SerializableViewHelper.EnsureViewType(root, this);
+            await SerializableViewHelper.EnsureViewType(root, this);
 
             if (root["preview_figure"] is JObject previewFigureObject)
             {
