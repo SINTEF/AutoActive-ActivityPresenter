@@ -51,7 +51,7 @@ namespace SINTEF.AutoActive.UI.Views
 
 
 
-        public void StepClicked(object sender, EventArgs e)
+        private void StepClicked(object sender, EventArgs e)
         {
             if (!(sender is Button button))
             {
