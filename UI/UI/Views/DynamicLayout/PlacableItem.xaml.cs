@@ -278,7 +278,10 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             var horizParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(Parent);
             var vertParent = XamarinHelpers.GetTypedElementFromParents<ResizableStackLayout>(horizParent.Parent);
             root["parent_size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(horizParent);
-            root["parent_size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(vertParent);
+            if (vertParent != null)
+            {
+                root["parent_size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(vertParent);
+            }
             root["size_weight_horizontal"] = ResizableStackLayout.GetSizeWeight(HorizontalLayout);
             root["size_weight_vertical"] = ResizableStackLayout.GetSizeWeight(VerticalLayout);
 
