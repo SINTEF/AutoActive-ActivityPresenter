@@ -14,7 +14,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	public partial class PlayerPage : ContentPage, ISerializableView
+	public partial class PlayerPage : KeypressPage, ISerializableView
 	{
         private readonly IFileBrowser _browser;
         private const double SplitViewWidthMin = 10000;

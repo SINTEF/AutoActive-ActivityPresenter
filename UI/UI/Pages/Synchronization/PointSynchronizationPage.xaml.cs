@@ -15,7 +15,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Synchronization
 {
-    public partial class PointSynchronizationPage : ContentPage, IFigureContainer
+    public partial class PointSynchronizationPage : KeypressPage, IFigureContainer
     {
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]

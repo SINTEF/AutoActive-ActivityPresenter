@@ -17,7 +17,7 @@ using SINTEF.AutoActive.UI.Pages.Synchronization;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-    public partial class PlaybarView : ContentView, IFigureContainer, ISerializableView
+    public partial class PlaybarView : KeypressPage, IFigureContainer, ISerializableView
     {
         public static readonly GridLength DefaultPreviewHeight = 100;
         public static readonly GridLength DefaultTimelineHeight = 100;
@@ -494,7 +494,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         {
             if (e.Key == "Space")
             {
-                PlayButton_Clicked(null, null);
+                //PlayButton_Clicked(null, null);
             }
         }
     }
