@@ -92,6 +92,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             LeftGrid.DatapointAdded += OnDatapointAdded;
             RightGrid.DatapointAdded += OnDatapointAdded;
             KeyDown += Playbar.KeyDown;
+            KeyUp += Playbar.KeyUp;
         }
 
         protected override void OnDisappearing()
@@ -106,6 +107,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             Playbar.DataTrackline.DeregisterFigureContainer(RightGrid);
 
             KeyDown -= Playbar.KeyDown;
+            KeyUp -= Playbar.KeyUp;
         }
 
         private void OnDatapointAdded(object sender, (IDataPoint point, DataViewerContext context) args)

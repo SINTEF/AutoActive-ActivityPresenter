@@ -85,6 +85,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             Playbar.GetTimeStepper.AreButtonsVisible = false;
             Playbar.GetTimeStepper.GetPlayButton.IsVisible = true;
             KeyDown += Playbar.KeyDown;
+            KeyUp += Playbar.KeyUp;
         }
 
 
@@ -96,6 +97,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             Playbar.DataTrackline.DeregisterFigureContainer(this);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
             KeyDown -= Playbar.KeyDown;
+            KeyUp -= Playbar.KeyUp;
         }
 
 

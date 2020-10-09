@@ -51,6 +51,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
             KeyDown += Playbar.KeyDown;
+            KeyUp += Playbar.KeyUp;
         }
 
         private void OnDisappearing(object sender, EventArgs e)
@@ -62,6 +63,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
             Playbar.DataTrackline.DeregisterFigureContainer(PlayerContainer);
             KeyDown -= Playbar.KeyDown;
+            KeyUp -= Playbar.KeyUp;
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint dataPoint)

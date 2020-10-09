@@ -1,17 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Runtime.InteropServices.WindowsRuntime;
-using Windows.Foundation;
-using Windows.Foundation.Collections;
-using Windows.UI.Xaml;
-using Windows.UI.Xaml.Controls;
-using Windows.UI.Xaml.Controls.Primitives;
-using Windows.UI.Xaml.Data;
-using Windows.UI.Xaml.Input;
-using Windows.UI.Xaml.Media;
-using Windows.UI.Xaml.Navigation;
+﻿using Windows.UI.Xaml.Input;
+using SINTEF.AutoActive.UI.Pages;
+using SINTEF.AutoActive.UI.UWP.Views;
 
 namespace SINTEF.AutoActive.UI.UWP
 {
@@ -22,6 +11,30 @@ namespace SINTEF.AutoActive.UI.UWP
             this.InitializeComponent();
 
             LoadApplication(new SINTEF.AutoActive.UI.App());
+        }
+
+        // The keys must be intercepted here to prevent activation in other views.
+        // If handled here, the events on KeypressPageRenderer are not executed.
+        protected override void OnPreviewKeyDown(KeyRoutedEventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
+            {
+                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, true);
+                KeypressPageRenderer.KeyPageKeyDown(keyPage, keyArgs);
+                e.Handled = keyArgs.Handled;
+            }
+            base.OnPreviewKeyDown(e);
+        }
+
+        protected override void OnPreviewKeyUp(KeyRoutedEventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
+            {
+                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, false);
+                KeypressPageRenderer.KeyPageKeyUp(keyPage, keyArgs);
+                e.Handled = true;
+            }
+            base.OnPreviewKeyUp(e);
         }
     }
 }

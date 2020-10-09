@@ -22,5 +22,15 @@ namespace SINTEF.AutoActive.UI.Pages
     public class KeyEventArgs : EventArgs
     {
         public string Key { get; set; }
+        public KeyModifiers Modifiers { get; set; }
+        public bool Handled { get; set; }
+    }
+
+    [Flags]
+    public enum KeyModifiers
+    {
+        None = 0,
+        Shift = 1,
+        Ctrl = 2
     }
 }
