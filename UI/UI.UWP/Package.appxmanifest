@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" IgnorableNamespaces="uap mp">
-  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="0.7.0.0" />
+  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="1.0.0.0" />
   <mp:PhoneIdentity PhoneProductId="a0524645-f131-4b7b-8e4b-f970f63eb624" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Activity Presenter</DisplayName>
