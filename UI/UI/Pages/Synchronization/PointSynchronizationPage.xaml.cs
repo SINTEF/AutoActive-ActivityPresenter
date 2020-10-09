@@ -229,7 +229,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 (long[] lag, float[] correlation, string errorMessage) =
                     await Task.Run(async () =>
                     {
-                        (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints).Result;
+                        (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints);
                         return (lagtemp, correlationtemp, errorMessagetemp);
                     });
 
@@ -253,13 +253,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
 
         }
 
-        private Task<(long[], float[], string)> CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
+        private (long[], float[], string) CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
         {
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
             (long[] lag, float[] correlation, string errorMessage) = sync.CorrelateSignals();
-            return Task.FromResult((lag, correlation, errorMessage));
+            return (lag, correlation, errorMessage);
         }
 
 
