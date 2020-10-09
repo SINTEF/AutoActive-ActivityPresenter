@@ -86,8 +86,8 @@ namespace SINTEF.AutoActive.UI.UWP
         {
             if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
             {
-                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, false);
-                KeypressPageRenderer.KeyPageKeyUp(keyPage, keyArgs);
+                var keyArgs = KeypressHandler.VirtualKeyToKeyEvent(e.Key, e.Handled, false);
+                KeypressHandler.KeyPageKeyUp(keyPage, keyArgs);
                 e.Handled = keyArgs.Handled;
             }
         }
@@ -96,8 +96,8 @@ namespace SINTEF.AutoActive.UI.UWP
         {
             if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
             {
-                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, true);
-                KeypressPageRenderer.KeyPageKeyDown(keyPage, keyArgs);
+                var keyArgs = KeypressHandler.VirtualKeyToKeyEvent(e.Key, e.Handled, true);
+                KeypressHandler.KeyPageKeyDown(keyPage, keyArgs);
                 e.Handled = keyArgs.Handled;
             }
         }

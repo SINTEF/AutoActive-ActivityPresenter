@@ -116,7 +116,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Video\VideoLengthExtractor.cs" />
     <Compile Include="Views\BranchViewRenderer.cs" />
-    <Compile Include="Views\KeypressPageRenderer.cs" />
+    <Compile Include="Views\KeypressHandler.cs" />
     <Compile Include="Views\MultiButtonRenderer.cs" />
     <Compile Include="Views\NativeUwpDeltaSliderRenderer.cs" />
     <Compile Include="Views\DraggableSeparatorViewRenderer.cs" />

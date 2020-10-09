@@ -1,62 +1,17 @@
 ﻿using System.Collections.Generic;
 using Windows.System;
-using Windows.UI.Core;
 using Windows.UI.Xaml.Input;
 using SINTEF.AutoActive.UI.Pages;
-using SINTEF.AutoActive.UI.UWP.Views;
 using Xamarin.Forms.Platform.UWP;
 using KeyEventArgs = SINTEF.AutoActive.UI.Pages.KeyEventArgs;
 
-[assembly: ExportRenderer(typeof(KeypressPage), typeof(KeypressPageRenderer))]
 namespace SINTEF.AutoActive.UI.UWP.Views
 {
-    public class KeypressPageRenderer : PageRenderer
+    public class KeypressHandler
     {
         // Which key modifiers (Shift/Ctrl) are pressed.
         // Static fields are used as key modifiers should be shared through the application
         private static KeyModifiers _keyModifiers;
-
-#if false
-        public KeypressPageRenderer()
-        {
-            Loaded += (sender, e) =>
-            {
-                _keyModifiers = KeyModifiers.None;
-                var window = CoreWindow.GetForCurrentThread();
-                if (window == null) return;
-                window.KeyDown += ControlOnKeyDown;
-                window.KeyUp += Control_KeyUp;
-            };
-            Unloaded += (sender, e) =>
-            {
-                var window = CoreWindow.GetForCurrentThread();
-                if (window == null) return;
-                window.KeyDown -= ControlOnKeyDown;
-                window.KeyUp -= Control_KeyUp;
-                _keyModifiers = KeyModifiers.None;
-            };
-        }
-
-        private void Control_KeyUp(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
-        {
-            if (!(Element is KeypressPage page))
-            {
-                return;
-            }
-            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, false);
-            KeyPageKeyUp(page, keyArgs);
-        }
-
-        private void ControlOnKeyDown(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
-        {
-            if (!(Element is KeypressPage page))
-            {
-                return;
-            }
-            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, true);
-            KeyPageKeyDown(page, keyArgs);
-        }
-#endif
 
         public static void KeyPageKeyDown(KeypressPage keyPage, KeyEventArgs key)
         {
