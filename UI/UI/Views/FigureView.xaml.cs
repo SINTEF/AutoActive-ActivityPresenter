@@ -346,11 +346,15 @@ namespace SINTEF.AutoActive.UI.Views
 
             var dataPoint = dataStructure.DataPoints[lastIx];
 
-            var dataPointNames = obj.Names;
-
-            if (dataPoint.Name != dataPointNames.Last())
+            if (dataPoint.DataType != obj.DataTypes.Last())
             {
-                Debug.WriteLine($"WARNING: Deserialization - Data point name does not match stored value: {dataPoint.Name} - {dataPointNames}");
+                Debug.WriteLine($"WARNING: Deserialization - Data point type does not match stored value: {dataPoint.DataType} - {obj.DataTypes}");
+                return null;
+            }
+
+            if (dataPoint.Name != obj.Names.Last())
+            {
+                Debug.WriteLine($"WARNING: Deserialization - Data point name does not match stored value: {dataPoint.Name} - {obj.Names}");
             }
 
             return dataPoint;
@@ -362,24 +366,24 @@ namespace SINTEF.AutoActive.UI.Views
         /// <param name="serializedObject">JSON serialized object describing the data points</param>
         /// <param name="archive">If not null, look only through this archive</param>
         /// <returns>List of DataPoints that are </returns>
-        private static IList<IDataPoint> GetDataPointsFromIdentifier(JToken serializedObject, IDataStructure archive=null)
+        private static IList<IDataPoint> GetDataPointsFromIdentifier(List<DataPointDescription> dataPointObjects, IDataStructure archive=null)
         {
             var dataPoints = new List<IDataPoint>();
-            var dataPointObjects =
-                JsonConvert.DeserializeObject<List<DataPointDescription>>(serializedObject["data_point_objects"].Value<string>());
 
             foreach (var dataPointObject in dataPointObjects)
             {
                 IDataPoint dataPoint = null;
 
+                var found = false;
                 if (archive != null)
                 {
                     dataPoint = SearchForDataPoint(dataPointObject, archive);
+                    if (dataPoint != null) found = true;
                 }
-                else
+
+                if (!found)
                 {
-                    // If an archive was not provided, search through the loaded data
-                    var found = false;
+                    // If a data point was not found in the provided archive, search through the loaded data
                     foreach (var dataStructure in DataRegistry.Providers)
                     {
                         if (!(dataStructure is ArchiveSession session)) continue;
@@ -435,10 +439,14 @@ namespace SINTEF.AutoActive.UI.Views
 
             try
             {
-                var dataPoints = GetDataPointsFromIdentifier(root, archive);
+                var dataPointObjects =
+                    JsonConvert.DeserializeObject<List<DataPointDescription>>(root["data_point_objects"].Value<string>());
+
+                var dataPoints = GetDataPointsFromIdentifier(dataPointObjects, archive);
                 if (dataPoints.Count == 0)
                 {
-                    await ShowDeserializationWarning("Could not find any DataPoints for figure during deserialization");
+                    await ShowDeserializationWarning($"Could not find the data point {string.Join("->", dataPointObjects.First().Names)}\n" +
+                                                     $"of type {dataPointObjects.Last().DataTypes.Last().Name} during deserialization");
                     return null;
                 }
 

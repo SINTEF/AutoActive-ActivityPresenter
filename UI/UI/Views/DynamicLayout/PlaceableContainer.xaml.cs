@@ -266,7 +266,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public async Task DeserializeView(JObject root, IDataStructure archive)
         {
-            SerializableViewHelper.EnsureViewType(root, this);
+            await SerializableViewHelper.EnsureViewType(root, this);
 
             var children = (JObject) root["children"];
             var verticalChildren = (JArray) children["vertical"];

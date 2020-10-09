@@ -1,4 +1,5 @@
-﻿using System.Runtime.Serialization;
+﻿using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
@@ -31,14 +32,21 @@ namespace SINTEF.AutoActive.UI.Interfaces
     public static class SerializableViewHelper
     {
         public static string Version = "1.0.0";
-        public static bool EnsureViewType(JObject root, ISerializableView view, bool throwException = true)
+        public static async Task<bool> EnsureViewType(JObject root, ISerializableView view, bool throwException = true, bool showMessage = false)
         {
             var viewType = root["type"].Value<string>();
             if (viewType == view.ViewType) return true;
 
             if (throwException)
             {
-                throw new SerializationException("Could not serialize view - wrong view type detected.");
+                throw new SerializationException("Could not deserialize view - wrong view type detected.");
+            }
+
+            if (showMessage)
+            {
+                await XamarinHelpers.ShowOkMessage("Wrong page or view type detected",
+                    $"Expected {view.ViewType.Split('.').Last()} but found {viewType.Split('.').Last()}\n\n\n"
+                    + $"(Full types \"{view.ViewType}\" != \"{viewType}\")");
             }
             return false;
         }

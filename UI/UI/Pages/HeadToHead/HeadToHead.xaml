@@ -65,7 +65,6 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
                     <views:TimeStepper x:Name="LeftTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="LeftTimeStepper_OnOnStep"/>
                 </Grid>
                 <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
@@ -84,7 +83,6 @@
                         <ColumnDefinition Width="*"/>
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
-                    <Label Text="Slave" Grid.Column="0" HorizontalTextAlignment="Start" FontAttributes="Bold" TextColor="White" />
                     <views:TimeStepper x:Name="RightTimeStepper" Grid.Column="0" Grid.ColumnSpan="3" HorizontalOptions="Center" OnStep="RightTimeStepper_OnOnStep"/>
                 </Grid>
                 <StackLayout  HorizontalOptions="Center"  Orientation="Horizontal">
@@ -93,20 +91,17 @@
                 </StackLayout>
             </StackLayout>
 
-
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="3" Grid.Row="1"/>
 
             <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="1" x:Name="Playbar"/>
-            <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="3">
+            <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="Center"  HorizontalOptions="Center">
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="CommonStart" Grid.Column="1" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="CommonStart" Grid.Column="0" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="ApplySyncButton" Grid.Column="2" Text="Apply Sync" Clicked ="OnApplySync" BorderColor="#23A2B1"
+                <Button x:Name="ApplySyncButton" Grid.Column="1" Text="Apply Sync" Clicked ="OnApplySync" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
