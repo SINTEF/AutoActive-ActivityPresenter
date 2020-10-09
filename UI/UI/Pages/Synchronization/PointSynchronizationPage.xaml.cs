@@ -15,7 +15,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Synchronization
 {
-    public partial class PointSynchronizationPage : ContentPage, IFigureContainer
+    public partial class PointSynchronizationPage : KeypressPage, IFigureContainer
     {
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]
@@ -84,6 +84,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             Playbar.DataTrackline.RegisterFigureContainer(this);
             Playbar.GetTimeStepper.AreButtonsVisible = false;
             Playbar.GetTimeStepper.GetPlayButton.IsVisible = true;
+            KeyDown += Playbar.KeyDown;
+            KeyUp += Playbar.KeyUp;
         }
 
 
@@ -94,6 +96,8 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             Playbar.DataTrackline.DeregisterFigureContainer(this);
             _slaveSlider.OffsetChanged -= SlaveSliderOnOffsetChanged;
+            KeyDown -= Playbar.KeyDown;
+            KeyUp -= Playbar.KeyUp;
         }
 
 

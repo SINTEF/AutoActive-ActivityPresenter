@@ -2,6 +2,7 @@
 using System.Diagnostics;
 using System.Linq;
 using SINTEF.AutoActive.UI.Helpers;
+using SINTEF.AutoActive.UI.Pages;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -147,10 +148,70 @@ namespace SINTEF.AutoActive.UI.Views
         }
 
         public event EventHandler<TimeStepEvent> OnStep;
+
+        public void KeyUp(KeyEventArgs args)
+        {
+            switch (args.Key)
+            {
+                case "Space":
+                    args.Handled = true;
+                    return;
+                case "Left":
+                    args.Handled = true;
+                    break;
+                case "Right":
+                    args.Handled = true;
+                    break;
+                default:
+                    return;
+            }
+        }
+
+        public void KeyDown(KeyEventArgs args)
+        {
+            var timeStepEvent = new TimeStepEvent();
+            switch (args.Key)
+            {
+                case "Space":
+                    PlayButton_Clicked(this, new EventArgs());
+                    args.Handled = true;
+                    return;
+                case "Left":
+                    args.Handled = true;
+                    timeStepEvent.Direction = TimeStepDirection.Backward;
+                    break;
+                case "Right":
+                    args.Handled = true;
+                    timeStepEvent.Direction = TimeStepDirection.Forward;
+                    break;
+                default:
+                    return;
+            }
+
+            switch (args.Modifiers)
+            {
+                case KeyModifiers.None:
+                    timeStepEvent.Length = TimeStepLength.Step;
+                    break;
+                case KeyModifiers.Shift:
+                    timeStepEvent.Length = TimeStepLength.Short;
+                    break;
+                case KeyModifiers.Ctrl:
+                    timeStepEvent.Length = TimeStepLength.Large;
+                    break;
+                case KeyModifiers.Ctrl | KeyModifiers.Shift:
+                    timeStepEvent.Length = TimeStepLength.VeryLarge;
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            OnStep?.Invoke(this, timeStepEvent);
+        }
     }
 
     public enum TimeStepLength {
-        Step, Short, Large, None
+        None, Step, Short, Large, VeryLarge
     }
 
     public enum TimeStepDirection
@@ -184,6 +245,9 @@ namespace SINTEF.AutoActive.UI.Views
                     break;
                 case TimeStepLength.Large:
                     offset = TimeFormatter.TimeFromSeconds(10);
+                    break;
+                case TimeStepLength.VeryLarge:
+                    offset = TimeFormatter.TimeFromSeconds(60);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();

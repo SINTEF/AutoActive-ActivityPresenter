@@ -14,7 +14,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
-	public partial class PlayerPage : ContentPage, ISerializableView
+	public partial class PlayerPage : KeypressPage, ISerializableView
 	{
         private readonly IFileBrowser _browser;
         private const double SplitViewWidthMin = 10000;
@@ -50,6 +50,8 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
+            KeyDown += Playbar.KeyDown;
+            KeyUp += Playbar.KeyUp;
         }
 
         private void OnDisappearing(object sender, EventArgs e)
@@ -59,8 +61,9 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
-
             Playbar.DataTrackline.DeregisterFigureContainer(PlayerContainer);
+            KeyDown -= Playbar.KeyDown;
+            KeyUp -= Playbar.KeyUp;
         }
 
         private void TreeView_DataPointTapped(object sender, IDataPoint dataPoint)

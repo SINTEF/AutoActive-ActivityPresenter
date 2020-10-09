@@ -1,8 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8" ?>
-<ContentPage xmlns="http://xamarin.com/schemas/2014/forms"
+<pages:KeypressPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:player="clr-namespace:SINTEF.AutoActive.UI.Pages.Player"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views"
+             xmlns:pages="clr-namespace:SINTEF.AutoActive.UI.Pages;assembly=SINTEF.AutoActive.UI"
              xmlns:dynamicLayout="clr-namespace:SINTEF.AutoActive.UI.Views.DynamicLayout;assembly=SINTEF.AutoActive.UI"
              BackgroundColor="#1D2637"
              x:Class="SINTEF.AutoActive.UI.Pages.Player.PlayerPage">
@@ -34,4 +35,4 @@
             </AbsoluteLayout>
         </Grid>
     </ContentPage.Content>
-</ContentPage>
+</pages:KeypressPage>

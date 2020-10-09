@@ -1,6 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <ContentView xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:SINTEF.AutoActive.UI.Pages;assembly=SINTEF.AutoActive.UI"
              xmlns:views="clr-namespace:SINTEF.AutoActive.UI.Views;assembly=SINTEF.AutoActive.UI"
              x:Class="SINTEF.AutoActive.UI.Pages.Player.PlaybarView">
     <ContentView.Content>
@@ -36,9 +37,9 @@
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
                     <ColumnDefinition Width="*"/>
-                </Grid.ColumnDefinitions>            
-            
-            
+                </Grid.ColumnDefinitions>
+
+
                 <views:TimeStepper x:Name="MasterTimeStepper" Grid.Column="1" OnStep="TimeStepper_OnOnStep"
                                     VerticalOptions="Center" HorizontalOptions="CenterAndExpand"
                 />
@@ -54,12 +55,12 @@
 
                 <Label x:Name="LabelTimeTo" Text="00:00:00" FontSize="Micro"
                         Grid.Column="2"  MinimumWidthRequest="50"
-                       VerticalTextAlignment="Center" HorizontalTextAlignment="End" 
+                       VerticalTextAlignment="Center" HorizontalTextAlignment="End"
                        TextColor="White" FontAttributes="Bold"
                 />
             </Grid>
-            
-            
+
+
         </Grid>
     </ContentView.Content>
 </ContentView>

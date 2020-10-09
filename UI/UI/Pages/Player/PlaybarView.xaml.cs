@@ -142,33 +142,40 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                     continue;
                 }
 
-                Device.BeginInvokeOnMainThread(() =>
+                try
                 {
-                    if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
-                    var now = DateTime.Now;
-                    //var offset = (long) (PlayDelayUs * PlaybackSpeed);
-                    var offsetDiff = TimeFormatter.TimeFromTimeSpan(now - _lastTime);
-
-                    if (offsetDiff > 2 * PlayDelayUs)
+                    Device.BeginInvokeOnMainThread(() =>
                     {
-                        offsetDiff = PlayDelayUs;
-                    }
+                        if (!(ViewerContext is TimeSynchronizedContext timeContext)) return;
+                        var now = DateTime.Now;
+                        //var offset = (long) (PlayDelayUs * PlaybackSpeed);
+                        var offsetDiff = TimeFormatter.TimeFromTimeSpan(now - _lastTime);
 
-                    var offset = (long)(offsetDiff * PlaybackSpeed);
-                    var newStart = timeContext.SelectedTimeFrom + offset;
+                        if (offsetDiff > 2 * PlayDelayUs)
+                        {
+                            offsetDiff = PlayDelayUs;
+                        }
 
-                    if (newStart > timeContext.AvailableTimeTo)
-                    {
-                        newStart = timeContext.AvailableTimeTo;
-                    }
+                        var offset = (long) (offsetDiff * PlaybackSpeed);
+                        var newStart = timeContext.SelectedTimeFrom + offset;
 
-                    _playSliderChanging = true;
-                    TimeSlider.Value = TimeToSliderValue(newStart);
-                    _playSliderChanging = false;
+                        if (newStart > timeContext.AvailableTimeTo)
+                        {
+                            newStart = timeContext.AvailableTimeTo;
+                        }
 
-                    SetSliderTime(newStart);
-                    _lastTime = now;
-                });
+                        _playSliderChanging = true;
+                        TimeSlider.Value = TimeToSliderValue(newStart);
+                        _playSliderChanging = false;
+
+                        SetSliderTime(newStart);
+                        _lastTime = now;
+                    });
+                }
+                catch (Exception ex)
+                {
+                    Debug.WriteLine($"Caught an exception in the play loop {ex}");
+                }
             }
         }
 
@@ -388,11 +395,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void TimeStepper_OnOnStep(object sender, TimeStepEvent timeStep)
         {
-            //_slaveSlider.Offset += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(e));
             switch (timeStep.Play)
             {
                 case StartPlay.None:
-                    TimeSlider.Value += TimeFormatter.SecondsFromTime(GetOffsetFromTimeStep(timeStep));
+                    TimeSlider.Value += TimeFormatter.SecondsFromTime(timeStep.AsOffset());
                     break;
                 case StartPlay.Start:
                     PlayButton_Clicked(true);
@@ -403,35 +409,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-
-        private static long GetOffsetFromTimeStep(TimeStepEvent timeStep)
-        {
-            long offset;
-            switch (timeStep.Length)
-            {
-                case TimeStepLength.None:
-                    return 0L;
-                case TimeStepLength.Step:
-                    offset = TimeFormatter.TimeFromSeconds(1d / 30);
-                    break;
-                case TimeStepLength.Short:
-                    offset = TimeFormatter.TimeFromSeconds(1);
-                    break;
-                case TimeStepLength.Large:
-                    offset = TimeFormatter.TimeFromSeconds(10);
-                    break;
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
-
-            if (timeStep.Direction == TimeStepDirection.Backward)
-            {
-                offset = -offset;
-            }
-
-            return offset;
         }
 
         public string ViewType => "no.sintef.ui.playbar_view";
@@ -489,6 +466,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         public void InvokeDatapointAdded(IDataPoint dataPoint, DataViewerContext context)
         {
             throw new NotImplementedException();
+        }
+
+        public void KeyDown(object sender, KeyEventArgs args)
+        {
+            MasterTimeStepper.KeyDown(args);
+        }
+
+        public void KeyUp(object sender, KeyEventArgs args)
+        {
+            MasterTimeStepper.KeyUp(args);
         }
     }
 }
