@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             var element = FocusManager.GetFocusedElement();
             var elementType = element.GetType();
 
-            var ignoredTypes = new List<System.Type> { typeof(FormsTextBox) };
+            var ignoredTypes = new List<System.Type> { typeof(FormsTextBox), typeof(FormsSlider) };
 
             return ignoredTypes.Contains(elementType);
         }
