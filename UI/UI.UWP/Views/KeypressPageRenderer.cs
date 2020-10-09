@@ -16,6 +16,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         // Static fields are used as key modifiers should be shared through the application
         private static KeyModifiers _keyModifiers;
 
+#if false
         public KeypressPageRenderer()
         {
             Loaded += (sender, e) =>
@@ -35,6 +36,27 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _keyModifiers = KeyModifiers.None;
             };
         }
+
+        private void Control_KeyUp(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
+        {
+            if (!(Element is KeypressPage page))
+            {
+                return;
+            }
+            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, false);
+            KeyPageKeyUp(page, keyArgs);
+        }
+
+        private void ControlOnKeyDown(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
+        {
+            if (!(Element is KeypressPage page))
+            {
+                return;
+            }
+            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, true);
+            KeyPageKeyDown(page, keyArgs);
+        }
+#endif
 
         public static void KeyPageKeyDown(KeypressPage keyPage, KeyEventArgs key)
         {
@@ -105,26 +127,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             }
 
             return new KeyEventArgs { Key = key.ToString(), Handled = handled, Modifiers = _keyModifiers };
-        }
-
-        private void Control_KeyUp(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
-        {
-            if (!(Element is KeypressPage page))
-            {
-                return;
-            }
-            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, false);
-            KeyPageKeyUp(page, keyArgs);
-        }
-
-        private void ControlOnKeyDown(CoreWindow coreWindow, Windows.UI.Core.KeyEventArgs args)
-        {
-            if (!(Element is KeypressPage page))
-            {
-                return;
-            }
-            var keyArgs = VirtualKeyToKeyEvent(args.VirtualKey, args.Handled, true);
-            KeyPageKeyDown(page, keyArgs);
         }
     }
 }

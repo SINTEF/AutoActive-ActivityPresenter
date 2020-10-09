@@ -15,6 +15,8 @@ using Windows.UI.Xaml.Data;
 using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using Windows.UI.Xaml.Navigation;
+using SINTEF.AutoActive.UI.Pages;
+using SINTEF.AutoActive.UI.UWP.Views;
 using UnhandledExceptionEventArgs = Windows.UI.Xaml.UnhandledExceptionEventArgs;
 
 namespace SINTEF.AutoActive.UI.UWP
@@ -66,6 +68,8 @@ namespace SINTEF.AutoActive.UI.UWP
                 // Place the frame in the current Window
                 Window.Current.Content = rootFrame;
             }
+            rootFrame.PreviewKeyUp += RootFrameOnPreviewKeyUp;
+            rootFrame.PreviewKeyDown += RootFrameOnPreviewKeyDown;
 
             if (rootFrame.Content == null)
             {
@@ -76,6 +80,26 @@ namespace SINTEF.AutoActive.UI.UWP
             }
             // Ensure the current window is active
             Window.Current.Activate();
+        }
+
+        private void RootFrameOnPreviewKeyUp(object sender, KeyRoutedEventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
+            {
+                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, false);
+                KeypressPageRenderer.KeyPageKeyUp(keyPage, keyArgs);
+                e.Handled = keyArgs.Handled;
+            }
+        }
+
+        private void RootFrameOnPreviewKeyDown(object sender, KeyRoutedEventArgs e)
+        {
+            if (XamarinHelpers.GetCurrentPage() is KeypressPage keyPage)
+            {
+                var keyArgs = KeypressPageRenderer.VirtualKeyToKeyEvent(e.Key, e.Handled, true);
+                KeypressPageRenderer.KeyPageKeyDown(keyPage, keyArgs);
+                e.Handled = keyArgs.Handled;
+            }
         }
 
         private void OnUnhandledException(object sender, UnhandledExceptionEventArgs e)
