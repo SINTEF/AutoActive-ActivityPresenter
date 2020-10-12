@@ -467,12 +467,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 extraOffset = videoTime.VideoPlaybackOffset;
             }
 #endif
-            var offset = (long)(_selectedMasterTime - _selectedSlaveTime) + extraOffset;
-            //TBD - removed update of slav time, will give exception for Back and save
-            //SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
-            _totalOffset += offset;
-            _lastOffset = offset;
-            _slaveTime.TransformTime(offset, _slaveContext.Scale);
+            var offset = (_selectedMasterTime - _selectedSlaveTime) + extraOffset;
+            if (offset.HasValue)
+            {
+                _totalOffset += offset.Value;
+                _lastOffset = offset.Value;
+                _slaveTime.TransformTime(offset.Value, _slaveContext.Scale);
+                _selectedSlaveTime = null;
+            }
+            else
+            {
+                var slaveOffset = _slaveContext.Offset;
+                _slaveTime.TransformTime(-slaveOffset, _slaveContext.Scale);
+            }
+
             _slaveSlider.Offset = 0;
             Playbar.RemoveCorrelationView();
             Playbar.DataTrackline.SetCorrelationContext();
@@ -626,19 +634,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             MarkFeature.IsEnabled = false;
             AutoSyncButton.IsEnabled = false;
 
-            if (_slaveSet == true)
+            if (_slaveSet)
             {
                 SlaveTimeStepper.AreButtonsEnabled = true;
                 SlaveTimeButton.IsEnabled = true;
-                SlaveTimeStepper.AreButtonsEnabled = true;
             }
 
-            if ( _masterSet == true)
+            if (_masterSet)
             {
                 Playbar.GetTimeStepper.GetPlayButton.IsEnabled = true;
                 MasterTimeStepper.AreButtonsEnabled = true;
                 MasterTimeButton.IsEnabled = true;
-                MasterTimeStepper.AreButtonsEnabled = true;
             }
 
             if (_lastOffset != 0)
@@ -646,28 +652,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 LastOffset.IsEnabled = true;
             }
 
-            if (_masterSet == true & _slaveSet == true)
+            if (_masterSet && _slaveSet)
             {
-                ResetPage.IsEnabled = true;
                 RemoveSlave.IsEnabled = true;
                 CommonStart.IsEnabled = true;
                 MarkFeature.IsEnabled = true;
                 AutoSyncButton.IsEnabled = true;
 
-                if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
+                if (_slaveSlider.Offset != 0)
                 {
-                    if (_slaveSlider.Offset != 0)
-                    {
-                        SaveSync.IsEnabled = true;
-                    }
+                    SaveSync.IsEnabled = true;
                 }
-                return;
+
+                if (_masterContext.SyncIsSet && _slaveContext.SyncIsSet)
+                {
+                    SaveSync.IsEnabled = true;
+                }
             }
 
-            if (_masterSet == true || _slaveSet == true)
+            if (_masterSet || _slaveSet )
             {
                 ResetPage.IsEnabled = true;
-                return;
             }
         }
     }
