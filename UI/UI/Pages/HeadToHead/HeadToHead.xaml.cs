@@ -81,8 +81,12 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             TreeView.DataPointTapped += TreeViewOnDataPointTapped;
 
-            _leftContext = new TimeSynchronizedContext();
-            _rightContext = new SynchronizationContext(_leftContext);
+            if (_leftContext == null)
+            {
+                _leftContext = new TimeSynchronizedContext();
+                _rightContext = new SynchronizationContext(_leftContext);
+            }
+
             SelectButton_Clicked(LeftButton, new EventArgs());
 
             Playbar.ViewerContext = _leftContext;
