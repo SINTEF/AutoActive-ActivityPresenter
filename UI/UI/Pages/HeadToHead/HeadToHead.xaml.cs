@@ -241,6 +241,8 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 _rightContext.Offset = root.Value<long>("Offset");
             }
 
+            ClearRight.IsEnabled = true;
+            ClearLeft.IsEnabled = true;
         }
 
         public JObject SerializeView(JObject root = null)
