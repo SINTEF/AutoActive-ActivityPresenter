@@ -24,7 +24,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
-            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200">
+            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200" Padding="5">
                 <RelativeLayout>
                     <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -42,7 +42,7 @@
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue">
+            <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue" Padding="5">
                 <RelativeLayout VerticalOptions="StartAndExpand">
                     <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
