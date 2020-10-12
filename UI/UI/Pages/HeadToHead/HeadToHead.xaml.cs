@@ -122,7 +122,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 RightTimeButton.IsEnabled = RightTimeStepper.AreButtonsEnabled = true;
 
             CommonStart.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
-
         }
 
         private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
@@ -130,10 +129,12 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             if (SelectedButton == LeftButton)
             {
                 LeftGrid.SelectItem(dataPoint, _leftContext);
+                ClearLeft.IsEnabled = true;
             }
             else if (SelectedButton == RightButton)
             {
                 RightGrid.SelectItem(dataPoint, _rightContext);
+                ClearRight.IsEnabled = true;
             }
         }
 
@@ -312,6 +313,25 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
             _rightContext.Offset = slaveMin - masterMin;
             _totalOffset = _rightContext.Offset;
+        }
+
+        private void ClearLeft_OnClicked(object sender, EventArgs e)
+        {
+            var children = XamarinHelpers.GetAllChildElements<FigureView>(LeftGrid);
+            foreach (var child in children)
+            {
+                child.RemoveThisView();
+            }
+
+        }
+
+        private void ClearRight_OnClicked(object sender, EventArgs e)
+        {
+            var children = XamarinHelpers.GetAllChildElements<FigureView>(RightGrid);
+            foreach (var child in children)
+            {
+                child.RemoveThisView();
+            }
         }
     }
 }

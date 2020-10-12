@@ -24,7 +24,7 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
-            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200">
+            <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200" Padding="5">
                 <RelativeLayout>
                     <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -42,7 +42,7 @@
                     />
                 </RelativeLayout>
             </Frame>
-            <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue">
+            <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue" Padding="5">
                 <RelativeLayout VerticalOptions="StartAndExpand">
                     <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
                                              RelativeLayout.WidthConstraint=
@@ -99,10 +99,16 @@
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition />
                     <ColumnDefinition />
+                    <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
-                <Button x:Name="CommonStart" Grid.Column="0" Text="Common Start" Clicked ="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                <Button x:Name="ClearLeft" Grid.Column="0" Text="Clear Left" Clicked="ClearLeft_OnClicked" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
-                <Button x:Name="ApplySyncButton" Grid.Column="1" Text="Apply Sync" Clicked ="OnApplySync" BorderColor="#23A2B1"
+                <Button x:Name="ClearRight" Grid.Column="1" Text="Clear Right" Clicked="ClearRight_OnClicked" BorderColor="#23A2B1"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="CommonStart" Grid.Column="2" Text="Common Start" Clicked="SetCommonStart_OnClicked" BorderColor="#23A2B1"
+                        BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="ApplySyncButton" Grid.Column="3" Text="Apply Sync" Clicked="OnApplySync" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
