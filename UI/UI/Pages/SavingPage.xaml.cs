@@ -67,6 +67,22 @@ namespace SINTEF.AutoActive.UI.Pages
 
         public bool ExitShouldBeInterrupted(bool ret, Action exitCommand)
         {
+            if (_isSaving)
+            {
+                var displayTask = DisplayAlert("Saving in progress",
+                    "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
+                    "Quit", "Wait");
+                displayTask.ContinueWith(task =>
+                {
+                    if (displayTask.Result)
+                    {
+                        // Switch back to player page (main page)
+                        XamarinHelpers.EnsureMainThread(exitCommand);
+                    }
+                });
+                return true;
+            }
+
             if (_treeMightHaveChanged)
             {
                 var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
@@ -81,20 +97,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 });
                 return true;
             }
-
-            if (!_isSaving) return ret;
-
-            var displayTask = DisplayAlert("Saving in progress", "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
-                "Quit", "Wait");
-            displayTask.ContinueWith(task =>
-            {
-                if (displayTask.Result)
-                {
-                    // Switch back to player page (main page)
-                    XamarinHelpers.EnsureMainThread(exitCommand);
-                }
-            });
-            return true;
+            return false;
         }
 
         public bool CheckBeforeExit(bool ret)
