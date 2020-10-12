@@ -301,7 +301,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
 
-        public async void CorrelationPreview(IDataPoint datapoint, PointSynchronizationPage pointSyncPage)
+        public async Task<CorrelationPlot> CorrelationPreview(IDataPoint datapoint, PointSynchronizationPage pointSyncPage)
         {
             if (_correlationView != null)
             {
@@ -312,7 +312,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (PreviewDataPoint == datapoint)
             {
                 PreviewDataPoint = null;
-                return;
+                return null;
             }
 
             try
@@ -323,24 +323,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             {
                 await XamarinHelpers.ShowOkMessage("Error", $"Could not create correlation figure:\n{ex}",
                     XamarinHelpers.GetCurrentPage(Navigation));
-                return;
+                return null;
             }
 
             PreviewDataPoint = datapoint;
             if (PreviewDataPoint == null)
             {
-                return;
+                return null;
             }
 
             if (_correlationView == null)
             {
                 await XamarinHelpers.ShowOkMessage("Error", $"Could not create correlation figure",
                     XamarinHelpers.GetCurrentPage(Navigation));
-                return;
+                return null;
             }
 
             ContentGrid.Children.Add(_correlationView, 1, 0);
             _correlationView.ContextButtonIsVisible = false;
+            return _correlationView;
         }
 
         public void TimelineExpand_OnClickedExpand_OnClicked()

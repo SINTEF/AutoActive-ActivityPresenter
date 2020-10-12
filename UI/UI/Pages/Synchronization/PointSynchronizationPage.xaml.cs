@@ -244,8 +244,11 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
                 var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
-                GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
-                Playbar.CorrelationPreview(correlationColumn, this);
+                var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
+                var correlationPlot = await  Playbar.CorrelationPreview(correlationColumn, this);
+                correlationPlot.SyncOnMaxValue();
+                SelectedSlaveTime = null; // This will likely no longer be valid anyways
+
             }
             finally
             {
