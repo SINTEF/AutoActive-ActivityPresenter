@@ -3,6 +3,8 @@ using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.UI.Pages.Player;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,6 +30,7 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 VersionLabel.Text = versionGetter.Version;
             }
+            SliderLabel.Text = WindowSlider.Value.ToString(CultureInfo.InvariantCulture);
         }
 
         public PlaybarView MyPlaybarView
@@ -55,6 +58,7 @@ namespace SINTEF.AutoActive.UI.Pages
         }
 
 
+        private bool _valueChanging;
         private void WindowSlider_OnValueChanged(object sender, ValueChangedEventArgs e)
         {
             if (_windowSliderInitialised)
@@ -66,8 +70,20 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 _windowSliderInitialised = true;
             }
+
+            SliderLabel.Text = e.NewValue.ToString(CultureInfo.InvariantCulture);
         }
 
+        private void SliderLabel_OnTextChanged(object sender, TextChangedEventArgs e)
+        {
+            if (_valueChanging) return;
+            _valueChanging = true;
+            if (double.TryParse(e.NewTextValue, out var result))
+            {
+                WindowSlider.Value = result;
+            }
+            _valueChanging = false;
+        }
 
 
         private void PlaybackSpeedButton_Clicked(object sender, EventArgs e)
@@ -100,9 +116,5 @@ namespace SINTEF.AutoActive.UI.Pages
             _myPlaybarView.PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
             _myPlaybarView.ViewerContext.PlaybackRate = _myPlaybarView.PlaybackSpeed;
         }
-
-
-
-
     }
 }
