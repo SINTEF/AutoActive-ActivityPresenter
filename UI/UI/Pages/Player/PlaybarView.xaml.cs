@@ -327,12 +327,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
 
             PreviewDataPoint = datapoint;
-            if (PreviewDataPoint == null)
-            {
-                return null;
-            }
-
-            if (_correlationView == null)
+            if (PreviewDataPoint == null || _correlationView == null)
             {
                 await XamarinHelpers.ShowOkMessage("Error", $"Could not create correlation figure",
                     XamarinHelpers.GetCurrentPage(Navigation));
@@ -362,7 +357,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private void PlayButton_Clicked(bool action)
         {
-            if (action == true)
+            if (action)
             {
                 _playStartTime = DateTime.Now;
                 _playTaskRunning = true;

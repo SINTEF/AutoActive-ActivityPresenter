@@ -230,13 +230,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
 
-                (long[] lag, float[] correlation, string errorMessage) =
-                    await Task.Run(async () =>
-                    {
-                        (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints);
-                        return (lagtemp, correlationtemp, errorMessagetemp);
-                    });
-
+                var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
 
                 if (errorMessage != null)
                 {
@@ -245,10 +239,9 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 }
                 var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
                 var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
-                var correlationPlot = await  Playbar.CorrelationPreview(correlationColumn, this);
+                var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
                 correlationPlot.SyncOnMaxValue();
                 SelectedSlaveTime = null; // This will likely no longer be valid anyways
-
             }
             finally
             {
@@ -265,14 +258,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
-            (long[] lag, float[] correlation, string errorMessage) = sync.CorrelateSignals();
-            return (lag, correlation, errorMessage);
+            return sync.CorrelateSignals();
         }
 
 
-        public void RemoveCorrelationPreview(IDataPoint datapoint)
+        public async void RemoveCorrelationPreview(IDataPoint datapoint)
         {
-            Playbar.CorrelationPreview(datapoint,this);
+            await Playbar.CorrelationPreview(datapoint,this);
 
         }
 
