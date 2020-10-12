@@ -230,13 +230,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
 
-                (long[] lag, float[] correlation, string errorMessage) =
-                    await Task.Run(async () =>
-                    {
-                        (long[] lagtemp, float[] correlationtemp, string errorMessagetemp) = CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints);
-                        return (lagtemp, correlationtemp, errorMessagetemp);
-                    });
-
+                var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
 
                 if (errorMessage != null)
                 {
@@ -244,8 +238,10 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                     return;
                 }
                 var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
-                GenericColumn<float> correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
-                Playbar.CorrelationPreview(correlationColumn, this);
+                var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
+                var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
+                correlationPlot.SyncOnMaxValue();
+                SelectedSlaveTime = null; // This will likely no longer be valid anyways
             }
             finally
             {
@@ -262,14 +258,13 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
-            (long[] lag, float[] correlation, string errorMessage) = sync.CorrelateSignals();
-            return (lag, correlation, errorMessage);
+            return sync.CorrelateSignals();
         }
 
 
-        public void RemoveCorrelationPreview(IDataPoint datapoint)
+        public async void RemoveCorrelationPreview(IDataPoint datapoint)
         {
-            Playbar.CorrelationPreview(datapoint,this);
+            await Playbar.CorrelationPreview(datapoint,this);
 
         }
 
@@ -467,12 +462,20 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 extraOffset = videoTime.VideoPlaybackOffset;
             }
 #endif
-            var offset = (long)(_selectedMasterTime - _selectedSlaveTime) + extraOffset;
-            //TBD - removed update of slav time, will give exception for Back and save
-            //SelectedSlaveTime = (long?) (SelectedSlaveTime * _slaveContext.Scale) + offset;
-            _totalOffset += offset;
-            _lastOffset = offset;
-            _slaveTime.TransformTime(offset, _slaveContext.Scale);
+            var offset = (_selectedMasterTime - _selectedSlaveTime) + extraOffset;
+            if (offset.HasValue)
+            {
+                _totalOffset += offset.Value;
+                _lastOffset = offset.Value;
+                _slaveTime.TransformTime(offset.Value, _slaveContext.Scale);
+                _selectedSlaveTime = null;
+            }
+            else
+            {
+                var slaveOffset = _slaveContext.Offset;
+                _slaveTime.TransformTime(-slaveOffset, _slaveContext.Scale);
+            }
+
             _slaveSlider.Offset = 0;
             Playbar.RemoveCorrelationView();
             Playbar.DataTrackline.SetCorrelationContext();
@@ -626,19 +629,17 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             MarkFeature.IsEnabled = false;
             AutoSyncButton.IsEnabled = false;
 
-            if (_slaveSet == true)
+            if (_slaveSet)
             {
                 SlaveTimeStepper.AreButtonsEnabled = true;
                 SlaveTimeButton.IsEnabled = true;
-                SlaveTimeStepper.AreButtonsEnabled = true;
             }
 
-            if ( _masterSet == true)
+            if (_masterSet)
             {
                 Playbar.GetTimeStepper.GetPlayButton.IsEnabled = true;
                 MasterTimeStepper.AreButtonsEnabled = true;
                 MasterTimeButton.IsEnabled = true;
-                MasterTimeStepper.AreButtonsEnabled = true;
             }
 
             if (_lastOffset != 0)
@@ -646,28 +647,27 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
                 LastOffset.IsEnabled = true;
             }
 
-            if (_masterSet == true & _slaveSet == true)
+            if (_masterSet && _slaveSet)
             {
-                ResetPage.IsEnabled = true;
                 RemoveSlave.IsEnabled = true;
                 CommonStart.IsEnabled = true;
                 MarkFeature.IsEnabled = true;
                 AutoSyncButton.IsEnabled = true;
 
-                if(_masterContext.SyncIsSet == true & _slaveContext.SyncIsSet == true)
+                if (_slaveSlider.Offset != 0)
                 {
-                    if (_slaveSlider.Offset != 0)
-                    {
-                        SaveSync.IsEnabled = true;
-                    }
+                    SaveSync.IsEnabled = true;
                 }
-                return;
+
+                if (_masterContext.SyncIsSet && _slaveContext.SyncIsSet)
+                {
+                    SaveSync.IsEnabled = true;
+                }
             }
 
-            if (_masterSet == true || _slaveSet == true)
+            if (_masterSet || _slaveSet )
             {
                 ResetPage.IsEnabled = true;
-                return;
             }
         }
     }

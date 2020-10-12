@@ -119,22 +119,26 @@ namespace SINTEF.AutoActive.UI.Views
             {
                 int counterMaster = times.Where(x => x.Item3.Contains("Master")).Count();
                 int counterSlave = times.Where(x => x.Item3.Contains("Slave")).Count();
-                if (counterMaster == 1 && counterSlave == 1) { break; }
-                try
+                if (counterMaster == 1 && counterSlave == 1)
                 {
-                    SynchronizationContext slaveContext = (SynchronizationContext)context;
-                    long offset = slaveContext.Offset;
-                    long start = viewer.Start - offset;
-                    long end = viewer.End - offset;
+                    break;
+                }
+
+                if (context is SynchronizationContext slaveContext)
+                {
+                    var offset = slaveContext.Offset;
+                    var start = viewer.Start - offset;
+                    var end = viewer.End - offset;
                     string newLabel = label + "_Slave";
                     times.Add((start, end, label));
                 }
-                catch
+                else
                 {
                     if (counterMaster == 0)
                     {
                         string newLabel = label + "_Master";
                         times.Add((viewer.Start, viewer.End, newLabel));
+
                     }
                 }
             }

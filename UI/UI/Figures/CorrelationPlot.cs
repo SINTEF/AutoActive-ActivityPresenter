@@ -194,7 +194,7 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
-        private void syncOnMaxValue()
+        public void SyncOnMaxValue()
         {
             ITimeSeriesViewer viewer = (ITimeSeriesViewer)Viewers[0];
             var span = viewer.GetCurrentData<float>();
@@ -206,7 +206,7 @@ namespace SINTEF.AutoActive.UI.Figures
         }
 
 
-        private const string SyncBasedOnMax = "synchronize based on Max Correlation";
+        private const string SyncBasedOnMax = "Synchronize at max correlation";
 
         protected override bool GetExtraMenuParameters(List<string> parameters)
         {
@@ -221,7 +221,7 @@ namespace SINTEF.AutoActive.UI.Figures
             switch (action)
             {
                 case SyncBasedOnMax:
-                    syncOnMaxValue();
+                    SyncOnMaxValue();
                     InvalidateSurface();
                     return;
 
