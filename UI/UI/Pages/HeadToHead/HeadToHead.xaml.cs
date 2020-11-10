@@ -4,6 +4,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.AutoSync;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.FileSystem;
@@ -315,8 +318,47 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         private async void AutoSync_OnClicked(object sender, EventArgs e)
         {
-            List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
-            List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
+            try
+            {
+                //popupLoadingView.IsVisible = true;
+                //activityIndicator.IsRunning = true;
+                //activityIndicator.IsVisible = true;
+                List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
+                List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
+                if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+                {
+                    return;
+                }
+
+                var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
+
+                if (errorMessage != null)
+                {
+                    await DisplayAlert("Warning", errorMessage, "OK");
+                    return;
+                }
+                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
+                var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
+                //var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
+                //correlationPlot.SyncOnMaxValue();
+                //SelectedSlaveTime = null; // This will likely no longer be valid anyways
+            }
+            finally
+            {
+                //activityIndicator.IsVisible = false;
+                //activityIndicator.IsRunning = false;
+                //popupLoadingView.IsEnabled = false;
+                //popupLoadingView.IsVisible = false;
+            }
+        }
+
+
+        private (long[], float[], string) CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
+        {
+            SyncByCorrelation sync = new SyncByCorrelation();
+            visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
+            visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
+            return sync.CorrelateSignals();
         }
 
 
