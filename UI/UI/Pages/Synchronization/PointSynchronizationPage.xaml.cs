@@ -295,7 +295,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             InvokeDatapointAdded(dataPoint, _masterContext);
         }
 
-        public void adjustOffset(object sender, ValueChangedEventArgs args)
+        public void AdjustOffset(object sender, ValueChangedEventArgs args)
         {
             _slaveSlider.Offset = args.NewValue;
         }
