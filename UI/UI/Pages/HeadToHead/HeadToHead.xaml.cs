@@ -122,6 +122,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 RightTimeButton.IsEnabled = RightTimeStepper.AreButtonsEnabled = true;
 
             CommonStart.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
+            AutoSyncButton.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
         }
 
         private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)

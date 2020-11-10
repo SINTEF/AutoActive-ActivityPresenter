@@ -112,7 +112,7 @@
                 <Button x:Name="ApplySyncButton" Grid.Column="3" Text="Apply Sync" Clicked="OnApplySync" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="AutoSyncButton" Grid.Column="4" Text="AutoSync" Clicked ="AutoSync_OnClicked" BorderColor="#23A2B1"
-                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="True"/>
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
     </ContentPage.Content>
