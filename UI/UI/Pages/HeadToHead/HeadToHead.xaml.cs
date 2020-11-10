@@ -297,6 +297,11 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             _rightContext.Offset += e.AsOffset();
         }
 
+        private async void AutoSync_OnClicked(object sender, EventArgs e)
+        {
+            return;
+        }
+
 
         private long _totalOffset = 0L;
         private void OnApplySync(object sender, EventArgs e)

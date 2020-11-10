@@ -101,6 +101,7 @@
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
+                    <ColumnDefinition />
                 </Grid.ColumnDefinitions>
                 <Button x:Name="ClearLeft" Grid.Column="0" Text="Clear Left" Clicked="ClearLeft_OnClicked" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
@@ -110,6 +111,8 @@
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="ApplySyncButton" Grid.Column="3" Text="Apply Sync" Clicked="OnApplySync" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="AutoSyncButton" Grid.Column="4" Text="AutoSync" Clicked ="AutoSync_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="True"/>
             </Grid>
         </Grid>
     </ContentPage.Content>
