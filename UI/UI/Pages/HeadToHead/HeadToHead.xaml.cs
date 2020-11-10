@@ -298,9 +298,25 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             _rightContext.Offset += e.AsOffset();
         }
 
+        private List<IDataPoint> GetVisibleDataPoints(PlaceableContainer grid)
+        {
+            List<IDataPoint> visibleDataPoints = new List<IDataPoint>();
+            var figures = XamarinHelpers.GetAllChildElements<FigureView>(grid);
+            foreach (var figure in figures)
+            {
+                foreach (var datapoint in figure.DataPoints)
+                {
+                    visibleDataPoints.Add(datapoint);
+                }
+
+            }
+            return visibleDataPoints;
+        }
+
         private async void AutoSync_OnClicked(object sender, EventArgs e)
         {
-            return;
+            List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
+            List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
         }
 
 
