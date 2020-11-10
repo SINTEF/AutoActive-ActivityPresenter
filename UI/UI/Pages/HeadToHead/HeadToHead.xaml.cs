@@ -318,24 +318,36 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         private async void AutoSync_OnClicked(object sender, EventArgs e)
         {
-
-            List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
-            List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
-            if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+            try
             {
-                return;
+                popupLoadingView.IsVisible = true;
+                activityIndicator.IsRunning = true;
+                activityIndicator.IsVisible = true;
+                List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
+                List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
+                if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+                {
+                    return;
+                }
+
+                var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
+
+                if (errorMessage != null)
+                {
+                    await DisplayAlert("Warning", errorMessage, "OK");
+                    return;
+                }
+                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
+                var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
+                var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
             }
-
-            var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
-
-            if (errorMessage != null)
+            finally
             {
-                await DisplayAlert("Warning", errorMessage, "OK");
-                return;
+                activityIndicator.IsVisible = false;
+                activityIndicator.IsRunning = false;
+                popupLoadingView.IsEnabled = false;
+                popupLoadingView.IsVisible = false;
             }
-            var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
-            var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
-            var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
 
         }
 
