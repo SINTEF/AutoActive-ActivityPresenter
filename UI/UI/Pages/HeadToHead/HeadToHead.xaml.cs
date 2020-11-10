@@ -20,7 +20,7 @@ using Xamarin.Forms.Xaml;
 namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class HeadToHead : ISerializableView
+    public partial class HeadToHead : ISerializableView, ISyncPage
     {
         public string ViewType => "no.sintef.ui.head2head";
         private const string SelectedText = "x";
@@ -335,7 +335,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             }
             var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
             var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
-            var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, (ISyncPage)this);
+            var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
 
         }
 
@@ -385,6 +385,16 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             {
                 child.RemoveThisView();
             }
+        }
+
+        public async void RemoveCorrelationPreview(IDataPoint datapoint)
+        {
+            await Playbar.CorrelationPreview(datapoint, this);
+        }
+
+        public void AdjustOffset(object sender, ValueChangedEventArgs args)
+        {
+            _rightContext.Offset = (long)args.NewValue;
         }
     }
 }
