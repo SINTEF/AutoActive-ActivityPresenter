@@ -73,6 +73,8 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             RightTimeStepper.GetPlayButton.IsVisible = false;
             LeftTimeStepper.AreButtonsEnabled = false;
             RightTimeStepper.AreButtonsEnabled = false;
+            LeftGrid.AutoAddIfEmpty = false;
+            RightGrid.AutoAddIfEmpty = false;
         }
 
         protected override void OnAppearing()
@@ -86,8 +88,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 _leftContext = new TimeSynchronizedContext();
                 _rightContext = new SynchronizationContext(_leftContext);
             }
-
-            SelectButton_Clicked(LeftButton, new EventArgs());
 
             Playbar.ViewerContext = _leftContext;
             Playbar.DataTrackline.RegisterFigureContainer(LeftGrid);
@@ -117,31 +117,26 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         private void OnDatapointAdded(object sender, (IDataPoint point, DataViewerContext context) args)
         {
             if (args.context == _leftContext)
+            {
                 LeftTimeButton.IsEnabled = LeftTimeStepper.AreButtonsEnabled = true;
+                ClearLeft.IsEnabled = true;
+            }
             else
+            {
                 RightTimeButton.IsEnabled = RightTimeStepper.AreButtonsEnabled = true;
+                ClearRight.IsEnabled = true;
+            }
 
             CommonStart.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
+
+            LeftGrid.DeselectItem();
+            RightGrid.DeselectItem();
         }
 
         private void TreeViewOnDataPointTapped(object sender, IDataPoint dataPoint)
         {
-            if (SelectedButton == LeftButton)
-            {
-                LeftGrid.SelectItem(dataPoint, _leftContext);
-                ClearLeft.IsEnabled = true;
-            }
-            else if (SelectedButton == RightButton)
-            {
-                RightGrid.SelectItem(dataPoint, _rightContext);
-                ClearRight.IsEnabled = true;
-            }
-        }
-
-        private void SelectButton_Clicked(object sender, EventArgs e)
-        {
-            if (!(sender is Button senderButton)) return;
-            SelectedButton = senderButton;
+            LeftGrid.SelectItem(dataPoint, _leftContext);
+            RightGrid.SelectItem(dataPoint, _rightContext);
         }
 
         private async void SaveView_OnClicked(object sender, EventArgs e)

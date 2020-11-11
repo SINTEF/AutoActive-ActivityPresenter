@@ -20,6 +20,7 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
         private readonly List<(PlaceableItem item, PlaceableLocation location)> _placeableItems = new List<(PlaceableItem, PlaceableLocation)>();
 
         public bool HasAnyItems => !(_placeableItems.Count == 1 && _placeableItems.First().Item1.Item == null);
+        public bool AutoAddIfEmpty = true;
 
         public PlaceableContainer()
         {
@@ -49,10 +50,10 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         public void SelectItem(IDataPoint item, TimeSynchronizedContext context)
         {
+            // Toggle if the same item is selected
             if (_selectedItem == item)
             {
-                _selectedItem = null;
-                PlacementLocationVisible = false;
+                DeselectItem();
                 return;
             }
 
@@ -60,17 +61,28 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
             PlacementLocationVisible = true;
             _selectedItem = item;
 
-            if (!HasAnyItems)
+            // If it is the first datapoint, add it automatically if this is enabled
+            if (!HasAnyItems && AutoAddIfEmpty)
             {
                 PlaceableItem_OnLocationSelected(_placeableItems.First().Item1, PlaceableLocation.Center);
             }
         }
 
+        public (IDataPoint, TimeSynchronizedContext) DeselectItem()
+        {
+            var item = _selectedItem;
+            var context = _selectedContext;
+            _selectedItem = null;
+            PlacementLocationVisible = false;
+            _selectedContext = null;
+            return (item, context);
+        }
+
         private async void PlaceableItem_OnLocationSelected(object sender, PlaceableLocation e)
         {
-            PlacementLocationVisible = false;
+            var (item, context) = DeselectItem();
 
-            if (_selectedItem == null)
+            if (item == null)
             {
                 Debug.WriteLine("No item selected.");
                 return;
@@ -84,14 +96,9 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
 
             Debug.WriteLine(placeableSender.Item != null
-                ? $"Placing: {_selectedItem} @ {e} : {placeableSender.Item}"
-                : $"Placing: {_selectedItem} @ {e}");
+                ? $"Placing: {item} @ {e} : {placeableSender.Item}"
+                : $"Placing: {item} @ {e}");
 
-            var item = _selectedItem;
-            var context = _selectedContext;
-
-            _selectedItem = null;
-            _selectedContext = null;
             try
             {
                 await PlaceItem(placeableSender, item, context, e);
