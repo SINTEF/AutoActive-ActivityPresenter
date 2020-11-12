@@ -340,6 +340,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
                 var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
                 var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
                 var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
+                correlationPlot.SyncOnMaxValue();
             }
             finally
             {
