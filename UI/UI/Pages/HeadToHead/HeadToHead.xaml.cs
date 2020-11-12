@@ -406,7 +406,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public void AdjustOffset(object sender, ValueChangedEventArgs args)
         {
-            _rightContext.Offset = (long)args.NewValue;
+            _rightContext.Offset = (long)args.NewValue * 1000000;
         }
     }
 }
