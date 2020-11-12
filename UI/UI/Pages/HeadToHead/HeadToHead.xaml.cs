@@ -362,14 +362,12 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         }
 
 
-        private long _totalOffset = 0L;
+
         private void OnApplySync(object sender, EventArgs e)
         {
             var offset = _selectedRightTime - _selectedLeftTime;
             if (!offset.HasValue) return;
-            var offsetDiff = offset.Value - _rightContext.Offset;
-            _totalOffset += offsetDiff;
-            _rightContext.Offset = _totalOffset;
+            _rightContext.Offset = (long)offset;
         }
 
         private void SetCommonStart_OnClicked(object sender, EventArgs e)
@@ -378,7 +376,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             var (slaveMin, _) = _rightContext.GetAvailableTimeMinMax(true);
 
             _rightContext.Offset = slaveMin - masterMin;
-            _totalOffset = _rightContext.Offset;
         }
 
         private void ClearLeft_OnClicked(object sender, EventArgs e)
