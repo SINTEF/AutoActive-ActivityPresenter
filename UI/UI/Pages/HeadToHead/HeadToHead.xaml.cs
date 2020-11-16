@@ -367,7 +367,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
         {
             var offset = _selectedRightTime - _selectedLeftTime;
             if (!offset.HasValue) return;
-            _rightContext.Offset = (long)offset;
+            _rightContext.Offset = offset.Value;
         }
 
         private void SetCommonStart_OnClicked(object sender, EventArgs e)
@@ -404,7 +404,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 
         public void AdjustOffset(object sender, ValueChangedEventArgs args)
         {
-            _rightContext.Offset = (long)args.NewValue * 1000000;
+            _rightContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
         }
     }
 }
