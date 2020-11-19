@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using MathNet.Numerics;
 using MathNet.Numerics.LinearAlgebra.Complex32;
-
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 
 namespace SINTEF.AutoActive.AutoSync
 {
@@ -57,8 +57,24 @@ namespace SINTEF.AutoActive.AutoSync
 
             for (int i = _masterTimerserie.Count - 1; i > -1; i--)
             {
-                masterTimerserie.AddData(_masterTimerserie[i]);
-                slaveTimerserie.AddData(_slaveTimerserie[i]);
+                if (_masterTimerserie[i] is TableColumn)
+                {
+                    masterTimerserie.AddData(_masterTimerserie[i]);
+                }
+                else
+                {
+                    errorMessage = "The data must be a 1d timeseries";
+                    return (null, null, errorMessage);
+                }
+                if (_slaveTimerserie[i] is TableColumn)
+                {
+                    slaveTimerserie.AddData(_slaveTimerserie[i]);
+                }
+                else
+                {
+                    errorMessage = "The data must be a 1d timeseries";
+                    return (null, null, errorMessage);
+                }
             }
 
             ResampleTimeserie(masterTimerserie, slaveTimerserie);
