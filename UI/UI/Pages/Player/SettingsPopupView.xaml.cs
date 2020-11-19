@@ -15,7 +15,6 @@ namespace SINTEF.AutoActive.UI.Pages
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class SettingsPopupView : Rg.Plugins.Popup.Pages.PopupPage
     {
-        private PlaybarView _myPlaybarView;
         private bool _windowSliderInitialised = false;
         public SettingsPopupView()
         {
@@ -30,28 +29,27 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        public PlaybarView MyPlaybarView
-        {
-            get { return _myPlaybarView; }
-            set { _myPlaybarView = value; }
-        }
+        public PlaybarView PlaybarView { get; set; }
 
 
         public void SetSettings()
         {
 
-            TimelineOverviewSwitch.IsToggled = _myPlaybarView.DataTrackline.IsVisible;
-            WindowSlider.Value = _myPlaybarView.WindowSize/ 1000000d;
-            PlaybackSpeedButton.Text = _myPlaybarView.PlaybackSpeed.ToString() + "x";
+            TimelineOverviewSwitch.IsToggled = PlaybarView.DataTrackline.IsVisible;
+            PlaybackSpeedButton.Text = PlaybarView.PlaybackSpeed.ToString() + "x";
 
+            WindowSlider.Maximum = TimeFormatter.SecondsFromTime(Math.Max(
+                PlaybarView.ViewerContext.AvailableTimeTo - PlaybarView.ViewerContext.AvailableTimeFrom,
+                TimeFormatter.TimeFromSeconds(WindowSlider.Maximum)));
+            WindowSlider.Value = TimeFormatter.SecondsFromTime(PlaybarView.WindowSize);
         }
 
         private void onToggled(object sender, ToggledEventArgs e)
         {
 
-            if (_myPlaybarView?.DataTrackline == null) return;
+            if (PlaybarView?.DataTrackline == null) return;
 
-            _myPlaybarView.DataTrackline.IsVisible = e.Value;
+            PlaybarView.DataTrackline.IsVisible = e.Value;
         }
 
 
@@ -59,8 +57,8 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             if (_windowSliderInitialised)
             {
-                _myPlaybarView.WindowSize = (long)(e.NewValue * 1000000);
-                _myPlaybarView.SetSliderTime(_myPlaybarView.SliderValueToTime(_myPlaybarView.GetTimeSlider.Value));
+                PlaybarView.WindowSize = (long)(e.NewValue * 1000000);
+                PlaybarView.SetSliderTime(PlaybarView.SliderValueToTime(PlaybarView.GetTimeSlider.Value));
             }
             else
             {
@@ -97,8 +95,8 @@ namespace SINTEF.AutoActive.UI.Pages
                 PlaybackSpeedButton.Text = "1x";
             }
             var trimChars = new[] { 'x', ' ' };
-            _myPlaybarView.PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
-            _myPlaybarView.ViewerContext.PlaybackRate = _myPlaybarView.PlaybackSpeed;
+            PlaybarView.PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
+            PlaybarView.ViewerContext.PlaybackRate = PlaybarView.PlaybackSpeed;
         }
 
 

@@ -384,7 +384,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private void OpenSettings(object sender, EventArgs e)
         {
             var popupObject = new SettingsPopupView();
-            popupObject.MyPlaybarView = this;
+            popupObject.PlaybarView = this;
             popupObject.SetSettings();
             PopupNavigation.Instance.PushAsync(popupObject);
         }
