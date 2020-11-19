@@ -77,7 +77,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             const string timeName = "time";
 
             var timeIndex = FindTimeDataIndex(names);
-            dict[timeName] = EnsureTimeArray(data[timeIndex]);
+            dict[timeName] = HandleDateOverlap(EnsureTimeArray(data[timeIndex]));
             names.RemoveAt(timeIndex);
             types.RemoveAt(timeIndex);
             data.RemoveAt(timeIndex);
@@ -88,6 +88,29 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             }
 
             AddChild(new GenericCsvTable(TableName, names, types, dict, _filename));
+        }
+
+        private static Array HandleDateOverlap(Array timeArray)
+        {
+            var totalDelta = 0L;
+            var oneDay = TimeFormatter.TimeFromTimeSpan(TimeSpan.FromDays(1));
+
+            for (var i = 1; i < timeArray.Length; i++)
+            {
+                var prevVal = (long)timeArray.GetValue(i - 1);
+                var currVal = (long)timeArray.GetValue(i);
+                while (prevVal > currVal + totalDelta)
+                {
+                    totalDelta += oneDay;
+                }
+
+                if (totalDelta != 0)
+                {
+                    timeArray.SetValue(currVal + totalDelta, i);
+                }
+            }
+
+            return timeArray;
         }
 
         private static string ReplaceIllegalNameCharacters(string el)
@@ -138,8 +161,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             {
                 case long[] longArray:
                     // Time as long array, check if specified to be in ms
-                    if ((_parameters.ContainsKey("Time")) && 
-                        ((bool)_parameters["Time"]))
+                    if (_parameters.ContainsKey("Time") && (bool)_parameters["Time"])
                     {
                         // Time in ms, convert to us
                         return longArray.Select(TimeFormatter.TimeFromMilliSeconds).ToArray();
