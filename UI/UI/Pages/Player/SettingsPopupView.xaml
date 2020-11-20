@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms" 
+<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:d="http://xamarin.com/schemas/2014/forms/design"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
@@ -31,11 +31,12 @@
             <RowDefinition Height="100"></RowDefinition>
             <RowDefinition Height="100"></RowDefinition>
             <RowDefinition Height="100"></RowDefinition>
+            <RowDefinition Height="35"></RowDefinition>
             <RowDefinition Height="100"></RowDefinition>
             <RowDefinition Height="50"></RowDefinition>
         </Grid.RowDefinitions>
 
-        <Label Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" TextColor="White" Text="Settings" FontSize="Header" 
+        <Label Grid.Column="1" Grid.ColumnSpan="2" Grid.Row="0" TextColor="White" Text="Settings" FontSize="Header"
                VerticalOptions="Center" HorizontalOptions="CenterAndExpand"/>
 
         <Label Grid.Column="1" Grid.Row="1" Text="Show timeline overview" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
@@ -45,12 +46,15 @@
         <Label Grid.Column="1" Grid.Row="2" Text="Window Length [S]" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
         <Slider x:Name="WindowSlider" Grid.Column="2" Grid.Row="2"  Maximum="7200" Value="10" Minimum="1" ValueChanged="WindowSlider_OnValueChanged"
                 VerticalOptions="Center"/>
+        <Editor x:Name="SliderLabel" Grid.Column="2" Grid.Row="3" Keyboard="Numeric" TextChanged="SliderLabel_OnTextChanged"
+                BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" Text="Num"
+                />
 
-        <Label Grid.Column="1" Grid.Row="3" Text="Playback Speed" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
-        <Button x:Name="PlaybackSpeedButton" Grid.Column="2" Grid.Row="3" Text="1x" Clicked="PlaybackSpeedButton_Clicked"
+        <Label Grid.Column="1" Grid.Row="4" Text="Playback Speed" TextColor="White" HorizontalTextAlignment="Center" VerticalTextAlignment="Center"/>
+        <Button x:Name="PlaybackSpeedButton" Grid.Column="2" Grid.Row="4" Text="1x" Clicked="PlaybackSpeedButton_Clicked"
                      BorderColor="#23A2B1" BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" HorizontalOptions="Fill" VerticalOptions ="Center"/>
 
-        <Label Grid.Column="1" Grid.Row="4" x:Name="VersionLabel" TextColor="White" HorizontalTextAlignment="Center" Grid.ColumnSpan="4"/>
+        <Label Grid.Column="1" Grid.Row="5" x:Name="VersionLabel" TextColor="White" HorizontalTextAlignment="Center" Grid.ColumnSpan="4"/>
     </Grid>
 
 </pages:PopupPage>

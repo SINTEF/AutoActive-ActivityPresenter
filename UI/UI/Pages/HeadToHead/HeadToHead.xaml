@@ -25,36 +25,22 @@
             </Grid.RowDefinitions>
             <views:CustomNavigationBar x:Name="NavigationBar" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" />
             <Frame Grid.Column="1" Grid.Row="1" BorderColor="Red" MinimumHeightRequest="200" Padding="5">
-                <RelativeLayout>
-                    <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
-                                             RelativeLayout.WidthConstraint=
-                                             "{ConstraintExpression Type=RelativeToParent,
-                                Property=Width,
-                                Factor=1}"
-                                             RelativeLayout.HeightConstraint=
-                                             "{ConstraintExpression Type=RelativeToParent,
-                                Property=Height,
-                                Factor=1}"/>
-                    <Button x:Name="LeftButton"
-                            Text=" " WidthRequest="30" HeightRequest="30"
-                            BackgroundColor="LightSlateGray"
-                            Clicked="SelectButton_Clicked"
-                    />
-                </RelativeLayout>
+                <dynamicLayout:PlaceableContainer x:Name="LeftGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                                         RelativeLayout.WidthConstraint=
+                                         "{ConstraintExpression Type=RelativeToParent,
+                            Property=Width,
+                            Factor=1}"
+                                         RelativeLayout.HeightConstraint=
+                                         "{ConstraintExpression Type=RelativeToParent,
+                            Property=Height,
+                            Factor=1}"/>
             </Frame>
             <Frame Grid.Column="2" Grid.Row="1" BorderColor="Blue" Padding="5">
-                <RelativeLayout VerticalOptions="StartAndExpand">
-                    <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
-                                             RelativeLayout.WidthConstraint=
-                                             "{ConstraintExpression Type=RelativeToParent, Property=Width, Factor=1}"
-                                             RelativeLayout.HeightConstraint=
-                                             "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}" />
-                    <Button x:Name="RightButton"
-                            Text=" " WidthRequest="30" HeightRequest="30"
-                            BackgroundColor="LightSlateGray"
-                            Clicked="SelectButton_Clicked"
-                    />
-                </RelativeLayout>
+                <dynamicLayout:PlaceableContainer x:Name="RightGrid"  HorizontalOptions="FillAndExpand"  VerticalOptions="FillAndExpand"
+                                         RelativeLayout.WidthConstraint=
+                                         "{ConstraintExpression Type=RelativeToParent, Property=Width, Factor=1}"
+                                         RelativeLayout.HeightConstraint=
+                                         "{ConstraintExpression Type=RelativeToParent, Property=Height, Factor=1}" />
             </Frame>
             <StackLayout Grid.Column="1" Grid.Row="2">
                 <Grid HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand">
@@ -92,11 +78,23 @@
                 </StackLayout>
             </StackLayout>
 
+            <StackLayout Grid.Column="1" Grid.Row="1" Grid.ColumnSpan="2" VerticalOptions="Center" HorizontalOptions="Center">
+                <ContentView x:Name="popupLoadingView" BackgroundColor="#1D2637" Padding="10, 0" IsVisible="False"  AbsoluteLayout.LayoutBounds="0, 0, 1, 1" AbsoluteLayout.LayoutFlags="All">
+                    <StackLayout VerticalOptions="Center" HorizontalOptions="Center">
+                        <StackLayout Orientation="Vertical" HeightRequest="150" WidthRequest="200" BackgroundColor="#1D2637">
+                            <ActivityIndicator x:Name="activityIndicator" Margin="0,50,0,0" VerticalOptions="Center" HorizontalOptions="Center" Color="White" WidthRequest="30" HeightRequest="30" BackgroundColor="#1D2637" ></ActivityIndicator>
+                            <Label x:Name="lblLoadingText" TextColor="White" VerticalOptions="Center" HorizontalOptions="Center" VerticalTextAlignment="Center" Text="Calculating..."></Label>
+                        </StackLayout>
+                    </StackLayout>
+                </ContentView>
+            </StackLayout>
+
             <player:PlayerTreeView x:Name="TreeView" Grid.Column="3" Grid.Row="1"/>
 
             <player:PlaybarView Grid.Row="3" Grid.ColumnSpan="3" Grid.Column="1" x:Name="Playbar"/>
             <Grid Grid.Row="4" Grid.Column="1" Grid.ColumnSpan="2" VerticalOptions="Center"  HorizontalOptions="Center">
                 <Grid.ColumnDefinitions>
+                    <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
                     <ColumnDefinition />
@@ -110,6 +108,8 @@
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
                 <Button x:Name="ApplySyncButton" Grid.Column="3" Text="Apply Sync" Clicked="OnApplySync" BorderColor="#23A2B1"
                         BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
+                <Button x:Name="AutoSyncButton" Grid.Column="4" Text="AutoSync" Clicked ="AutoSync_OnClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White" IsEnabled="False"/>
             </Grid>
         </Grid>
     </ContentPage.Content>
