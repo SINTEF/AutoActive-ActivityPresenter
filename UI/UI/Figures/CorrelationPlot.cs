@@ -1,6 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Pages.Synchronization;
 using SkiaSharp;
 using SkiaSharp.Views.Forms;
@@ -14,7 +15,7 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public class CorrelationPlot : DrawPlot
     {
-        public static async Task<CorrelationPlot> Create(IDataPoint datapoint, TimeSynchronizedContext context, PointSynchronizationPage pointSyncPage)
+        public static async Task<CorrelationPlot> Create(IDataPoint datapoint, TimeSynchronizedContext context, ISyncPage pointSyncPage)
         {
             var correlationPlot = new CorrelationPlot(context, datapoint, pointSyncPage);
             var lineDrawer = await correlationPlot.CreateLineDrawer(datapoint);
@@ -22,8 +23,8 @@ namespace SINTEF.AutoActive.UI.Figures
             return correlationPlot;
         }
 
-        private readonly PointSynchronizationPage _pointSyncPage;
-        private CorrelationPlot(TimeSynchronizedContext context, IDataPoint dataPoint, PointSynchronizationPage pointSyncPage) : base(context, dataPoint)
+        private readonly ISyncPage _pointSyncPage;
+        private CorrelationPlot(TimeSynchronizedContext context, IDataPoint dataPoint, ISyncPage pointSyncPage) : base(context, dataPoint)
         {
             this.Canvas.EnableTouchEvents = true;
             this.Canvas.Touch += OnTouch;
@@ -62,7 +63,7 @@ namespace SINTEF.AutoActive.UI.Figures
             int relevantIndex = (int)(relativeMouseClickLocationX * lenTimeVec);
             long timeOffset = span.X.ToArray()[relevantIndex];
             double timeOffsetSec = -timeOffset / 1000000;
-            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, timeOffsetSec));
+            _pointSyncPage.AdjustOffset(this, new ValueChangedEventArgs(0, timeOffsetSec));
 
         }
 
@@ -202,7 +203,7 @@ namespace SINTEF.AutoActive.UI.Figures
             int maxIndex = valueArray.Select((value, index) => new { Value = value, Index = index }).Aggregate((a, b) => (a.Value > b.Value) ? a : b).Index;
             long timeOffset = span.X.ToArray()[maxIndex];
             float timeOffsetSec = (float)Math.Round(timeOffset / 1000000f, 2);
-            _pointSyncPage.adjustOffset(this, new ValueChangedEventArgs(0, -timeOffsetSec));
+            _pointSyncPage.AdjustOffset(this, new ValueChangedEventArgs(0, -timeOffsetSec));
         }
 
 

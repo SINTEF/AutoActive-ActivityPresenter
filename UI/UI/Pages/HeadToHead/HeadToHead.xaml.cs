@@ -4,6 +4,9 @@ using System.IO;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SINTEF.AutoActive.AutoSync;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.FileSystem;
@@ -17,7 +20,7 @@ using Xamarin.Forms.Xaml;
 namespace SINTEF.AutoActive.UI.Pages.HeadToHead
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class HeadToHead : ISerializableView
+    public partial class HeadToHead : ISerializableView, ISyncPage
     {
         public string ViewType => "no.sintef.ui.head2head";
         private const string SelectedText = "x";
@@ -128,6 +131,7 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             }
 
             CommonStart.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
+            AutoSyncButton.IsEnabled = LeftTimeButton.IsEnabled && RightTimeButton.IsEnabled;
 
             LeftGrid.DeselectItem();
             RightGrid.DeselectItem();
@@ -292,15 +296,73 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             _rightContext.Offset += e.AsOffset();
         }
 
+        private List<IDataPoint> GetVisibleDataPoints(PlaceableContainer grid)
+        {
+            List<IDataPoint> visibleDataPoints = new List<IDataPoint>();
+            var figures = XamarinHelpers.GetAllChildElements<FigureView>(grid);
+            foreach (var figure in figures)
+            {
+                foreach (var datapoint in figure.DataPoints)
+                {
+                    visibleDataPoints.Add(datapoint);
+                }
 
-        private long _totalOffset = 0L;
+            }
+            return visibleDataPoints;
+        }
+
+        private async void AutoSync_OnClicked(object sender, EventArgs e)
+        {
+            try
+            {
+                popupLoadingView.IsVisible = true;
+                activityIndicator.IsRunning = true;
+                activityIndicator.IsVisible = true;
+                List<IDataPoint> visibleMasterDataPoints = GetVisibleDataPoints(LeftGrid);
+                List<IDataPoint> visibleSlaveDataPoints = GetVisibleDataPoints(RightGrid);
+                if (visibleMasterDataPoints.Count != visibleMasterDataPoints.Count)
+                {
+                    return;
+                }
+
+                var (lag, correlation, errorMessage) = await Task.Run(() => CalculateCorrelation(visibleMasterDataPoints, visibleSlaveDataPoints));
+
+                if (errorMessage != null)
+                {
+                    await DisplayAlert("Warning", errorMessage, "OK");
+                    return;
+                }
+                var time = new TableTimeIndex("time", new Task<long[]>(() => lag), true, "time", "t");
+                var correlationColumn = new GenericColumn<float>("correlation", new Task<float[]>(() => correlation), time, "correlation", "cor");
+                var correlationPlot = await Playbar.CorrelationPreview(correlationColumn, this);
+                correlationPlot.SyncOnMaxValue();
+            }
+            finally
+            {
+                activityIndicator.IsVisible = false;
+                activityIndicator.IsRunning = false;
+                popupLoadingView.IsEnabled = false;
+                popupLoadingView.IsVisible = false;
+            }
+
+        }
+
+
+        private (long[], float[], string) CalculateCorrelation(List<IDataPoint> visibleMasterDataPoints, List<IDataPoint> visibleSlaveDataPoints)
+        {
+            SyncByCorrelation sync = new SyncByCorrelation();
+            visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
+            visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
+            return sync.CorrelateSignals();
+        }
+
+
+
         private void OnApplySync(object sender, EventArgs e)
         {
             var offset = _selectedRightTime - _selectedLeftTime;
             if (!offset.HasValue) return;
-            var offsetDiff = offset.Value - _rightContext.Offset;
-            _totalOffset += offsetDiff;
-            _rightContext.Offset = _totalOffset;
+            _rightContext.Offset = offset.Value;
         }
 
         private void SetCommonStart_OnClicked(object sender, EventArgs e)
@@ -309,7 +371,6 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             var (slaveMin, _) = _rightContext.GetAvailableTimeMinMax(true);
 
             _rightContext.Offset = slaveMin - masterMin;
-            _totalOffset = _rightContext.Offset;
         }
 
         private void ClearLeft_OnClicked(object sender, EventArgs e)
@@ -329,6 +390,16 @@ namespace SINTEF.AutoActive.UI.Pages.HeadToHead
             {
                 child.RemoveThisView();
             }
+        }
+
+        public async void RemoveCorrelationPreview(IDataPoint datapoint)
+        {
+            await Playbar.CorrelationPreview(datapoint, this);
+        }
+
+        public void AdjustOffset(object sender, ValueChangedEventArgs args)
+        {
+            _rightContext.Offset = TimeFormatter.TimeFromSeconds(args.NewValue);
         }
     }
 }

@@ -15,7 +15,7 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Synchronization
 {
-    public partial class PointSynchronizationPage : KeypressPage, IFigureContainer
+    public partial class PointSynchronizationPage : KeypressPage, IFigureContainer, ISyncPage
     {
         // If start differ by more than this, assume data sets are not synchronized.
         public double OffsetBeforeZeroing = 36000; // 10 hrs [s]
@@ -295,7 +295,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             InvokeDatapointAdded(dataPoint, _masterContext);
         }
 
-        public void adjustOffset(object sender, ValueChangedEventArgs args)
+        public void AdjustOffset(object sender, ValueChangedEventArgs args)
         {
             _slaveSlider.Offset = args.NewValue;
         }

@@ -301,7 +301,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             _previewContext.SetSelectedTimeRange(_availableTime.Item1, _availableTime.Item2);
         }
 
-        public async Task<CorrelationPlot> CorrelationPreview(IDataPoint datapoint, PointSynchronizationPage pointSyncPage)
+        public async Task<CorrelationPlot> CorrelationPreview(IDataPoint datapoint, ISyncPage pointSyncPage)
         {
             if (_correlationView != null)
             {
