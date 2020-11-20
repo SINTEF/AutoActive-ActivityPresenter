@@ -31,7 +31,7 @@ namespace SINTEF.AutoActive.UI.Pages
             NavigationBar.SaveArchiveButton.BackgroundColor = Color.FromHex("23A2B1");
             DataRegistry.ProviderAdded += el => DataTree.Tree.Children.Add(el);
             DataRegistry.ProviderRemoved += el => DataTree.Tree.Children.Remove(el);
-          
+
             // Add current items
             foreach (var dataProvider in DataRegistry.Providers)
                 DataTree.Tree.Children.Add(dataProvider);
@@ -65,8 +65,24 @@ namespace SINTEF.AutoActive.UI.Pages
             return CheckBeforeExit(ret);
         }
 
-        public bool CheckBeforeExit(bool ret)
+        public bool ExitShouldBeInterrupted(bool ret, Action exitCommand)
         {
+            if (_isSaving)
+            {
+                var displayTask = DisplayAlert("Saving in progress",
+                    "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
+                    "Quit", "Wait");
+                displayTask.ContinueWith(task =>
+                {
+                    if (displayTask.Result)
+                    {
+                        // Switch back to player page (main page)
+                        XamarinHelpers.EnsureMainThread(exitCommand);
+                    }
+                });
+                return true;
+            }
+
             if (_treeMightHaveChanged)
             {
                 var displayAlert = DisplayAlert("Unsaved data", "There might be unsaved data.\n\nAre sure you want to quit?",
@@ -76,25 +92,17 @@ namespace SINTEF.AutoActive.UI.Pages
                     if (displayAlert.Result)
                     {
                         // Switch back to player page (main page)
-                        XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
+                        XamarinHelpers.EnsureMainThread(exitCommand);
                     }
                 });
                 return true;
             }
+            return false;
+        }
 
-            if (!_isSaving) return ret;
-
-            var displayTask = DisplayAlert("Saving in progress", "Saving is in progress.\nQuitting might corrupt the archive being saved.\nDo you want to quit anyways?",
-                "Quit", "Wait");
-            displayTask.ContinueWith(task =>
-            {
-                if (displayTask.Result)
-                {
-                    // Switch back to player page (main page)
-                    XamarinHelpers.EnsureMainThread(async () => await Navigation.PopAsync());
-                }
-            });
-            return true;
+        public bool CheckBeforeExit(bool ret)
+        {
+            return ExitShouldBeInterrupted(ret, async () => await Navigation.PopAsync());
         }
 
         private static bool IsOwnParent(BranchView target, BranchView item)
