@@ -282,6 +282,18 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 Delimiter = ";",
                 CultureInfo = new CultureInfo("no-NB")
             }, // Norwegian format (Excel)
+            new Configuration {
+                Delimiter = "\t",
+                CultureInfo = CultureInfo.InvariantCulture
+            },
+            new Configuration {
+                Delimiter = "|",
+                CultureInfo = CultureInfo.InvariantCulture
+            },
+            new Configuration {
+                Delimiter = " ",
+                CultureInfo = CultureInfo.InvariantCulture
+            },
             new Configuration()
         };
 
