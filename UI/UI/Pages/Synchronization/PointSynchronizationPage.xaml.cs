@@ -258,7 +258,7 @@ namespace SINTEF.AutoActive.UI.Pages.Synchronization
             SyncByCorrelation sync = new SyncByCorrelation();
             visibleMasterDataPoints.ForEach(x => sync.AddMasterSignal(x));
             visibleSlaveDataPoints.ForEach(x => sync.AddSlaveSignal(x));
-            return sync.CorrelateSignals();
+            return sync.CorrelateSignals(typeof(PointSynchronizationPage));
         }
 
 
