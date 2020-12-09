@@ -38,20 +38,9 @@ namespace SINTEF.AutoActive.AutoSync
         /// Correlates the master and slave timeseries
         /// </summary>
         /// <returns>A tuple containing the lag , correlation and any error messages</returns>
-        public (long[], float[], string errorMessage) CorrelateSignals()
+        public (long[], float[], string errorMessage) CorrelateSignals(Type pageType)
         {
             string errorMessage = null;
-            if ((_masterTimerserie.Count) != (_slaveTimerserie.Count))
-            {
-                errorMessage = "There must be equally many signals in the slave and master timeseries.";
-                return (null, null, errorMessage);
-            }
-            if (_masterTimerserie.Count == 0)
-            {
-                errorMessage = "The master timeseries must at least consist of one signal";
-                return (null, null, errorMessage);
-            }
-
             Timeserie masterTimerserie = new Timeserie();
             Timeserie slaveTimerserie = new Timeserie();
 
@@ -60,21 +49,36 @@ namespace SINTEF.AutoActive.AutoSync
                 if (_masterTimerserie[i] is TableColumn)
                 {
                     masterTimerserie.AddData(_masterTimerserie[i]);
+                    if (pageType.Name == "HeadToHead")
+                    {
+                        break;
+                    }
+
                 }
-                else
-                {
-                    errorMessage = "The data must be a 1d timeseries";
-                    return (null, null, errorMessage);
-                }
+            }
+
+            for (int i = _slaveTimerserie.Count -1; i > -1; i--)
+            {
                 if (_slaveTimerserie[i] is TableColumn)
                 {
                     slaveTimerserie.AddData(_slaveTimerserie[i]);
+                    if (pageType.Name == "HeadToHead")
+                    {
+                        break;
+                    }
                 }
-                else
-                {
-                    errorMessage = "The data must be a 1d timeseries";
-                    return (null, null, errorMessage);
-                }
+
+            }
+
+            if ((masterTimerserie.Count) != (slaveTimerserie.Count))
+            {
+                errorMessage = "There must be equally many signals in the slave and master timeseries.";
+                return (null, null, errorMessage);
+            }
+            if (masterTimerserie.Count == 0)
+            {
+                errorMessage = "The master timeseries must at least consist of one signal";
+                return (null, null, errorMessage);
             }
 
             ResampleTimeserie(masterTimerserie, slaveTimerserie);
