@@ -1,9 +1,74 @@
-# Changelog
+# Changelog AutoActive Activity Presenter
+# ---------------------------------------
+## [1.1.0] - 2020-12-10
+### Added
+ - Autosync in head-to-head
+ - Warning if pressing quit during save
+ - Head-to-head GUI improvements when selecting window
+ - CSV import improved accepting comma, space, tab, pipe and semicolon as separators
+ - Clear button in head-to-head
+### Changed
+ - Head-to-head offset error corrected
+ - Sync-page GUI improvements
+ - Fixed bug causing freeze when changing page
+
+## [1.0.1] - 2020-10-12
+### Changed
+ - Bug fix for changing from head2head to main page and back
+ - Bug fix for disabled save sync button after AutoSync
+ - Added Clear Left and Clear Right button for Head2Head view 
+## [1.0.0] - 2020-10-09
+### Added
+ - Head to head reintroduced
+ - Support for navigation with keyboard: 
+      Space toggle Play/Pause
+      Right and left arrow - search forward/backwards ">" and "<"
+      Shift right and shift left arrow - as ">>" and "<<"
+      Ctrl right and shift left arrow - as ">>>" and "<<<"
+      Shift+Ctrl as search 1 minute forwards/backwards
+### Changed
+ - Bug fixes for save view
+ - Bug fixes for AutoSync
+ - Fixed exception on close archive 
+## [0.7.0] - 2020-09-24
+### Added
+ - Autosync functionality added for Synchronize page - beta
+## [0.6.0] - 2020-09-10
+### Added
+ - Save View added for Main Page - beta
+### Changed
+ - Fixed close failure when data viewed in timeline
+ - Fixed issues for import of incomplete CSV files
+ - Fixed various issues for lineplots and synchronize page
+
+## [0.5.13] - 2020-05-26
+### Changed
+ - Fixed button background in plots
+ - Fix for repeated values in y-axis
+
+## [0.5.12] - 2020-05-25
+### Added
+ - NaNs are plotted as zeros
+ - New application icons
+
+### Changed
+ - Fixed scaling issue for frozen scaling
+ - Fixed values on y axis 
+ - Head2Head page disabled until fully operational
+ - Changed text for time import for csv/excel
+ - Changed colors for text and buttons in plots
+
+## [0.5.11] - 2020-05-15
+### Added
+ - Restructured GUI with new view
+
+### Changed
+ - Sync page reorganized
+ - A number of bugfixes, see Jira
+ 
 ## [0.5.7] - ?
 ### Added
  - Added warning when exiting save page before saving if data has changed
-
-
 ## [0.5.6] - 2019-12-19
 ### Added
  - Import of generic Excel data
