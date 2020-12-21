@@ -1,6 +1,14 @@
 # AutoActive Research Environment
 Last updated: 2020-Dec-21
+
 SINTEF - https://www.sintef.com
+
+## License
+Apache License Version 2.0
+
+## Binary distribution
+https://www.microsoft.com/nb-no/p/activity-presenter/9n01v94ljlx7?rtc=1&activetab=pivot:overviewtab#
+
 
 AutoActive Research Environment (ARE) is developed in the research project AutoActive (Norwegian Research Council project, project number 282039) to enable easy handling (synchronization, visualization, analysation) of sensor data from different commercially available wearable sensors for human activity and video.
 ARE supports the following operations:
@@ -76,10 +84,3 @@ A Python library is under development and will support similar functionality as 
 
 ## Software implementation
 The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
-
-## License
-Apache License Version 2.0
-
-## Binary distribution
-https://www.microsoft.com/nb-no/p/activity-presenter/9n01v94ljlx7?rtc=1&activetab=pivot:overviewtab#
-
