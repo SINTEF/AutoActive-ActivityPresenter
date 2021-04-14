@@ -15,6 +15,10 @@ using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using SINTEF.AutoActive.Plugins.Import.Csv;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
+using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Plugins.Import;
 
 namespace SINTEF.AutoActive.UI.Pages
 {
@@ -352,12 +356,14 @@ namespace SINTEF.AutoActive.UI.Pages
             return true;
         }
 
+
         private (bool, string) VerifyChildren(ObservableCollection<IDataStructure> sessionChildren)
         {
             var names = new HashSet<string>();
             var duplicated = new HashSet<string>();
             foreach(var child in sessionChildren)
             {
+
                 if (string.IsNullOrWhiteSpace(child.Name)) return (false, "empty name");
                 if (!names.Add(child.Name))
                 {
@@ -367,6 +373,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
             return (names.Count == sessionChildren.Count, string.Join(",", duplicated));
         }
+
 
         private void AddAllClicked(object sender, EventArgs e)
         {
@@ -581,13 +588,64 @@ namespace SINTEF.AutoActive.UI.Pages
         public bool IsSaved { get; }
         public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            root["meta"] = new JObject
+            if (_dataPoints.Count > 0)
             {
-                ["type"] = ArchiveFolder.PluginType
-            };
-            root["user"] = new JObject();
+                GenericCsvTable table = ToGenericCsvTable();
+                return table.WriteData(root, writer);
+            }
+            else
+            {
+                root["meta"] = new JObject
+                {
+                    ["type"] = ArchiveFolder.PluginType
+                };
+                root["user"] = new JObject();
 
-            return Task.FromResult(true);
+                return Task.FromResult(true);
+            }
         }
+
+        public GenericCsvTable ToGenericCsvTable()
+        {
+            List<string> names = new List<string>();
+            List<Type> types = new List<Type>();
+            Dictionary<string, Array> data = new Dictionary<string, Array>();
+
+            foreach (IDataPoint dataPoint in _dataPoints)
+            {
+                (long[] time, double[] dataArray) = ReadData(dataPoint);
+                if (data.Count() == 0)
+                {
+                    data.Add("time", time);
+                }
+
+                if (dataPoint.Name.ToLower() != "time")
+                {
+                    names.Add(dataPoint.Name);
+                    types.Add(dataPoint.DataType);
+                    data.Add(dataPoint.Name, dataArray);
+                }
+            }
+
+            return new GenericCsvTable(Name, names, types, data, "");
+        }
+
+        private (long[], double[]) ReadData(IDataPoint inputData)
+        {
+            Task dataViewTask = inputData.CreateViewer();
+            Task timeViewTask = inputData.Time.CreateViewer();
+            Task[] tasks = new Task[] { dataViewTask, timeViewTask };
+            var dataView = Task.Run(() => inputData.CreateViewer()).Result;
+            var timeView = Task.Run(() => inputData.Time.CreateViewer()).Result;
+            Task.WaitAll(tasks);
+            ITimeSeriesViewer viewer = (ITimeSeriesViewer)dataView;
+            viewer.SetTimeRange(timeView.Start, timeView.End);
+            var genericConstructor = typeof(DataReader<>).MakeGenericType(inputData.DataType)
+            .GetConstructor(new[] { typeof(ITimeSeriesViewer) });
+            var dataReader = (IDataReader)genericConstructor.Invoke(new object[] { viewer });
+            (long[] timeArray, double[] dataArray, bool[] isNaNArray) = dataReader.DataAsArrays();
+            return (timeArray, dataArray);
+        }
+
     }
 }
