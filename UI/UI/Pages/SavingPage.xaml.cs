@@ -15,10 +15,10 @@ using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
-using SINTEF.AutoActive.Plugins.Import.Csv;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Plugins.Import;
+using Parquet.Data;
+using System.IO;
 
 namespace SINTEF.AutoActive.UI.Pages
 {
@@ -588,9 +588,9 @@ namespace SINTEF.AutoActive.UI.Pages
         public bool IsSaved { get; }
         public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            if (_dataPoints.Count > 0)
+            if (_dataPoints.Count > 0 & Children.Count == 0)
             {
-                GenericCsvTable table = ToGenericCsvTable();
+                TemporaryDataTable table = new TemporaryDataTable(Name, _dataPoints);
                 return table.WriteData(root, writer);
             }
             else
@@ -604,30 +604,61 @@ namespace SINTEF.AutoActive.UI.Pages
                 return Task.FromResult(true);
             }
         }
+    }
 
-        public GenericCsvTable ToGenericCsvTable()
+    internal class TemporaryDataTable : ISaveable
+    {
+        private string _name;
+        private bool _isWorldClock;
+        private Dictionary<string, Array> _data = new Dictionary<string, Array>();
+        private List<string> _units = new List<string>();
+
+        public TemporaryDataTable(string name, ObservableCollection<IDataPoint> dataPoints)
         {
-            List<string> names = new List<string>();
-            List<Type> types = new List<Type>();
-            Dictionary<string, Array> data = new Dictionary<string, Array>();
+            _name = name;
+            _isWorldClock = dataPoints.First().Time.IsSynchronizedToWorldClock;
 
-            foreach (IDataPoint dataPoint in _dataPoints)
+            foreach (IDataPoint dataPoint in dataPoints)
             {
                 (long[] time, double[] dataArray) = ReadData(dataPoint);
-                if (data.Count() == 0)
+                if (_data.Count() == 0)
                 {
-                    data.Add("time", time);
+                    _data.Add("time", time);
+                    _units.Add("us");
                 }
 
                 if (dataPoint.Name.ToLower() != "time")
                 {
-                    names.Add(dataPoint.Name);
-                    types.Add(dataPoint.DataType);
-                    data.Add(dataPoint.Name, dataArray);
+                    _data.Add(dataPoint.Name, dataArray);
+                    _units.Add("-");
                 }
             }
 
-            return new GenericCsvTable(Name, names, types, data, "");
+        }
+        public bool IsSaved { get; }
+
+        public Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+
+            var fileId = "/Data" + "/" + _name + "." + Guid.NewGuid();
+
+            // Make table object
+            var metaTable = new JObject
+            {
+                ["type"] = "no.sintef.table",
+                ["attachments"] = new JArray(new object[] { fileId }),
+                ["units"] = new JArray(_units.ToArray()),
+                ["is_world_clock"] = _isWorldClock,
+                ["version"] = 1
+            };
+
+            var userTable = new JObject { };
+
+            // Place objects into root
+            root["meta"] = metaTable;
+            root["user"] = userTable;
+
+            return WriteTable(fileId, writer);
         }
 
         private (long[], double[]) ReadData(IDataPoint inputData)
@@ -646,6 +677,74 @@ namespace SINTEF.AutoActive.UI.Pages
             (long[] timeArray, double[] dataArray, bool[] isNaNArray) = dataReader.DataAsArrays();
             return (timeArray, dataArray);
         }
+
+        private DataColumnAndSchema MakeDataColumnAndSchema()
+        {
+
+            var fields = new List<Field>();
+            var datacols = new List<DataColumn>();
+
+
+            foreach(KeyValuePair<string, Array> entry in _data)
+            {
+                DataColumn column;
+                switch (entry.Value)
+                {
+                    case bool[] _:
+                        column = new DataColumn(new DataField<bool>(entry.Key), entry.Value);
+                        break;
+                    case byte[] _:
+                        column = new DataColumn(new DataField<byte>(entry.Key), entry.Value);
+                        break;
+                    case int[] _:
+                        column = new DataColumn(new DataField<int>(entry.Key), entry.Value);
+                        break;
+                    case long[] _:
+                        column = new DataColumn(new DataField<long>(entry.Key), entry.Value);
+                        break;
+                    case float[] _:
+                        column = new DataColumn(new DataField<float>(entry.Key), entry.Value);
+                        break;
+                    case double[] _:
+                        column = new DataColumn(new DataField<double>(entry.Key), entry.Value);
+                        break;
+                    case string[] _:
+                        column = new DataColumn(new DataField<string>(entry.Key), entry.Value);
+                        break;
+                    default:
+                        continue;
+                }
+                fields.Add(column.Field);
+                datacols.Add(column);
+            }
+
+            return new DataColumnAndSchema(datacols, new Schema(fields));
+        }
+
+        private Task<bool> WriteTable(string fileId, ISessionWriter writer)
+            {
+                // This stream will be disposed by the sessionWriter
+                var ms = new MemoryStream();
+
+                var dataColAndSchema = MakeDataColumnAndSchema();
+
+                using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.Schema, ms))
+                {
+
+                    using (var rowGroup = tableWriter.CreateRowGroup())  // Using construction assure correct storage of final rowGroup details in parquet file
+                    {
+                        foreach (var dataCol in dataColAndSchema.DataColumns)
+                        {
+                            rowGroup.WriteColumn(dataCol);
+                        }
+                    }
+                }
+
+                ms.Position = 0;
+                writer.StoreFileId(ms, fileId);
+
+                return Task.FromResult(true);
+            }
 
     }
 }
