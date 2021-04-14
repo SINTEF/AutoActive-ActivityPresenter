@@ -608,47 +608,30 @@ namespace SINTEF.AutoActive.UI.Pages
 
     internal class TemporaryDataTable : ISaveable
     {
-        private string _name;
-        private bool _isWorldClock;
-        private Dictionary<string, Array> _data = new Dictionary<string, Array>();
-        private List<string> _units = new List<string>();
 
         public TemporaryDataTable(string name, ObservableCollection<IDataPoint> dataPoints)
         {
-            _name = name;
-            _isWorldClock = dataPoints.First().Time.IsSynchronizedToWorldClock;
-
-            foreach (IDataPoint dataPoint in dataPoints)
-            {
-                (long[] time, double[] dataArray) = ReadData(dataPoint);
-                if (_data.Count() == 0)
-                {
-                    _data.Add("time", time);
-                    _units.Add("us");
-                }
-
-                if (dataPoint.Name.ToLower() != "time")
-                {
-                    _data.Add(dataPoint.Name, dataArray);
-                    _units.Add("-");
-                }
-            }
-
+            Name = name;
+            _dataPoints = dataPoints;
         }
+
         public bool IsSaved { get; }
+        public string Name { get; set; }
+
+        private readonly ObservableCollection<IDataPoint> _dataPoints = new ObservableCollection<IDataPoint>();
 
         public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-
-            var fileId = "/Data" + "/" + _name + "." + Guid.NewGuid();
+            (Dictionary<string, Array> data, List<string> units) = TransformData();
+            var fileId = "/Data" + "/" + Name + "." + Guid.NewGuid();
 
             // Make table object
             var metaTable = new JObject
             {
                 ["type"] = "no.sintef.table",
                 ["attachments"] = new JArray(new object[] { fileId }),
-                ["units"] = new JArray(_units.ToArray()),
-                ["is_world_clock"] = _isWorldClock,
+                ["units"] = new JArray(units.ToArray()),
+                ["is_world_clock"] = _dataPoints.First().Time.IsSynchronizedToWorldClock,
                 ["version"] = 1
             };
 
@@ -658,7 +641,32 @@ namespace SINTEF.AutoActive.UI.Pages
             root["meta"] = metaTable;
             root["user"] = userTable;
 
-            return WriteTable(fileId, writer);
+            return WriteTable(fileId, writer, data);
+        }
+
+        private (Dictionary<string,Array>, List<string>) TransformData()
+        {
+
+            Dictionary<string, Array> data = new Dictionary<string, Array>();
+            List<string> units = new List<string>();
+
+            foreach (IDataPoint dataPoint in _dataPoints)
+            {
+                (long[] time, double[] dataArray) = ReadData(dataPoint);
+                if (data.Count() == 0)
+                {
+                    data.Add("time", time);
+                    units.Add("us");
+                }
+
+                if (dataPoint.Name.ToLower() != "time")
+                {
+                    data.Add(dataPoint.Name, dataArray);
+                    units.Add("-");
+                }
+            }
+
+            return (data, units);
         }
 
         private (long[], double[]) ReadData(IDataPoint inputData)
@@ -678,14 +686,14 @@ namespace SINTEF.AutoActive.UI.Pages
             return (timeArray, dataArray);
         }
 
-        private DataColumnAndSchema MakeDataColumnAndSchema()
+        private DataColumnAndSchema MakeDataColumnAndSchema(Dictionary<string, Array> data)
         {
 
             var fields = new List<Field>();
             var datacols = new List<DataColumn>();
 
 
-            foreach(KeyValuePair<string, Array> entry in _data)
+            foreach(KeyValuePair<string, Array> entry in data)
             {
                 DataColumn column;
                 switch (entry.Value)
@@ -721,12 +729,12 @@ namespace SINTEF.AutoActive.UI.Pages
             return new DataColumnAndSchema(datacols, new Schema(fields));
         }
 
-        private Task<bool> WriteTable(string fileId, ISessionWriter writer)
+        private Task<bool> WriteTable(string fileId, ISessionWriter writer, Dictionary<string,Array> data)
             {
                 // This stream will be disposed by the sessionWriter
                 var ms = new MemoryStream();
 
-                var dataColAndSchema = MakeDataColumnAndSchema();
+                var dataColAndSchema = MakeDataColumnAndSchema(data);
 
                 using (var tableWriter = new Parquet.ParquetWriter(dataColAndSchema.Schema, ms))
                 {
@@ -745,6 +753,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
                 return Task.FromResult(true);
             }
+
 
     }
 }
