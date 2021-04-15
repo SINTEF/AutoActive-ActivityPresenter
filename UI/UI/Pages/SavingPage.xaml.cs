@@ -612,13 +612,40 @@ namespace SINTEF.AutoActive.UI.Pages
         public TemporaryDataTable(string name, ObservableCollection<IDataPoint> dataPoints)
         {
             Name = name;
-            _dataPoints = dataPoints;
+            foreach (IDataPoint dataPoint in dataPoints)
+            {
+                AddDatapoint(dataPoint);
+            }
         }
 
         public bool IsSaved { get; }
         public string Name { get; set; }
 
         private readonly ObservableCollection<IDataPoint> _dataPoints = new ObservableCollection<IDataPoint>();
+
+        public void AddDatapoint(IDataPoint dataPoint)
+        {
+            if (_dataPoints.Count == 0)
+            {
+                _dataPoints.Add(dataPoint);
+                return;
+            }
+
+            if (_dataPoints.First().Time.Equals(dataPoint.Time))
+            {
+                _dataPoints.Add(dataPoint);
+                return;
+            }
+            else
+            {
+                throw new Exception("Columns in table must reference the same timeline");
+            }
+        }
+
+        public void RemoveDatapoint(IDataPoint dataPoint)
+        {
+            _dataPoints.Remove(dataPoint);
+        }
 
         public Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
@@ -646,7 +673,6 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private (Dictionary<string,Array>, List<string>) TransformData()
         {
-
             Dictionary<string, Array> data = new Dictionary<string, Array>();
             List<string> units = new List<string>();
 
@@ -688,10 +714,8 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private DataColumnAndSchema MakeDataColumnAndSchema(Dictionary<string, Array> data)
         {
-
             var fields = new List<Field>();
             var datacols = new List<DataColumn>();
-
 
             foreach(KeyValuePair<string, Array> entry in data)
             {
