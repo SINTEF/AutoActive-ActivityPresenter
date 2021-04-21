@@ -89,13 +89,12 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
 
 ## Instruction videos for ActivityPresenter
-* Import data - https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4
-
-* Syncronize data
-* Save data
-* Visualize data
-* Matlab toolbox
-* Multiple aaz archives
-* Automatic synchronization of data
-* Head to head
-* Save and load views
+* [Import data](https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4)
+* [Syncronize data](https://user-images.githubusercontent.com/2269482/115603893-ff07b000-a2e0-11eb-8327-e0b5244880c8.mp4)
+* [Save data](https://user-images.githubusercontent.com/2269482/115603933-0e86f900-a2e1-11eb-953c-47377aac6cc7.mp4)
+* [Visualize data](https://user-images.githubusercontent.com/2269482/115603974-1ba3e800-a2e1-11eb-9660-a314641c0cd6.mp4)
+* [Matlab toolbox](https://user-images.githubusercontent.com/2269482/115604014-28284080-a2e1-11eb-9d9e-0e129a15b9db.mp4)
+* [Multiple aaz archives](https://user-images.githubusercontent.com/2269482/115604046-324a3f00-a2e1-11eb-8253-8d73e52fba69.mp4)
+* [Automatic synchronization of data](https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4)
+* [Head to head](https://user-images.githubusercontent.com/2269482/115604146-5443c180-a2e1-11eb-802a-2e11029f6781.mp4)
+* [Save and load views](https://user-images.githubusercontent.com/2269482/115604181-5dcd2980-a2e1-11eb-8cb7-bb1b40573ea9.mp4)
