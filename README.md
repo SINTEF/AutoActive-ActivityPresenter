@@ -87,3 +87,15 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 
 ## Software implementation
 The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
+
+## Instruction videos for ActivityPresenter
+* Import data - https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4
+
+* Syncronize data
+* Save data
+* Visualize data
+* Matlab toolbox
+* Multiple aaz archives
+* Automatic synchronization of data
+* Head to head
+* Save and load views
