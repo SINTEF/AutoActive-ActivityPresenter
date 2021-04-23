@@ -797,7 +797,6 @@ namespace SINTEF.AutoActive.UI.Pages
 
     internal class TemporaryVideoArchive: ISaveable
     {
-        private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
         public string Type => "no.sintef.video";
         private readonly ArchiveVideoVideo _video;
@@ -825,18 +824,12 @@ namespace SINTEF.AutoActive.UI.Pages
             string fileId = "/videos" + "/" + Name + "." + Guid.NewGuid();
             if (_readerFactory == null)
             {
-                //var pathArr = Meta["attachments"].ToObject<string[]>() ??
-                //              throw new ArgumentException("Video is missing 'attachments'");
-
                 ZipEntry zipEntry = _archive.FindFile(_video.URI);
                 stream = await _archive.OpenFile(zipEntry);
-
-                //fileId = pathArr[0];
             }
             else
             {
                 stream = await _readerFactory.GetReadStream();
-
             }
 
             writer.StoreFileId(stream, fileId);
