@@ -19,6 +19,9 @@ using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Plugins.Import;
 using Parquet.Data;
 using System.IO;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace SINTEF.AutoActive.UI.Pages
 {
@@ -590,8 +593,21 @@ namespace SINTEF.AutoActive.UI.Pages
         {
             if (_dataPoints.Count > 0 & Children.Count == 0)
             {
-                TemporaryDataTable table = new TemporaryDataTable(Name, _dataPoints);
-                return table.WriteData(root, writer);
+                if (_dataPoints.All(dataPoint => dataPoint.GetType() == typeof(ArchiveVideoVideo)))
+                {
+                    TemporaryVideoArchive temporaryVideoArchive = new TemporaryVideoArchive(Name, _dataPoints.First());
+                    return temporaryVideoArchive.WriteData(root, writer);
+                }
+                else if (_dataPoints.All(dataPoint => dataPoint.GetType().GetGenericTypeDefinition() == typeof(GenericColumn<>)))
+                {
+                    TemporaryDataTable table = new TemporaryDataTable(Name, _dataPoints);
+                    return table.WriteData(root, writer);
+                }
+                else
+                {
+                    TemporaryDataTable table = new TemporaryDataTable(Name, _dataPoints);
+                    return table.WriteData(root, writer);
+                }
             }
             else
             {
@@ -777,7 +793,63 @@ namespace SINTEF.AutoActive.UI.Pages
 
                 return Task.FromResult(true);
             }
+    }
 
+    internal class TemporaryVideoArchive: ISaveable
+    {
+        private readonly ZipEntry _zipEntry;
+        private readonly Archive.Archive _archive;
+        public string Type => "no.sintef.video";
+        private readonly ArchiveVideoVideo _video;
+        private readonly IReadSeekStreamFactory _readerFactory = null;
 
+        public TemporaryVideoArchive(string name, IDataPoint dataPoint)
+        {
+            Name = name;
+            _video = (ArchiveVideoVideo)dataPoint;
+            _archive = _video.Archive;
+            Meta = new JObject();
+            User = new JObject();
+        }
+
+        public bool IsSaved { get; }
+        public string Name { get; set; }
+
+        protected JObject Meta { get; }
+        protected JObject User { get; }
+
+        public async Task<bool> WriteData(JObject root, ISessionWriter writer)
+        {
+
+            Stream stream;
+            string fileId = "/videos" + "/" + Name + "." + Guid.NewGuid();
+            if (_readerFactory == null)
+            {
+                //var pathArr = Meta["attachments"].ToObject<string[]>() ??
+                //              throw new ArgumentException("Video is missing 'attachments'");
+
+                ZipEntry zipEntry = _archive.FindFile(_video.URI);
+                stream = await _archive.OpenFile(zipEntry);
+
+                //fileId = pathArr[0];
+            }
+            else
+            {
+                stream = await _readerFactory.GetReadStream();
+
+            }
+
+            writer.StoreFileId(stream, fileId);
+            Meta["attachments"] = new JArray(new object[] { fileId });
+            Meta["type"] = "no.sintef.video";
+            root["meta"] = Meta;
+            root["user"] = User;
+
+            // Overwrite potentially changed
+            root["meta"]["start_time"] = _video.VideoTime.Offset;
+            root["meta"]["video_length"] = _video.VideoTime.VideoLength;
+
+            return true;
+        }
     }
 }
