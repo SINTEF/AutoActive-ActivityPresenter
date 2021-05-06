@@ -43,6 +43,8 @@
                 <Grid>
                     <Grid.RowDefinitions>
                         <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="Auto"/>
                         <RowDefinition />
                     </Grid.RowDefinitions>
                     <Grid.ColumnDefinitions>
@@ -53,10 +55,14 @@
                     <Button Grid.Row="0" Grid.Column="0" Text="Clear" HorizontalOptions="Start" Clicked="ClearClicked" BorderColor="#23A2B1"
                              BackgroundColor="#1D2637" TextColor="White"/>
                     <Label Grid.Row="0" Grid.Column="1" Text="SAVE ARCHIVE" HorizontalTextAlignment="Center" FontAttributes="Bold" TextColor="White"/>
-                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
+                    <Button x:Name="AddVideoFolder" Grid.Row="2" Grid.Column="2" Text="Add Video Folder" HorizontalOptions="End" Clicked="AddVideoFolderClicked" BorderColor="#23A2B1"
                             BackgroundColor="#1D2637" TextColor="White"/>
+                    <Button Grid.Row="0" Grid.Column="2" Text="Add folder" HorizontalOptions="End" Clicked="AddFolderClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" TextColor="White" WidthRequest="{Binding Path=Width, Source={x:Reference AddVideoFolder}}"/>
+                    <Button Grid.Row="1" Grid.Column="2" Text="Add Data Folder" HorizontalOptions="End" Clicked="AddDataFolderClicked" BorderColor="#23A2B1"
+                            BackgroundColor="#1D2637" TextColor="White" WidthRequest="{Binding Path=Width, Source={x:Reference AddVideoFolder}}"/>
                     <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" x:Name="SavingTree"/>
-                    <Frame Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
+                    <Frame Grid.Row="3" Grid.Column="0" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
                         <Grid>
                             <treeView:DataTreeView x:Name="RemovalTree"  HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
                             <Label Text="Drag here to remove element" HorizontalOptions="Center" VerticalOptions="Center" HorizontalTextAlignment="Center"/>

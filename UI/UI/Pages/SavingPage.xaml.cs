@@ -319,6 +319,18 @@ namespace SINTEF.AutoActive.UI.Pages
             SavingTree.Tree.Children.Add(folder);
         }
 
+        private void AddDataFolderClicked(object sender, EventArgs e)
+        {
+            _treeMightHaveChanged = true;
+            //var dataFolder = new TemporaryDataTable("New Data table");
+            //SavingTree.Tree.Children.Add(dataFolder);
+        }
+
+        private void AddVideoFolderClicked(object sender, EventArgs e)
+        {
+            _treeMightHaveChanged = true;
+        }
+
         private async void SaveButtonClicked(object sender, EventArgs e)
         {
             _isSaving = true;
@@ -834,7 +846,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
             writer.StoreFileId(stream, fileId);
             Meta["attachments"] = new JArray(new object[] { fileId });
-            Meta["type"] = "no.sintef.video";
+            Meta["type"] = Type;
             root["meta"] = Meta;
             root["user"] = User;
 
