@@ -12,15 +12,16 @@ https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7?
 
 AutoActive Research Environment (ARE) is developed in the research project AutoActive (Norwegian Research Council project, project number 282039) to enable easy handling (synchronization, visualization, analysation) of sensor data from different commercially available wearable sensors for human activity and video.
 ARE supports the following operations:
-1.Import of 
-  - sensor data from commercial sensors like IMU sensors
-  - timeseries data like ultrasound time-of-flight (TOF) data
-  - processed data like gesture detection classification
-  - comma separated values (.csv), excel tables (.xlsx)
-  - video
+
+1. Import of 
+   - sensor data from commercial sensors like IMU sensors
+   - timeseries data like ultrasound time-of-flight (TOF) data
+   - processed data like gesture detection classification
+   - comma separated values (.csv), excel tables (.xlsx)
+   - video
 2. Synchronization (in time) between 
-  - video and sensor data
-  - various sensor data
+   - video and sensor data
+   - various sensor data
 3. Visualisation and inspection of multiple sensor data and video
 4. Support for analysis tools like MATLAB® and Python
 5. Organized storage of data from multiple sources
