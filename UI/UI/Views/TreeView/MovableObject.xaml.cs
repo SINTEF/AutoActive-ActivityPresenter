@@ -1,35 +1,45 @@
-﻿using System;
+﻿using SINTEF.AutoActive.UI.Interfaces;
+using System;
+using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Linq;
-using SINTEF.AutoActive.UI.Interfaces;
+using System.Text;
+using System.Threading.Tasks;
+
 using Xamarin.Forms;
 using Xamarin.Forms.Internals;
 using Xamarin.Forms.Xaml;
 
-//Branch view is a tree view used on Save Page
-//--------------------------------------------
-
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
     [XamlCompilation(XamlCompilationOptions.Compile)]
-    public partial class BranchView : ContentView, IDropCollector, IDraggable
+    public abstract partial class MovableObject : ContentView, IDropCollector, IDraggable
     {
         private const double MarginPerLevel = 15.0d;
         private VisualizedStructure _element;
 
-        public BranchView()
+        public MovableObject()
         {
             InitializeComponent();
             ChildElements.Margin = new Thickness(MarginPerLevel, 0, 0, 0);
         }
 
         public string Name => Element.Name;
+        public void setButtonSettings()
+        {
+            OuterFrame.BorderColor = Color.FromHex("#1D2637");
+            OuterFrame.CornerRadius = 0;
+            OuterFrame.Padding = 0;
+            SpaceBetweenFrameAndButton.Margin = 0;
+        }
+
 
         public VisualizedStructure Element
         {
             get => _element;
             set
             {
+
                 if (_element != null)
                 {
                     _element.OnExpandChanged -= BranchOnOnExpandChanged;
@@ -56,10 +66,11 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 UpdateExpandedName();
                 if (!IsClickable())
                 {
-                    BranchButton.BackgroundColor = Color.FromHex("#23A2B1");
+                        BranchButton.BackgroundColor = Color.FromHex("#23A2B1");
                 }
             }
         }
+
 
         private void DataStructureChildrenChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
@@ -71,7 +82,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         {
             var dataStructure = _element;
             var i = -1;
-            foreach(var child in dataStructure.Children)
+            foreach (var child in dataStructure.Children)
             {
                 i++;
 
@@ -83,7 +94,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 }
 
                 var childElement = ChildElements.Children[i];
-                if (!(childElement is BranchView branchView))
+                if (!(childElement is MovableObject branchView))
                 {
                     throw new ArgumentException("Invalid child argument");
                 }
@@ -95,7 +106,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
                 // Look for later matching items:
                 var existingChildIx = ChildElements.Children.Skip(i)
-                    .IndexOf(el => (el as BranchView)?.Element == child);
+                    .IndexOf(el => (el as MovableObject)?.Element == child);
                 if (existingChildIx != -1)
                 {
                     var tmpChildElement = ChildElements.Children[existingChildIx];
@@ -154,10 +165,8 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             EnsureCorrectChildren();
         }
 
-        private BranchView CreateChildElement(VisualizedStructure element)
-        {
-            return new BranchView {ParentTree = ParentTree, Element = element};
-        }
+        public abstract MovableObject CreateChildElement(VisualizedStructure element);
+
 
         private void BranchButton_OnClicked(object sender, EventArgs e)
         {
@@ -208,9 +217,6 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             NameChangeComplete();
         }
 
-        public void ObjectDroppedOn(IDraggable item)
-        {
-            ParentTree?.ObjectDroppedOn(this, item);
-        }
+        public abstract void ObjectDroppedOn(IDraggable item);
     }
 }

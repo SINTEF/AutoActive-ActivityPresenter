@@ -75,6 +75,8 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             foreach (var item in e.NewItems)
             {
+                if ((item is TemporaryVideoArchive) || (item is TemporaryDataTable))
+                    throw new NotImplementedException("The first folder type in a tree must be a Folder");
                 if (!(item is IDataStructure dataStructure))
                     throw new NotImplementedException("Only data structure has been implemented");
 
@@ -90,13 +92,13 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         private void RemoveStructure(IDataStructure dataprovider)
         {
-            var branchView = TreeLayout.Children.First(el => (el as BranchView)?.Element.DataStructure == dataprovider);
-            TreeLayout.Children.Remove(branchView);
+            var movableObject = TreeLayout.Children.First(el => (el as MovableObject)?.Element.DataStructure == dataprovider);
+            TreeLayout.Children.Remove(movableObject);
         }
 
         private void AddStructure(IDataStructure dataStructure)
         {
-            var branchView = new BranchView
+            var folderView = new FolderView
             {
                 Element = new VisualizedStructure(dataStructure)
                 {
@@ -104,7 +106,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 },
                 ParentTree = this
             };
-            TreeLayout.Children.Add(branchView);
+            TreeLayout.Children.Add(folderView);
         }
 
         public event EventHandler<IDataPoint> DataPointTapped;

@@ -112,20 +112,20 @@ namespace SINTEF.AutoActive.UI.Pages
             return ExitShouldBeInterrupted(ret, async () => await Navigation.PopAsync());
         }
 
-        private static bool IsOwnParent(BranchView target, BranchView item)
+        private static bool IsOwnParent(MovableObject target, MovableObject item)
         {
-            var parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(target.Parent);
+            var parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(target.Parent);
             while (parent != null)
             {
                 if (parent == item)
                     return true;
-                parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(parent.Parent);
+                parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(parent.Parent);
             }
 
             return false;
         }
 
-        private static void MoveElementInsideTree(BranchView target, BranchView item)
+        private static void MoveElementInsideTree(MovableObject target, MovableObject item)
         {
             if (target.Element.DataPoint != null || item.Element.DataPoint != null)
             {
@@ -148,7 +148,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            var parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(item.Parent);
+            var parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(item.Parent);
             if (parent != null)
             {
                 parent.Element.DataStructure.Children.Remove(item.Element.DataStructure);
@@ -165,7 +165,7 @@ namespace SINTEF.AutoActive.UI.Pages
             target.Element.DataStructure.Children.Add(item.Element.DataStructure);
         }
 
-        private static void MoveElementInsideTree(DataTreeView target, BranchView branchItem)
+        private static void MoveElementInsideTreeT(DataTreeView target, MovableObject branchItem)
         {
             if (target.Tree.Children.Count == 0)
             {
@@ -190,7 +190,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
             branchParent.Element.DataStructure.Children.Remove(branchItem.Element.DataStructure);
             target.Tree.Children.Add(branchItem.Element.DataStructure);
         }
@@ -204,7 +204,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            if (!(item is BranchView branchItem))
+            if (!(item is MovableObject branchItem))
             {
                 Debug.WriteLine($"Unknown dragged item: {item}");
                 return;
@@ -216,11 +216,11 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 if (target == SavingTree)
                 {
-                    MoveElementInsideTree(SavingTree, branchItem);
+                    MoveElementInsideTreeT(SavingTree, branchItem);
                     return;
                 }
 
-                if (!(target is BranchView branchTarget))
+                if (!(target is MovableObject branchTarget))
                 {
                     Debug.WriteLine($"Unknown target {target}");
                     return;
@@ -232,6 +232,7 @@ namespace SINTEF.AutoActive.UI.Pages
             if (target != SavingTree)
             {
                 AddChild(target, branchItem);
+
                 return;
             }
 
@@ -241,7 +242,7 @@ namespace SINTEF.AutoActive.UI.Pages
             }
             else
             {
-                var dataItemParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+                var dataItemParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
                 SavingTree.Tree.Children.Add(dataItemParent.Element.DataStructure);
             }
         }
@@ -255,7 +256,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            if (!(item is BranchView branchItem))
+            if (!(item is MovableObject branchItem))
             {
                 Debug.WriteLine($"Unknown dragged item: {item}");
                 return;
@@ -268,7 +269,7 @@ namespace SINTEF.AutoActive.UI.Pages
 
             _treeMightHaveChanged = true;
 
-            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
 
             if (branchParent == null)
             {
@@ -288,9 +289,9 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        private void AddChild(IDropCollector target, BranchView branchItem)
+        private void AddChild(IDropCollector target, MovableObject branchItem)
         {
-            if (!(target is BranchView branchTarget))
+            if (!(target is MovableObject branchTarget))
             {
                 Debug.WriteLine("Illegal target");
                 return;
@@ -317,18 +318,6 @@ namespace SINTEF.AutoActive.UI.Pages
             _treeMightHaveChanged = true;
             var folder = new TemporaryFolder("New Folder");
             SavingTree.Tree.Children.Add(folder);
-        }
-
-        private void AddDataFolderClicked(object sender, EventArgs e)
-        {
-            _treeMightHaveChanged = true;
-            //var dataFolder = new TemporaryDataTable("New Data table");
-            //SavingTree.Tree.Children.Add(dataFolder);
-        }
-
-        private void AddVideoFolderClicked(object sender, EventArgs e)
-        {
-            _treeMightHaveChanged = true;
         }
 
         private async void SaveButtonClicked(object sender, EventArgs e)
@@ -857,4 +846,6 @@ namespace SINTEF.AutoActive.UI.Pages
             return true;
         }
     }
+
+
 }
