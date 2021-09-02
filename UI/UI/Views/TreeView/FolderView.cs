@@ -1,6 +1,9 @@
 ﻿using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Archive.Plugin;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Interfaces;
 using System;
 using System.Collections.ObjectModel;
@@ -46,7 +49,6 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override MovableObject CreateChildElement(VisualizedStructure element)
         {
-
             if (element.DataStructure != null)
             {
                 if (element.DataStructure.GetType() == typeof(TemporaryDataTable))
@@ -56,6 +58,18 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 else if (element.DataStructure.GetType() == typeof(TemporaryVideoArchive))
                 {
                     return new VideoFolderView { ParentTree = ParentTree, Element = element};
+                }
+                else if (element.Children.Count != 0)
+                {
+                    var childDataPoint = element.Children[0].DataPoint;
+                    if (childDataPoint is Databus.Implementations.TabularStructure.TableColumn)
+                    {
+                        return new DataFolderView { ParentTree = ParentTree, Element = element };
+                    }
+                    else
+                    {
+                        return new VideoFolderView { ParentTree = ParentTree, Element = element };
+                    }
                 }
                 else
                 {
