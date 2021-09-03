@@ -52,18 +52,36 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
+            DataPointView itemView;
+
+            try
+            {
+                itemView = (DataPointView)item;
+            }
+            catch (InvalidCastException)
+            {
+                throw new Exception("A Data Folder can only contain 1d signals");
+            }
+
+            if (!(itemView.Element.DataPoint is Databus.Implementations.TabularStructure.TableColumn))
+            {
+                throw new Exception("A Data Folder can only contain 1d signals");
+            }
+
+            if (this._element.Children.Count > 0)
+            {
+                if (!(this._element.Children[0].DataPoint.Time == itemView.Element.DataPoint.Time))
+                {
+                    throw new Exception("Data in the same Data Folder must reference the same timeline");
+                }
+            }
+
             ParentTree?.ObjectDroppedOn(this, item);
         }
 
         public override MovableObject CreateChildElement(VisualizedStructure element)
         {
-            if (!(element.DataPoint is Databus.Implementations.TabularStructure.TableColumn))
-            {
-                throw new Exception("A Data Folder can only contain 1d signals");
-            }
-
             return new DataPointView { ParentTree = ParentTree, Element = element };
-
         }
 
     }

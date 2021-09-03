@@ -20,7 +20,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
-            throw new Exception("You can not add a folder to data");
+            throw new Exception("You can not add anything to a datapoint");
         }
 
         public override MovableObject CreateChildElement(VisualizedStructure element)

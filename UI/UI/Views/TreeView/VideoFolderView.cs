@@ -46,23 +46,33 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
+            DataPointView itemView;
+
+            try
+            {
+                itemView = (DataPointView)item;
+            }
+            catch (InvalidCastException)
+            {
+                throw new Exception("A Video Folder can only contain a video");
+            }
+
+            if (!(itemView.Element.DataPoint is ArchiveVideoVideo))
+            {
+                throw new Exception("A Video Folder can only contain a video");
+            }
+
+            if (this._element.Children.Count >= 1)
+            {
+                throw new Exception("A Video Folder can only contain a single video");
+            }
+
             ParentTree?.ObjectDroppedOn(this, item);
         }
 
         public override MovableObject CreateChildElement(VisualizedStructure element)
         {
-            if (this._element.Children.Count >= 1)
-            {
-                throw new Exception("A video folder can only contain a single video");
-            }
-
-            if (!(element.DataPoint is ArchiveVideoVideo))
-            {
-                throw new Exception("A video folder can only contain a video");
-            }
-
             return new DataPointView { ParentTree = ParentTree, Element = element };
-
         }
 
     }
