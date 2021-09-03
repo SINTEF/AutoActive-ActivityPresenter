@@ -16,7 +16,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
     public abstract partial class MovableObject : ContentView, IDropCollector, IDraggable
     {
         private const double MarginPerLevel = 15.0d;
-        private VisualizedStructure _element;
+        protected VisualizedStructure _element;
 
         public MovableObject()
         {

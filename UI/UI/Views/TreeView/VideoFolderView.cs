@@ -1,6 +1,7 @@
 ﻿using ICSharpCode.SharpZipLib.Zip;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Interfaces;
 using System;
@@ -125,27 +126,31 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public async Task<bool> WriteData(JObject root, ISessionWriter writer)
         {
-            if (_dataPoints.Count != 1)
+
+            Stream stream;
+            string fileId;
+            ArchiveVideoVideo video = (ArchiveVideoVideo)_dataPoints[0];
+            (IReadSeekStreamFactory readerFactory, string _) = video.GetStreamFactory();
+
+            if (readerFactory == null)
             {
-                throw new Exception("There must be exactly on video in the Video Folder");
+                Archive.Archive archive = video.Archive;
+                ZipEntry zipEntry = archive.FindFile(video.URI);
+                stream = await archive.OpenFile(zipEntry);
+            }
+            else
+            {
+                stream = await readerFactory.GetReadStream();
             }
 
-            ArchiveVideoVideo video = (ArchiveVideoVideo)_dataPoints[0];
-            Archive.Archive archive = video.Archive;
-            Stream stream;
-            string fileId = "/videos" + "/" + Name + "." + Guid.NewGuid();
 
-            ZipEntry zipEntry = archive.FindFile(video.URI);
-            stream = await archive.OpenFile(zipEntry);
-
-
+            fileId = "/videos" + "/" + Name + "." + Guid.NewGuid();
             writer.StoreFileId(stream, fileId);
             Meta["attachments"] = new JArray(new object[] { fileId });
             Meta["type"] = "no.sintef.video";
             root["meta"] = Meta;
             root["user"] = User;
 
-            // Overwrite potentially changed
             root["meta"]["start_time"] = video.VideoTime.Offset;
             root["meta"]["video_length"] = video.VideoTime.VideoLength;
 
