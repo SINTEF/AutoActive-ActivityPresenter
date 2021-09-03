@@ -66,9 +66,13 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                     {
                         return new DataFolderView { ParentTree = ParentTree, Element = element };
                     }
-                    else
+                    else if (childDataPoint is ArchiveVideoVideo)
                     {
                         return new VideoFolderView { ParentTree = ParentTree, Element = element };
+                    }
+                    else
+                    {
+                        return new FolderView { ParentTree = ParentTree, Element = element };
                     }
                 }
                 else
