@@ -57,7 +57,13 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override MovableObject CreateChildElement(VisualizedStructure element)
         {
+            if (!(element.DataPoint is Databus.Implementations.TabularStructure.TableColumn))
+            {
+                throw new Exception("A Data Folder can only contain 1d signals");
+            }
+
             return new DataPointView { ParentTree = ParentTree, Element = element };
+
         }
 
     }
