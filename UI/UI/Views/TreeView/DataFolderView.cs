@@ -27,8 +27,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
-            throw new NotImplementedException();
-            //ParentTree?.ObjectDroppedOn(this, item);
+            return;
         }
 
         public override MovableObject CreateChildElement(VisualizedStructure element)

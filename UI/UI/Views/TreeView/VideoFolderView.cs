@@ -32,7 +32,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
-            throw new NotImplementedException();
+            return;
         }
     }
 
