@@ -89,8 +89,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _frame = null;
             }
 
-            var elWidth = ActualWidth;
-            var elHeight = ActualHeight;
+            var elWidth = _movableObject.Width;
+            var elHeight = _movableObject.Height;
 
             _frame = new Border
             {

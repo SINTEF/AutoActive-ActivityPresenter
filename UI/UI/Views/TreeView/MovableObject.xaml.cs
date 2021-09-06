@@ -25,6 +25,8 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         }
 
         public string Name => Element.Name;
+        public double Height => OuterFrame.Height;
+        public double Width => OuterFrame.Width;
         public void setButtonSettings()
         {
             OuterFrame.BorderColor = Color.FromHex("#1D2637");
