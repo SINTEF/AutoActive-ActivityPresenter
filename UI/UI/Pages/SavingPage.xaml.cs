@@ -262,6 +262,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+
             if (parent != SavingTree)
             {
                 return;
@@ -270,6 +271,11 @@ namespace SINTEF.AutoActive.UI.Pages
             _treeMightHaveChanged = true;
 
             var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
+            if (item is DataPointView)
+            {
+                branchParent.Element.DataStructure.RemoveDataPoint(branchItem.Element.DataPoint);
+                return;
+            }
 
             if (branchParent == null)
             {
