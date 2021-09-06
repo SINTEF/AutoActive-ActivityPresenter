@@ -111,23 +111,8 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public void AddDataPoint(IDataPoint dataPoint)
         {
-            if (_dataPoints.Count == 0)
-            {
                 _dataPoints.Add(dataPoint);
                 DataPointAdded?.Invoke(this, dataPoint);
-                return;
-            }
-
-            if (_dataPoints.First().Time.Equals(dataPoint.Time))
-            {
-                _dataPoints.Add(dataPoint);
-                DataPointAdded?.Invoke(this, dataPoint);
-                return;
-            }
-            else
-            {
-                throw new Exception("Columns in table must reference the same timeline");
-            }
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint)

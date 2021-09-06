@@ -105,16 +105,8 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         public event DataPointRemovedHandler DataPointRemoved;
         public void AddDataPoint(IDataPoint dataPoint)
         {
-            if (_dataPoints.Count == 0)
-            {
                 _dataPoints.Add(dataPoint);
                 DataPointAdded?.Invoke(this, dataPoint);
-                return;
-            }
-            else
-            {
-                throw new Exception("A Video folder can only contain one video");
-            }
         }
 
         public void RemoveDataPoint(IDataPoint dataPoint)
