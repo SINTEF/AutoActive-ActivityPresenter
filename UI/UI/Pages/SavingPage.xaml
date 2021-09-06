@@ -60,7 +60,7 @@
                     <treeView:DataFolderViewButton x:Name="AddDataFolder" Grid.Row="3" Grid.Column="2" HorizontalOptions="End" />
                     <treeView:VideoFolderViewButton x:Name="AddVideoFolder" Grid.Row="2" Grid.Column="2" HorizontalOptions="End" />
                     <treeView:FolderViewButton x:Name="AddFolder" Grid.Row="1" Grid.Column="2" HorizontalOptions="End" />
-                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="4" x:Name="SavingTree"/>
+                    <treeView:DataTreeView Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" Grid.RowSpan="5" x:Name="SavingTree" VerticalOptions="FillAndExpand"/>
                     <Frame Grid.Row="4" Grid.Column="0" Grid.ColumnSpan="3" BorderColor="Purple" Margin="0" HorizontalOptions="End" VerticalOptions="Start" WidthRequest="60">
                         <Grid>
                             <treeView:DataTreeView x:Name="RemovalTree"  HorizontalOptions="FillAndExpand" VerticalOptions="FillAndExpand"/>
