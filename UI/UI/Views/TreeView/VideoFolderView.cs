@@ -46,13 +46,16 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
-            DataPointView itemView;
 
-            try
+            if (item is VideoFolderView videoFolderItem)
             {
-                itemView = (DataPointView)item;
+                if (videoFolderItem == this)
+                {
+                    return;
+                }
             }
-            catch (InvalidCastException)
+
+            if (!(item is DataPointView itemView))
             {
                 throw new Exception("A Video Folder can only contain a video");
             }

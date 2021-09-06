@@ -52,13 +52,16 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
-            DataPointView itemView;
 
-            try
+            if (item is DataFolderView dataFolderItem)
             {
-                itemView = (DataPointView)item;
+                if (dataFolderItem == this)
+                {
+                    return;
+                }
             }
-            catch (InvalidCastException)
+
+            if (!(item is DataPointView itemView))
             {
                 throw new Exception("A Data Folder can only contain 1d signals");
             }

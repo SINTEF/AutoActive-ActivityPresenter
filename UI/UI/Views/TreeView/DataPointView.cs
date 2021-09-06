@@ -20,6 +20,14 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public override void ObjectDroppedOn(IDraggable item)
         {
+            if (item is DataPointView dataPointItem)
+            {
+                if (dataPointItem == this)
+                {
+                    return;
+                }
+            }
+
             throw new Exception("You can not add anything to a datapoint");
         }
 
