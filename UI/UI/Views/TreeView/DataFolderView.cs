@@ -11,6 +11,7 @@ using System.Collections.ObjectModel;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Views.TreeView
 {
@@ -22,6 +23,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             Element = new VisualizedStructure(new TemporaryDataTable("Add Data Folder"));
             setButtonSettings();
+            this.ButtonColor = Color.DarkBlue;
         }
 
 
@@ -46,7 +48,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public DataFolderView(): base()
         {
-
+            this.ButtonColor = Color.DarkBlue;
         }
 
         public override void ObjectDroppedOn(IDraggable item)

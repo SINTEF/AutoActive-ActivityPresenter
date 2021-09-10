@@ -18,6 +18,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         {
             Element = new VisualizedStructure(new TemporaryVideoArchive("Add Video Folder"));
             setButtonSettings();
+            this.ButtonColor = Color.DarkRed;
         }
 
         public override MovableObject CreateChildElement(VisualizedStructure element)
@@ -41,7 +42,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
         public VideoFolderView(): base()
         {
-
+            this.ButtonColor = Color.DarkRed;
         }
 
         public override void ObjectDroppedOn(IDraggable item)

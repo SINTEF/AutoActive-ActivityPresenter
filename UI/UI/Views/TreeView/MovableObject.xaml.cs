@@ -27,6 +27,15 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         public string Name => Element.Name;
         public double Height => OuterFrame.Height;
         public double Width => OuterFrame.Width;
+
+        protected Color ButtonColor
+        {
+            set
+            {
+                BranchButton.BackgroundColor = value;
+            }
+        }
+
         public void setButtonSettings()
         {
             OuterFrame.BorderColor = Color.FromHex("#1D2637");
@@ -66,10 +75,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
                 _element.OnExpandChanged += BranchOnOnExpandChanged;
                 UpdateExpandedName();
-                if (!IsClickable())
-                {
-                        BranchButton.BackgroundColor = Color.FromHex("#23A2B1");
-                }
+
             }
         }
 
