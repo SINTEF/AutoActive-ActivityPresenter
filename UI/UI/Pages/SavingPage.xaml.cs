@@ -195,7 +195,7 @@ namespace SINTEF.AutoActive.UI.Pages
             target.Tree.Children.Add(branchItem.Element.DataStructure);
         }
 
-        private void SavingTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector target, IDraggable item) args)
+        private async void SavingTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector target, IDraggable item) args)
         {
             var (parent, target, item) = args;
 
@@ -236,14 +236,14 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            if (branchItem.Element.DataStructure != null)
+            if (branchItem is FolderView)
             {
                 SavingTree.Tree.Children.Add(branchItem.Element.DataStructure);
             }
             else
             {
-                var dataItemParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
-                SavingTree.Tree.Children.Add(dataItemParent.Element.DataStructure);
+                await XamarinHelpers.ShowOkMessage("Error", $"First element in tree must be a Folder");
+                return;
             }
         }
 
