@@ -42,11 +42,12 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         {
 
         }
-        public override void ObjectDroppedOn(IDraggable item)
+        public async override void ObjectDroppedOn(IDraggable item)
         {
             if (item is DataPointView)
             {
-                throw new Exception("A Folder can only contain another folder, data folder or a video folder");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Folder can only contain another folder, data folder or a video folder");
+                return;
             }
 
             ParentTree?.ObjectDroppedOn(this, item);

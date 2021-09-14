@@ -48,7 +48,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             }
         }
 
-        private void TreeOnChildElementChanged(object sender, NotifyCollectionChangedEventArgs e)
+        private async void TreeOnChildElementChanged(object sender, NotifyCollectionChangedEventArgs e)
         {
             if (e.Action == NotifyCollectionChangedAction.Move)
             {
@@ -61,7 +61,10 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 foreach (var item in e.OldItems)
                 {
                     if (!(item is IDataStructure dataStructure))
-                        throw new NotImplementedException("Only data structure has been implemented");
+                    {
+                        await XamarinHelpers.ShowOkMessage("Error", $"Only adding of data has been implemented");
+                        return;
+                    }
                     RemoveStructure(dataStructure);
                 }
 
@@ -70,16 +73,22 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             if (e.Action != NotifyCollectionChangedAction.Add)
             {
-                throw new NotImplementedException("Only adding of data has been implemented");
+                await XamarinHelpers.ShowOkMessage("Error", $"Only adding of data has been implemented");
+                return;
             }
 
             foreach (var item in e.NewItems)
             {
                 if ((item is TemporaryVideoArchive) || (item is TemporaryDataTable))
-                    throw new NotImplementedException("The first folder type in a tree must be a Folder");
+                {
+                    await XamarinHelpers.ShowOkMessage("Error", $"The first folder type in a tree must be a Folder");
+                    return;
+                }
                 if (!(item is IDataStructure dataStructure))
-                    throw new NotImplementedException("Only data structure has been implemented");
-
+                {
+                    await XamarinHelpers.ShowOkMessage("Error", $"Only data structure has been implemented");
+                    return;
+                }
                 AddStructure(dataStructure);
             }
         }

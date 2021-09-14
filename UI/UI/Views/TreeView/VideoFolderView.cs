@@ -45,7 +45,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             this.ButtonColor = Color.DarkRed;
         }
 
-        public override void ObjectDroppedOn(IDraggable item)
+        public async override void ObjectDroppedOn(IDraggable item)
         {
 
             if (item is VideoFolderView videoFolderItem)
@@ -58,17 +58,20 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             if (!(item is DataPointView itemView))
             {
-                throw new Exception("A Video Folder can only contain a video");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Video Folder can only contain a video");
+                return;
             }
 
             if (!(itemView.Element.DataPoint is ArchiveVideoVideo))
             {
-                throw new Exception("A Video Folder can only contain a video");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Video Folder can only contain a video");
+                return;
             }
 
             if (this._element.Children.Count >= 1)
             {
-                throw new Exception("A Video Folder can only contain a single video");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Video Folder can only contain a single video");
+                return;
             }
 
             ParentTree?.ObjectDroppedOn(this, item);

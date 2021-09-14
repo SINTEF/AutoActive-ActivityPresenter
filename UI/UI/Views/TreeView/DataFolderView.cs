@@ -51,7 +51,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
             this.ButtonColor = Color.DarkBlue;
         }
 
-        public override void ObjectDroppedOn(IDraggable item)
+        public async override void ObjectDroppedOn(IDraggable item)
         {
 
             if (item is DataFolderView dataFolderItem)
@@ -64,19 +64,22 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             if (!(item is DataPointView itemView))
             {
-                throw new Exception("A Data Folder can only contain 1d signals");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Data Folder can only contain 1d signals");
+                return;
             }
 
             if (!(itemView.Element.DataPoint is Databus.Implementations.TabularStructure.TableColumn))
             {
-                throw new Exception("A Data Folder can only contain 1d signals");
+                await XamarinHelpers.ShowOkMessage("Error", $"A Data Folder can only contain 1d signals");
+                return;
             }
 
             if (this._element.Children.Count > 0)
             {
                 if (!(this._element.Children[0].DataPoint.Time == itemView.Element.DataPoint.Time))
                 {
-                    throw new Exception("Data in the same Data Folder must reference the same timeline");
+                    await XamarinHelpers.ShowOkMessage("Error", $"Data in the same Data Folder must reference the same timeline");
+                    return;
                 }
             }
 
