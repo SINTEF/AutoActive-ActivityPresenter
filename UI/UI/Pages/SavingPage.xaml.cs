@@ -165,16 +165,16 @@ namespace SINTEF.AutoActive.UI.Pages
             target.Element.DataStructure.Children.Add(item.Element.DataStructure);
         }
 
-        private static void MoveElementInsideTreeT(DataTreeView target, MovableObject branchItem)
+        private static async void MoveElementInsideTreeT(DataTreeView target, MovableObject branchItem)
         {
             if (target.Tree.Children.Count == 0)
             {
                 return;
             }
 
-            if (branchItem.Element.DataStructure == null)
+            if (!(branchItem is FolderView))
             {
-                Debug.Write("Can not remove datapoints, only datastructures");
+                await XamarinHelpers.ShowOkMessage("Error", $"First element in tree must be a Folder");
                 return;
             }
 
