@@ -20,7 +20,7 @@ authors:
   - name: Silje Ekroll Jahren
     affiliation: 1
   - name: Jan Kocbach
-    affiliation: 3
+    affiliation: 2
   - name: Trine M. Seeberg
     affiliation: "1, 2"
 affiliations:
