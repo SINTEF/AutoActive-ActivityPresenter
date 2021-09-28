@@ -62,7 +62,7 @@ strengths of ActivityPresenter, such as synchronising data from multiple sources
 videos and sensor data side by side to be combined with algorithms developed in Matlab and Python. 
 
 # Overview of the AutoActive Research Environment
-## Activity Presenter
+## ActivityPresenter
 
 ActivityPresenter is an easy-to-use software with a graphical user interface that can visualise, 
 synchronise, and organise data from sensors and cameras. It is developed using the Xamarin framework 
