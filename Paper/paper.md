@@ -1,5 +1,5 @@
 ---
-title: 'The AutoActive Research Enviroment'
+title: 'The AutoActive Research Environment'
 tags:
   - Visualising sensor data and videos
   - Synchronizing sensor data and videos
@@ -10,27 +10,25 @@ authors:
   - name: Sigurd Albrektsen
     affiliation: 1
   - name: Kasper Gade Bøtker Rasmussen^[Corresponding author]
-    affiliation: 2
-  - name: Anders Liverud
-    affiliation: 2
+    affiliation: 1
+  - name: Anders E. Liverud
+    affiliation: 1
   - name: Steffen Dalgard
-    affiliation: 2
+    affiliation: 1
   - name: Jakob Høgenes
-    affiliation: 2
+    affiliation: 1
   - name: Silje Ekroll Jahren
-    affiliation: 2
+    affiliation: 1
   - name: Jan Kocbach
     affiliation: 3
   - name: Trine M. Seeberg
-    affiliation: "2, 3"
+    affiliation: "1, 2"
 affiliations:
- - name: Mathematics & Cybernetics, SINTEF Digital, Trondheim, Norway
-   index: 1
  - name: Smart Sensor Systems, SINTEF Digital, Trondheim, Norway
-   index: 2
+   index: 1
  - name: Centre for Elite Sports Research, Department of Neuromedicine and Movement Science, Norwegian University of Science and Technology, Trondheim, Norway 
-   index: 3
-date: 13 August 2017
+   index: 2
+date: 28 September 2021
 bibliography: paper.bib
 ---
 
