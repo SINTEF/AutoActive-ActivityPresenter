@@ -1,6 +1,7 @@
 ﻿using SINTEF.AutoActive.Databus.Interfaces;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Implementations
 {
@@ -84,6 +85,11 @@ namespace SINTEF.AutoActive.Databus.Implementations
             {
                 RemoveDataPoint(datapoints[0]);
             }
+        }
+
+        public Task<bool> VerifyStructure()
+        {
+            throw new System.NotImplementedException();
         }
 
         //TODO(sigurdal): make sure name is updated when this is changed

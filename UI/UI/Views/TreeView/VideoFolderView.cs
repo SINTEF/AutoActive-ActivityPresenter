@@ -165,6 +165,16 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             return true;
         }
+        public async Task<bool> VerifyStructure()
+        {
+            if (_dataPoints.Count == 0)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"A Video Folder must contain a video on save time");
+                return false;
+            }
+            return true;
+
+        }
     }
 
 

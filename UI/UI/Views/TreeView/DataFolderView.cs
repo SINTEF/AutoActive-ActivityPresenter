@@ -270,6 +270,17 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
             return Task.FromResult(true);
         }
+
+        public async Task<bool> VerifyStructure()
+        {
+            if (_dataPoints.Count == 0)
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"A Data Folder must contain a datapoint on save time");
+                return false;
+            }
+            return true;
+
+        }
     }
 
 

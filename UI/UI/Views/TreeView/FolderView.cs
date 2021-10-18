@@ -169,5 +169,10 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
                 return Task.FromResult(true);
         }
+
+        public async Task<bool> VerifyStructure()
+        {
+            return true;
+        }
     }
 }

@@ -356,13 +356,17 @@ namespace SINTEF.AutoActive.UI.Pages
                     return false;
                 }
 
+                if (!await VerifySessionStructure(session))
+                {
+                    return false;
+                }
+
                 var (verRet, verMsg) = VerifyChildren(session.Children);
                 if (verRet) continue;
 
                 await XamarinHelpers.ShowOkMessage("Invalid structure names", $"Sessions and data structures can't contain sibling elements with the same name ({session.Name} - {verMsg})", this);
                 return false;
             }
-
             return true;
         }
 
@@ -382,6 +386,27 @@ namespace SINTEF.AutoActive.UI.Pages
             }
 
             return (names.Count == sessionChildren.Count, string.Join(",", duplicated));
+        }
+
+        private async Task<bool> VerifySessionStructure(IDataStructure dataStructure)
+        {
+            bool saveSession = false;
+            foreach (IDataStructure childStructure in dataStructure.Children)
+            {
+                if (childStructure.Children.Count > 0)
+                {
+                    saveSession = await VerifySessionStructure(childStructure);
+                }
+                else
+                {
+                    saveSession = await childStructure.VerifyStructure();
+                    if (!saveSession)
+                    {
+                        return saveSession;
+                    }
+                }
+            }
+            return saveSession;
         }
 
 
