@@ -390,9 +390,14 @@ namespace SINTEF.AutoActive.UI.Pages
 
         private async Task<bool> VerifySessionStructure(IDataStructure dataStructure)
         {
-            bool saveSession = false;
+            bool saveSession = true;
             foreach (IDataStructure childStructure in dataStructure.Children)
             {
+                if (!saveSession)
+                {
+                    return saveSession;
+                }
+
                 if (childStructure.Children.Count > 0)
                 {
                     saveSession = await VerifySessionStructure(childStructure);
@@ -400,10 +405,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 else
                 {
                     saveSession = await childStructure.VerifyStructure();
-                    if (!saveSession)
-                    {
-                        return saveSession;
-                    }
+
                 }
             }
             return saveSession;
