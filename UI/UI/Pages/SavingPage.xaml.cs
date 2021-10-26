@@ -229,8 +229,11 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+
+
             if (target != SavingTree)
             {
+
                 AddChild(target, branchItem);
 
                 return;
@@ -247,7 +250,7 @@ namespace SINTEF.AutoActive.UI.Pages
             }
         }
 
-        private void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
+        private async void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
         {
             var (parent, target, item) = args;
 
@@ -289,23 +292,34 @@ namespace SINTEF.AutoActive.UI.Pages
 
                 dataTreeView.Tree.Children.Remove(branchItem.Element.DataStructure);
             }
-            else
+            else if (branchParent.Element.DataStructure is ITemporary)
             {
                 branchParent.Element.DataStructure.RemoveChild(branchItem.Element.DataStructure);
             }
+            else
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"To delete a single element the parent must be a temporary folder");
+                return;
+            }
         }
 
-        private void AddChild(IDropCollector target, MovableObject branchItem)
+        private async void AddChild(IDropCollector target, MovableObject branchItem)
         {
             if (!(target is MovableObject branchTarget))
             {
-                Debug.WriteLine("Illegal target");
+                await XamarinHelpers.ShowOkMessage("Error", "Illegal target");
                 return;
             }
 
             if (!(branchTarget.Element.DataStructure is IDataStructure structure))
             {
-                Debug.WriteLine("Illegal target (must be DataStructure)");
+                await XamarinHelpers.ShowOkMessage("Error", "Illegal target (must be DataStructure)");
+                return;
+            }
+
+            if (!(branchTarget.Element.DataStructure is ITemporary))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element the parent must be a temporary folder");
                 return;
             }
 

@@ -84,7 +84,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
     }
 
-    internal class TemporaryVideoArchive : ISaveable, IDataStructure
+    internal class TemporaryVideoArchive : ISaveable, IDataStructure, ITemporary
     {
         public TemporaryVideoArchive(string name)
         {

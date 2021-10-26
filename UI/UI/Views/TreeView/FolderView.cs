@@ -1,8 +1,6 @@
 ﻿using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Archive.Plugin;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
-using SINTEF.AutoActive.Plugins.ArchivePlugins.Table;
 using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
 using SINTEF.AutoActive.UI.Interfaces;
 using System;
@@ -94,7 +92,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         }
     }
 
-    internal class TemporaryFolder : IDataStructure, ISaveable
+    internal class TemporaryFolder : IDataStructure, ISaveable, ITemporary
     {
         public TemporaryFolder(string name)
         {

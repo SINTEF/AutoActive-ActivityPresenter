@@ -93,7 +93,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
 
     }
 
-    internal class TemporaryDataTable : IDataStructure, ISaveable
+    internal class TemporaryDataTable : IDataStructure, ISaveable, ITemporary
     {
 
         public TemporaryDataTable(string name)
