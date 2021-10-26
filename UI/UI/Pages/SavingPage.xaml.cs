@@ -125,7 +125,7 @@ namespace SINTEF.AutoActive.UI.Pages
             return false;
         }
 
-        private static void MoveElementInsideTree(MovableObject target, MovableObject item)
+        private async static void MoveElementInsideTree(MovableObject target, MovableObject item)
         {
             if (target.Element.DataPoint != null || item.Element.DataPoint != null)
             {
@@ -136,6 +136,12 @@ namespace SINTEF.AutoActive.UI.Pages
             if (IsOwnParent(target, item))
             {
                 Debug.WriteLine("You shouldn't become your own grandmother.");
+                return;
+            }
+
+            if (!(target.Element.DataStructure is ITemporary))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element the parent must be a temporary folder");
                 return;
             }
 
