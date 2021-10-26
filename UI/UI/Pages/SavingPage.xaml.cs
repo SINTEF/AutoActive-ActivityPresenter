@@ -125,19 +125,38 @@ namespace SINTEF.AutoActive.UI.Pages
             return false;
         }
 
+        private static bool IsParentTemporaryFolderOrNull(MovableObject item)
+        {
+
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(item.Parent);
+            if (branchParent == null)
+            {
+                return true;
+            }
+
+            if (branchParent.Element.DataStructure is ITemporary)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
         private async static void MoveElementInsideTree(MovableObject target, MovableObject item)
         {
-            if (target.Element.DataPoint != null || item.Element.DataPoint != null)
-            {
-                Debug.WriteLine("Reordering of data points not implemented yet");
-                return;
-            }
 
             if (IsOwnParent(target, item))
             {
                 Debug.WriteLine("You shouldn't become your own grandmother.");
                 return;
             }
+
+            if (!(IsParentTemporaryFolderOrNull(item)))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element from one folder to another in the savingtree, the original folder must be a temporary folder");
+                return;
+            }
+
 
             if (!(target.Element.DataStructure is ITemporary))
             {
@@ -268,6 +287,12 @@ namespace SINTEF.AutoActive.UI.Pages
             if (!(item is MovableObject branchItem))
             {
                 Debug.WriteLine($"Unknown dragged item: {item}");
+                return;
+            }
+
+            if (!(IsParentTemporaryFolderOrNull(branchItem)))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To delte an element from one folder, the folder must be a temporary folder");
                 return;
             }
 
