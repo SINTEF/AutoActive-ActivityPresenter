@@ -15,6 +15,13 @@ using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
+using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Plugins.Import;
+using Parquet.Data;
+using System.IO;
+using SINTEF.AutoActive.Plugins.ArchivePlugins.Video;
+using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
+using ICSharpCode.SharpZipLib.Zip;
 
 namespace SINTEF.AutoActive.UI.Pages
 {
@@ -105,30 +112,55 @@ namespace SINTEF.AutoActive.UI.Pages
             return ExitShouldBeInterrupted(ret, async () => await Navigation.PopAsync());
         }
 
-        private static bool IsOwnParent(BranchView target, BranchView item)
+        private static bool IsOwnParent(MovableObject target, MovableObject item)
         {
-            var parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(target.Parent);
+            var parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(target.Parent);
             while (parent != null)
             {
                 if (parent == item)
                     return true;
-                parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(parent.Parent);
+                parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(parent.Parent);
             }
 
             return false;
         }
 
-        private static void MoveElementInsideTree(BranchView target, BranchView item)
+        private static bool IsParentTemporaryFolderOrNull(MovableObject item)
         {
-            if (target.Element.DataPoint != null || item.Element.DataPoint != null)
+
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(item.Parent);
+            if (branchParent == null)
             {
-                Debug.WriteLine("Reordering of data points not implemented yet");
-                return;
+                return true;
             }
+
+            if (branchParent.Element.DataStructure is ITemporary)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private async static void MoveElementInsideTree(MovableObject target, MovableObject item)
+        {
 
             if (IsOwnParent(target, item))
             {
                 Debug.WriteLine("You shouldn't become your own grandmother.");
+                return;
+            }
+
+            if (!(IsParentTemporaryFolderOrNull(item)))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element from one folder to another in the savingtree, the original folder must be a temporary folder");
+                return;
+            }
+
+
+            if (!(target.Element.DataStructure is ITemporary))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element the parent must be a temporary folder");
                 return;
             }
 
@@ -141,7 +173,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            var parent = XamarinHelpers.GetTypedElementFromParents<BranchView>(item.Parent);
+            var parent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(item.Parent);
             if (parent != null)
             {
                 parent.Element.DataStructure.Children.Remove(item.Element.DataStructure);
@@ -158,16 +190,16 @@ namespace SINTEF.AutoActive.UI.Pages
             target.Element.DataStructure.Children.Add(item.Element.DataStructure);
         }
 
-        private static void MoveElementInsideTree(DataTreeView target, BranchView branchItem)
+        private static async void MoveElementInsideTreeT(DataTreeView target, MovableObject branchItem)
         {
             if (target.Tree.Children.Count == 0)
             {
                 return;
             }
 
-            if (branchItem.Element.DataStructure == null)
+            if (!(branchItem is FolderView))
             {
-                Debug.Write("Can not remove datapoints, only datastructures");
+                await XamarinHelpers.ShowOkMessage("Error", $"First element in tree must be a Folder");
                 return;
             }
 
@@ -183,12 +215,12 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
             branchParent.Element.DataStructure.Children.Remove(branchItem.Element.DataStructure);
             target.Tree.Children.Add(branchItem.Element.DataStructure);
         }
 
-        private void SavingTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector target, IDraggable item) args)
+        private async void SavingTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector target, IDraggable item) args)
         {
             var (parent, target, item) = args;
 
@@ -197,7 +229,7 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            if (!(item is BranchView branchItem))
+            if (!(item is MovableObject branchItem))
             {
                 Debug.WriteLine($"Unknown dragged item: {item}");
                 return;
@@ -209,11 +241,11 @@ namespace SINTEF.AutoActive.UI.Pages
             {
                 if (target == SavingTree)
                 {
-                    MoveElementInsideTree(SavingTree, branchItem);
+                    MoveElementInsideTreeT(SavingTree, branchItem);
                     return;
                 }
 
-                if (!(target is BranchView branchTarget))
+                if (!(target is MovableObject branchTarget))
                 {
                     Debug.WriteLine($"Unknown target {target}");
                     return;
@@ -222,24 +254,28 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
+
+
             if (target != SavingTree)
             {
+
                 AddChild(target, branchItem);
+
                 return;
             }
 
-            if (branchItem.Element.DataStructure != null)
+            if (branchItem is FolderView)
             {
                 SavingTree.Tree.Children.Add(branchItem.Element.DataStructure);
             }
             else
             {
-                var dataItemParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
-                SavingTree.Tree.Children.Add(dataItemParent.Element.DataStructure);
+                await XamarinHelpers.ShowOkMessage("Error", $"First element in tree must be a Folder");
+                return;
             }
         }
 
-        private void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
+        private async void RemovalTreeOnItemDroppedOn(object sender, (DataTreeView parent, IDropCollector container, IDraggable item) args)
         {
             var (parent, target, item) = args;
 
@@ -248,11 +284,18 @@ namespace SINTEF.AutoActive.UI.Pages
                 return;
             }
 
-            if (!(item is BranchView branchItem))
+            if (!(item is MovableObject branchItem))
             {
                 Debug.WriteLine($"Unknown dragged item: {item}");
                 return;
             }
+
+            if (!(IsParentTemporaryFolderOrNull(branchItem)))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To delte an element from one folder, the folder must be a temporary folder");
+                return;
+            }
+
 
             if (parent != SavingTree)
             {
@@ -261,7 +304,12 @@ namespace SINTEF.AutoActive.UI.Pages
 
             _treeMightHaveChanged = true;
 
-            var branchParent = XamarinHelpers.GetTypedElementFromParents<BranchView>(branchItem.Parent);
+            var branchParent = XamarinHelpers.GetTypedElementFromParents<MovableObject>(branchItem.Parent);
+            if (item is DataPointView)
+            {
+                branchParent.Element.DataStructure.RemoveDataPoint(branchItem.Element.DataPoint);
+                return;
+            }
 
             if (branchParent == null)
             {
@@ -275,23 +323,34 @@ namespace SINTEF.AutoActive.UI.Pages
 
                 dataTreeView.Tree.Children.Remove(branchItem.Element.DataStructure);
             }
-            else
+            else if (branchParent.Element.DataStructure is ITemporary)
             {
                 branchParent.Element.DataStructure.RemoveChild(branchItem.Element.DataStructure);
             }
+            else
+            {
+                await XamarinHelpers.ShowOkMessage("Error", $"To delete a single element the parent must be a temporary folder");
+                return;
+            }
         }
 
-        private void AddChild(IDropCollector target, BranchView branchItem)
+        private async void AddChild(IDropCollector target, MovableObject branchItem)
         {
-            if (!(target is BranchView branchTarget))
+            if (!(target is MovableObject branchTarget))
             {
-                Debug.WriteLine("Illegal target");
+                await XamarinHelpers.ShowOkMessage("Error", "Illegal target");
                 return;
             }
 
             if (!(branchTarget.Element.DataStructure is IDataStructure structure))
             {
-                Debug.WriteLine("Illegal target (must be DataStructure)");
+                await XamarinHelpers.ShowOkMessage("Error", "Illegal target (must be DataStructure)");
+                return;
+            }
+
+            if (!(branchTarget.Element.DataStructure is ITemporary))
+            {
+                await XamarinHelpers.ShowOkMessage("Error", "To add an element the parent must be a temporary folder");
                 return;
             }
 
@@ -342,15 +401,20 @@ namespace SINTEF.AutoActive.UI.Pages
                     return false;
                 }
 
+                if (!await VerifySessionStructure(session))
+                {
+                    return false;
+                }
+
                 var (verRet, verMsg) = VerifyChildren(session.Children);
                 if (verRet) continue;
 
                 await XamarinHelpers.ShowOkMessage("Invalid structure names", $"Sessions and data structures can't contain sibling elements with the same name ({session.Name} - {verMsg})", this);
                 return false;
             }
-
             return true;
         }
+
 
         private (bool, string) VerifyChildren(ObservableCollection<IDataStructure> sessionChildren)
         {
@@ -358,6 +422,7 @@ namespace SINTEF.AutoActive.UI.Pages
             var duplicated = new HashSet<string>();
             foreach(var child in sessionChildren)
             {
+
                 if (string.IsNullOrWhiteSpace(child.Name)) return (false, "empty name");
                 if (!names.Add(child.Name))
                 {
@@ -367,6 +432,30 @@ namespace SINTEF.AutoActive.UI.Pages
 
             return (names.Count == sessionChildren.Count, string.Join(",", duplicated));
         }
+
+        private async Task<bool> VerifySessionStructure(IDataStructure dataStructure)
+        {
+            bool saveSession = true;
+            foreach (IDataStructure childStructure in dataStructure.Children)
+            {
+                if (!saveSession)
+                {
+                    return saveSession;
+                }
+
+                if (childStructure.Children.Count > 0)
+                {
+                    saveSession = await VerifySessionStructure(childStructure);
+                }
+                else
+                {
+                    saveSession = await childStructure.VerifyStructure();
+
+                }
+            }
+            return saveSession;
+        }
+
 
         private void AddAllClicked(object sender, EventArgs e)
         {
@@ -513,81 +602,7 @@ namespace SINTEF.AutoActive.UI.Pages
         }
     }
 
-    internal class TemporaryFolder : IDataStructure, ISaveable
-    {
-        public TemporaryFolder(string name)
-        {
-            Name = name;
-            Children.CollectionChanged += ChildrenOnCollectionChanged;
-        }
 
-        private void ChildrenOnCollectionChanged(object sender, NotifyCollectionChangedEventArgs e)
-        {
-            if (e.Action == NotifyCollectionChangedAction.Add)
-            {
-                foreach (var it in e.NewItems)
-                {
-                    if(it is IDataStructure dataStructure)
-                        ChildAdded?.Invoke(this, dataStructure);
-                }
 
-            } else if (e.Action == NotifyCollectionChangedAction.Remove)
-            {
-                foreach (var it in e.OldItems)
-                {
-                    if (it is IDataStructure dataStructure)
-                        ChildRemoved?.Invoke(this, dataStructure);
-                }
-            }
-        }
 
-        public string Name { get; set; }
-        public void Close()
-        {
-        }
-
-        public ObservableCollection<IDataStructure> Children { get; } = new ObservableCollection<IDataStructure>();
-
-        public event DataStructureAddedHandler ChildAdded;
-        public event DataStructureRemovedHandler ChildRemoved;
-
-        public void AddChild(IDataStructure item)
-        {
-            Children.Add(item);
-        }
-
-        public void RemoveChild(IDataStructure item)
-        {
-            Children.Remove(item);
-        }
-
-        private readonly ObservableCollection<IDataPoint> _dataPoints = new ObservableCollection<IDataPoint>();
-        public ObservableCollection<IDataPoint> DataPoints => _dataPoints;
-        public event DataPointAddedHandler DataPointAdded;
-        public event DataPointRemovedHandler DataPointRemoved;
-
-        public void AddDataPoint(IDataPoint dataPoint)
-        {
-            _dataPoints.Add(dataPoint);
-            DataPointAdded?.Invoke(this, dataPoint);
-        }
-
-        public void RemoveDataPoint(IDataPoint dataPoint)
-        {
-            _dataPoints.Remove(dataPoint);
-            DataPointRemoved?.Invoke(this, dataPoint);
-        }
-
-        public bool IsSaved { get; }
-        public Task<bool> WriteData(JObject root, ISessionWriter writer)
-        {
-            root["meta"] = new JObject
-            {
-                ["type"] = ArchiveFolder.PluginType
-            };
-            root["user"] = new JObject();
-
-            return Task.FromResult(true);
-        }
-    }
 }

@@ -115,6 +115,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         private readonly ZipEntry _zipEntry;
         private readonly Archive.Archive _archive;
 
+        public Archive.Archive Archive { get => _archive; }
+
         public string URI { get; }
         public Type DataType => typeof(ArchiveVideoVideo);
         public string Name { get; set; }
