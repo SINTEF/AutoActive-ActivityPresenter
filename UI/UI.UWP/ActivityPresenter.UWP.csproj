@@ -21,10 +21,10 @@
     </PackageCertificateKeyFile>
     <GenerateAppInstallerFile>False</GenerateAppInstallerFile>
     <AppxAutoIncrementPackageRevision>False</AppxAutoIncrementPackageRevision>
-    <AppxPackageDir>C:\AutoActive\Microsoft Store\</AppxPackageDir>
+    <AppxPackageDir>C:\temp\AutoActive\Microsoft Store\</AppxPackageDir>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>5685D01C879B9D94580FA979B6C4A41903CCC477</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>327065F180FA8263DE200234C25CA7191CCC63EC</PackageCertificateThumbprint>
     <AppInstallerUpdateFrequency>0</AppInstallerUpdateFrequency>
     <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
@@ -194,8 +194,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <EmbeddedResource Include="Assets\AutoActive-logo.png" />
-    <None Include="ActivityPilot_5685D01C879B9D94580FA979B6C4A41903CCC477.pfx" />
-    <None Include="ActivityPresenter.UWP_TemporaryKey.pfx" />
+    <None Include="AA_327065F180FA8263DE200234C25CA7191CCC63EC.pfx" />
     <None Include="Package.StoreAssociation.xml" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
@@ -255,9 +254,6 @@
       <Project>{49095D3F-92C6-40C6-87E6-27FC06E493EF}</Project>
       <Name>UI</Name>
     </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="UI.UWP_TemporaryKey.pfx" />
   </ItemGroup>
   <PropertyGroup Condition=" '$(VisualStudioVersion)' == '' or '$(VisualStudioVersion)' &lt; '14.0' ">
     <VisualStudioVersion>14.0</VisualStudioVersion>
