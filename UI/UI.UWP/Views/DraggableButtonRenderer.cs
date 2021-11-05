@@ -10,18 +10,15 @@ using Windows.UI.Xaml.Input;
 using Windows.UI.Xaml.Media;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.UWP.Views;
-using SINTEF.AutoActive.UI.Views.TreeView;
+using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using Xamarin.Forms.Platform.UWP;
 
-//Branch view is a tree view used on Save Page
-//--------------------------------------------
-
-[assembly: ExportRenderer(typeof(BranchView), typeof(BranchViewRenderer))]
+[assembly: ExportRenderer(typeof(DraggableButton), typeof(DraggableButtonRenderer))]
 namespace SINTEF.AutoActive.UI.UWP.Views
 {
-    internal class BranchViewRenderer : ViewRenderer<BranchView, Panel>, IDropCollector
+    class DraggableButtonRenderer : ViewRenderer<DraggableButton, Panel>, IDropCollector
     {
-        private BranchView _branchView;
+        private DraggableButton _draggableButton;
         private Border _frame;
         private Point _elementStartPoint;
         private Point _startPoint;
@@ -30,7 +27,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
         //public static bool ListHits;
         private Page _page;
         private Page CurrentPage => _page ?? (_page = GetCurrentPage(this));
-
         private Panel _mainContainer;
         private Panel MainContainer
         {
@@ -42,19 +38,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
                 return _mainContainer;
             }
-        }
-
-        protected override void OnElementChanged(ElementChangedEventArgs<BranchView> e)
-        {
-            base.OnElementChanged(e);
-
-            if (e.NewElement is BranchView branchView)
-                _branchView = branchView;
-
-            ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
-            ManipulationStarted += ControlOnManipulationStarted;
-            ManipulationCompleted += ControlOnManipulationCompleted;
-            ManipulationDelta += ControlOnManipulationDelta;
         }
 
         private static Page GetCurrentPage(FrameworkElement current)
@@ -72,16 +55,29 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             return null;
         }
 
-        private const double ElementOffset = 0;
+        protected override void OnElementChanged(ElementChangedEventArgs<DraggableButton> e)
+        {
+            base.OnElementChanged(e);
 
+            if (e.NewElement is DraggableButton draggableButton)
+                _draggableButton = draggableButton;
+
+            ManipulationMode = ManipulationModes.TranslateX | ManipulationModes.TranslateY;
+            ManipulationStarted += ControlOnManipulationStarted;
+            ManipulationDelta += ControlOnManipulationDelta;
+            ManipulationCompleted += ControlOnManipulationCompleted;
+
+        }
+
+        public void ObjectDroppedOn(IDraggable item)
+        {
+
+        }
+
+        private const double ElementOffset = 0;
         private void ControlOnManipulationStarted(object sender, ManipulationStartedRoutedEventArgs e)
         {
             e.Handled = true;
-            if (_frame != null)
-            {
-                MainContainer.Children.Remove(_frame);
-                _frame = null;
-            }
 
             var elWidth = ActualWidth;
             var elHeight = ActualHeight;
@@ -90,7 +86,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             {
                 Child = new TextBlock
                 {
-                    Text = _branchView?.Name ?? " - ",
+                    Text = "Test",
                     HorizontalAlignment = HorizontalAlignment.Center,
                     VerticalAlignment = VerticalAlignment.Center
                 },
@@ -113,7 +109,6 @@ namespace SINTEF.AutoActive.UI.UWP.Views
 
             MainContainer.Children.Add(_frame);
         }
-
         private void ControlOnManipulationDelta(object sender, ManipulationDeltaRoutedEventArgs e)
         {
             e.Handled = true;
@@ -130,7 +125,7 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             var y = _elementStartPoint.Y + dy;
             try
             {
-                _frame.Translation = new Vector3((float) x, (float) y, 0);
+                _frame.Translation = new Vector3((float)x, (float)y, 0);
             }
             catch (InvalidCastException)
             {
@@ -157,44 +152,13 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             {
                 if (!(element is IDropCollector dropCollector)) continue;
 
-                dropCollector.ObjectDroppedOn(_branchView);
+                dropCollector.ObjectDroppedOn(_draggableButton);
                 return;
             }
             return;
-            /*          Debug code, not in use
-                        if (!ListHits) return;
 
-            #if !DEBUG
-                        return;
-            #endif
-                        Debug.WriteLine("Found elements:");
-                        foreach (var element in elements)
-                        {
-                            if (element is IDropCollector dropCollector)
-                            {
-                                dropCollector.ObjectDroppedOn(_branchView);
-                            }
-
-                            if (!(element is FrameworkElement frameworkElement))
-                            {
-                                Debug.WriteLine($"  {element.GetType().Name}");
-                                continue;
-                            }
-
-                            if (frameworkElement is Button button)
-                            {
-                                Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name} - {button.Content}");
-                                continue;
-                            }
-                            Debug.WriteLine($"  {element.GetType().Name} -> {frameworkElement.Name}");
-                        }
-                        Debug.WriteLine("");
-            */
         }
 
-        public void ObjectDroppedOn(IDraggable item)
-        {
-            _branchView.ObjectDroppedOn(item);
-        }
+
     }
 }

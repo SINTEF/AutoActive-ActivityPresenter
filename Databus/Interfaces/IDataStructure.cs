@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
@@ -26,6 +27,8 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         event DataStructureRemovedHandler ChildRemoved;
         void AddChild(IDataStructure dataStructure);
         void RemoveChild(IDataStructure dataStructure);
+
+        Task<bool> VerifyStructure();
 
         ObservableCollection<IDataPoint> DataPoints { get; }
 

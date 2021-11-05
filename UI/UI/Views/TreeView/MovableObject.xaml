@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<ContentView xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:d="http://xamarin.com/schemas/2014/forms/design"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:treeVisualizer="clr-namespace:TreeVisualizer;assembly=SINTEF.AutoActive.UI"
+             mc:Ignorable="d"
+             x:Class="SINTEF.AutoActive.UI.Views.TreeView.MovableObject">
+  <ContentView.Content>
+      <StackLayout>
+            <StackLayout Orientation="Vertical" Spacing="0" Margin="0" Padding="0">
+                <Frame x:Name="OuterFrame" BorderColor="Blue" CornerRadius="4" Padding="2" Margin="0"  HorizontalOptions="Start" MinimumHeightRequest="10" >
+                    <StackLayout x:Name="SpaceBetweenFrameAndButton" Orientation="Horizontal" HorizontalOptions="FillAndExpand"  Padding="2" Margin="4" Spacing="4">
+                        <Button x:Name="ExpandButton" Text="+" HorizontalOptions="Start" VerticalOptions="Center" Clicked="ExpandButton_OnClicked" Margin="0" Padding="5" TextColor="White" BackgroundColor="#23A2B1"/>
+                        <treeVisualizer:MultiButton x:Name="BranchButton" Clicked="BranchButton_OnClicked" AlternateClicked="BranchButton_OnAlternateClicked" TextColor="White" BackgroundColor="#23A2B1"/>
+                        <StackLayout x:Name="NameChangeLayout" IsVisible="False" Orientation="Horizontal" Spacing="0" Margin="0" Padding="0" HorizontalOptions="FillAndExpand">
+                            <Entry x:Name="NameChangeEntry" HorizontalOptions="FillAndExpand" Completed="NameChangeEntry_OnCompleted" BackgroundColor="#23A2B1"/>
+                            <Button Text="OK" Clicked="ChangeNameButton" HorizontalOptions="End" TextColor="White" BackgroundColor="#23A2B1"/>
+                        </StackLayout>
+                    </StackLayout>
+                </Frame>
+                <StackLayout x:Name="ChildElements" Orientation="Vertical" Spacing="2" Margin="0" Padding="0" IsVisible="False"/>
+            </StackLayout>
+        </StackLayout>
+  </ContentView.Content>
+</ContentView>
