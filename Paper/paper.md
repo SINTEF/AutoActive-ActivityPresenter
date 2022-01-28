@@ -39,14 +39,14 @@ biomarkers, and vital signs. However, to fully understand the physical and physi
 the underlying processes, multiple sensors are often needed in combination with videos. Software for 
 combining, synchronizing, organising and processing sensor data from multiple sensors and videos is 
 therefore essential. Even though multiple open-source solutions like Pyomeca [@Martinez2020] and 
-ALPS [@Musmann2020] exist, existing software solutions are limited. None provide the possibility to 
+ALPS [@Musmann2020] exist and , existing software solutions are limited. None provide the possibility to 
 combine sensor data and videos, few provide tools for synchronising sensors, and none provide tools 
 for synchronising sensors with videos. Furthermore, many solutions rely on cloud storage, which is 
 often unacceptable in biomedical research. To meet these limitations, we have developed the AutoActive 
-Research Environment (ARE). The idea of ARE is to create a generic methodological framework, 
-supporting a wide range of sensors and tools that aid the development, optimisation, and evaluation of 
-algorithms to extract high-level, quantified analysis from the sensor data.  
-
+Research Environment (ARE). The idea of ARE is to create a generic methodological framework, especially 
+but not exlusivelt for the biomedical domain, supporting a wide range of sensors and tools that aid the 
+development, optimisation, and evaluation of algorithms to extract high-level, quantified analysis from 
+sensor data. 
 
 # Summary
 
