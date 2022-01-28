@@ -43,8 +43,8 @@ ALPS [@Musmann2020], existing open-sorce software solutions are limited. None pr
 combine sensor data and videos, few provide tools for synchronising sensors, and none provide tools 
 for synchronising sensors with videos. Furthermore, many solutions rely on cloud storage, which is 
 often unacceptable in biomedical research. There also exists solutions which are not limited in 
-functionality and solves many of the same problems ARE does such as SensiML Analytics Toolkit [@SensiML] 
-and Pasco Capstone Software [@PascoSoftware], but these are not open source. To meet these limitations, 
+functionality and solves many of the same problems as ARE, such as SensiML Analytics Toolkit [@SensiML] 
+and Pasco Capstone Software [@PascoSoftware], but these are not open-source. To meet these limitations, 
 we have developed the AutoActive Research Environment (ARE). The idea of ARE is to create a generic 
 open-source methodological framework, especially but not exlusivelt for the biomedical domain, supporting 
 a wide range of sensors and tools that aid the development, optimisation, and evaluation of algorithms to 
