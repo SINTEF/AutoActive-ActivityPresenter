@@ -46,9 +46,9 @@ often unacceptable in biomedical research. There also exists solutions which are
 functionality and solves many of the same problems as ARE, such as SensiML Analytics Toolkit [@SensiML] 
 and Pasco Capstone Software [@PascoSoftware], but these are not open-source. To meet these limitations, 
 we have developed the AutoActive Research Environment (ARE). The idea of ARE is to create a generic 
-open-source methodological framework, especially but not exlusivelt for the biomedical domain, supporting 
-a wide range of sensors and tools that aid the development, optimisation, and evaluation of algorithms to 
-extract high-level, quantified analysis from sensor data. 
+open-source methodological framework, especially but not exlusively for the biomedical and sport
+domains, supporting a wide range of sensors and tools that aid the development, optimisation, and 
+evaluation of algorithms to extract high-level, quantified analysis from sensor data. 
 
 # Summary
 
