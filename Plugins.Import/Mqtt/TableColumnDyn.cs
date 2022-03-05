@@ -127,7 +127,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 endIndex = end;
                 length = endIndex - startIndex + 1;
                 Debug.WriteLine("TableColumnDynViewer::SetTimeRange   Changed " + this.Column.Name);
-                Changed?.Invoke(this);
+                Changed?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -145,14 +145,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 endIndex = end;
                 length = endIndex - startIndex + 1;
                 //Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
-                Changed?.Invoke(this);
+                Changed?.Invoke(this, EventArgs.Empty);
             }
         }
 
         public TableColumnDyn Column { get; private set; }
         public IDataPoint DataPoint => Column;
 
-        public event DataViewerWasChangedHandler Changed;
+        public event EventHandler Changed;
 
 
         public double? MinValueHint => Column.MinValueHint;

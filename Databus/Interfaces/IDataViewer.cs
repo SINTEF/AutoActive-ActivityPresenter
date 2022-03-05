@@ -1,4 +1,6 @@
 ﻿
+using System;
+
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
     public interface IDataViewer
@@ -10,5 +12,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
         long PreviewPercentage { get; set; }
         void SetTimeRange(long from, long to);
+
+        event EventHandler Changed;
     }
 }
