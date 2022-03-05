@@ -107,7 +107,6 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         public long Start => _time.Data[0];
         public long End => _time.Data[_time.Data.Length - 1];
 
-        public int Length => _time.Data.Length;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }

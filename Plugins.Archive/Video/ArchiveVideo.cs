@@ -214,10 +214,25 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<ITimeViewer> CreateViewer()
         {
-            var viewer = new ArchiveVideoTimeViewer(this, await GetVideoLengthExtractor());
+            await LoadVideoLength();
 
+            var viewer = new ArchiveVideoTimeViewer(this);
             _viewers.Add(viewer);
             return viewer;
+        }
+
+        private async Task LoadVideoLength()
+        {
+            _videoLength = await (await GetVideoLengthExtractor()).GetLengthAsync();
+            if (_videoLength == 0L)
+            {
+                Debug.WriteLine("Could not get video length");
+            }
+            foreach (var viewer in _viewers)
+            {
+                viewer.TriggerTimeChanged(Start,End);
+            }
+            Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
         public void TransformTime(long offset, double scale)
@@ -228,42 +243,30 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             Offset += VideoPlaybackOffset;
 #endif
             Scale = scale;
-            foreach (var viewer in _viewers)
-            {
-                viewer.Start = Offset;
-            }
 
             foreach (var viewer in _viewers)
             {
                 viewer.UpdatedTimeIndex();
             }
         }
+
+        private long _videoLength;
+
+        public long Start
+        {
+            get => Offset;
+        }
+
+        public long End => Start + _videoLength;
     }
 
     public class ArchiveVideoTimeViewer : ITimeViewer
     {
         private readonly ArchiveVideoTime _time;
-        private readonly IVideoLengthExtractor _videoLengthExtractor;
 
-        internal ArchiveVideoTimeViewer(ArchiveVideoTime time, IVideoLengthExtractor videoLengthExtractor)
+        internal ArchiveVideoTimeViewer(ArchiveVideoTime time)
         {
             _time = time;
-            _videoLengthExtractor = videoLengthExtractor;
-            _videoLength = _videoLengthExtractor.ReportedLength;
-            LoadVideoLength();
-        }
-
-        private long _videoLength;
-
-        private async void LoadVideoLength()
-        {
-            _videoLength = await _videoLengthExtractor.GetLengthAsync();
-            if (_videoLength == 0L)
-            {
-                Debug.WriteLine("Could not get video length");
-            }
-            TimeChanged?.Invoke(this, Start, End);
-            Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
         public void UpdatedTimeIndex()
@@ -272,10 +275,6 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         }
 
         public ITimePoint TimePoint => _time;
-
-        public int Length =>(int) _videoLength;
-
-        public long Start
         {
             get => _time.Offset;
             set
