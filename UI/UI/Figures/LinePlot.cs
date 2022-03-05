@@ -116,7 +116,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var lineConfig in _lines)
             {
-                DrawLine(canvas, plotRect, lineConfig);
+                lineConfig.Drawer.DrawPath(canvas, plotRect, lineConfig);
             }
 
             DrawLegends(canvas, plotRect, _lines);

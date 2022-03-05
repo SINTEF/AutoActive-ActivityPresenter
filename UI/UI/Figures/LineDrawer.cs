@@ -6,7 +6,7 @@ namespace SINTEF.AutoActive.UI.Figures
 {
     public interface ILineDrawer
     {
-        void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig);
+        void DrawPath(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig);
 
         float MinY { get; }
         float MaxY { get; }
@@ -33,8 +33,10 @@ namespace SINTEF.AutoActive.UI.Figures
             if (viewer.MaxValueHint.HasValue) _maxYValue = (float)viewer.MaxValueHint.Value;
         }
 
-        public void CreatePath(SKPath plot, SKRect drawRect, LineConfiguration lineConfig)
+        public virtual void DrawPath(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig)
         {
+            var plot = new SKPath();
+
             SpanPair<T>.Enumerator en;
             if (lineConfig.Drawer.Parent is CorrelationPlot)
             {
@@ -57,6 +59,8 @@ namespace SINTEF.AutoActive.UI.Figures
                     DrawColumn(plot, drawRect, lineConfig, en);
                     break;
             }
+
+            canvas.DrawPath(plot, lineConfig.LinePaint);
         }
 
         private static void DrawColumn(SKPath plot, SKRect drawRect, LineConfiguration lineConfig, SpanPair<T>.Enumerator en)

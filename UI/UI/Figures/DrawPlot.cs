@@ -181,16 +181,6 @@ namespace SINTEF.AutoActive.UI.Figures
             TextSize = 10,
         };
 
-        protected void DrawLine(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig)
-        {
-            // Create path
-            var plot = new SKPath();
-            lineConfig.Drawer.CreatePath(plot, drawRect, lineConfig);
-
-            // Draw the data
-            canvas.DrawPath(plot, lineConfig.LinePaint);
-        }
-
         public long PreviewPercentage = 30;
 
         protected const int TickBoxMargin = 45;
