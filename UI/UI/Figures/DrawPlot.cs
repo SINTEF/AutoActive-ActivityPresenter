@@ -1,6 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using SINTEF.AutoActive.Databus.Common;
+using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
@@ -53,9 +54,15 @@ namespace SINTEF.AutoActive.UI.Figures
             AddLine(line);
 
             DataPoints.Add(datapoint);
+            
 
             var container = XamarinHelpers.GetFigureContainerFromParents(Parent);
             container?.InvokeDatapointAdded(datapoint, _context);
+        }
+
+        private void Datapoint_DataChanged(object sender, EventArgs e)
+        {
+            InvalidateSurface();
         }
 
         protected void AddLine(ILineDrawer lineDrawer)
@@ -105,6 +112,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             lineDrawer.Legend = string.IsNullOrEmpty(dataPoint.Unit) ? dataPoint.Name : $"{dataPoint.Name} [{dataPoint.Unit}]";
 
+            dataPoint.DataChanged += Datapoint_DataChanged;
             return lineDrawer;
         }
 
@@ -273,6 +281,10 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 var el = stack.Pop();
                 dataPoints.AddRange(el.DataPoints);
+                foreach (var dataPoint in el.DataPoints)
+                {
+                    dataPoint.DataChanged += Datapoint_DataChanged;
+                }
                 foreach (var child in el.Children)
                 {
                     stack.Push(child);
@@ -319,6 +331,7 @@ namespace SINTEF.AutoActive.UI.Figures
             foreach (var line in linesToRemove)
             {
                 var dataPoint = line.Drawer.Viewer.DataPoint;
+                dataPoint.DataChanged -= Datapoint_DataChanged;
                 DataPoints.Remove(dataPoint);
                 container?.InvokeDatapointRemoved(dataPoint, _context);
                 RemoveViewer(line.Drawer.Viewer);

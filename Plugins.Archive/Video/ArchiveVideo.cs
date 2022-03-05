@@ -125,6 +125,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public string Unit { get; set; }
         private readonly IReadSeekStreamFactory _streamFactory;
 
+        public event EventHandler DataChanged;
+
         public ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime, long videoLength)
         {
             _zipEntry = zipEntry;
@@ -274,18 +276,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             TimeChanged?.Invoke(this, Start, End);
         }
 
-        public ITimePoint TimePoint => _time;
+        internal void TriggerTimeChanged(long start, long end)
         {
-            get => _time.Offset;
-            set
-            {
-                _time.Offset = value;
-                TimeChanged?.Invoke(this, Start, End);
-            }
+            TimeChanged?.Invoke(this, Start, End);
         }
 
-        public long End => Start + _videoLength;
+        public long Start => _time.Start;
+        public long End => _time.End;
 
+        public ITimePoint TimePoint => _time;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }
@@ -293,6 +292,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public class ArchiveVideoVideoViewer : IDataViewer
     {
         public ArchiveVideoVideo Video;
+
         public IDataPoint DataPoint => Video;
         public long CurrentTimeRangeFrom { get; }
         public long CurrentTimeRangeTo { get; }
@@ -302,6 +302,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         {
             // This event is handled directly by the video handler
         }
+
+        public event EventHandler Changed;
 
         internal ArchiveVideoVideoViewer(ArchiveVideoVideo video)
         {

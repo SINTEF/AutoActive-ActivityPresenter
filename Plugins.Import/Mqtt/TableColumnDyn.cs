@@ -14,6 +14,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         protected TableTimeIndexDyn index;
         internal readonly List<IDynDataViewer> dynDataViewers = new List<IDynDataViewer>();
 
+        public event EventHandler DataChanged;
+
         public string URI => "LIVE";
         public Type DataType { get; private set; }
         public string Name { get; set; }
@@ -41,6 +43,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             {
                 viewer.UpdatedData();
             }
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public Task<IDataViewer> CreateViewer()

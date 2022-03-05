@@ -17,5 +17,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         // Other metadata?
 
         Task<IDataViewer> CreateViewer();
+
+        event EventHandler DataChanged;
     }
 }

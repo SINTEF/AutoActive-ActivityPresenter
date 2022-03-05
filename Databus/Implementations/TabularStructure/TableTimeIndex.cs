@@ -84,15 +84,17 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             }
         }
 
-        public bool IsSynchronizedToWorldClock { get; private set; }
+        public long Start => Data[0];
+        public long End => Data[Data.Length - 1];
 
+        public bool IsSynchronizedToWorldClock { get; private set; }
     }
 
-    public class TableTimeIndexViewer : GenericColumnViewer<long>, ITimeViewer
+    public class TableTimeIndexViewer : ITimeViewer
     {
         private readonly TableTimeIndex _time;
 
-        internal TableTimeIndexViewer(TableTimeIndex index) : base(null, index)
+        internal TableTimeIndexViewer(TableTimeIndex index)
         {
             _time = index;
         }
@@ -104,9 +106,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public ITimePoint TimePoint => _time;
 
-        public long Start => _time.Data[0];
-        public long End => _time.Data[_time.Data.Length - 1];
-
+        public long Start => _time.Start;
+        public long End => _time.End;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }
