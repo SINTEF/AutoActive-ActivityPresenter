@@ -9,7 +9,6 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
-using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player

@@ -1,8 +1,6 @@
 ﻿
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
-    public delegate void DataViewerWasChangedHandler(IDataViewer sender);
-    
     public interface IDataViewer
     {
         IDataPoint DataPoint { get; }

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Implementations;
 using Parquet.Data;
-using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using System.IO;
 using System.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;

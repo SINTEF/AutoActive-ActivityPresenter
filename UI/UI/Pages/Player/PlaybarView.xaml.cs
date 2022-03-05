@@ -13,7 +13,6 @@ using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
-using SINTEF.AutoActive.UI.Pages.Synchronization;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
