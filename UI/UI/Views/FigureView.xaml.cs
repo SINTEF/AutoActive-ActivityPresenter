@@ -17,6 +17,7 @@ using SINTEF.AutoActive.Plugins.Import.Mqtt;
 using SINTEF.AutoActive.UI.Figures;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
+using SINTEF.AutoActive.Databus.Implementations;
 
 namespace SINTEF.AutoActive.UI.Views
 {
@@ -187,6 +188,7 @@ namespace SINTEF.AutoActive.UI.Views
                         return view;
                     case TableColumn _:
                     case TableColumnDyn _:
+                    case IBaseDataPoint _:
                         view = await LinePlot.Create(datapoint, context);
                         if (parents != null && parents.Any())
                         {
