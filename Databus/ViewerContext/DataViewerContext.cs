@@ -15,10 +15,10 @@ namespace SINTEF.AutoActive.Databus.ViewerContext
     {
         // --- Clock mode ---
         private bool _isSynchronizedToWorldClock = true;
-        protected bool IsSynchronizedToWorldClock
+        public bool IsSynchronizedToWorldClock
         {
             get => _isSynchronizedToWorldClock;
-            set
+            protected set
             {
                 _isSynchronizedToWorldClock = value;
                 SynchronizedToWorldClockChanged?.Invoke(this, value);

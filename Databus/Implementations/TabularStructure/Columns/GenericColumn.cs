@@ -7,7 +7,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 {
     public class GenericColumn<T> : TableColumn where T : IConvertible
     {
-        internal T[] Data;
+        public T[] Data;
         private readonly Task<T[]> _loader;
         public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(T), name, loader, index, uri)
         {
