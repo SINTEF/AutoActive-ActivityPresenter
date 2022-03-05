@@ -17,6 +17,8 @@ namespace SINTEF.AutoActive.UI.Figures
         DrawPlot Parent { get; set; }
 
         string Legend { get; set; }
+
+        bool IsAnnotation { get; }
     }
 
 
@@ -156,7 +158,7 @@ namespace SINTEF.AutoActive.UI.Figures
             }
         }
 
-
+        public virtual bool IsAnnotation => false;
 
         public (float,float) GetVisibleYStatistics(int maxPoints)
         {

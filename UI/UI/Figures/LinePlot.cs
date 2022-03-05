@@ -209,6 +209,11 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var line in _lines)
             {
+                if (line.IsAnnotation)
+                {
+                    continue;
+                }
+
                 var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
 
                 // Do not include NaN or Inf

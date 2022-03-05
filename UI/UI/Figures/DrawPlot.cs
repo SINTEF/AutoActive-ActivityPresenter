@@ -4,6 +4,7 @@ using SINTEF.AutoActive.Databus.Common;
 using SINTEF.AutoActive.Databus.Implementations;
 using SINTEF.AutoActive.Databus.Interfaces;
 using SINTEF.AutoActive.Databus.ViewerContext;
+using SINTEF.AutoActive.Plugins.Import.Json;
 using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
 using SINTEF.AutoActive.UI.Views;
 using SkiaSharp;
@@ -68,10 +69,11 @@ namespace SINTEF.AutoActive.UI.Figures
         protected void AddLine(ILineDrawer lineDrawer)
         {
             lineDrawer.Parent = this;
+            
             _lines.Add(new LineConfiguration(this)
             {
                 Drawer = lineDrawer,
-                LinePaint = LinePaintProvider.GetNextPaint()
+                LinePaint = lineDrawer.IsAnnotation ? null : LinePaintProvider.GetNextPaint()
             });
 
             UpdateLineData();
@@ -91,10 +93,18 @@ namespace SINTEF.AutoActive.UI.Figures
                 throw new ArgumentException("Line already in plot");
             }
 
-            if (!dataPoint.GetType().IsGenericType) return null;
-
-            var genericConstructor = typeof(LineDrawer<>).MakeGenericType(dataPoint.DataType)
-                .GetConstructor(new[] { typeof(ITimeSeriesViewer) });
+            // This is a round-about way to call a constructor with a generic type
+            System.Reflection.ConstructorInfo genericConstructor;
+            if (dataPoint is AnnotationDataPoint)
+            {
+                genericConstructor = typeof(AnnotationDrawer<>).MakeGenericType(dataPoint.DataType)
+                    .GetConstructor(new[] { typeof(AnnotationDataViewer) });
+            }
+            else
+            {
+                genericConstructor = typeof(LineDrawer<>).MakeGenericType(dataPoint.DataType)
+                    .GetConstructor(new[] { typeof(ITimeSeriesViewer) });
+            }
             if (genericConstructor == null)
             {
                 Debug.WriteLine(
@@ -107,6 +117,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
             viewer.SetTimeRange(_context.SelectedTimeFrom, _context.SelectedTimeTo);
             viewer.PreviewPercentage = PreviewPercentage;
+
+            // Call the constructor
             var lineDrawer = (ILineDrawer)genericConstructor.Invoke(new object[] { viewer });
             if (lineDrawer == null) return null;
 
@@ -218,7 +230,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var textHeight = TextPaint.FontMetrics.CapHeight;
 
-            var nLegends = configs.Count(config => config.Drawer.Legend != null);
+            var nLegends = configs.Count(config => config.Drawer.Legend != null && !config.IsAnnotation);
             if (nLegends == 0)
             {
                 return;
@@ -247,7 +259,7 @@ namespace SINTEF.AutoActive.UI.Figures
             var legendIx = 0;
             foreach (var config in configs)
             {
-                if (config.Drawer.Legend == null)
+                if (config.Drawer.Legend == null || config.IsAnnotation)
                     continue;
 
                 var text = config.Drawer.Legend;
@@ -342,7 +354,6 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             return -(height - PlotHeightMargin * 2) / (yMax - yMin);
         }
-
     }
     public class LineConfiguration
     {
@@ -360,6 +371,8 @@ namespace SINTEF.AutoActive.UI.Figures
         public float ScaleY { get; set; }
         public SKPaint LinePaint { get; set; }
         public PlotTypes PlotType => _linePlot.PlotType;
+
+        public bool IsAnnotation => Drawer.IsAnnotation;
 
         public Queue<(float, float)> SmoothScalingQueue;
         private DrawPlot _linePlot;

@@ -10,6 +10,9 @@ using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
 using Xamarin.Forms;
+using SINTEF.AutoActive.Plugins.Import.Json;
+using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.UI.Figures;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -49,6 +52,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
+            KeyDown += On_KeyDown;
             KeyDown += Playbar.KeyDown;
             KeyUp += Playbar.KeyUp;
         }
@@ -61,6 +65,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
             Playbar.DataTrackline.DeregisterFigureContainer(PlayerContainer);
+            KeyDown -= On_KeyDown;
             KeyDown -= Playbar.KeyDown;
             KeyUp -= Playbar.KeyUp;
         }
@@ -333,6 +338,83 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             root["playbar"] = Playbar.SerializeView();
 
             return root;
+        }
+
+        public async void On_KeyDown(object sender, KeyEventArgs args)
+        {
+            if (ViewerContext == null) return;
+
+            var el = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
+            if(el == null) return;
+
+            if ("0123456789".Contains(args.Key))
+            {
+                await AddAnnotation(ViewerContext.SelectedTimeFrom, args.Key);
+            }
+        }
+
+        private async Task ShowAnnotations(IDataPoint dataPoint)
+        {
+            var drawPlot = XamarinHelpers.GetFirstChildElement<DrawPlot>(PlayerContainer);
+            if (drawPlot != null)
+            {
+                var task = drawPlot?.ToggleDataPoint(dataPoint, ViewerContext);
+
+                if (!task.IsCompleted)
+                {
+                    task.Wait();
+                }
+                return;
+            }
+
+            var figureView = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
+            // This shouldn't happen
+            if (figureView == null)
+            {
+                return;
+            }
+
+            //var container = XamarinHelpers.GetFigureContainerFromParents(figureView);
+            var container = XamarinHelpers.GetTypedElementFromParents<PlaceableContainer>(figureView);
+            var item = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(figureView);
+            if (container == null || item == null)
+            {
+                return;
+            }
+
+            await container.PlaceItem(item, dataPoint, ViewerContext, PlaceableLocation.Down);
+        }
+
+        private async Task<AnnotationProvider> GetAndShowAnnotationProvider()
+        {
+
+            var annotationProvider = DataRegistry.FindFirstDataStructure<AnnotationProvider>(DataRegistry.Providers);
+
+            // If no annotations are found, make a new
+            if (annotationProvider == null)
+            {
+                annotationProvider = AnnotationProvider.CreateNew();
+                annotationProvider.IsSynchronizedToWorldClock = ViewerContext.IsSynchronizedToWorldClock;
+                DataRegistry.Register(annotationProvider);
+            }
+
+
+            // Make sure the annotations are visible. Use exisitng DrawPlots if it exist, if not paint it under the first FigureView.
+            if (!annotationProvider.DataPoint.HasViewers())
+            {
+                await ShowAnnotations(annotationProvider.DataPoint);
+            }
+
+            return annotationProvider;
+        }
+
+        private async Task AddAnnotation(long timestamp, string key)
+        {
+            var annotationProvider = await GetAndShowAnnotationProvider();
+            if (int.TryParse(key, out var annotation_id))
+            {
+                annotationProvider.AddAnnotation(timestamp, annotation_id);
+            }
         }
     }
 }
