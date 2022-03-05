@@ -313,9 +313,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
+        public Task<IDataStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive, sessionId));
+            return Task.FromResult<IDataStructure>(new ArchiveVideo(json, archive, sessionId));
         }
     }
 }

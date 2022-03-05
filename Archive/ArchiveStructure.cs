@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations;
 
@@ -7,12 +6,7 @@ namespace SINTEF.AutoActive.Archive
 {
     public abstract class ArchiveStructure : BaseDataStructure
     {
-        //public override string Name { get; set; }
         // TODO: How do we handle name changes of structures in archives?
-        internal void SetName(string name)
-        {
-            Name = name;
-        }
 
         public abstract string Type { get; }
         protected JObject Meta { get; }

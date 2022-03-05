@@ -3,6 +3,7 @@ using System;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Interfaces;
+using SINTEF.AutoActive.Databus.Implementations;
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
@@ -26,9 +27,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
             foreach (var property in User.Properties())
             {
                 var content = archive.ParseJsonElement(property.Value, sessionId);
-                if (!(content is ArchiveStructure datastruct)) continue;
+                if (!(content is IDataStructure datastruct)) continue;
 
-                datastruct.SetName(property.Name);
+                datastruct.Name = property.Name;
                 base.AddChild(datastruct);
             }
 
@@ -86,9 +87,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
     [ArchivePlugin("no.sintef.folder")]
     public class ArchiveFolderPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
+        public Task<IDataStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveFolder(json, archive, sessionId));
+            return Task.FromResult<IDataStructure>(new ArchiveFolder(json, archive, sessionId));
         }
     }
 }
