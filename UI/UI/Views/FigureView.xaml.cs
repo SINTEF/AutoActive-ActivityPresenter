@@ -21,10 +21,8 @@ using SINTEF.AutoActive.Databus.Implementations;
 
 namespace SINTEF.AutoActive.UI.Views
 {
-	public partial class FigureView : ContentView, ISerializableView
+    public partial class FigureView : ContentView, ISerializableView
     {
-        //public static Color ElementBackgroundColor = Color.CornflowerBlue.MultiplyAlpha(0.7d);
-
         public static Color ElementBackgroundColor = Color.FromHex("23A2B1");
         public List<IDataPoint> DataPoints { get; set; } = new List<IDataPoint>();
 
@@ -32,34 +30,34 @@ namespace SINTEF.AutoActive.UI.Views
         public string ViewType => StaticViewType;
 
         public TimeSynchronizedContext Context { get; }
-	    protected static readonly SKPaint FramePaint = new SKPaint
-	    {
-	        Color = SKColors.LightSlateGray,
-	        Style = SKPaintStyle.Stroke,
-	        StrokeWidth = 1,
-	        StrokeJoin = SKStrokeJoin.Miter,
-	        IsAntialias = false,
-	    };
+        protected static readonly SKPaint FramePaint = new SKPaint
+        {
+            Color = SKColors.LightSlateGray,
+            Style = SKPaintStyle.Stroke,
+            StrokeWidth = 1,
+            StrokeJoin = SKStrokeJoin.Miter,
+            IsAntialias = false,
+        };
 
-	    public bool Selected
-	    {
-	        get => SelectionFrame.BorderColor == Color.Red;
-	        set => SelectionFrame.BorderColor = value ? Color.Red : Color.Black;
-	    }
+        public bool Selected
+        {
+            get => SelectionFrame.BorderColor == Color.Red;
+            set => SelectionFrame.BorderColor = value ? Color.Red : Color.Black;
+        }
 
-	    public bool ContextButtonIsVisible
-	    {
-	        get => ContextButton.IsVisible;
-	        set => ContextButton.IsVisible = value;
-	    }
+        public bool ContextButtonIsVisible
+        {
+            get => ContextButton.IsVisible;
+            set => ContextButton.IsVisible = value;
+        }
 
         protected readonly SKPaint TextPaint = new SKPaint
-	    {
-	        Color = SKColors.Black,
-	        Style = SKPaintStyle.Fill,
-	        IsAntialias = true,
-	        SubpixelText = true,
-	    };
+        {
+            Color = SKColors.Black,
+            Style = SKPaintStyle.Fill,
+            IsAntialias = true,
+            SubpixelText = true,
+        };
 
         private readonly List<IDataViewer> _viewers = new List<IDataViewer>();
         protected List<IDataViewer> Viewers
@@ -157,16 +155,16 @@ namespace SINTEF.AutoActive.UI.Views
 
 
         protected virtual void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
-	    {
-	        // Clear background and draw frame
-	        canvas.Clear(SKColors.White);
-	        canvas.DrawRect(0, 0, info.Width - 1, info.Height - 1, FramePaint);
+        {
+            // Clear background and draw frame
+            canvas.Clear(SKColors.White);
+            canvas.DrawRect(0, 0, info.Width - 1, info.Height - 1, FramePaint);
 
             const string text = "Override RedrawCanvas";
-	        var textHeight = TextPaint.FontMetrics.CapHeight;
-	        var maxTextWidth = TextPaint.MeasureText(text);
+            var textHeight = TextPaint.FontMetrics.CapHeight;
+            var maxTextWidth = TextPaint.MeasureText(text);
 
-            canvas.DrawText(text, info.Width/2f - maxTextWidth/2, info.Height/2f - textHeight/2, TextPaint);
+            canvas.DrawText(text, info.Width / 2f - maxTextWidth / 2, info.Height / 2f - textHeight / 2, TextPaint);
 
         }
 
@@ -201,7 +199,8 @@ namespace SINTEF.AutoActive.UI.Views
                     default:
                         throw new NotSupportedException();
                 }
-            }  catch(Exception ex)
+            }
+            catch (Exception ex)
             {
                 if (datapoint.DataType == typeof(string))
                 {
@@ -215,18 +214,18 @@ namespace SINTEF.AutoActive.UI.Views
             return null;
         }
 
-	    protected const string CancelText = "Cancel";
-	    protected const string RemoveText = "Remove";
-	    protected const string SelectText = "Select";
-	    protected const string DeselectText = "Deselect";
+        protected const string CancelText = "Cancel";
+        protected const string RemoveText = "Remove";
+        protected const string SelectText = "Select";
+        protected const string DeselectText = "Deselect";
         protected const string ToggleTitleText = "Toggle title";
 
         protected async void MenuButton_OnClicked(object sender, EventArgs e)
-	    {
-	        var page = Navigation.NavigationStack.LastOrDefault();
-	        if (page == null) return;
+        {
+            var page = Navigation.NavigationStack.LastOrDefault();
+            if (page == null) return;
 
-	        var parameters = new List<string> {Selected ? DeselectText : SelectText};
+            var parameters = new List<string> { Selected ? DeselectText : SelectText };
 
             GetExtraMenuParameters(parameters);
 
@@ -236,20 +235,20 @@ namespace SINTEF.AutoActive.UI.Views
             }
 
             var action = await page.DisplayActionSheet("Modify View", CancelText, RemoveText, parameters.ToArray());
-	        try
-	        {
-	            OnHandleMenuResult(page, action);
-	        }
-	        catch (ArgumentException ex)
-	        {
-	            await page.DisplayAlert("Illegal argument", $"Could not handle menu input: {ex.Message}", "Ok");
-	        }
-	    }
+            try
+            {
+                OnHandleMenuResult(page, action);
+            }
+            catch (ArgumentException ex)
+            {
+                await page.DisplayAlert("Illegal argument", $"Could not handle menu input: {ex.Message}", "Ok");
+            }
+        }
 
-	    protected virtual bool GetExtraMenuParameters(List<string> parameters)
-	    {
-	        return false;
-	    }
+        protected virtual bool GetExtraMenuParameters(List<string> parameters)
+        {
+            return false;
+        }
 
         /// Remove this view from the selecting view that contains it.
         public virtual void RemoveThisView()
@@ -276,19 +275,19 @@ namespace SINTEF.AutoActive.UI.Views
             Databus.DataRegistry.DataPointRemoved -= DataRegistry_DataPointRemoved;
         }
 
-	    protected virtual void OnHandleMenuResult(Page page, string action)
-	    {
-	        DefaultOnHandleMenuResult(page, action);
+        protected virtual void OnHandleMenuResult(Page page, string action)
+        {
+            DefaultOnHandleMenuResult(page, action);
         }
 
         /// Handle menu action.
 	    protected void DefaultOnHandleMenuResult(Page page, string action)
-	    {
-	        switch (action)
-	        {
+        {
+            switch (action)
+            {
                 case null:
-	            case CancelText:
-	                return;
+                case CancelText:
+                    return;
                 case SelectText:
                     XamarinHelpers.GetFigureContainerFromParents(Parent).Selected = this;
                     break;
@@ -303,11 +302,11 @@ namespace SINTEF.AutoActive.UI.Views
                     break;
                 default:
                     throw new ArgumentException($"Unknown action: {action}");
-	        }
-	    }
+            }
+        }
 
-	    public virtual Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
-	    {
+        public virtual Task<ToggleResult> ToggleDataPoint(IDataPoint datapoint, TimeSynchronizedContext timeContext)
+        {
             if (!DataPoints.Contains(datapoint))
             {
                 throw new NotImplementedException();
@@ -368,7 +367,7 @@ namespace SINTEF.AutoActive.UI.Views
         /// <param name="serializedObject">JSON serialized object describing the data points</param>
         /// <param name="archive">If not null, look only through this archive</param>
         /// <returns>List of DataPoints that are </returns>
-        private static IList<IDataPoint> GetDataPointsFromIdentifier(List<DataPointDescription> dataPointObjects, IDataStructure archive=null)
+        private static IList<IDataPoint> GetDataPointsFromIdentifier(List<DataPointDescription> dataPointObjects, IDataStructure archive = null)
         {
             var dataPoints = new List<IDataPoint>();
 
@@ -430,7 +429,7 @@ namespace SINTEF.AutoActive.UI.Views
             }
         }
 
-        public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context, IDataStructure archive=null)
+        public static async Task<FigureView> DeserializeView(JObject root, TimeSynchronizedContext context, IDataStructure archive = null)
         {
             // Verify that the object to be deserialized is of the correct type
             if (root["type"].Value<string>() != StaticViewType)
