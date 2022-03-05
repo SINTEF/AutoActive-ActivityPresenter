@@ -8,5 +8,6 @@ namespace SINTEF.AutoActive.UI.Figures
     public interface ILinePaintProvider
     {
         SKPaint GetNextPaint();
+        SKPaint GetIndexedPaint(int index);
     }
 }

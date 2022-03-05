@@ -28,7 +28,7 @@ namespace SINTEF.AutoActive.UI.Figures.LinePaintProviders
             }
         }
 
-        public MatPlotLib2LinePaint(float width = 2)
+        public MatPlotLib2LinePaint(float width = 2, int offset = 0)
         {
             // Colors from v2.0: https://matplotlib.org/_images/dflt_style_changes-1.png
             _lineTemplate.StrokeWidth = width;
@@ -51,6 +51,10 @@ namespace SINTEF.AutoActive.UI.Figures.LinePaintProviders
                 paint.Color = color;
                 _paints.Add(paint);
             }
+
+            _index = offset;
+            if (++_index >= _paints.Count)
+                _index = 0;
         }
 
         public SKPaint GetNextPaint()
@@ -60,6 +64,10 @@ namespace SINTEF.AutoActive.UI.Figures.LinePaintProviders
                 _index = 0;
 
             return _paints[currentIndex];
+        }
+        public SKPaint GetIndexedPaint(int index)
+        {
+            return _paints[index % _paints.Count];
         }
     }
 }
