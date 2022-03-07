@@ -11,6 +11,7 @@ using Newtonsoft.Json;
 using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Archive;
 using ICSharpCode.SharpZipLib.Zip;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Plugins.Import.Json
 {
@@ -173,6 +174,53 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
 
             return Task.FromResult(true);
         }
+
+        public List<AnnotationPoint> FindClosestAnnotation(long timestamp, long window = 0)
+        {
+            var closest = new List<AnnotationPoint>();
+
+            var closestTime = long.MaxValue;
+            foreach (var annotation in AnnotationSet.Annotations)
+            {
+                var diffTime = Math.Abs(annotation.Timestamp - timestamp);
+                if (diffTime < closestTime)
+                {
+                    closestTime = diffTime;
+                    closest.RemoveAll(ann => Math.Abs(ann.Timestamp - timestamp) > window);
+                    closest.Add(annotation);
+                    continue;
+                }
+
+                if (Math.Abs(diffTime - closestTime) < window)
+                {
+                    closest.Add(annotation);
+                }
+            }
+
+            closest.Sort((a, b) => Math.Abs(a.Timestamp - timestamp).CompareTo(Math.Abs(b.Timestamp - timestamp)));
+
+            return closest;
+        }
+
+        public void RemoveAnnotation(AnnotationPoint annotationPoint)
+        {
+            AnnotationSet.Annotations.Remove(annotationPoint);
+
+
+            for (var i = 0; i < _timeData.Count; i++)
+            {
+                if (_timeData[i] == annotationPoint.Timestamp && _annotationData[i] == annotationPoint.Type)
+                {
+                    _timeData.RemoveAt(i);
+                    _annotationData.RemoveAt(i);
+                    break;
+                }
+            }
+
+            _timePoint.TriggerChanged();
+            _dataPoint.TriggerDataChanged();
+            IsSaved = false;
+        }
     }
 
     public class AnnotationDataPoint : BaseDataPoint<int>
@@ -211,6 +259,11 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
 
         [JsonProperty("type")]
         public int Type { get; set; }
+
+        public override string ToString()
+        {
+            return $"{Type} @ {TimeFormatter.FormatTime(Timestamp)}";
+        }
     }
 
     public class AnnotationSet
@@ -219,7 +272,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
         {
             AutoActiveType = "Annotation";
             Version = "1.0.0";
-            
+
             AnnotationTypeComments = new Dictionary<int, string>();
             AnnotationTypes = new Dictionary<int, string>();
             Annotations = new List<AnnotationPoint>();

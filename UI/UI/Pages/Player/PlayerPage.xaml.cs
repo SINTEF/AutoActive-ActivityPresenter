@@ -2,7 +2,9 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -13,6 +15,7 @@ using Xamarin.Forms;
 using SINTEF.AutoActive.Plugins.Import.Json;
 using SINTEF.AutoActive.Databus;
 using SINTEF.AutoActive.UI.Figures;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -345,11 +348,16 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             if (ViewerContext == null) return;
 
             var el = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
-            if(el == null) return;
+            if (el == null) return;
 
-            if ("0123456789".Contains(args.Key))
+            if ("123456789".Contains(args.Key))
             {
                 await AddAnnotation(ViewerContext.SelectedTimeFrom, args.Key);
+            }
+
+            if (args.Key == "0")
+            {
+                await RemoveAnnotation(ViewerContext.SelectedTimeFrom);
             }
         }
 
@@ -358,12 +366,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var drawPlot = XamarinHelpers.GetFirstChildElement<DrawPlot>(PlayerContainer);
             if (drawPlot != null)
             {
-                var task = drawPlot?.ToggleDataPoint(dataPoint, ViewerContext);
+                var task = drawPlot.ToggleDataPoint(dataPoint, ViewerContext);
 
                 if (!task.IsCompleted)
                 {
                     task.Wait();
                 }
+
                 return;
             }
 
@@ -374,7 +383,6 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 return;
             }
 
-            //var container = XamarinHelpers.GetFigureContainerFromParents(figureView);
             var container = XamarinHelpers.GetTypedElementFromParents<PlaceableContainer>(figureView);
             var item = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(figureView);
             if (container == null || item == null)
@@ -411,10 +419,32 @@ namespace SINTEF.AutoActive.UI.Pages.Player
         private async Task AddAnnotation(long timestamp, string key)
         {
             var annotationProvider = await GetAndShowAnnotationProvider();
-            if (int.TryParse(key, out var annotation_id))
+            if (int.TryParse(key, out var annotationId))
             {
-                annotationProvider.AddAnnotation(timestamp, annotation_id);
+                annotationProvider.AddAnnotation(timestamp, annotationId);
             }
+        }
+
+        protected const string CancelText = "Cancel";
+
+        private async Task RemoveAnnotation(long timestamp)
+        {
+            var annotationProvider = DataRegistry.FindFirstDataStructure<AnnotationProvider>(DataRegistry.Providers);
+            if (annotationProvider == null) return;
+
+            var closest = annotationProvider.FindClosestAnnotation(timestamp, TimeFormatter.TimeFromSeconds(1));
+            if (closest.Count == 0)
+            {
+                await DisplayAlert("Error", "No annotations found", "OK");
+                return;
+            }
+
+            var dataPoints = new List<string>(closest.Select((annotation, i) => $"{i}: {annotation}"));
+            var action = await DisplayActionSheet("Remove annotation", CancelText, null, dataPoints.ToArray());
+            if (action == CancelText)
+                return;
+
+            annotationProvider.RemoveAnnotation(closest[dataPoints.IndexOf(action)]);
         }
     }
 }
