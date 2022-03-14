@@ -23,21 +23,23 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             var data = Viewer.GetCurrentData<int>();
 
-            var height = Math.Max(20, drawRect.Height/20);
+            var height = Math.Max(20, drawRect.Height / 20);
             var width = 20;
+
+            var dataIsSorted = false;
 
             Dictionary<int, SKPath> paths = new Dictionary<int, SKPath>();
 
-            for (var i=0; i<data.X.Length; i++)
+            for (var i = 0; i < data.X.Length; i++)
             {
                 var y = data.Y[i];
                 if (!paths.TryGetValue(y, out SKPath plot))
                 {
                     paths.Add(y, plot = new SKPath());
                 }
-                
+
                 var plotX = DrawPlot.ScalePointX(data.X[i], lineConfig.OffsetX, lineConfig.ScaleX);
-                if (plotX > drawRect.Width)
+                if (dataIsSorted && plotX > drawRect.Width)
                 {
                     break;
                 }
@@ -48,16 +50,35 @@ namespace SINTEF.AutoActive.UI.Figures
                 else
                     plot.AddRect(new SKRect(x - width / 2, drawRect.Bottom - height, x + width / 2, drawRect.Bottom));
             }
-            
+
             foreach (var path in paths)
             {
-                if(!_paints.TryGetValue(path.Key, out SKPaint paint)) {
+                if (!_paints.TryGetValue(path.Key, out SKPaint paint))
+                {
                     _paints.Add(path.Key, paint = _paintProvider.GetIndexedPaint(path.Key));
                     paint.Style = SKPaintStyle.StrokeAndFill;
                     paint.Color = paint.Color.WithAlpha(0x7f);
                 }
                 canvas.DrawPath(path.Value, paint);
-                
+            }
+
+            var centerPaint = new SKPaint
+            {
+                Style = SKPaintStyle.Stroke,
+                StrokeJoin = SKStrokeJoin.Miter,
+                IsAntialias = true,
+                Color = new SKColor(0, 0, 0),
+            };
+
+            for (var i = 0; i < data.X.Length; i++)
+            {
+                var plotX = DrawPlot.ScalePointX(data.X[i], lineConfig.OffsetX, lineConfig.ScaleX);
+                if (dataIsSorted && plotX > drawRect.Width)
+                {
+                    break;
+                }
+
+                canvas.DrawLine(new SKPoint(plotX, drawRect.Bottom - height / 2), new SKPoint(plotX, drawRect.Bottom), centerPaint);
             }
         }
     }
