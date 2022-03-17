@@ -68,6 +68,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 StrokeJoin = SKStrokeJoin.Miter,
                 IsAntialias = true,
                 Color = new SKColor(0, 0, 0),
+                TextSize = 16,
             };
 
             for (var i = 0; i < data.X.Length; i++)
@@ -78,7 +79,40 @@ namespace SINTEF.AutoActive.UI.Figures
                     break;
                 }
 
-                canvas.DrawLine(new SKPoint(plotX, drawRect.Bottom - height / 2), new SKPoint(plotX, drawRect.Bottom), centerPaint);
+                var bottomPoint = new SKPoint(plotX, drawRect.Bottom);
+                var topPoint = new SKPoint(plotX, drawRect.Bottom - height / 2);
+                canvas.DrawLine(topPoint, bottomPoint, centerPaint);
+            }
+
+            if (!(Viewer is AnnotationDataViewer annotationViewer))
+            {
+                return;
+            }
+
+            var annotationSet = annotationViewer.AnnotationSet;
+            if (annotationSet.AnnotationTags == null || annotationSet.AnnotationTags.Count == 0)
+            {
+                return;
+            }
+
+            
+            foreach (var annotation in annotationSet.Annotations)
+            {
+                var plotX = DrawPlot.ScalePointX(annotation.Timestamp, lineConfig.OffsetX, lineConfig.ScaleX);
+                if (dataIsSorted && plotX > drawRect.Width)
+                {
+                    break;
+                }
+
+                if (!annotationSet.AnnotationTags.TryGetValue(annotation.Type, out string identifier))
+                {
+                    continue;
+                }
+                var bottomPoint = new SKPoint(plotX, drawRect.Bottom);
+                var topPoint = new SKPoint(plotX - centerPaint.MeasureText(identifier) / 2, drawRect.Bottom - height / 2);
+                canvas.DrawLine(topPoint, bottomPoint, centerPaint);
+
+                canvas.DrawText(identifier, topPoint, centerPaint);
             }
         }
     }

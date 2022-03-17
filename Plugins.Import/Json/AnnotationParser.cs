@@ -50,7 +50,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
     [ArchivePlugin("no.sintef.annotation")]
     public class AnnotationProvider : BaseDataProvider, IArchivePlugin, ISaveable
     {
-        private AnnotationSet AnnotationSet
+        public AnnotationSet AnnotationSet
         {
             get => _annotationsBacking;
             set
@@ -72,7 +72,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
                 _timePoint = new BaseTimePoint(_timeData, isWorldSynchronized);
 
                 var uri = "Annotations";
-                _dataPoint = new AnnotationDataPoint("Annotations", _annotationData, _timePoint, uri, null);
+                _dataPoint = new AnnotationDataPoint("Annotations", _annotationData, annotationSet, _timePoint, uri, null);
 
                 _annotationsBacking = annotationSet;
                 AddDataPoint(_dataPoint);
@@ -241,24 +241,41 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
 
     public class AnnotationDataPoint : BaseDataPoint<int>
     {
-        public AnnotationDataPoint(string name, Task<List<int>> loader, BaseTimePoint time, string uri, string unit) : base(name, loader, time, uri, unit)
+        private readonly Task<AnnotationSet> _annotationSetLoader;
+
+        private AnnotationSet _annotationSet;
+
+        public AnnotationSet AnnotationSet => _annotationSet;
+
+        public AnnotationDataPoint(string name, Task<List<int>> loader, Task<AnnotationSet> annotationSetLoader, BaseTimePoint time, string uri, string unit) : base(name, loader, time, uri, unit)
         {
+            _annotationSetLoader = annotationSetLoader;
         }
 
-        public AnnotationDataPoint(string name, List<int> data, BaseTimePoint time, string uri, string unit) : base(name, data, time, uri, unit)
+        public AnnotationDataPoint(string name, List<int> data, AnnotationSet annotationSet, BaseTimePoint time, string uri, string unit) : base(name, data, time, uri, unit)
         {
+            _annotationSet = annotationSet;
         }
 
         protected override BaseDataViewer CreateDataViewer()
         {
+            if (_annotationSet == null && _annotationSetLoader != null)
+            {
+                _annotationSetLoader.Wait();
+                _annotationSet = _annotationSetLoader.Result;
+            }
             return new AnnotationDataViewer(new BaseTimeViewer(Time), this);
         }
     }
 
     public class AnnotationDataViewer : BaseTimeSeriesViewer<int>
     {
+        private AnnotationDataPoint _annotationDataPoint;
+        public AnnotationSet AnnotationSet => _annotationDataPoint.AnnotationSet;
+
         public AnnotationDataViewer(BaseTimeViewer timeViewer, AnnotationDataPoint dataPoint) : base(timeViewer, dataPoint)
         {
+            _annotationDataPoint = dataPoint;
         }
     }
 
@@ -290,7 +307,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
             Version = "1.0.0";
 
             AnnotationTypeComments = new Dictionary<int, string>();
-            AnnotationTypes = new Dictionary<int, string>();
+            AnnotationNames = new Dictionary<int, string>();
+            AnnotationTags = new Dictionary<int, string>();
             Annotations = new List<AnnotationPoint>();
         }
         public string AutoActiveType { get; set; }
@@ -303,8 +321,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
 
         [JsonProperty("annotation_type_comments")]
         public Dictionary<int, string> AnnotationTypeComments { get; set; }
-        [JsonProperty("annotation_types")]
-        public Dictionary<int, string> AnnotationTypes { get; set; }
+        [JsonProperty("annotation_names")]
+        public Dictionary<int, string> AnnotationNames { get; set; }
+        [JsonProperty("annotation_tags")]
+        public Dictionary<int, string> AnnotationTags { get; set; }
         [JsonProperty("annotations")]
         public List<AnnotationPoint> Annotations { get; set; }
     }
