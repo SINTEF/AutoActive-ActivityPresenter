@@ -12,6 +12,7 @@ using SINTEF.AutoActive.Archive.Plugin;
 using SINTEF.AutoActive.Archive;
 using ICSharpCode.SharpZipLib.Zip;
 using SINTEF.AutoActive.UI.Helpers;
+using SINTEF.AutoActive.Databus;
 
 namespace SINTEF.AutoActive.Plugins.Import.Json
 {
@@ -220,6 +221,21 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
             _timePoint.TriggerChanged();
             _dataPoint.TriggerDataChanged();
             IsSaved = false;
+        }
+
+        public static AnnotationProvider GetAnnotationProvider(bool isSynchronizedToWolrdClock)
+        {
+            var annotationProvider = DataRegistry.FindFirstDataStructure<AnnotationProvider>(DataRegistry.Providers);
+
+            // If no annotations are found, make a new
+            if (annotationProvider == null)
+            {
+                annotationProvider = CreateNew();
+                annotationProvider.IsSynchronizedToWorldClock = isSynchronizedToWolrdClock;
+                DataRegistry.Register(annotationProvider);
+            }
+
+            return annotationProvider;
         }
     }
 

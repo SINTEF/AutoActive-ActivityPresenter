@@ -395,17 +395,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
 
         private async Task<AnnotationProvider> GetAndShowAnnotationProvider()
         {
-
-            var annotationProvider = DataRegistry.FindFirstDataStructure<AnnotationProvider>(DataRegistry.Providers);
-
-            // If no annotations are found, make a new
-            if (annotationProvider == null)
-            {
-                annotationProvider = AnnotationProvider.CreateNew();
-                annotationProvider.IsSynchronizedToWorldClock = ViewerContext.IsSynchronizedToWorldClock;
-                DataRegistry.Register(annotationProvider);
-            }
-
+            var annotationProvider = AnnotationProvider.GetAnnotationProvider(ViewerContext.IsSynchronizedToWorldClock);
 
             // Make sure the annotations are visible. Use exisitng DrawPlots if it exist, if not paint it under the first FigureView.
             if (!annotationProvider.DataPoint.HasViewers())
