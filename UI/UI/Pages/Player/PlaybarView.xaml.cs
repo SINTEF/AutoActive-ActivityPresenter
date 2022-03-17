@@ -380,12 +380,12 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        private void OpenSettings(object sender, EventArgs e)
+        private async void OpenSettings(object sender, EventArgs e)
         {
             var popupObject = new SettingsPopupView();
             popupObject.PlaybarView = this;
             popupObject.SetSettings();
-            PopupNavigation.Instance.PushAsync(popupObject);
+            await PopupNavigation.Instance.PushAsync(popupObject);
         }
 
         private void TimeStepper_OnOnStep(object sender, TimeStepEvent timeStep)

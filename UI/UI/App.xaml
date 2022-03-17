@@ -5,6 +5,37 @@
     <Application.Resources>
         <ResourceDictionary>
             <Color x:Key="BackgroundColor">White</Color>
+            <Style TargetType="Entry">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="PlaceholderColor" Value="LightGray" />
+            </Style>
+            <Style x:Key="labelHeader" TargetType="Label">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="FontSize" Value="Medium" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="VerticalOptions" Value="Center" />
+                <Setter Property="HorizontalOptions" Value="CenterAndExpand" />
+            </Style>
+            <Style x:Key="viewSettings" TargetType="View">
+                <Setter Property="HorizontalOptions" Value="Fill" />
+                <Setter Property="VerticalOptions" Value="Fill" />
+                <Setter Property="BackgroundColor" Value="#1D2637" />
+            </Style>
+            <Style x:Key="entrySettings" TargetType="Entry" BasedOn="{StaticResource viewSettings}">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="PlaceholderColor" Value="LightGray" />
+            </Style>
+
+            <Style x:Key="buttonSettings" TargetType="Button">
+                <Setter Property="BorderColor" Value="#23A2B1" />
+                <Setter Property="FontAttributes" Value="Bold" />
+                <Setter Property="VerticalOptions" Value="Center" />
+            </Style>
+            <Style x:Key="labelSettings" TargetType="Label">
+                <Setter Property="TextColor" Value="White" />
+                <Setter Property="VerticalTextAlignment" Value="Center" />
+            </Style>
+            
         </ResourceDictionary>
     </Application.Resources>
 </Application>
