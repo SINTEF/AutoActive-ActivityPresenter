@@ -6,10 +6,27 @@ SINTEF - https://www.sintef.com
 ## License
 Apache License Version 2.0
 
-## Binary distribution
+## Installation
 ActivityPresenter is available as a binary package for Microsoft Windows in Microsoft Store at the following link:
 https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7?
 
+You can also clone the repository and build it localy, however, you will need a self signed certificate. If you do not have a self signed certificate you can otain one by following these instructions: https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-self-signed-certificate 
+
+To add the certificate to the project 
+1. Open the solution in Visual Studio
+2. Right click on ActivityPresenter.UWP (Universal Windows) in the solution explorer and choose properties 
+3. Choose Package Manifest in the Application tab
+4. Choose the Packaging tab 
+5. Click on Choose Certificate and select from file
+
+You should now be able to compile and run the project.
+
+The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
+
+## Community guidelines
+All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome. If you find any bugs, have any ideas for improving the software or need support please create a new issue.
+
+## Binary distribution
 AutoActive Research Environment (ARE) is developed in the research project AutoActive (Norwegian Research Council project, project number 282039) to enable easy handling (synchronization, visualization, analysation) of sensor data from different commercially available wearable sensors for human activity and video.
 ARE supports the following operations:
 
@@ -86,8 +103,6 @@ Available here: https://github.com/SINTEF/AutoActive-Matlab-toolbox
 A Python library is available and supports similar functionality as the MATLAB library.
 Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 
-## Software implementation
-The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
 
 ## Instruction videos for ActivityPresenter
 * [Import data](https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4)
