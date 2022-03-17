@@ -38,14 +38,15 @@ namespace Tests
             var count = 0;
             Assert.True(en.MoveNext());
             count++;
-            Assert.Equal(timeArray.First(), en.Current.x);
-            Assert.Equal(dataArray.First(), en.Current.y);
+            
+            Assert.Equal((double)timeArray.First(), en.Current.x, 5);
+            Assert.Equal(dataArray.First(), en.Current.y, 5);
             while (en.MoveNext())
             {
                 count++;
             }
-            Assert.Equal(timeArray.Last(), en.Current.x);
-            Assert.Equal(dataArray.Last(), en.Current.y);
+            Assert.Equal((double)timeArray.Last(), en.Current.x, 5);
+            Assert.Equal(dataArray.Last(), en.Current.y, 5);
             if (maxNum > 0)
             {
                 Assert.InRange(count, maxNum, maxNum + 2);
