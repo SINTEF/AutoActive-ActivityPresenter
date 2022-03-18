@@ -123,9 +123,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
         {
             _timeData.Add(timestamp);
             _annotationData.Add(annotationId);
+            AnnotationSet.Annotations.Add(new AnnotationPoint(timestamp, annotationId));
             _timePoint.TriggerChanged();
             _dataPoint.TriggerDataChanged();
-            AnnotationSet.Annotations.Add(new AnnotationPoint(timestamp, annotationId));
             IsSaved = false;
         }
 

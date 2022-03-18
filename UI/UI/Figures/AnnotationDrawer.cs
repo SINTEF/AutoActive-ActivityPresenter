@@ -31,6 +31,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var paths = new Dictionary<int, SKPath>();
 
+            // Generate cirle-paths for all points
             for (var i = 0; i < data.X.Length; i++)
             {
                 var y = data.Y[i];
@@ -52,6 +53,7 @@ namespace SINTEF.AutoActive.UI.Figures
                     plot.AddRect(new SKRect(x - width / 2f, drawRect.Bottom - height, x + width / 2f, drawRect.Bottom));
             }
 
+            // Draw the paths
             foreach (var path in paths)
             {
                 if (!_paints.TryGetValue(path.Key, out var paint))
@@ -72,6 +74,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 TextSize = 16,
             };
 
+            // Draw center line
             foreach (var x in data.X)
             {
                 var plotX = DrawPlot.ScalePointX(x, lineConfig.OffsetX, lineConfig.ScaleX);
@@ -85,6 +88,7 @@ namespace SINTEF.AutoActive.UI.Figures
                 canvas.DrawLine(topPoint, bottomPoint, centerPaint);
             }
 
+            // Check if we should draw annotation tags
             if (!(Viewer is AnnotationDataViewer annotationViewer))
             {
                 return;
@@ -96,6 +100,8 @@ namespace SINTEF.AutoActive.UI.Figures
                 return;
             }
 
+            var textMargin = 3;
+
             foreach (var annotation in annotationSet.Annotations)
             {
                 var plotX = DrawPlot.ScalePointX(annotation.Timestamp, lineConfig.OffsetX, lineConfig.ScaleX);
@@ -105,11 +111,11 @@ namespace SINTEF.AutoActive.UI.Figures
                 }
 
                 if (!annotationSet.AnnotationInfo.TryGetValue(annotation.Type, out var info))
-                {
                     continue;
-                }
+                if (info.Tag == null)
+                    continue;
 
-                var topPoint = new SKPoint(plotX - centerPaint.MeasureText(info.Tag) / 2, drawRect.Bottom - height / 2);
+                var topPoint = new SKPoint(plotX - centerPaint.MeasureText(info.Tag) / 2, textMargin + drawRect.Bottom - height / 2);
                 canvas.DrawText(info.Tag, topPoint, centerPaint);
             }
         }

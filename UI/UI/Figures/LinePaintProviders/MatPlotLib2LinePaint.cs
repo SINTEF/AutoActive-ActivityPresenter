@@ -43,7 +43,8 @@ namespace SINTEF.AutoActive.UI.Figures.LinePaintProviders
                 new SKColor(0xffe377c2),
                 new SKColor(0xff7f7f7f),
                 new SKColor(0xffbcbd22),
-                new SKColor(0xff17becf)
+                new SKColor(0xff17becf),
+                new SKColor(0xffffff00) // Added to not have colors for annotation 1 and 11 be equal
             };
             foreach (var color in colors)
             {
