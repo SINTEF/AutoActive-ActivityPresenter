@@ -71,6 +71,14 @@ namespace SINTEF.AutoActive.UI
                     }
                 }
 
+                if (el is Page page)
+                {
+                    foreach (var child in page.LogicalChildren)
+                    {
+                        elements.Enqueue(child);
+                    }
+                }
+
                 if (el is T item)
                     list.Add(item);
             }

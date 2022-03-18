@@ -117,7 +117,7 @@ namespace SINTEF.AutoActive.UI.Pages
             PlaybarView.PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
             PlaybarView.ViewerContext.PlaybackRate = PlaybarView.PlaybackSpeed;
         }
-        
+
         private async void AnnotationsButton_Clicked(object sender, EventArgs e)
         {
             var popupObject = new AnnotationsPopupView();
