@@ -13,6 +13,7 @@ using SINTEF.AutoActive.Archive;
 using ICSharpCode.SharpZipLib.Zip;
 using SINTEF.AutoActive.UI.Helpers;
 using SINTEF.AutoActive.Databus;
+using System.ComponentModel;
 
 namespace SINTEF.AutoActive.Plugins.Import.Json
 {
@@ -306,9 +307,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
             AutoActiveType = "Annotation";
             Version = "1.0.0";
 
-            AnnotationTypeComments = new Dictionary<int, string>();
-            AnnotationNames = new Dictionary<int, string>();
-            AnnotationTags = new Dictionary<int, string>();
+            AnnotationInfo = new Dictionary<int, AnnotationInfo>();
             Annotations = new List<AnnotationPoint>();
         }
         public string AutoActiveType { get; set; }
@@ -319,13 +318,30 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
         [JsonProperty("version")]
         public string Version { get; set; }
 
-        [JsonProperty("annotation_type_comments")]
-        public Dictionary<int, string> AnnotationTypeComments { get; set; }
-        [JsonProperty("annotation_names")]
-        public Dictionary<int, string> AnnotationNames { get; set; }
-        [JsonProperty("annotation_tags")]
-        public Dictionary<int, string> AnnotationTags { get; set; }
+        [JsonProperty("annotation_info")]
+        public Dictionary<int, AnnotationInfo> AnnotationInfo { get; set; }
         [JsonProperty("annotations")]
         public List<AnnotationPoint> Annotations { get; set; }
+    }
+
+    public class AnnotationInfo : INotifyPropertyChanged
+    {
+        private string _name;
+        [JsonProperty("Name")]
+        public string Name { get => _name; set { _name = value; OnPropertyChanged("Name"); } }
+
+        private string _tag;
+        [JsonProperty("Tag")]
+        public string Tag { get => _tag; set { _tag = value; OnPropertyChanged("Tag"); } }
+
+        private string _comment;
+        [JsonProperty("Comment")]
+        public string Comment { get => _comment; set { _comment = value; OnPropertyChanged("Comment"); } }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        private void OnPropertyChanged(string info)
+        {
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(info));
+        }
     }
 }

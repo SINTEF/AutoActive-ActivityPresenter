@@ -1,11 +1,7 @@
 ﻿using Rg.Plugins.Popup.Services;
 using SINTEF.AutoActive.Plugins.Import.Json;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
 
@@ -14,57 +10,66 @@ namespace SINTEF.AutoActive.UI.Pages.Player
     [XamlCompilation(XamlCompilationOptions.Compile)]
     public partial class AnnotationsPopupView : Rg.Plugins.Popup.Pages.PopupPage
     {
-        private readonly SortedSet<int> _elements = new SortedSet<int>();
+        private readonly AnnotationSet _annotationSet;
+        private int _rowCount = 0;
 
         public AnnotationsPopupView()
         {
             InitializeComponent();
 
             var provider = AnnotationProvider.GetAnnotationProvider(false);
-            var annotationSet = provider.AnnotationSet;
+            _annotationSet = provider.AnnotationSet;
+            var annotationInfos = _annotationSet.AnnotationInfo;
 
-            var names = annotationSet.AnnotationNames;
-            var tags = annotationSet.AnnotationTags;
-            var comments = annotationSet.AnnotationTypeComments;
-
-            foreach (var tag in tags)
+            for (var i = 1; i <= 20; i++)
             {
-                _elements.Add(tag.Key);
+                if (annotationInfos.ContainsKey(i)) continue;
+
+                annotationInfos[i] = new AnnotationInfo();
             }
 
-            foreach (var name in names)
+            foreach (var (index, info) in annotationInfos.Select(x => (x.Key, x.Value)))
             {
-                _elements.Add(name.Key);
+                AddLine(index, info);
             }
+        }
 
-            foreach (var comment in comments)
-            {
-                _elements.Add(comment.Key);
-            }
+        private void AddLine(int index, AnnotationInfo info)
+        {
+            _rowCount++;
 
-            for (var i = 0; i < 10; i++)
+            var entryId = new Entry()
             {
-                _elements.Add(i);
-            }
+                Style = (Style)Application.Current.Resources["entrySettings"],
+                IsReadOnly = true,
+                HorizontalTextAlignment = TextAlignment.Center,
+                Text = index.ToString(),
+            };
+            Grid.SetRow(entryId, _rowCount);
+            Grid.SetColumn(entryId, 0);
+            LayoutGrid.Children.Add(entryId);
 
-            var count = 1;
-            foreach (var index in _elements)
+            var propCount = 1;
+            foreach(var prop in new[] { "Name", "Tag", "Comment" })
             {
-                var el = new Entry()
+                var entry = new Entry()
                 {
-                    Text = index.ToString(),
+                    BindingContext = info,
                     Style = (Style)Application.Current.Resources["entrySettings"],
-                    IsReadOnly = true,
                 };
-
-                Grid.SetRow(el, count);
-                Grid.SetColumn(el, 0);
-
-
-
-                count++;
-                LayoutGrid.Children.Add(el);
+                entry.SetBinding(Entry.TextProperty, prop);
+                Grid.SetRow(entry, _rowCount);
+                Grid.SetColumn(entry, propCount++);
+                LayoutGrid.Children.Add(entry);
             }
+        }
+
+        private void AddLineButton_Clicked(object sender, EventArgs e)
+        {
+            var index = _annotationSet.AnnotationInfo.Keys.Max() + 1;
+            var annotationInfo = new AnnotationInfo();
+            _annotationSet.AnnotationInfo[index] = annotationInfo;
+            AddLine(index, annotationInfo);
         }
 
         private async void CancelButton_Clicked(object sender, EventArgs e)

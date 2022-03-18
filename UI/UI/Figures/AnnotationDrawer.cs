@@ -3,12 +3,13 @@ using SINTEF.AutoActive.UI.Figures.LinePaintProviders;
 using SkiaSharp;
 using System;
 using System.Collections.Generic;
+using SINTEF.AutoActive.Databus.Common;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
     public class AnnotationDrawer<T> : LineDrawer<T> where T : IConvertible
     {
-        public AnnotationDrawer(AnnotationDataViewer viewer) : base(viewer)
+        public AnnotationDrawer(ITimeSeriesViewer viewer) : base(viewer)
         {
         }
 
@@ -16,8 +17,8 @@ namespace SINTEF.AutoActive.UI.Figures
 
         public override bool IsAnnotation => true;
 
-        private Dictionary<int, SKPaint> _paints = new Dictionary<int, SKPaint>();
-        private MatPlotLib2LinePaint _paintProvider = new MatPlotLib2LinePaint(2, 3);
+        private readonly Dictionary<int, SKPaint> _paints = new Dictionary<int, SKPaint>();
+        private readonly MatPlotLib2LinePaint _paintProvider = new MatPlotLib2LinePaint(2, 3);
 
         public override void DrawPath(SKCanvas canvas, SKRect drawRect, LineConfiguration lineConfig)
         {
@@ -28,7 +29,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var dataIsSorted = false;
 
-            Dictionary<int, SKPath> paths = new Dictionary<int, SKPath>();
+            var paths = new Dictionary<int, SKPath>();
 
             for (var i = 0; i < data.X.Length; i++)
             {
@@ -48,12 +49,12 @@ namespace SINTEF.AutoActive.UI.Figures
                 if (CircularMarker)
                     plot.AddCircle(x, drawRect.Bottom, height);
                 else
-                    plot.AddRect(new SKRect(x - width / 2, drawRect.Bottom - height, x + width / 2, drawRect.Bottom));
+                    plot.AddRect(new SKRect(x - width / 2f, drawRect.Bottom - height, x + width / 2f, drawRect.Bottom));
             }
 
             foreach (var path in paths)
             {
-                if (!_paints.TryGetValue(path.Key, out SKPaint paint))
+                if (!_paints.TryGetValue(path.Key, out var paint))
                 {
                     _paints.Add(path.Key, paint = _paintProvider.GetIndexedPaint(path.Key));
                     paint.Style = SKPaintStyle.StrokeAndFill;
@@ -71,9 +72,9 @@ namespace SINTEF.AutoActive.UI.Figures
                 TextSize = 16,
             };
 
-            for (var i = 0; i < data.X.Length; i++)
+            foreach (var x in data.X)
             {
-                var plotX = DrawPlot.ScalePointX(data.X[i], lineConfig.OffsetX, lineConfig.ScaleX);
+                var plotX = DrawPlot.ScalePointX(x, lineConfig.OffsetX, lineConfig.ScaleX);
                 if (dataIsSorted && plotX > drawRect.Width)
                 {
                     break;
@@ -90,12 +91,11 @@ namespace SINTEF.AutoActive.UI.Figures
             }
 
             var annotationSet = annotationViewer.AnnotationSet;
-            if (annotationSet.AnnotationTags == null || annotationSet.AnnotationTags.Count == 0)
+            if (annotationSet.AnnotationInfo == null || annotationSet.AnnotationInfo.Count == 0)
             {
                 return;
             }
 
-            
             foreach (var annotation in annotationSet.Annotations)
             {
                 var plotX = DrawPlot.ScalePointX(annotation.Timestamp, lineConfig.OffsetX, lineConfig.ScaleX);
@@ -104,15 +104,13 @@ namespace SINTEF.AutoActive.UI.Figures
                     break;
                 }
 
-                if (!annotationSet.AnnotationTags.TryGetValue(annotation.Type, out string identifier))
+                if (!annotationSet.AnnotationInfo.TryGetValue(annotation.Type, out var info))
                 {
                     continue;
                 }
-                var bottomPoint = new SKPoint(plotX, drawRect.Bottom);
-                var topPoint = new SKPoint(plotX - centerPaint.MeasureText(identifier) / 2, drawRect.Bottom - height / 2);
-                canvas.DrawLine(topPoint, bottomPoint, centerPaint);
 
-                canvas.DrawText(identifier, topPoint, centerPaint);
+                var topPoint = new SKPoint(plotX - centerPaint.MeasureText(info.Tag) / 2, drawRect.Bottom - height / 2);
+                canvas.DrawText(info.Tag, topPoint, centerPaint);
             }
         }
     }

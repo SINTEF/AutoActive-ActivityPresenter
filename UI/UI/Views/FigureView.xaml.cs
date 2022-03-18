@@ -562,6 +562,11 @@ namespace SINTEF.AutoActive.UI.Views
 
             return root;
         }
+
+        public void InvalidateSurface()
+        {
+            Canvas.InvalidateSurface();
+        }
     }
 
     internal class DataPointDescription

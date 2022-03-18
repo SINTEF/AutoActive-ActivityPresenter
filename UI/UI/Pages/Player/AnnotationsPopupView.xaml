@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
-<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms" 
+<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              xmlns:pages="clr-namespace:Rg.Plugins.Popup.Pages;assembly=Rg.Plugins.Popup"
              xmlns:animations="clr-namespace:Rg.Plugins.Popup.Animations;assembly=Rg.Plugins.Popup"
@@ -14,38 +14,32 @@
             EasingOut="SinIn"
             HasBackgroundAnimation="False" />
     </pages:PopupPage.Animation>
-    <Grid VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637">
-        <Grid.RowDefinitions>
-            <RowDefinition Height="4*" />
-            <RowDefinition Height="100" />
-        </Grid.RowDefinitions>
-        <ScrollView Grid.Row="0">
-            <Grid x:Name="LayoutGrid" VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637">
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="50" />
-                    <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="100" />
-                    <ColumnDefinition Width="250" />
-                </Grid.ColumnDefinitions>
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="100"></RowDefinition>
-                </Grid.RowDefinitions>
-                <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource labelHeader}" Text="ID" />
-                <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource labelHeader}" Text="Name"/>
-                <Label Grid.Row="0" Grid.Column="2" Style="{StaticResource labelHeader}" Text="Tag"/>
-                <Label Grid.Row="0" Grid.Column="3" Style="{StaticResource labelHeader}" Text="Comment"/>
-            </Grid>
-        </ScrollView>
-        <Grid HorizontalOptions="Center" Grid.Row="1" BackgroundColor="#1D2637" ColumnSpacing="10">
-            <Grid.ColumnDefinitions>
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-                <ColumnDefinition Width="*" />
-            </Grid.ColumnDefinitions>
-            <Button Grid.Column="0" Text="Add Line" Style="{StaticResource buttonSettings}" />
-            <Button Grid.Column="1" Text="Save" Style="{StaticResource buttonSettings}" />
-            <Button Grid.Column="2" Text="Cancel" Style="{StaticResource buttonSettings}" Clicked="CancelButton_Clicked"/>
+    <Frame  VerticalOptions="Center" HorizontalOptions="Center" BorderColor="Teal" Padding="0">
+        <Grid VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637" Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*" />
+                <RowDefinition Height="100" />
+            </Grid.RowDefinitions>
+            <ScrollView Grid.Row="0">
+                <Grid x:Name="LayoutGrid" VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="64" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="64" />
+                        <ColumnDefinition Width="120" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource labelHeader}" WidthRequest="30" MinimumWidthRequest="30" Text="ID" />
+                    <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource labelHeader}" Text="Name"/>
+                    <Label Grid.Row="0" Grid.Column="2" Style="{StaticResource labelHeader}" Text="Tag"/>
+                    <Label Grid.Row="0" Grid.Column="3" Style="{StaticResource labelHeader}" Text="Comment"/>
+                </Grid>
+            </ScrollView>
+            <Button Grid.Row="1" Text="Add Line" Style="{StaticResource buttonSettings}" Clicked="AddLineButton_Clicked"/>
         </Grid>
-            
-    </Grid>
+    </Frame>
 </pages:PopupPage>
