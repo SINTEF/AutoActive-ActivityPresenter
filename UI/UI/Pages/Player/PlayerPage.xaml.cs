@@ -350,15 +350,25 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             var el = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
             if (el == null) return;
 
-            if ("123456789".Contains(args.Key))
+            // Check if we pressed a number key. If so, check if shift is pressed (+10) and/or ctrl is pressed (+20)
+            if (!"1234567890".Contains(args.Key))
+                return;
+            
+            var annotationId = int.Parse(args.Key);
+
+            if ((args.Modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
             {
-                await AddAnnotation(ViewerContext.SelectedTimeFrom, args.Key);
+                annotationId += 10;
+            }
+            if ((args.Modifiers & KeyModifiers.Ctrl) == KeyModifiers.Ctrl)
+            {
+                annotationId += 20;
             }
 
-            if (args.Key == "0")
-            {
+            if (annotationId == 0)
                 await RemoveAnnotation(ViewerContext.SelectedTimeFrom);
-            }
+            else
+                await AddAnnotation(ViewerContext.SelectedTimeFrom, annotationId);
         }
 
         private async Task ShowAnnotations(IDataPoint dataPoint)
@@ -406,13 +416,10 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             return annotationProvider;
         }
 
-        private async Task AddAnnotation(long timestamp, string key)
+        private async Task AddAnnotation(long timestamp, int annotationId)
         {
             var annotationProvider = await GetAndShowAnnotationProvider();
-            if (int.TryParse(key, out var annotationId))
-            {
-                annotationProvider.AddAnnotation(timestamp, annotationId);
-            }
+            annotationProvider.AddAnnotation(timestamp, annotationId);
         }
 
         protected const string CancelText = "Cancel";
