@@ -47,13 +47,13 @@ functionality and solves many of the same problems as ARE, such as SensiML Analy
 and Pasco Capstone Software [@PascoSoftware], but these are not open-source. To meet these limitations, 
 we have developed the AutoActive Research Environment (ARE). The idea of ARE is to create a generic 
 open-source methodological framework, especially but not exlusively for the biomedical and sport
-domains, supporting a wide range of sensors and tools that aid the development, optimisation, and 
-evaluation of algorithms to extract high-level, quantified analysis from sensor data. 
+domains, supporting a wide range of sensors and tools that aid the development, optimization, and
+evaluation of algorithms.
 
 # Summary
 
-ARE consist of three different open-source software modules; ActivityPresenter and the accompanying 
-Matlab and Python toolboxes. ActivityPresenter is created to simplify the process of visualising, 
+ARE consists of three different software modules; ActivityPresenter, a Matlab toolbox, and 
+a Python toolbox. ActivityPresenter is created to simplify the process of visualising, 
 synchronising, and organising data, such as sensor data and videos from multiple sources, while the 
 Matlab and Python toolboxes allow researchers to easily process data. Furthermore, a file format called 
 AutoActiveZip (aaz) was created to store data and metadata in an organized manner. This format is a 
@@ -95,10 +95,10 @@ and make it possible to view parts of large sessions on devices with limited res
 ## Data Handling
 ### Session 
 
-The concept of sessions is key to how we handle and store data in ARE, they are the root containers of 
-datasets. A session represents an activity bounded in time and space and stores the information about 
-the context of the activity, and the data generated during that activity. When a session is saved it 
-becomes immutable and is assigned a unique identifier. This allow sessions to be based on previous 
+The concept of a session is key to how we handle and store data in ARE. A session is the root container of a
+dataset. It represents an activity bounded in time and space and stores the information about 
+the context of the activity, and the data generated during that activity. When a session is saved, it 
+becomes immutable and is assigned a unique identifier. This allows a session to be based on previous 
 sessions, and enables traceability and reproducibility as analysed information is referenced to the 
 session where the data for that analysis was stored. It also allows referencing of large files, such as 
 high-quality video captures during an activity, without duplicating the files.
