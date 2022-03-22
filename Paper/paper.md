@@ -39,7 +39,7 @@ biomarkers, and vital signs. However, to fully understand the physical and physi
 the underlying processes, multiple sensors are often needed in combination with videos. Software for 
 combining, synchronizing, organising and processing sensor data from multiple sensors and videos is 
 therefore essential. Even though multiple open-source solutions like Pyomeca [@Martinez2020] and 
-ALPS [@Musmann2020], existing open-sorce software solutions are limited. None provide the possibility to 
+ALPS [@Musmann2020] exist, existing open-sorce software solutions are limited. None provide the possibility to 
 combine sensor data and videos, few provide tools for synchronising sensors, and none provide tools 
 for synchronising sensors with videos. Furthermore, many solutions rely on cloud storage, which is 
 often unacceptable in biomedical research. There also exists solutions which are not limited in 
@@ -95,12 +95,12 @@ and make it possible to view parts of large sessions on devices with limited res
 ## Data Handling
 ### Session 
 
-The concept of a session is key to how we handle and store data in ARE. A session is the root container of a
-dataset. It represents an activity bounded in time and space and stores the information about 
-the context of the activity, and the data generated during that activity. When a session is saved, it 
-becomes immutable and is assigned a unique identifier. This allows a session to be based on previous 
-sessions, and enables traceability and reproducibility as analysed information is referenced to the 
-session where the data for that analysis was stored. It also allows referencing of large files, such as 
+The concept of sessions is key to how we handle and store data in ARE; they are the root containers of
+datasets. A session represents an activity bounded in time and space and stores the information about
+the context of the activity, and the data generated during that activity. When a session is saved it
+becomes immutable and is assigned a unique identifier. This allow sessions to be based on previous
+sessions, and enables traceability and reproducibility as analysed information is referenced to the
+session where the data for that analysis was stored. It also allows referencing of large files, such as
 high-quality video captures during an activity, without duplicating the files.
 
 ### AutoActiveZip File
