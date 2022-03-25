@@ -97,7 +97,7 @@ and make it possible to view parts of large sessions on devices with limited res
 
 The concept of sessions is key to how we handle and store data in ARE; they are the root containers of
 datasets. A session represents an activity bounded in time and space and stores the information about
-the context of the activity, and the data generated during that activity. When a session is saved it
+the context of the activity, and the data generated during that activity. When a session is saved, it
 becomes immutable and is assigned a unique identifier. This allow sessions to be based on previous
 sessions, and enables traceability and reproducibility as analysed information is referenced to the
 session where the data for that analysis was stored. It also allows referencing of large files, such as
