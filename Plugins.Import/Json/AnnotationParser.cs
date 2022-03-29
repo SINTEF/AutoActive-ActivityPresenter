@@ -327,15 +327,15 @@ namespace SINTEF.AutoActive.Plugins.Import.Json
     public class AnnotationInfo : INotifyPropertyChanged
     {
         private string _name;
-        [JsonProperty("Name")]
+        [JsonProperty("name")]
         public string Name { get => _name; set { _name = value; OnPropertyChanged("Name"); } }
 
         private string _tag;
-        [JsonProperty("Tag")]
+        [JsonProperty("tag")]
         public string Tag { get => _tag; set { _tag = value; OnPropertyChanged("Tag"); } }
 
         private string _comment;
-        [JsonProperty("Comment")]
+        [JsonProperty("comment")]
         public string Comment { get => _comment; set { _comment = value; OnPropertyChanged("Comment"); } }
 
         public event PropertyChangedEventHandler PropertyChanged;
