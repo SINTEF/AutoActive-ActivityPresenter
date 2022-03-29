@@ -98,6 +98,8 @@ namespace SINTEF.AutoActive.Databus.Implementations
 
         public void TriggerChanged()
         {
+            _start = null;
+            _end = null;
             foreach(var viewer in _viewers)
             {
                 viewer.UpdatedTimeIndex();
