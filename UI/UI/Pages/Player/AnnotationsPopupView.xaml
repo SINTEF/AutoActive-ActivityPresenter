@@ -15,13 +15,13 @@
             HasBackgroundAnimation="False" />
     </pages:PopupPage.Animation>
     <Frame  VerticalOptions="Center" HorizontalOptions="Center" BorderColor="Teal" Padding="0">
-        <Grid VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637" Padding="20">
+        <Grid VerticalOptions="Center" HorizontalOptions="Fill" BackgroundColor="#1D2637" Padding="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="4*" />
-                <RowDefinition Height="100" />
+                <RowDefinition Height="Auto" />
             </Grid.RowDefinitions>
-            <ScrollView Grid.Row="0">
-                <Grid x:Name="LayoutGrid" VerticalOptions="Center" HorizontalOptions="Center" BackgroundColor="#1D2637">
+            <ScrollView Grid.Row="0" HorizontalOptions="FillAndExpand" >
+                <Grid x:Name="LayoutGrid" VerticalOptions="Center" HorizontalOptions="FillAndExpand" BackgroundColor="#1D2637">
                     <Grid.ColumnDefinitions>
                         <ColumnDefinition Width="64" />
                         <ColumnDefinition Width="160" />
@@ -39,7 +39,10 @@
                     <Label Grid.Row="0" Grid.Column="3" Style="{StaticResource labelHeader}" Text="Comment"/>
                 </Grid>
             </ScrollView>
-            <Button Grid.Row="1" Text="Add Line" Style="{StaticResource buttonSettings}" Clicked="AddLineButton_Clicked"/>
+            <StackLayout Grid.Row="1" Orientation="Horizontal">
+                <Entry x:Name="LineID" Style="{StaticResource entrySettings}" HorizontalTextAlignment="Center" WidthRequest="64"/>
+                <Button Text="Add Line" Style="{StaticResource buttonSettings}" Clicked="AddLineButton_Clicked" HorizontalOptions="FillAndExpand"/>
+            </StackLayout>
         </Grid>
     </Frame>
 </pages:PopupPage>
