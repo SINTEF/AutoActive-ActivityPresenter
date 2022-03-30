@@ -253,9 +253,9 @@ namespace SINTEF.AutoActive.Archive.Plugin
     [ArchivePlugin("no.sintef.session")]
     public class ArchiveSessionPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
+        public Task<IDataStructure> CreateFromJSON(JObject json, Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveSession(json, archive, sessionId));
+            return Task.FromResult<IDataStructure>(new ArchiveSession(json, archive, sessionId));
         }
     }
 }

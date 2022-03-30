@@ -2,15 +2,20 @@
 using SINTEF.AutoActive.Databus.ViewerContext;
 using SINTEF.AutoActive.UI.Views.DynamicLayout;
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
-using SINTEF.AutoActive.UI.Views.TreeView;
 using Xamarin.Forms;
+using SINTEF.AutoActive.Plugins.Import.Json;
+using SINTEF.AutoActive.Databus;
+using SINTEF.AutoActive.UI.Figures;
+using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -50,6 +55,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.UseInTimelineTapped += TreeView_UseInTimelineTapped;
 
             Playbar.DataTrackline.RegisterFigureContainer(PlayerContainer);
+            KeyDown += On_KeyDown;
             KeyDown += Playbar.KeyDown;
             KeyUp += Playbar.KeyUp;
         }
@@ -62,6 +68,7 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             TreeView.DataPointTapped -= TreeView_DataPointTapped;
             TreeView.UseInTimelineTapped -= TreeView_UseInTimelineTapped;
             Playbar.DataTrackline.DeregisterFigureContainer(PlayerContainer);
+            KeyDown -= On_KeyDown;
             KeyDown -= Playbar.KeyDown;
             KeyUp -= Playbar.KeyUp;
         }
@@ -334,6 +341,107 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             root["playbar"] = Playbar.SerializeView();
 
             return root;
+        }
+
+        public async void On_KeyDown(object sender, KeyEventArgs args)
+        {
+            if (ViewerContext == null) return;
+
+            var el = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
+            if (el == null) return;
+
+            // Check if we pressed a number key. If so, check if shift is pressed (+10) and/or ctrl is pressed (+20)
+            if (!"1234567890".Contains(args.Key))
+                return;
+            
+            var annotationId = int.Parse(args.Key);
+
+            if ((args.Modifiers & KeyModifiers.Shift) == KeyModifiers.Shift)
+            {
+                annotationId += 10;
+            }
+            if ((args.Modifiers & KeyModifiers.Ctrl) == KeyModifiers.Ctrl)
+            {
+                annotationId += 20;
+            }
+
+            if (annotationId == 0)
+                await RemoveAnnotation(ViewerContext.SelectedTimeFrom);
+            else
+                await AddAnnotation(ViewerContext.SelectedTimeFrom, annotationId);
+        }
+
+        private async Task ShowAnnotations(IDataPoint dataPoint)
+        {
+            var drawPlot = XamarinHelpers.GetFirstChildElement<DrawPlot>(PlayerContainer);
+            if (drawPlot != null)
+            {
+                var task = drawPlot.ToggleDataPoint(dataPoint, ViewerContext);
+
+                if (!task.IsCompleted)
+                {
+                    task.Wait();
+                }
+
+                return;
+            }
+
+            var figureView = XamarinHelpers.GetFirstChildElement<FigureView>(PlayerContainer);
+            // This shouldn't happen
+            if (figureView == null)
+            {
+                return;
+            }
+
+            var container = XamarinHelpers.GetTypedElementFromParents<PlaceableContainer>(figureView);
+            var item = XamarinHelpers.GetTypedElementFromParents<PlaceableItem>(figureView);
+            if (container == null || item == null)
+            {
+                return;
+            }
+
+            await container.PlaceItem(item, dataPoint, ViewerContext, PlaceableLocation.Down);
+        }
+
+        private async Task<AnnotationProvider> GetAndShowAnnotationProvider()
+        {
+            var annotationProvider = AnnotationProvider.GetAnnotationProvider(ViewerContext.IsSynchronizedToWorldClock);
+
+            // Make sure the annotations are visible. Use exisitng DrawPlots if it exist, if not paint it under the first FigureView.
+            if (!annotationProvider.DataPoint.HasViewers())
+            {
+                await ShowAnnotations(annotationProvider.DataPoint);
+            }
+
+            return annotationProvider;
+        }
+
+        private async Task AddAnnotation(long timestamp, int annotationId)
+        {
+            var annotationProvider = await GetAndShowAnnotationProvider();
+            annotationProvider.AddAnnotation(timestamp, annotationId);
+        }
+
+        protected const string CancelText = "Cancel";
+
+        private async Task RemoveAnnotation(long timestamp)
+        {
+            var annotationProvider = DataRegistry.FindFirstDataStructure<AnnotationProvider>(DataRegistry.Providers);
+            if (annotationProvider == null) return;
+
+            var closest = annotationProvider.FindClosestAnnotation(timestamp, TimeFormatter.TimeFromSeconds(1));
+            if (closest.Count == 0)
+            {
+                await DisplayAlert("Error", "No annotations found", "OK");
+                return;
+            }
+
+            var dataPoints = new List<string>(closest.Select((annotation, i) => $"{i}: {annotation}"));
+            var action = await DisplayActionSheet("Remove annotation", CancelText, null, dataPoints.ToArray());
+            if (action == CancelText)
+                return;
+
+            annotationProvider.RemoveAnnotation(closest[dataPoints.IndexOf(action)]);
         }
     }
 }

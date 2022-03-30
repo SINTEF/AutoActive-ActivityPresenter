@@ -358,7 +358,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Table
             return tableInformation;
         }
 
-        public async Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
+        public async Task<IDataStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
             var information = await ParseTableInformation(json, archive, sessionId);
             return new ArchiveTable(json, archive, sessionId, information);

@@ -9,6 +9,9 @@ namespace SINTEF.AutoActive.Databus.Interfaces
         // TODO: If it is constant or changing?
         Task<ITimeViewer> CreateViewer();
 
+        long Start { get; }
+        long End { get; }
+
         void TransformTime(long offset, double scale);
     }
 }

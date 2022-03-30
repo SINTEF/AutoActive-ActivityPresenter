@@ -125,6 +125,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
         public string Unit { get; set; }
         private readonly IReadSeekStreamFactory _streamFactory;
 
+        public event EventHandler DataChanged;
+
         public ArchiveVideoVideo(ZipEntry zipEntry, Archive.Archive archive, string path, long startTime, long videoLength)
         {
             _zipEntry = zipEntry;
@@ -214,10 +216,25 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
 
         public async Task<ITimeViewer> CreateViewer()
         {
-            var viewer = new ArchiveVideoTimeViewer(this, await GetVideoLengthExtractor());
+            await LoadVideoLength();
 
+            var viewer = new ArchiveVideoTimeViewer(this);
             _viewers.Add(viewer);
             return viewer;
+        }
+
+        private async Task LoadVideoLength()
+        {
+            _videoLength = await (await GetVideoLengthExtractor()).GetLengthAsync();
+            if (_videoLength == 0L)
+            {
+                Debug.WriteLine("Could not get video length");
+            }
+            foreach (var viewer in _viewers)
+            {
+                viewer.TriggerTimeChanged(Start,End);
+            }
+            Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
         public void TransformTime(long offset, double scale)
@@ -228,42 +245,30 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             Offset += VideoPlaybackOffset;
 #endif
             Scale = scale;
-            foreach (var viewer in _viewers)
-            {
-                viewer.Start = Offset;
-            }
 
             foreach (var viewer in _viewers)
             {
                 viewer.UpdatedTimeIndex();
             }
         }
+
+        private long _videoLength;
+
+        public long Start
+        {
+            get => Offset;
+        }
+
+        public long End => Start + _videoLength;
     }
 
     public class ArchiveVideoTimeViewer : ITimeViewer
     {
         private readonly ArchiveVideoTime _time;
-        private readonly IVideoLengthExtractor _videoLengthExtractor;
 
-        internal ArchiveVideoTimeViewer(ArchiveVideoTime time, IVideoLengthExtractor videoLengthExtractor)
+        internal ArchiveVideoTimeViewer(ArchiveVideoTime time)
         {
             _time = time;
-            _videoLengthExtractor = videoLengthExtractor;
-            _videoLength = _videoLengthExtractor.ReportedLength;
-            LoadVideoLength();
-        }
-
-        private long _videoLength;
-
-        private async void LoadVideoLength()
-        {
-            _videoLength = await _videoLengthExtractor.GetLengthAsync();
-            if (_videoLength == 0L)
-            {
-                Debug.WriteLine("Could not get video length");
-            }
-            TimeChanged?.Invoke(this, Start, End);
-            Debug.WriteLine($"Change invoked {Start}->{End}");
         }
 
         public void UpdatedTimeIndex()
@@ -271,22 +276,15 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             TimeChanged?.Invoke(this, Start, End);
         }
 
-        public ITimePoint TimePoint => _time;
-
-        public int Length =>(int) _videoLength;
-
-        public long Start
+        internal void TriggerTimeChanged(long start, long end)
         {
-            get => _time.Offset;
-            set
-            {
-                _time.Offset = value;
-                TimeChanged?.Invoke(this, Start, End);
-            }
+            TimeChanged?.Invoke(this, Start, End);
         }
 
-        public long End => Start + _videoLength;
+        public long Start => _time.Start;
+        public long End => _time.End;
 
+        public ITimePoint TimePoint => _time;
 
         public event TimeViewerWasChangedHandler TimeChanged;
     }
@@ -294,6 +292,7 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     public class ArchiveVideoVideoViewer : IDataViewer
     {
         public ArchiveVideoVideo Video;
+
         public IDataPoint DataPoint => Video;
         public long CurrentTimeRangeFrom { get; }
         public long CurrentTimeRangeTo { get; }
@@ -304,6 +303,8 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
             // This event is handled directly by the video handler
         }
 
+        public event EventHandler Changed;
+
         internal ArchiveVideoVideoViewer(ArchiveVideoVideo video)
         {
             Video = video;
@@ -313,9 +314,9 @@ namespace SINTEF.AutoActive.Plugins.ArchivePlugins.Video
     [ArchivePlugin("no.sintef.video")]
     public class ArchiveVideoPlugin : IArchivePlugin
     {
-        public Task<ArchiveStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
+        public Task<IDataStructure> CreateFromJSON(JObject json, Archive.Archive archive, Guid sessionId)
         {
-            return Task.FromResult<ArchiveStructure>(new ArchiveVideo(json, archive, sessionId));
+            return Task.FromResult<IDataStructure>(new ArchiveVideo(json, archive, sessionId));
         }
     }
 }

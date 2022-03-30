@@ -14,6 +14,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
         protected TableTimeIndexDyn index;
         internal readonly List<IDynDataViewer> dynDataViewers = new List<IDynDataViewer>();
 
+        public event EventHandler DataChanged;
+
         public string URI => "LIVE";
         public Type DataType { get; private set; }
         public string Name { get; set; }
@@ -41,6 +43,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             {
                 viewer.UpdatedData();
             }
+            DataChanged?.Invoke(this, EventArgs.Empty);
         }
 
         public Task<IDataViewer> CreateViewer()
@@ -124,7 +127,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 endIndex = end;
                 length = endIndex - startIndex + 1;
                 Debug.WriteLine("TableColumnDynViewer::SetTimeRange   Changed " + this.Column.Name);
-                Changed?.Invoke(this);
+                Changed?.Invoke(this, EventArgs.Empty);
             }
         }
 
@@ -142,14 +145,14 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
                 endIndex = end;
                 length = endIndex - startIndex + 1;
                 //Debug.WriteLine("TableColumnDynViewer::UpdatedData   Changed " + this.Column.Name);
-                Changed?.Invoke(this);
+                Changed?.Invoke(this, EventArgs.Empty);
             }
         }
 
         public TableColumnDyn Column { get; private set; }
         public IDataPoint DataPoint => Column;
 
-        public event DataViewerWasChangedHandler Changed;
+        public event EventHandler Changed;
 
 
         public double? MinValueHint => Column.MinValueHint;

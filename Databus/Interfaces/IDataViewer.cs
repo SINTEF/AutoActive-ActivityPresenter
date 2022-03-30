@@ -1,8 +1,8 @@
 ﻿
+using System;
+
 namespace SINTEF.AutoActive.Databus.Interfaces
 {
-    public delegate void DataViewerWasChangedHandler(IDataViewer sender);
-    
     public interface IDataViewer
     {
         IDataPoint DataPoint { get; }
@@ -12,5 +12,7 @@ namespace SINTEF.AutoActive.Databus.Interfaces
 
         long PreviewPercentage { get; set; }
         void SetTimeRange(long from, long to);
+
+        event EventHandler Changed;
     }
 }

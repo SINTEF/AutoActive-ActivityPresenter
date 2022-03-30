@@ -81,7 +81,14 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _keyModifiers = isDown ? SetKeyModifiers(currentKey) : ClearKeyModifiers(currentKey);
             }
 
-            return new KeyEventArgs { Key = key.ToString(), Handled = handled, Modifiers = _keyModifiers };
+            var keyString = key.ToString();
+
+            if (keyString.StartsWith("Number"))
+            {
+                keyString = keyString.Substring("Number".Length);
+            }
+
+            return new KeyEventArgs { Key = keyString, Handled = handled, Modifiers = _keyModifiers };
         }
     }
 }

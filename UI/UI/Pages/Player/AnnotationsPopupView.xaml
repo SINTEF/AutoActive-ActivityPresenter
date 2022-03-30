@@ -1,0 +1,48 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<pages:PopupPage xmlns="http://xamarin.com/schemas/2014/forms"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:pages="clr-namespace:Rg.Plugins.Popup.Pages;assembly=Rg.Plugins.Popup"
+             xmlns:animations="clr-namespace:Rg.Plugins.Popup.Animations;assembly=Rg.Plugins.Popup"
+             x:Class="SINTEF.AutoActive.UI.Pages.Player.AnnotationsPopupView">
+    <pages:PopupPage.Animation>
+        <animations:MoveAnimation
+            PositionIn="Bottom"
+            PositionOut="Bottom"
+            DurationIn="400"
+            DurationOut="350"
+            EasingIn="SinOut"
+            EasingOut="SinIn"
+            HasBackgroundAnimation="False" />
+    </pages:PopupPage.Animation>
+    <Frame  VerticalOptions="Center" HorizontalOptions="Center" BorderColor="Teal" Padding="0">
+        <Grid VerticalOptions="Center" HorizontalOptions="Fill" BackgroundColor="#1D2637" Padding="20">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="4*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+            <ScrollView Grid.Row="0" HorizontalOptions="FillAndExpand" >
+                <Grid x:Name="LayoutGrid" VerticalOptions="Center" HorizontalOptions="FillAndExpand" BackgroundColor="#1D2637">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="64" />
+                        <ColumnDefinition Width="160" />
+                        <ColumnDefinition Width="64" />
+                        <ColumnDefinition Width="120" />
+                    </Grid.ColumnDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition />
+                        <RowDefinition />
+                        <RowDefinition />
+                    </Grid.RowDefinitions>
+                    <Label Grid.Row="0" Grid.Column="0" Style="{StaticResource labelHeader}" WidthRequest="30" MinimumWidthRequest="30" Text="ID" />
+                    <Label Grid.Row="0" Grid.Column="1" Style="{StaticResource labelHeader}" Text="Name"/>
+                    <Label Grid.Row="0" Grid.Column="2" Style="{StaticResource labelHeader}" Text="Tag"/>
+                    <Label Grid.Row="0" Grid.Column="3" Style="{StaticResource labelHeader}" Text="Comment"/>
+                </Grid>
+            </ScrollView>
+            <StackLayout Grid.Row="1" Orientation="Horizontal">
+                <Entry x:Name="LineID" Style="{StaticResource entrySettings}" HorizontalTextAlignment="Center" WidthRequest="64"/>
+                <Button Text="Add Line" Style="{StaticResource buttonSettings}" Clicked="AddLineButton_Clicked" HorizontalOptions="FillAndExpand"/>
+            </StackLayout>
+        </Grid>
+    </Frame>
+</pages:PopupPage>

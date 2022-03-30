@@ -246,8 +246,8 @@ namespace SINTEF.AutoActive.UI.Views
                 return;
             }
 
-            long startTime = _timeViewers.Select(i => i.Item1.Start).Max();
-            long endTime = _timeViewers.Select(i => i.Item1.End).Min();
+            long startTime = _timeViewers.Where(i => i.Item1.Start != i.Item1.End).Select(i => i.Item1.Start).Max();
+            long endTime = _timeViewers.Where(i => i.Item1.Start != i.Item1.End).Select(i => i.Item1.End).Min();
 
             //TODO(sigurdal): This warning should probably not be shown here (especially not based on time, maybe on pixels)
             // if the offset between videos is above one day it might not be visible

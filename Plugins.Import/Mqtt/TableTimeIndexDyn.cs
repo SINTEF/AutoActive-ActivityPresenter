@@ -58,6 +58,9 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             }
         }
 
+        public long Start => data[0];
+        public long End => data[length - 1];
+
 
         public bool IsSynchronizedToWorldClock { get; private set; }
     }
@@ -70,10 +73,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Mqtt
             time = index;
         }
         public ITimePoint TimePoint => time;
-        public long Start => time.data[0];
-        public long End => time.data[time.length - 1];
-
-        public int Length => time.length;
+        public long Start => time.Start;
+        public long End => time.End;
 
         public event TimeViewerWasChangedHandler TimeChanged;
 

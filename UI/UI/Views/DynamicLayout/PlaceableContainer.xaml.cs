@@ -111,8 +111,12 @@ namespace SINTEF.AutoActive.UI.Views.DynamicLayout
 
         private async Task<FigureView> CreateFigureView(IDataPoint item, TimeSynchronizedContext context)
         {
-            DatapointAdded?.Invoke(this, (item, context));
-            return await FigureView.GetView(item, context);
+            var figureView = await FigureView.GetView(item, context);
+            if (figureView != null)
+            {
+                DatapointAdded?.Invoke(this, (item, context));
+            }
+            return figureView;
         }
 
         public async Task<PlaceableItem> PlaceItem(PlaceableItem placeableSender, IDataPoint item, TimeSynchronizedContext context,

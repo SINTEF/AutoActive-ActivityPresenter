@@ -11,9 +11,9 @@ using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
 using Rg.Plugins.Popup.Services;
+using SINTEF.AutoActive.Plugins.Import.Json;
 using SINTEF.AutoActive.UI.Interfaces;
 using SINTEF.AutoActive.UI.Views;
-using SINTEF.AutoActive.UI.Pages.Synchronization;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
 {
@@ -381,12 +381,27 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             }
         }
 
-        private void OpenSettings(object sender, EventArgs e)
+        private async void OpenSettings(object sender, EventArgs e)
         {
-            var popupObject = new SettingsPopupView();
-            popupObject.PlaybarView = this;
+            var popupObject = new SettingsPopupView {PlaybarView = this};
             popupObject.SetSettings();
-            PopupNavigation.Instance.PushAsync(popupObject);
+            await PopupNavigation.Instance.PushAsync(popupObject);
+
+            popupObject.Disappearing += PopupObjectOnDisappearing;
+        }
+
+        private void PopupObjectOnDisappearing(object sender, EventArgs e)
+        {
+            var figureViews = XamarinHelpers.GetAllChildElements<FigureView>(XamarinHelpers.GetCurrentPage(this)); ;
+            foreach (var figureView in figureViews)
+            {
+                figureView.InvalidateSurface();
+            }
+
+            if (sender is SettingsPopupView popupObject)
+            {
+                popupObject.Disappearing -= PopupObjectOnDisappearing;
+            }
         }
 
         private void TimeStepper_OnOnStep(object sender, TimeStepEvent timeStep)

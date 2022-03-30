@@ -120,5 +120,35 @@ namespace SINTEF.AutoActive.Databus
             ProviderRemoved?.Invoke(dataprovider);
             dataprovider.Close();
         }
+
+        public static T FindFirstDataStructure<T>(IReadOnlyCollection<IDataProvider> providers)
+        {
+            var dataStructure = new Queue<IDataProvider>();
+            foreach (var provider in providers)
+            {
+                if (provider is T item)
+                    return item;
+
+                dataStructure.Enqueue(provider);
+            }
+
+            while (dataStructure.Count > 0)
+            {
+                var el = dataStructure.Dequeue();
+                foreach (var child in el.Children)
+                {
+                    if (child is T item)
+                        return item;
+
+                    if (child is IDataProvider provider)
+                    {
+                        dataStructure.Enqueue(provider);
+                    }
+                }
+
+
+            }
+            return default;
+        }
     }
 }

@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Rg.Plugins.Popup.Services;
 
 using Xamarin.Forms;
 using Xamarin.Forms.Xaml;
@@ -59,6 +60,8 @@ namespace SINTEF.AutoActive.UI.Pages
         private bool _valueChanging;
         private void WindowSlider_OnValueChanged(object sender, ValueChangedEventArgs e)
         {
+            if (PlaybarView == null) return;
+
             if (_windowSliderInitialised)
             {
                 PlaybarView.WindowSize = (long)(e.NewValue * 1000000);
@@ -113,6 +116,12 @@ namespace SINTEF.AutoActive.UI.Pages
             var trimChars = new[] { 'x', ' ' };
             PlaybarView.PlaybackSpeed = double.Parse(PlaybackSpeedButton.Text.TrimEnd(trimChars));
             PlaybarView.ViewerContext.PlaybackRate = PlaybarView.PlaybackSpeed;
+        }
+
+        private async void AnnotationsButton_Clicked(object sender, EventArgs e)
+        {
+            var popupObject = new AnnotationsPopupView();
+            await PopupNavigation.Instance.PushAsync(popupObject);
         }
     }
 }

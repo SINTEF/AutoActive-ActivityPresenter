@@ -14,7 +14,6 @@ using Newtonsoft.Json.Converters;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.UI.Interfaces;
 using Xamarin.Forms;
-using ITimeSeriesViewer = SINTEF.AutoActive.Databus.Common.ITimeSeriesViewer;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
@@ -27,14 +26,13 @@ namespace SINTEF.AutoActive.UI.Figures
 
             var lineDrawer = await linePlot.CreateLineDrawer(datapoint);
             linePlot.AddLine(lineDrawer);
+
             return linePlot;
         }
 
         protected LinePlot(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
         }
-
-
 
         private double _previouseWindowHeight = 0;
         private double _previouseWindowWidth = 0;
@@ -48,9 +46,6 @@ namespace SINTEF.AutoActive.UI.Figures
             get => _axisValuesVisible && !_autoScaleIndependent;
             set => _axisValuesVisible = value;
         }
-
-
-
 
         protected override void RedrawCanvas(SKCanvas canvas, SKImageInfo info)
         {
@@ -121,7 +116,7 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var lineConfig in _lines)
             {
-                DrawLine(canvas, plotRect, lineConfig);
+                lineConfig.Drawer.DrawPath(canvas, plotRect, lineConfig);
             }
 
             DrawLegends(canvas, plotRect, _lines);
@@ -214,6 +209,11 @@ namespace SINTEF.AutoActive.UI.Figures
 
             foreach (var line in _lines)
             {
+                if (line.IsAnnotation)
+                {
+                    continue;
+                }
+
                 var (cMin, cMax) = line.Drawer.GetVisibleYStatistics(MaxPointsFromWidth(plotRect.Width));
 
                 // Do not include NaN or Inf

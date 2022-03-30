@@ -71,11 +71,42 @@ namespace SINTEF.AutoActive.UI
                     }
                 }
 
+                if (el is Page page)
+                {
+                    foreach (var child in page.LogicalChildren)
+                    {
+                        elements.Enqueue(child);
+                    }
+                }
+
                 if (el is T item)
                     list.Add(item);
             }
 
             return list;
+        }
+
+        public static T GetFirstChildElement<T>(Element element)
+        {
+            var elements = new Queue<Element>();
+            elements.Enqueue(element);
+
+            while (elements.Any())
+            {
+                var el = elements.Dequeue();
+
+                if (el is Layout layout)
+                {
+                    foreach (var child in layout.Children)
+                    {
+                        elements.Enqueue(child);
+                    }
+                }
+
+                if (el is T item)
+                    return item;
+            }
+            return default(T);
         }
 
         public static async Task ShowOkMessage(string title, string message, Page page = null)

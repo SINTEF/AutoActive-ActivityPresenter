@@ -40,7 +40,7 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
         {
 
         }
-        public async override void ObjectDroppedOn(IDraggable item)
+        public override async void ObjectDroppedOn(IDraggable item)
         {
             if (item is DataPointView)
             {
@@ -168,9 +168,9 @@ namespace SINTEF.AutoActive.UI.Views.TreeView
                 return Task.FromResult(true);
         }
 
-        public async Task<bool> VerifyStructure()
+        public Task<bool> VerifyStructure()
         {
-            return true;
+            return Task.FromResult(true);
         }
     }
 }

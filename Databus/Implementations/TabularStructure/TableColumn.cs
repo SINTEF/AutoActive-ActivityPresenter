@@ -14,6 +14,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         private readonly Task _loader;
         private readonly Mutex _loaderMutex = new Mutex();
 
+        public event EventHandler DataChanged;
         public string URI { get; }
         public Type DataType { get; }
         public string Name { get; set; }
@@ -65,13 +66,12 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 
         public Task<IDataViewer> CreateViewer()
         {
+            EnsureIndexAndDataIsLoaded();
             switch (this)
             {
                 case StringColumn _:
-                    EnsureIndexAndDataIsLoaded();
                     return Task.FromResult(CreateStringViewer(Index));
                 default:
-                    EnsureIndexAndDataIsLoaded();
                     return Task.FromResult(CreateGenericViewer(Index));
             }
         }
@@ -114,13 +114,13 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             StartIndex = start;
             EndIndex = end;
             Length = EndIndex - StartIndex + 1;
-            Changed?.Invoke(this);
+            Changed?.Invoke(this, EventArgs.Empty);
         }
 
         public TableColumn Column { get; private set; }
         public IDataPoint DataPoint => Column;
 
-        public event DataViewerWasChangedHandler Changed;
+        public event EventHandler Changed;
 
         public double? MinValueHint => Column.MinValueHint;
         public double? MaxValueHint => Column.MaxValueHint;

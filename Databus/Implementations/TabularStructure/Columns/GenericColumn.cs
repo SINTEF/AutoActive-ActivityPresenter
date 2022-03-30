@@ -7,7 +7,7 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
 {
     public class GenericColumn<T> : TableColumn where T : IConvertible
     {
-        internal T[] Data;
+        public T[] Data;
         private readonly Task<T[]> _loader;
         public GenericColumn(string name, Task<T[]> loader, TableTimeIndex index, string uri, string unit) : base(typeof(T), name, loader, index, uri)
         {
@@ -73,14 +73,12 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
                 throw new ArgumentException();
             if (Length <= 0) return new SpanPair<T1>();
 
-            var elements = _column.Data.AsSpan(StartIndex, Length);
-
             Span<T1> data;
             unsafe
             {
                 var mem = _column.Data.AsMemory(StartIndex, Length);
                 using (var pin = mem.Pin())
-                    data = new Span<T1>(pin.Pointer, elements.Length);
+                    data = new Span<T1>(pin.Pointer, Length);
             }
 
             return new SpanPair<T1>(StartIndex, Index.Data.AsSpan(StartIndex, Length), data);
