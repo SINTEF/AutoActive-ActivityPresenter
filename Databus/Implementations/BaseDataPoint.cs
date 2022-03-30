@@ -62,7 +62,6 @@ namespace SINTEF.AutoActive.Databus.Implementations
                 Data = await DataLoader;
             }
 
-            // TODO: keep list of viewers?
             var viewer = CreateDataViewer();
             _viewers.Add(viewer);
             return viewer;
