@@ -10,9 +10,10 @@ using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Figures
 {
-    public class VideoView : FigureView
+    public class VideoView : FigureView, IDisposable
     {
         private VideoPlayer _player;
+        public static bool PlaybackErrorsHidden = false;
 
         public static async Task<VideoView> Create(IDataPoint datapoint, TimeSynchronizedContext context)
         {
@@ -32,7 +33,8 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 view.StartTime = time.Offset;
                 time.OffsetChanged += (s, offset) => view.StartTime = offset;
-                view._player.OffsetChanged += (s, offset) => time.VideoPlaybackOffset = TimeFormatter.TimeFromSeconds(offset);
+                view._player.OffsetChanged += (s, offset) =>
+                    time.VideoPlaybackOffset = TimeFormatter.TimeFromSeconds(offset);
             }
 
             context.SelectedTimeRangeChanged += view.OnSelectedTimeRangeChanged;
@@ -63,7 +65,7 @@ namespace SINTEF.AutoActive.UI.Figures
             {
                 _player.Position = TimeSpan.FromSeconds(diff);
             }
-            catch(OverflowException)
+            catch (OverflowException)
             {
                 //TODO: add warning?
             }
@@ -83,12 +85,12 @@ namespace SINTEF.AutoActive.UI.Figures
                     VerticalOptions = new LayoutOptions(LayoutAlignment.Start, false)
                 }
             };
+            _player.PlaybackError += PlayerOnPlaybackError;
 
             Grid.SetColumn(_player.Label, Grid.GetColumn(Canvas));
             Grid.SetRow(_player.Label, Grid.GetRow(Canvas));
             Grid.SetRowSpan(_player.Label, Grid.GetRowSpan(Canvas));
             Grid.SetColumnSpan(_player.Label, Grid.GetColumnSpan(Canvas));
-
 
             Grid.SetColumn(_player, Grid.GetColumn(Canvas));
             Grid.SetRow(_player, Grid.GetRow(Canvas));
@@ -103,6 +105,17 @@ namespace SINTEF.AutoActive.UI.Figures
             _player.Position = TimeSpan.Zero;
         }
 
+        private async void PlayerOnPlaybackError(object sender, string e)
+        {
+            if (PlaybackErrorsHidden) return;
+
+            const string dontShowAgain = "Don't show again";
+            var page = XamarinHelpers.GetCurrentPage(Navigation);
+            var res2 = await page.DisplayAlert("Video playback error detected", $"{e}", "OK", dontShowAgain);
+            if (!res2)
+                PlaybackErrorsHidden = true;
+        }
+
         protected VideoView(TimeSynchronizedContext context, IDataPoint dataPoint) : base(context, dataPoint)
         {
         }
@@ -112,6 +125,14 @@ namespace SINTEF.AutoActive.UI.Figures
         {
             if (DataPoints.Contains(datapoint))
                 RemoveThisView();
+        }
+
+
+        public void Dispose()
+        {
+            if (_player == null) return;
+
+            _player.PlaybackError -= PlayerOnPlaybackError;
         }
     }
 }

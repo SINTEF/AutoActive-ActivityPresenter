@@ -109,6 +109,13 @@ namespace SINTEF.AutoActive.UI
 
         public event EventHandler<double> PlaybackRateChanged;
 
+        public event EventHandler<string> PlaybackError;
+
+        public void TriggerPlaybackError(string msg)
+        {
+            PlaybackError?.Invoke(this, msg);
+        }
+
     }
 
     public delegate void PositionChangedEvent(object sender, PositionChangedEventArgs args);

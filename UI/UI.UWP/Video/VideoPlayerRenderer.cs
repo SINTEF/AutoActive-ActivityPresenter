@@ -9,8 +9,8 @@ using SINTEF.AutoActive.UI.UWP.Views;
 using Xamarin.Forms.Platform.UWP;
 using System.Collections.Generic;
 using System.Linq;
+using Windows.UI.Xaml;
 using Windows.UI.Xaml.Media;
-using SINTEF.AutoActive.UI.Helpers;
 
 [assembly: ExportRenderer(typeof(VideoPlayer), typeof(VideoPlayerRenderer))]
 
@@ -40,6 +40,12 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 oldVideoPlayer.PlaybackRateChanged -= PlaybackRateChanged;
             }
 
+            if (_mediaElement != null)
+            {
+                _mediaElement.MediaFailed -= MediaElementOnMediaFailed;
+                _mediaElement.PartialMediaFailureDetected -= MediaElementOnPartialMediaFailureDetected;
+            }
+
             if (args.NewElement == null) return;
 
             if (Control == null)
@@ -51,6 +57,8 @@ namespace SINTEF.AutoActive.UI.UWP.Views
                 _mediaElement.AutoPlay = false;
                 _mediaElement.IsMuted = true;
                 _mediaElement.Volume = 0d;
+                _mediaElement.MediaFailed += MediaElementOnMediaFailed;
+                _mediaElement.PartialMediaFailureDetected += MediaElementOnPartialMediaFailureDetected;
             }
 
             _videoPlayer = args.NewElement;
@@ -71,6 +79,16 @@ namespace SINTEF.AutoActive.UI.UWP.Views
             }
 
             _currentlyPlaying = _videoPlayer.IsPlaying;
+        }
+
+        private void MediaElementOnPartialMediaFailureDetected(MediaElement sender, PartialMediaFailureDetectedEventArgs args)
+        {
+            _videoPlayer?.TriggerPlaybackError(args.ExtendedError.ToString());
+        }
+
+        private void MediaElementOnMediaFailed(object sender, ExceptionRoutedEventArgs args)
+        {
+            _videoPlayer?.TriggerPlaybackError(args.ErrorMessage);
         }
 
         private void PlaybackRateChanged(object sender, double rate)
