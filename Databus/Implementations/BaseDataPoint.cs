@@ -105,16 +105,6 @@ namespace SINTEF.AutoActive.Databus.Implementations
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
 
-            /*
-            var start = TimeViewer.FindIndex(StartIndex, startTime);
-            var end = Index.FindIndex(EndIndex, endTime);
-
-            if (start == StartIndex && end == EndIndex) return;
-
-            StartIndex = start;
-            EndIndex = end;
-            Length = EndIndex - StartIndex + 1;
-            */
             Changed?.Invoke(this, EventArgs.Empty);
         }
 
@@ -142,7 +132,6 @@ namespace SINTEF.AutoActive.Databus.Implementations
         {
             return _dataPoint.Data;
         }
-
 
         public SpanPair<T2> GetCurrentData<T2>() where T2 : IConvertible
         {
