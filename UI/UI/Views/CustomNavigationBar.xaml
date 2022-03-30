@@ -108,8 +108,7 @@
                 TextColor="White"
             />
 
-            <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="3" Grid.ColumnSpan="2" Aspect="AspectFit" HorizontalOptions="End" Source="Assets\ActivityPresenterLogo.png" />
-
+            <Image Grid.Column="8" Grid.Row="1" Grid.RowSpan="2" Grid.ColumnSpan="2" Aspect="AspectFit" HorizontalOptions="End" Source="Assets\ActivityPresenterLogo.png" />
         </Grid>
     </ContentView.Content>
 </ContentView>

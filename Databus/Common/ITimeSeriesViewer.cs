@@ -53,13 +53,7 @@ namespace SINTEF.AutoActive.Databus.Common
                 else
                 {
                     var modulo = (startOffset % _decimator);
-                    if (modulo == 0)
-                    {
-                        _index = 0;
-                        return;
-                    }
-
-                    _index = _decimator - modulo;
+                    _index = -_decimator - modulo;
                 }
             }
 

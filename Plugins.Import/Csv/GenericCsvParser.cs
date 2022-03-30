@@ -270,31 +270,23 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
         };
 
 
-        public static Configuration DefaultConfig => AlternativeConfigurations[0];
+        public static CsvConfiguration DefaultConfig => AlternativeConfigurations[0];
 
-        private static readonly Configuration[] AlternativeConfigurations = new Configuration[] {
-            new Configuration
+        private static readonly CsvConfiguration[] AlternativeConfigurations = new CsvConfiguration[] {
+            new CsvConfiguration(CultureInfo.InvariantCulture)
             {
                 Delimiter = ",",
-                CultureInfo = CultureInfo.InvariantCulture
             },
-            new Configuration {
-                Delimiter = ";",
-                CultureInfo = new CultureInfo("no-NB")
+            new CsvConfiguration(new CultureInfo("no-NB")) {
+                Delimiter = ";"
             }, // Norwegian format (Excel)
-            new Configuration {
-                Delimiter = "\t",
-                CultureInfo = CultureInfo.InvariantCulture
+            new CsvConfiguration(CultureInfo.InvariantCulture) {
+                Delimiter = "\t"
             },
-            new Configuration {
-                Delimiter = "|",
-                CultureInfo = CultureInfo.InvariantCulture
+            new CsvConfiguration(CultureInfo.InvariantCulture) {
+                Delimiter = "|"
             },
-            new Configuration {
-                Delimiter = " ",
-                CultureInfo = CultureInfo.InvariantCulture
-            },
-            new Configuration()
+            new CsvConfiguration(CultureInfo.CurrentCulture)
         };
 
         public static Type TryGuessTypeSingle(string field, CultureInfo culture)
@@ -343,7 +335,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return lineCount;
         }
 
-        public static List<Type> TryGuessType(Stream stream, Configuration config = null)
+        public static List<Type> TryGuessType(Stream stream, CsvConfiguration config = null)
         {
             var streamStartPosition = stream.Position;
             config = config ?? DefaultConfig;
@@ -351,9 +343,10 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             try
             {
                 var types = new List<Type>();
+                config.LeaveOpen = true;
 
                 using (var reader = new StreamReader(stream, System.Text.Encoding.UTF8, true, 1024, true))
-                using (var csv = new CsvReader(reader, config, true))
+                using (var csv = new CsvReader(reader, config))
                 {
                     if (!csv.Read()) throw new ArgumentException("Could not find valid fields");
                     if (!csv.ReadHeader()) throw new ArgumentException("Could not find valid header");
@@ -394,11 +387,13 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
 
                     while (csv.Read())
                     {
-                        if (csv.Parser.FieldReader.IsBufferEmpty)
+                        //TODO: Fix this
+                        /*if (csv.Parser.FieldReader.IsBufferEmpty)
                         {
                             // incomplete record at end of file
                             break;
-                        }
+                        }*/
+
                         record = (IDictionary<string, object>) csv.GetRecord<dynamic>();
 
                         var ix = 0;
@@ -424,7 +419,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             }
         }
 
-        private static bool TestConfiguration(Stream stream, Configuration configuration)
+        private static bool TestConfiguration(Stream stream, CsvConfiguration configuration)
         {
             var streamPos = stream.Position;
             try
@@ -433,7 +428,8 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
                 {
                     try
                     {
-                        using (var csv = new CsvReader(reader, configuration, true))
+                        configuration.LeaveOpen = true;
+                        using (var csv = new CsvReader(reader, configuration))
                         {
                             csv.Read();
                             csv.ReadHeader();
@@ -460,7 +456,7 @@ namespace SINTEF.AutoActive.Plugins.Import.Csv
             return false;
         }
 
-        private static Configuration DetectConfiguration(Stream stream)
+        private static CsvConfiguration DetectConfiguration(Stream stream)
         {
             foreach (var config in AlternativeConfigurations)
             {

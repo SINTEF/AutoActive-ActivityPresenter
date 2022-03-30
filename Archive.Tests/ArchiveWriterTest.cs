@@ -512,7 +512,7 @@ namespace SINTEF.AutoActive.Archive.Tests
 
             var tmpBytes = new byte[1024];
             rand.NextBytes(tmpBytes);
-            ms.Write(tmpBytes);
+            ms.Write(tmpBytes, 0, tmpBytes.Length);
             ms.Position = 0;
 
             zip.BeginUpdate();
