@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using SINTEF.AutoActive.Databus.Common;
@@ -165,6 +166,48 @@ namespace Tests
             {
                 Assert.True(en.MoveNext());
                 Assert.Equal(expected, en.Current.x);
+            }
+        }
+
+        [Fact]
+        public void TestOutOfBoundsSelection()
+        {
+            var timeArray = new long[] { 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+            var dataArray = new double[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+
+            var viewer = CreateTimeSeriesViewer(timeArray, dataArray) as TableColumnViewer;
+
+            var timeRanges = new List<Tuple<long, long, bool>>
+            {
+                Tuple.Create(timeArray.First(), timeArray.Last(), true),
+                Tuple.Create(timeArray.First() - 500, timeArray.Last(), true),
+                Tuple.Create(timeArray.First(), timeArray.Last() + 500, true),
+                Tuple.Create(timeArray.First() - 500, timeArray.Last() + 500, true),
+                Tuple.Create(timeArray.First(), timeArray.First(), true),
+                Tuple.Create(timeArray.First()-500, timeArray.First()-500, true),
+                Tuple.Create(timeArray.First()-500, timeArray.First()-200, true),
+                Tuple.Create(timeArray.Last() + 200, timeArray.Last() + 500, false),
+                Tuple.Create(timeArray.Last() + 500, timeArray.Last() + 500, false),
+                Tuple.Create(timeArray.Last(), timeArray.Last() + 500, true),
+                Tuple.Create(timeArray.Last(), timeArray.Last(), true),
+            };
+
+            foreach(var (min, max, hasValues) in timeRanges)
+            {
+                viewer.SetTimeRange(min, max);
+                var data = viewer.GetCurrentData<double>();
+                var en = data.GetEnumerator(100);
+                var any = false;
+                while (en.MoveNext())
+                {
+                    any = true;
+                    var x = en.Current.x;
+                    var y = en.Current.y;
+
+                    var index = Array.IndexOf(timeArray, x);
+                    Assert.Equal(dataArray[index], y);
+                }
+                Assert.Equal(hasValues, any);
             }
         }
 
