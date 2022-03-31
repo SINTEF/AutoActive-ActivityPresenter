@@ -2,6 +2,7 @@
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns;
 using SINTEF.AutoActive.Databus.Interfaces;
 using System.Threading.Tasks;
+using System;
 
 namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
 {
@@ -41,25 +42,14 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         internal int FindIndex(int current, long value)
         {
             // FIXME: This is far from perfect
-           if (current >= 0 && Data[current] == value) return current;
+            if (current >= 0 && Data[current] == value) return current;
+            
+            var index = Array.BinarySearch(Data, value);
 
-            // Do a binary search starting at the previous index
-            var first = 0;
-            var last = Data.Length - 1;
+            // BinarySearch returns a 2's complement if the value was not found.
+            if (index < 0) index = ~index;
 
-            if (current < 0) current = (first + last) / 2;
-
-            while (first < last)
-            {
-                if (value < Data[first]) return first;
-                if (value > Data[last]) return last;
-
-                if (value > Data[current]) first = current + 1;
-                else last = current - 1;
-                current = (last + first) / 2;
-
-            }
-            return current;
+            return index;
         }
 
         async Task<ITimeViewer> ITimePoint.CreateViewer()

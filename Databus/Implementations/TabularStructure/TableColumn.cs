@@ -104,8 +104,9 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
             var startTime = from - diff * PreviewPercentage / 100;
             var endTime = from + diff;
 
-            var start = Index.FindIndex(StartIndex, startTime);
-            var end = Index.FindIndex(EndIndex, endTime);
+            var start = Math.Max(0, Index.FindIndex(StartIndex, startTime));
+            var end = Math.Min(Index.FindIndex(EndIndex, endTime) + 1, Index.Data.Length - 1);
+
             CurrentTimeRangeFrom = from;
             CurrentTimeRangeTo = to;
 

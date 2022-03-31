@@ -52,8 +52,9 @@ namespace SINTEF.AutoActive.Databus.Common
                 }
                 else
                 {
+                    // Make sure it always "looks like" data starts at index 0 to keep shown data from "dancing"
                     var modulo = (startOffset % _decimator);
-                    _index = -_decimator - modulo;
+                    _index = modulo != 0 ? -modulo : -_decimator;
                 }
             }
 
@@ -82,19 +83,14 @@ namespace SINTEF.AutoActive.Databus.Common
                 [MethodImpl(MethodImplOptions.AggressiveInlining)]
                 get
                 {
-                    double y = Convert.ToSingle(_y[_index]);
+                    var index = _index;
+                    double y = Convert.ToSingle(_y[index]);
                     /* Ensures that we never return a NaN as it will break the 
                     figure view. All NaNs are changed to 0. To know the difference
                     between a NaN 0 and an actuall zero a boolean attribute is added,
                     which is true if the 0 represents a NaN */
-                    if (!Double.IsNaN(y))
-                    {
-                        return (_x[_index], y, false);
-                    }
-                    else
-                    {
-                        return (_x[_index], 0.0, true);
-                    }
+                    var isNan = Double.IsNaN(y);
+                    return (_x[index], isNan ? 0.0 : y, isNan);
                 }
             }
 
