@@ -71,7 +71,10 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure.Columns
         {
             if (typeof(T1) != typeof(T))
                 throw new ArgumentException();
-            if (Length <= 0) return new SpanPair<T1>();
+            if (Length <= 0 || StartIndex < 0)
+            {
+                return new SpanPair<T1>();
+            }
 
             Span<T1> data;
             unsafe

@@ -86,9 +86,9 @@ namespace SINTEF.AutoActive.Databus.Implementations
             }
         }
 
-        public async Task<bool> VerifyStructure()
+        public Task<bool> VerifyStructure()
         {
-            return true;
+            return Task.FromResult(true);
         }
 
         //TODO(sigurdal): make sure name is updated when this is changed
