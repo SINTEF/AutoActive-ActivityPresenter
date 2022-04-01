@@ -39,11 +39,8 @@ namespace SINTEF.AutoActive.Databus.Implementations.TabularStructure
         }
 
 
-        internal int FindIndex(int current, long value)
+        internal int FindClosestIndex(int current, long value)
         {
-            // FIXME: This is far from perfect
-            if (current >= 0 && Data[current] == value) return current;
-            
             var index = Array.BinarySearch(Data, value);
 
             // BinarySearch returns a 2's complement if the value was not found.
