@@ -17,6 +17,9 @@ using SINTEF.AutoActive.UI.Helpers;
 
 namespace SINTEF.AutoActive.Plugins.Import.Csv
 {
+    [ImportPlugin(".txt", PluginAttribute.DefaultPriority - 10)]
+    public class ImportGenericTxt : ImportGenericCsv { }
+
     [ImportPlugin(".csv", PluginAttribute.DefaultPriority - 10)]
     public class ImportGenericCsv : IImportPlugin
     {
