@@ -22,7 +22,7 @@ namespace SINTEF.AutoActive.Plugins.Import
 
     public class ImportPluginAttribute : PluginAttribute
     {
-        public ImportPluginAttribute(string extension, int priority = 100) : base(typeof(IImportPlugin), extension, priority) { }
+        public ImportPluginAttribute(string extension, int priority = DefaultPriority) : base(typeof(IImportPlugin), extension, priority) { }
     }
 
     public static class ImportPlugins
