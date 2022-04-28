@@ -1,0 +1,123 @@
+ActivtyPresenter - Frequently Asked Questions
+---------------------------------------------
+
+Version 0.1 2022-04-08
+
+Archives
+--------
+
+A1. How do I open and close an archive?
+  At the main page, press "OPEN" and select an archive file (.aaz) in the file-
+  browser. The archive appears as a green box at the top right corner named as 
+  the archive top level folder name. 
+  The content of the folder can be expanded by pressing the folder.
+  Multiple archives can be opened at the same time by pression "OPEN".
+  An archive can be closed by right-clicking the folder name and selecting 
+  "CLOSE".
+
+A2. How do I save an archive?
+  Data is saved in archives as a single file named aaz. Select "SAVE PROJECT" 
+  in the main menu to save data. The current folders and data will be shown in 
+  the left window, while the stucture of the new archive is shown in the right 
+  window. To define a new archive you must start by adding a new top level 
+  folder by dragging from "Add Folder" to the right window. 
+  You may now add new folders or drag data from the left window to the new 
+  archive. There are three types of folders: standard folders, data folders 
+  and video folders. Standard folders may contain all type of folders, while 
+  data folders must contain data-files and video folders must contain video
+  files. An archive cannot be saved if there are any empty data or video
+  folders. To rename a folder right click the folder-name. 
+  When the folder structure is complete press "Save" and specify the location  
+  and name for the archive. 
+  Note: Saving an archive may take some time, observe the progress bar to check 
+  when saving is completed. The ActivityPresenter application should not be 
+  terminated before saving is complete.  
+  Note also that the saved archive is not automatically opened in 
+  ActivityPresenter. To work with the new archive you must manually open the 
+  new archive.  
+
+A3. How is data stored in an archive?
+  Data is stored in an uncompressed zip file named aaz (AutoActiveZip). Sensor 
+  data is stored in parquet files, while videos are stored in their original 
+  format, as they are already compressed. For further information, please see
+  the "Data Handling" section in the paper.md file in the repository:
+  https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
+
+A4. Can I modify an archive?
+
+A5. Can I open multiple archives?
+
+
+Import
+------
+
+I1. What data formats are supported by ActivityPresenter?
+
+I2. How is timestamp converted by ActivityPresenter?
+
+I3. How can I import csv files?
+
+I4. What video formats are supported?
+
+Synchronization
+---------------
+
+S1. I have a set with synchronized GaitUp IMU files I would like to synchronize with a video. How can I avoid synchronizing every GaitUp file with the video?
+
+
+
+Head-to-head
+------------
+
+H1. What is the purpose of the head2head view
+
+
+Main page
+---------
+
+M1. How do I save and recall views?
+
+M2. What can be saved?
+
+M3. What keyboard shortcuts can be used
+
+M4. Timeline .....
+
+M5. Can I load a view from another archive?
+
+M6. What is the meaning of the numbers at the top right corner of video view? 
+
+Annotations
+-----------
+
+ANx. What is the purpose of an annotation
+
+AN1. How do I add an annotation?
+
+AN2. How do I view annotations?
+
+AN3. Can I name and describe an annotation?
+
+AN4. How many different annotations can I add
+
+Settings
+--------
+
+SE1. Can I change the scaling of the timeline?
+
+SE2. Can I change the playback speed?
+
+Configuration 
+-------------
+
+
+Matlab toolbox
+--------------
+
+
+Python toolbox
+--------------
+
+
+Installation
+------------
