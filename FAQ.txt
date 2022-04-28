@@ -1,7 +1,8 @@
 ActivtyPresenter - Frequently Asked Questions
 ---------------------------------------------
 
-Version 0.1 2022-04-08
+Version 0.2 2022-04-28
+
 
 Archives
 --------
@@ -44,72 +45,167 @@ A3. How is data stored in an archive?
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
 A4. Can I modify an archive?
+  To modify an archive you must create a new archive and copy and modify data 
+  in the new archive. When a archive is saved, it becomes immutable and is 
+  assigned a unique identifier. This allow sessions to be based on previous 
+  sessions, and enables traceability and reproducibility as analysed information 
+  is referenced to the session where the data for that analysis was stored.
 
 A5. Can I open multiple archives?
+  Yes, multiple archives can be opened and combined.
 
 
 Import
 ------
 
-I1. What data formats are supported by ActivityPresenter?
+I1. How do I import data in ActivtyPresenter?
+  Data can be imported by selecting "IMPORT FILE" and selecting time-series data 
+  or video files. ActivtyPresenter will automatically detect the format of 
+  supported data types. The time resolution must be in milli- or micro-seconds  
+  and is specified in a checkbox during import.
 
-I2. How is timestamp converted by ActivityPresenter?
+I2. What data formats are supported by ActivityPresenter?
+  ActivityPresenter supports the following formats:
+    - Comman separated values (csv)
+    - Excel (xlsx)
+    - GaitUp movement data (bin and Excel results)
+    - Garmin (tcx)
+    - Catapult (csv)
+    - json (annotations)
+    - MQTT (TBD - Sigurd)
+  Data import is plug-in based, hence new formats can be added without deep 
+  knowledge of the complete application.
 
-I3. How can I import csv files?
+I3. What video formats are supported by ActivityPresenter?
+  ActivityPresenter support video formatted as mov, avi, mkv, mp4, mts.
+  (TBD - Sigurd, bør vi si noe om codex her?)
 
-I4. What video formats are supported?
-
-Synchronization
----------------
-
-S1. I have a set with synchronized GaitUp IMU files I would like to synchronize with a video. How can I avoid synchronizing every GaitUp file with the video?
-
-
-
-Head-to-head
-------------
-
-H1. What is the purpose of the head2head view
+I4. How is csv files imported and how is the timestamp converted?
+  For csv files ActivtyPresenter will search for a column named "time" or 
+  "epoch" and use this as the time basis. Time may be specified in milli- or 
+  micro-seconds, and if specified as epoch it will be converted to date and 
+  time. The import function will skip a header in the csv file before importing
+  data. 
+  For further details see the source file GenericCsvParser.cs
 
 
 Main page
 ---------
 
 M1. How do I save and recall views?
+  You may Save and Load views by right clicking the top level folder for 
+  archives at the right hand side at the "Main Page". 
 
-M2. What can be saved?
+M2. Can I load a view from another archive?
+  Yes, view can be used interchangable. However if the specified data is not 
+  present in the current dataset a message will be printed and that part of the 
+  view will be skipped.  (TBD - Sigurd, noe med rekkefølgen her?)
 
-M3. What keyboard shortcuts can be used
 
-M4. Timeline .....
+M3. What keyboard shortcuts can be used?
+  The following keyboard shortcuts are available:
+     Spacebar             - Play and Stop
+     Left                 - Step 1/30s back (TBD -Sigurd)
+     Right                - Step 1/30s forward (TBD Sigurd)
+     Shift + Left         - Step 1/2s back (TBD -Sigurd)
+     Shift + Right        - Step 1/2s forward (TBD -Sigurd)
+     Ctrl + Left          - Step 1/2s back (TBD -Sigurd)
+     Ctrl + Right         - Step 1/2s forward (TBD -Sigurd)
+     0                    - remove annotation 
+     1 to 9               - add annontation 1 to 9
+     Shift + 1 to 9 and 0 - add annotation 10 to 19  
+     Ctrl + 1 to 9 and 0  - add annotation 20 to 29  
 
-M5. Can I load a view from another archive?
+M4. When right clicking a dataset one may select Timeline, what does it mean?
+  A single data line may be shown as a complete timeline at the bottom of the
+  main page.
 
-M6. What is the meaning of the numbers at the top right corner of video view? 
+M6. What is the meaning of the numbers at the top right corner of video view?
+  The top number shows the time difference between the current video view and
+  the data view for the current frame. The bottom number shows .. (TBD - Sigurd)   
+
+M7. Can I change the view for the datalines?
+  Yes, by pressing the three dots "..." at the dataline you may:
+     - remove the window 
+     - remove a line
+     - select (TBD - Sigurd)
+     - autoscale common - scale all lines in window to a common base
+     - autoscale independent - scale all lines in this view independently
+     - freeze scaling for line
+     - force y scale to whole numbers
+     - find optimal y resolution (TBD - Sigurd)
+     - scatter plot
+     - column plot
+     
+M8. What does the time shown at the right and left bottom side mean?
+  The time at the left show the time at the current positon while the time
+  at the left shows the time at the end of the dataset.
 
 Annotations
 -----------
 
 ANx. What is the purpose of an annotation
+  Annotations are used to mark specific part of video and data and is useful as
+  input for machine learning and data analysis.
 
 AN1. How do I add an annotation?
+  An annotation is added at the current position in the main view by pressing 
+  one of the keys 1 to 9, shift together with 1 to 9 and 0, or CTRL together 
+  with 1 to 9 and 0 giving annotations from 1 to 29. 
+  Pressing 0 will delete an annotation. 
 
 AN2. How do I view annotations?
+  Annotations appears at the bootom of the first data-line. A new dataline is
+  created as AnnotationProvider and may be viewed as a separate window.
 
 AN3. Can I name and describe an annotation?
+  Annotations may be named by pressing "Settings" followed by "Annotations". 
+  Each annotation is mapped from the ID and can be given a Name, a Tag and a 
+  Comment. If a Tag is given this is shown for the annotation at the Main Page.
 
 AN4. How many different annotations can I add
+  You may define 29 indvidual annotations.
+  
+AN5. Can annotations be accessed in the Matlab or Python toolbox?
+  Yes, annotations may be accessed from the toolboxes. Please see examples in
+  the toolboxes. 
 
 Settings
 --------
 
-SE1. Can I change the scaling of the timeline?
+SE1. Can I change the scaling of the datalines?
+  Yes, by changing the Window Length in the Settings menu you may change the
+  scaling of datalines.
 
-SE2. Can I change the playback speed?
+SE2. Can I change the playback speed for video and datalines?
+  The playback speed can be set to 1x, 2x, 5x, 0.1x, 0.25x and 0.5x in the 
+  settings menu.
+
+Synchronization
+---------------
+
+S1. I have a set with synchronized GaitUp IMU files I would like to synchronize 
+with a video. How can I avoid synchronizing every GaitUp file with the video?
+
+  GaitUp IMU data is stored in a set of binary files. These are synchromized
+  towards each other from the GaitUp software. Hence when synchronizing towards 
+  a video in ActivtyPresenter it is recommended to start with a GaitUp datafile 
+  and synchronize the video towards the GaitUp data. 
+  You may synchronize starting with a video, however you must the apply the 
+  same offset to all GaitUp data files. 
+
+S2 TBD 
+
+
+Head-to-head
+------------
+
+H1. What is the purpose of the head2head view
+TBD
 
 Configuration 
 -------------
-
+  TBD - hva menes med configuration?
 
 Matlab toolbox
 --------------
@@ -121,3 +217,9 @@ Python toolbox
 
 Installation
 ------------
+
+
+Examples
+--------
+
+E1. Where to look for samples?
