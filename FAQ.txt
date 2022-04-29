@@ -72,13 +72,13 @@ I2. What data formats are supported by ActivityPresenter?
     - Garmin (tcx)
     - Catapult (csv)
     - json (annotations)
-    - MQTT (TBD - Sigurd)
+    - MQTT (Message Queuing Telemetry Transport)
   Data import is plug-in based, hence new formats can be added without deep 
   knowledge of the complete application.
 
 I3. What video formats are supported by ActivityPresenter?
   ActivityPresenter support video formatted as mov, avi, mkv, mp4, mts.
-  (TBD - Sigurd, bør vi si noe om codex her?)
+  (TBD - Sigurd, bÃ¸r vi si noe om codex her?)
 
 I4. How is csv files imported and how is the timestamp converted?
   For csv files ActivtyPresenter will search for a column named "time" or 
@@ -99,18 +99,21 @@ M1. How do I save and recall views?
 M2. Can I load a view from another archive?
   Yes, view can be used interchangable. However if the specified data is not 
   present in the current dataset a message will be printed and that part of the 
-  view will be skipped.  (TBD - Sigurd, noe med rekkefølgen her?)
-
+  view will be skipped. Note that the views are loaded based on the order of the
+  data in an archive so make sure to keep archives that uses views order in the
+  same way.
 
 M3. What keyboard shortcuts can be used?
   The following keyboard shortcuts are available:
      Spacebar             - Play and Stop
-     Left                 - Step 1/30s back (TBD -Sigurd)
-     Right                - Step 1/30s forward (TBD Sigurd)
-     Shift + Left         - Step 1/2s back (TBD -Sigurd)
-     Shift + Right        - Step 1/2s forward (TBD -Sigurd)
-     Ctrl + Left          - Step 1/2s back (TBD -Sigurd)
-     Ctrl + Right         - Step 1/2s forward (TBD -Sigurd)
+     Left                 - Step 1/30s back
+     Right                - Step 1/30s forward
+     Shift + Left         - Step 1s back
+     Shift + Right        - Step 1s forward
+     Ctrl + Left          - Step 10s back
+     Ctrl + Right         - Step 10s forward
+     Ctrl + Shift + Left  - Step 60s back
+     Ctrl + Shift + Right - Step 60s forward
      0                    - remove annotation 
      1 to 9               - add annontation 1 to 9
      Shift + 1 to 9 and 0 - add annotation 10 to 19  
@@ -122,18 +125,22 @@ M4. When right clicking a dataset one may select Timeline, what does it mean?
 
 M6. What is the meaning of the numbers at the top right corner of video view?
   The top number shows the time difference between the current video view and
-  the data view for the current frame. The bottom number shows .. (TBD - Sigurd)   
+  the data view for the current frame. The bottom number shows the current
+  playback delay of the video. As the typically takes a different amount of time
+  through the system than the plotted data, this offset is applied. If this gets
+  large, og changes rapidly, the computer might not be powerful enough to play
+  the current view.
 
 M7. Can I change the view for the datalines?
   Yes, by pressing the three dots "..." at the dataline you may:
      - remove the window 
      - remove a line
-     - select (TBD - Sigurd)
+     - select - place the same line
      - autoscale common - scale all lines in window to a common base
      - autoscale independent - scale all lines in this view independently
      - freeze scaling for line
      - force y scale to whole numbers
-     - find optimal y resolution (TBD - Sigurd)
+     - find optimal y resolution (TBD - Kasper)
      - scatter plot
      - column plot
      
@@ -201,7 +208,8 @@ Head-to-head
 ------------
 
 H1. What is the purpose of the head2head view
-TBD
+  The Head to Head view allows two parts of a dataset to be viewed simultaneously.
+  This can be used to compare techniques at different times.
 
 Configuration 
 -------------
