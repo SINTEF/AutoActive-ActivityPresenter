@@ -189,7 +189,7 @@ SE2. Can I change the playback speed for video and datalines?
   settings menu.
 
 Synchronization
----------------
+===============
 
 S1. I have a set with synchronized GaitUp IMU files I would like to synchronize 
 with a video. How can I avoid synchronizing every GaitUp file with the video?
@@ -205,18 +205,19 @@ S2 TBD
 
 
 Head-to-head
-------------
+============
 
 H1. What is the purpose of the head2head view
   The Head to Head view allows two parts of a dataset to be viewed simultaneously.
   This can be used to compare techniques at different times.
 
 Configuration 
--------------
+=============
+
   TBD - hva menes med configuration?
 
 Matlab toolbox
---------------
+==============
 
 MT1. What is the purpose of the Matlab toolbox?
   The Matlab toolbox is made to allow researchers to easily process data and to
@@ -227,16 +228,63 @@ MT2. Where can I find further information about the Matlab toolbox?
   well as at the GitHub page: 
   https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
+MT3. Where can I find example code for the Matlab toolbox?
+  Sample code for the Matlab toolbox is available here:
+  https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
 
 Python toolbox
---------------
+==============
+
+PT1. What is the purpose of the Python toolbox?
+  The Python toolbox is made to allow researchers to easily process data and to
+  automate import of data.
+  
+PT2. Where can I find further information about the Python toolbox?
+  The Python toolbox is documented at the GitHub page: 
+  https://github.com/SINTEF/AutoActive-Python-toolbox
+
+PT3. Where can I find example code for the Python toolbox?
+  Sample code for the Python toolbox is available here:
+  https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
 
 
 Installation
-------------
+============
 
+IN1. How do I install ActivtyPresenter?
+  ActivityPresenter is available as a Microsoft Windows App from Microsoft 
+  Store:
+  https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
+  You may also build your own binary from the source code as described at the
+  GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
+  
+IN2. Is ActivtyPresenter available for other platforms than Microsoft Windows?
+  Currently only Microsoft Windows is supported. However the ActivityPresenter 
+  software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on 
+  various platforms through bindings to a native runtime component. For Xamarin, 
+  this runtime is a Common Language Runtime (CLR), which was created for 
+  Windows, but is also supported on Linux, Android and iOS through the Mono 
+  project.   Data between the various application parts is shared through a 
+  common internal data bus providing a flexible architecture. Porting to 
+  multiple platforms is a future goal.
+
+IN3. How do I install the AutoActive Matlab toolbox?
+  A binary distribution of the Matlab toolbox can be downloaded as an "Asset" 
+  for the releases at the toolbox github page:
+  https://github.com/SINTEF/AutoActive-Matlab-toolbox
+  Open the ".mltbx" file in Matlab to install the toolbox.
+  
+IN4. How do I install the AutoActive Python toolbox?
+  To use the AutoActive Python package you need to clone this repository and 
+  import it into your projects of intereset.
 
 Examples
 --------
-
-E1. Where to look for samples?
+E1. Where to look for Examples?
+  The use of ActivityPresenter is shown in the videos available at:
+  https://github.com/SINTEF/AutoActive-ActivityPresenter
+  A cross-country skiing example using ActivtyPresenter and the Matlab toolbox
+  is available here:
+  [TBD - to be added] 
+  There are sample code available for both the Matlab and Python toolboxes, 
+  please see sections for the toolboxes.
