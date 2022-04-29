@@ -1,11 +1,11 @@
 ActivtyPresenter - Frequently Asked Questions
----------------------------------------------
+=============================================
 
 Version 0.2 2022-04-28
 
 
 Archives
---------
+========
 
 A1. How do I open and close an archive?
   At the main page, press "OPEN" and select an archive file (.aaz) in the file-
@@ -56,7 +56,7 @@ A5. Can I open multiple archives?
 
 
 Import
-------
+======
 
 I1. How do I import data in ActivtyPresenter?
   Data can be imported by selecting "IMPORT FILE" and selecting time-series data 
@@ -90,7 +90,7 @@ I4. How is csv files imported and how is the timestamp converted?
 
 
 Main page
----------
+=========
 
 M1. How do I save and recall views?
   You may Save and Load views by right clicking the top level folder for 
@@ -142,31 +142,31 @@ M8. What does the time shown at the right and left bottom side mean?
   at the left shows the time at the end of the dataset.
 
 Annotations
------------
+===========
 
-ANx. What is the purpose of an annotation
+AN1. What is the purpose of an annotation
   Annotations are used to mark specific part of video and data and is useful as
   input for machine learning and data analysis.
 
-AN1. How do I add an annotation?
+AN2. How do I add an annotation?
   An annotation is added at the current position in the main view by pressing 
   one of the keys 1 to 9, shift together with 1 to 9 and 0, or CTRL together 
   with 1 to 9 and 0 giving annotations from 1 to 29. 
   Pressing 0 will delete an annotation. 
 
-AN2. How do I view annotations?
+AN3. How do I view annotations?
   Annotations appears at the bootom of the first data-line. A new dataline is
   created as AnnotationProvider and may be viewed as a separate window.
 
-AN3. Can I name and describe an annotation?
+AN4. Can I name and describe an annotation?
   Annotations may be named by pressing "Settings" followed by "Annotations". 
   Each annotation is mapped from the ID and can be given a Name, a Tag and a 
   Comment. If a Tag is given this is shown for the annotation at the Main Page.
 
-AN4. How many different annotations can I add
+AN5. How many different annotations can I add
   You may define 29 indvidual annotations.
   
-AN5. Can annotations be accessed in the Matlab or Python toolbox?
+AN6. Can annotations be accessed in the Matlab or Python toolbox?
   Yes, annotations may be accessed from the toolboxes. Please see examples in
   the toolboxes. 
 
@@ -209,6 +209,15 @@ Configuration
 
 Matlab toolbox
 --------------
+
+MT1. What is the purpose of the Matlab toolbox?
+  The Matlab toolbox is made to allow researchers to easily process data and to
+  automate import of data.
+  
+MT2. Where can I find further information about the Matlab toolbox?
+  The Matlab toolbox is documented in the Matlab Getting Started live script as 
+  well as at the GitHub page: 
+  https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
 
 Python toolbox
