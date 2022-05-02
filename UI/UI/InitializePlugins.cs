@@ -31,6 +31,7 @@ namespace SINTEF.AutoActive.UI
             typeof(MqttImportPlugin),
             typeof(ImportVideoPlugin),
             typeof(ImportGenericCsv),
+            typeof(ImportGenericTxt),
             typeof(ImportGaitupPlugin),
             typeof(ImportCsvCatapult),
             typeof(ImportGenericExcel),

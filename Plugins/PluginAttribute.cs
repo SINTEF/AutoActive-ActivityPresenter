@@ -5,6 +5,8 @@ namespace SINTEF.AutoActive.Plugins
     [AttributeUsage(AttributeTargets.Class, AllowMultiple = true)]
     public class PluginAttribute : Attribute
     {
+        public const int DefaultPriority = 100;
+
         public PluginAttribute(Type targetType, string kind, int priority)
         {
             Target = targetType;
