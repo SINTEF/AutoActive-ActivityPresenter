@@ -7,7 +7,7 @@ tags:
   - Python toolbox
   - Matlab toolbox
 authors:
-  - name: Sigurd Albrektsen
+  - name: Sigurd Mørkved Albrektsen
     affiliation: 1
   - name: Kasper Gade Bøtker Rasmussen^[Corresponding author]
     affiliation: 1
@@ -24,7 +24,7 @@ authors:
   - name: Trine M. Seeberg
     affiliation: "1, 2"
 affiliations:
- - name: Smart Sensor Systems, SINTEF Digital, Trondheim, Norway
+ - name: SINTEF Digital, Trondheim, Norway
    index: 1
  - name: Centre for Elite Sports Research, Department of Neuromedicine and Movement Science, Norwegian University of Science and Technology, Trondheim, Norway 
    index: 2

@@ -1,5 +1,5 @@
 # AutoActive Research Environment
-Last updated: 2021-May-18
+Last updated: 2022-June-02
 
 SINTEF - https://www.sintef.com
 
@@ -68,6 +68,8 @@ Data is organized and stored in archives that can be created and opened from Act
 Video and data from arbitrary sensors can be synchronized in time by placing synchronization points in each dataset. The synchronization is performed by using one dataset as master, and then moving the other datasets (slaves) relative to the master. 
 -	Head2Head
 The head-to-head module is intended to compare two separate data recording sessions performed on different occasions or by different users. Two sets of data can be shown and the point in time can be changed individually to compare the two different sessions. 
+-   Annotations
+Annotations can be used to used to mark specific part of video and data and is useful as input for machine learning and data analysis. Please see the FAQ for a description on how to add annotations to data.
 
 ## File Format - Sessions
 The concept of sessions is key to how data is stored in ARE; they are the root containers of datasets. A session represents an activity – bounded in time and space – performed by one user of the platform and stores the information about the context of the activity, and the data generated during that activity. Examples of such activities include a data recording in a lab or in the field, data processing using MATLAB, and comparing two datasets from two different recordings using the ActivityPresenter App.
@@ -114,3 +116,8 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 * [Automatic synchronization of data](https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4)
 * [Head to head](https://user-images.githubusercontent.com/2269482/115604146-5443c180-a2e1-11eb-802a-2e11029f6781.mp4)
 * [Save and load views](https://user-images.githubusercontent.com/2269482/115604181-5dcd2980-a2e1-11eb-8cb7-bb1b40573ea9.mp4)
+
+
+## Publications
+A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
+https://joss.theoj.org/papers/10.21105/joss.04061
