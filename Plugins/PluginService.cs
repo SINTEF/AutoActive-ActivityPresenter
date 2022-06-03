@@ -205,6 +205,7 @@ namespace SINTEF.AutoActive.Plugins
         public static T GetSingle<T>(string kind) where T : class
         {
             var implementors = GetImplementors<T>(kind, true);
+            if (implementors == null) return null;
             return implementors.Length == 0 ? null : implementors[0];
         }
 
