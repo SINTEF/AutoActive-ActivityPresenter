@@ -375,3 +375,11 @@ A cross-country skiing example using ActivityPresenter, the Matlab toolbox and a
 [TBD - to be added] 
 
 There are sample code available for both the Matlab and Python toolboxes, please see sections for the toolboxes.
+
+## More documentation
+
+**MD1. Where to look for further documentation?**
+
+Please see the following page for further documentation:
+
+https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/README.md
