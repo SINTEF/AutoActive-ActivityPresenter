@@ -10,6 +10,7 @@ using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.Databus.Implementations.TabularStructure;
 using SINTEF.AutoActive.UI.Helpers;
 using Xamarin.Forms;
+using Xamarin.Essentials;
 using Rg.Plugins.Popup.Services;
 using SINTEF.AutoActive.Plugins.Import.Json;
 using SINTEF.AutoActive.UI.Interfaces;
@@ -388,6 +389,13 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             await PopupNavigation.Instance.PushAsync(popupObject);
 
             popupObject.Disappearing += PopupObjectOnDisappearing;
+        }
+
+        private async void OpenHelp(object sender, EventArgs e)
+        {
+            var button = (Button)sender;
+            var url = button.ClassId;
+            await Browser.OpenAsync(url);
         }
 
         private void PopupObjectOnDisappearing(object sender, EventArgs e)

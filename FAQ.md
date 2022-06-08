@@ -1,13 +1,10 @@
-ActivityPresenter - Frequently Asked Questions
-==============================================
+#ActivityPresenter - Frequently Asked Questions
 
-Version 0.3 2022-04-29
+Version 0.4 2022-06-08
 
+##Archives
 
-Archives
-========
-
-A1. How do I open and close an archive?
+**A1. How do I open and close an archive?**
   At the main page, press "OPEN" and select an archive file (.aaz) in the file-
   browser. The archive appears as a green box at the top right corner named as 
   the archive top level folder name. 
@@ -16,7 +13,7 @@ A1. How do I open and close an archive?
   An archive can be closed by right-clicking the folder name and selecting 
   "CLOSE".
 
-A2. How do I save an archive?
+**A2. How do I save an archive?**
   Data is saved in archives as a single file named aaz. Select "SAVE PROJECT" 
   in the main menu to save data. The current folders and data will be shown in 
   the left window, while the structure of the new archive is shown in the right 
@@ -37,34 +34,33 @@ A2. How do I save an archive?
   ActivityPresenter. To work with the new archive you must manually open the 
   new archive.  
 
-A3. How is data stored in an archive?
+**A3. How is data stored in an archive?**
   Data is stored in an uncompressed zip file named aaz (AutoActiveZip). Sensor 
   data is stored in parquet files, while videos are stored in their original 
   format, as they are already compressed. For further information, please see
   the "Data Handling" section in the paper.md file in the repository:
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
-A4. Can I modify an archive?
+**A4. Can I modify an archive?**
   To modify an archive you must create a new archive and copy and modify data 
   in the new archive. When a archive is saved, it becomes immutable and is 
   assigned a unique identifier. This allow sessions to be based on previous 
   sessions, and enables traceability and reproducibility as analysed information 
   is referenced to the session where the data for that analysis was stored.
 
-A5. Can I open multiple archives?
+**A5. Can I open multiple archives?**
   Yes, multiple archives can be opened and combined.
 
 
-Import
-======
+##Import
 
-I1. How do I import data in ActivityPresenter?
+**I1. How do I import data in ActivityPresenter?**
   Data can be imported by selecting "IMPORT FILE" and selecting time-series data 
   or video files. ActivityPresenter will automatically detect the format of 
   supported data types. The time resolution must be in milli- or micro-seconds  
   and is specified in a checkbox during import.
 
-I2. What data formats are supported by ActivityPresenter?
+**I2. What data formats are supported by ActivityPresenter?**
   ActivityPresenter supports the following formats:
     - Comma separated values (csv)
     - Excel (xlsx)
@@ -76,10 +72,10 @@ I2. What data formats are supported by ActivityPresenter?
   Data import is plug-in based, hence new formats can be added without deep 
   knowledge of the complete application.
 
-I3. What video formats are supported by ActivityPresenter?
+**I3. What video formats are supported by ActivityPresenter?**
   ActivityPresenter support video formatted as mov, avi, mkv, mp4, mts.
 
-I4. How are csv files imported and how is the timestamp converted?
+**I4. How are csv files imported and how is the timestamp converted?**
   For csv files ActivityPresenter will search for a column named "time" or 
   "epoch" and use this as the time basis. Time may be specified in milli- or 
   micro-seconds, and if specified as epoch it will be converted to date and 
@@ -88,21 +84,20 @@ I4. How are csv files imported and how is the timestamp converted?
   For further details see the source file GenericCsvParser.cs
 
 
-Main page
-=========
+##Main page
 
-M1. How do I save and recall views?
+**M1. How do I save and recall views?**
   You may Save and Load views by right clicking the top-level folder for 
   archives at the right-hand side at the "Main Page". 
 
-M2. Can I load a view from another archive?
+**M2. Can I load a view from another archive?**
   Yes, view can be used interchangeable. However, if the specified data is not 
   present in the current dataset a message will be printed and that part of the 
   view will be skipped. Note that the views are loaded based on the order of the
   data in an archive so make sure to keep archives that uses views order in the
   same way.
 
-M3. What keyboard shortcuts can be used?
+**M3. What keyboard shortcuts can be used?**
   The following keyboard shortcuts are available:
      Spacebar             - Play and Stop
      Left                 - Step 1/30s back
@@ -118,12 +113,12 @@ M3. What keyboard shortcuts can be used?
      Shift + 1 to 9 and 0 - add annotation 10 to 19  
      Ctrl + 1 to 9 and 0  - add annotation 20 to 29  
 
-M4. When right clicking a dataset one may select Timeline, what does it mean?
+**M4. When right clicking a dataset one may select Timeline, what does it mean?**
   A single data line may be shown as a complete timeline at the bottom of the
   main page, above the standard indication of the timeline for the various 
   data.
 
-M6. What is the meaning of the numbers at the top right corner of video view?
+**M6. What is the meaning of the numbers at the top right corner of video view?**
   The top number shows the time difference between the current video view and
   the data view for the current frame. The bottom number shows the current
   playback delay of the video. As the typically takes a different amount of time
@@ -131,7 +126,7 @@ M6. What is the meaning of the numbers at the top right corner of video view?
   large, og changes rapidly, the computer might not be powerful enough to play
   the current view.
 
-M7. Can I change the view for the data-lines?
+**M7. Can I change the view for the data-lines?**
   Yes, by pressing the three dots "..." at the dataline you may:
      - remove the window 
      - remove a line
@@ -143,62 +138,60 @@ M7. Can I change the view for the data-lines?
      - scatter plot
      - column plot
      
-M8. What does the time shown at the right and left bottom side mean?
+**M8. What does the time shown at the right and left bottom side mean?**
   The time at the left show the time at the current position while the time
   at the left shows the time at the end of the dataset.
 
 
-Annotations
+##Annotations
 ===========
 
-AN1. What is the purpose of an annotation?
+**AN1. What is the purpose of an annotation?**
   Annotations are used to mark specific part of video and data and is useful as
   input for machine learning and data analysis.
 
-AN2. How do I add an annotation?
+**AN2. How do I add an annotation?**
   An annotation is added at the current position in the main view by pressing 
   one of the keys 1 to 9, shift together with 1 to 9 and 0, or CTRL together 
   with 1 to 9 and 0 giving annotations from 1 to 29. 
   Pressing 0 will delete an annotation. 
 
-AN3. How do I view annotations?
+**AN3. How do I view annotations?**
   Annotations appears at the bottom of the first data-line. A new data-line is
   created as AnnotationProvider and may be viewed as a separate window.
 
-AN4. Can I name and describe an annotation?
+**AN4. Can I name and describe an annotation?**
   Annotations may be named by pressing "Settings" followed by "Annotations". 
   Each annotation is mapped from the ID and can be given a Name, a Tag and a 
   Comment. If a Tag is given this is shown for the annotation at the Main Page.
 
-AN5. How many different annotations can be added?
+**AN5. How many different annotations can be added?**
   You may define 29 individual annotations.
   
-AN6. Can annotations be accessed from the Matlab or Python toolbox?
+**AN6. Can annotations be accessed from the Matlab or Python toolbox?**
   Yes, annotations may be accessed from the toolboxes. Please see examples in
   the toolboxes. 
 
 
-Settings
-========
+##Settings
 
-SE1. Can I change the scaling of the data-lines?
+**SE1. Can I change the scaling of the data-lines?**
   Yes, by changing the Window Length in the Settings menu you may change the
   scaling of data-lines.
 
-SE2. Can I change the playback speed for video and data-lines?
+**SE2. Can I change the playback speed for video and data-lines?**
   The playback speed can be set to 1x, 2x, 5x, 0.1x, 0.25x and 0.5x in the 
   settings menu.
 
 
-Synchronization
-===============
+##Synchronization
 
-S1. What is the purpose of the synchronize page?
+**S1. What is the purpose of the synchronize page?**
   Data from different sources are often not at the same time reference. To be  
   able to analyse video and timeseries data must be synchronized. The 
   synchronization page let the user synchronize data from different sources.
   
-S2. How do I synchronize data?
+**S2. How do I synchronize data?**
   First select the dataset that should be master with respect to time, you may 
   view multiple data-lines or a video in the master view. When selecting data  
   from another folder this will appear as slave as it is not at same time 
@@ -214,11 +207,11 @@ S2. How do I synchronize data?
   See video for synchronization here:
   https://user-images.githubusercontent.com/2269482/115603893-ff07b000-a2e0-11eb-8327-e0b5244880c8.mp4
   
-S3. What does the "Mark Features" do?
+**S3. What does the "Mark Features" do?**
   The "Mark Features" in the Synchronization window will set a marker in the 
   timeline. This can be useful for marking the synchronization point.
 
-S4. What is AutoSync" and how does it work?
+**S4. What is AutoSync" and how does it work?**
   Timeseries data from two sources can be automatically synchronized using the 
   AutoSync feature. This feature is based on autocorrelation between time series 
   signals. Open the master and slave timeline data and press AutoSync. Select a 
@@ -226,70 +219,68 @@ S4. What is AutoSync" and how does it work?
   See video for AutoSync here:
   https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4
 
-S5. I have a set with synchronized GaitUp IMU files I would like to synchronize 
+**S5. I have a set with synchronized GaitUp IMU files I would like to synchronize **
 with a video. How can I avoid synchronizing every GaitUp file with the video?
 
   GaitUp IMU data is stored in a set of binary files. These are synchronized
   towards each other from the GaitUp software. Hence when synchronizing towards 
   a video in ActivityPresenter it is recommended to start with a GaitUp datafile 
-  and synchronize the video towards the GaitUp data. 
+  and synchronize the video towards the GaitUp data. This means put the gaitup
+  data in the left master synchronization window and the video in the slave 
+  window.
   You may synchronize starting with a video, however you must the apply the 
   same offset to all GaitUp data files. 
 
 
-Head-to-head
-============
+##Head-to-head
 
-H1. What is the purpose of the head2head view?
+**H1. What is the purpose of the head2head view?**
   The Head to Head view allows two parts of a dataset to be viewed 
   simultaneously. This can be used to compare techniques at different times 
   references or for different users.
 
 
-Matlab toolbox
-==============
+##Matlab toolbox
 
-MT1. What is the purpose of the Matlab toolbox?
+**MT1. What is the purpose of the Matlab toolbox?**
   The Matlab toolbox is made to allow researchers to easily process data and to
   automate import of data.
   
-MT2. Where can I find further information about the Matlab toolbox?
+**MT2. Where can I find further information about the Matlab toolbox?**
   The Matlab toolbox is documented in the Matlab Getting Started live script as 
   well as at the GitHub page: 
   https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
-MT3. Where can I find example code for the Matlab toolbox?
+**MT3. Where can I find example code for the Matlab toolbox?**
   Sample code for the Matlab toolbox is available here:
   https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
 
 
-Python toolbox
-==============
+##Python toolbox
 
-PT1. What is the purpose of the Python toolbox?
+**PT1. What is the purpose of the Python toolbox?**
   The Python toolbox is made to allow researchers to easily process data and to
   automate import of data.
   
-PT2. Where can I find further information about the Python toolbox?
+**PT2. Where can I find further information about the Python toolbox?**
   The Python toolbox is documented at the GitHub page: 
   https://github.com/SINTEF/AutoActive-Python-toolbox
 
-PT3. Where can I find example code for the Python toolbox?
+**PT3. Where can I find example code for the Python toolbox?**
   Sample code for the Python toolbox is available here:
   https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
 
 
-Installation
-============
+##Installation
 
-IN1. How do I install ActivityPresenter?
+**IN1. How do I install ActivityPresenter?**
   ActivityPresenter is available as a Microsoft Windows App from Microsoft 
   Store:
   https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
   You may also build your own binary from the source code as described at the
   GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
   
-IN2. Is ActivityPresenter available for other platforms than Microsoft Windows?
+**IN2. Is ActivityPresenter available for other platforms than Microsoft Windows?**
   Currently only Microsoft Windows is supported. However the ActivityPresenter 
   software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on 
   various platforms through bindings to a native runtime component. For Xamarin, 
@@ -299,23 +290,23 @@ IN2. Is ActivityPresenter available for other platforms than Microsoft Windows?
   common internal data bus providing a flexible architecture. Porting to 
   multiple platforms is a future goal.
 
-IN3. How do I install the AutoActive Matlab toolbox?
+**IN3. How do I install the AutoActive Matlab toolbox?**
   A binary distribution of the Matlab toolbox can be downloaded as an "Asset" 
   for the releases at the toolbox Github page:
   https://github.com/SINTEF/AutoActive-Matlab-toolbox
   Open the ".mltbx" file in Matlab to install the toolbox.
   
-IN4. How do I install the AutoActive Python toolbox?
+**IN4. How do I install the AutoActive Python toolbox?**
   To use the AutoActive Python package you need to clone this repository and 
   import it into your projects of interest.
 
 
-Examples
-========
-E1. Where to look for Examples?
+##Examples
+
+**E1. Where to look for Examples?**
   The use of ActivityPresenter is shown in the videos available at:
   https://github.com/SINTEF/AutoActive-ActivityPresenter
-  A cross-country skiing example using ActivityPresenter and the Matlab toolbox
+  A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations
   is available here:
   [TBD - to be added] 
   There are sample code available for both the Matlab and Python toolboxes, 
