@@ -9,7 +9,8 @@
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="20"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="188"/>
+                <ColumnDefinition Width="94"/>
+                <ColumnDefinition Width="94"/>
             </Grid.ColumnDefinitions>
             <Grid.RowDefinitions>
                 <RowDefinition x:Name="RowDataPreview" Height="0" />
@@ -20,7 +21,12 @@
 
 
             <Button x:Name="Settings" Clicked="OpenSettings" Grid.Row="1" Grid.Column="2"
-                  ImageSource="Assets\settings.png" VerticalOptions="Center" HorizontalOptions="Center"
+                  ImageSource="Assets\settings.png" VerticalOptions="Center" HorizontalOptions="End"
+                    BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
+             />
+
+            <Button x:Name="Help" Clicked="OpenHelp" ClassId="https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/FAQ.md" Grid.Row="1" Grid.Column="3"
+                  ImageSource="Assets\help.png" VerticalOptions="Center" HorizontalOptions="Start"
                     BackgroundColor="#1D2637" FontAttributes="Bold" TextColor="White"
              />
 
