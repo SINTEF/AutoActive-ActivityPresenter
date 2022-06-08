@@ -41,6 +41,7 @@ Version 0.4 2022-06-08
   data is stored in parquet files, while videos are stored in their original 
   format, as they are already compressed. For further information, please see
   the "Data Handling" section in the paper.md file in the repository:
+
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
 **A4. Can I modify an archive?**
@@ -293,11 +294,13 @@ You may synchronize starting with a video, however you must the apply the same o
 
 The Matlab toolbox is documented in the Matlab Getting Started live script as 
 well as at the GitHub page: 
+
 https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
 **MT3. Where can I find example code for the Matlab toolbox?**
 
 Sample code for the Matlab toolbox is available here:
+
 https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
 
 
@@ -311,11 +314,13 @@ https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/ex
 **PT2. Where can I find further information about the Python toolbox?**
 
 The Python toolbox is documented at the GitHub page: 
+
 https://github.com/SINTEF/AutoActive-Python-toolbox
 
 **PT3. Where can I find example code for the Python toolbox?**
 
 Sample code for the Python toolbox is available here:
+
 https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
 
 
@@ -328,7 +333,9 @@ ActivityPresenter is available as a Microsoft Windows App from Microsoft Store:
 https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
 
 You may also build your own binary from the source code as described at the
-GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
+GitHub page: 
+
+https://github.com/SINTEF/AutoActive-ActivityPresenter
   
 **IN2. Is ActivityPresenter available for other platforms than Microsoft Windows?**
 
@@ -344,7 +351,9 @@ GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
 **IN3. How do I install the AutoActive Matlab toolbox?**
 
 A binary distribution of the Matlab toolbox can be downloaded as an "Asset" for the releases at the toolbox Github page:
+
 https://github.com/SINTEF/AutoActive-Matlab-toolbox
+
 Open the ".mltbx" file in Matlab to install the toolbox.
   
 **IN4. How do I install the AutoActive Python toolbox?**
@@ -358,8 +367,11 @@ Open the ".mltbx" file in Matlab to install the toolbox.
 **E1. Where to look for Examples?**
 
 The use of ActivityPresenter is shown in the videos available at:
+
 https://github.com/SINTEF/AutoActive-ActivityPresenter
+
 A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations is available here:
+
 [TBD - to be added] 
 
 There are sample code available for both the Matlab and Python toolboxes, please see sections for the toolboxes.
