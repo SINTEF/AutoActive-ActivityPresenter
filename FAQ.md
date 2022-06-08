@@ -8,7 +8,7 @@ Version 0.4 2022-06-08
 
   At the main page, press "OPEN" and select an archive file (.aaz) in the file-
   browser. The archive appears as a green box at the top right corner named as 
-  the archive top level folder name. 
+  the archive top level folder name.
   The content of the folder can be expanded by pressing the folder.
   Multiple archives can be opened at the same time by pression "OPEN".
   An archive can be closed by right-clicking the folder name and selecting 
@@ -27,8 +27,7 @@ Version 0.4 2022-06-08
   data folders must contain data-files and video folders must contain video
   files. An archive cannot be saved if there are any empty data or video
   folders. To rename a folder right click the folder-name. 
-  When the folder structure is complete press "Save" and specify the location  
-  and name for the archive. 
+  When the folder structure is complete press "Save" and specify the location and name for the archive. 
   Note: Saving an archive may take some time, observe the progress bar to check 
   when saving is completed. The ActivityPresenter application should not be 
   terminated before saving is complete.  
@@ -42,7 +41,6 @@ Version 0.4 2022-06-08
   data is stored in parquet files, while videos are stored in their original 
   format, as they are already compressed. For further information, please see
   the "Data Handling" section in the paper.md file in the repository:
-
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
 **A4. Can I modify an archive?**
@@ -64,12 +62,11 @@ Version 0.4 2022-06-08
 
   Data can be imported by selecting "IMPORT FILE" and selecting time-series data 
   or video files. ActivityPresenter will automatically detect the format of 
-  supported data types. The time resolution must be in milli- or micro-seconds  
-  and is specified in a checkbox during import.
+  supported data types. The time resolution must be in milli- or micro-seconds and is specified in a checkbox during import.
 
 **I2. What data formats are supported by ActivityPresenter?**
 
-  ActivityPresenter supports the following formats:
+ActivityPresenter supports the following formats:
 * Comma separated values (csv)
 * Excel (xlsx)
 * GaitUp movement data (bin and Excel results)
@@ -78,8 +75,7 @@ Version 0.4 2022-06-08
 * json (annotations)
 * MQTT (Message Queuing Telemetry Transport)
 
-  Data import is plug-in based, hence new formats can be added without deep 
-  knowledge of the complete application.
+Data import is plug-in based, hence new formats can be added without deep knowledge of the complete application.
 
 **I3. What video formats are supported by ActivityPresenter?**
 
@@ -92,7 +88,6 @@ Version 0.4 2022-06-08
   micro-seconds, and if specified as epoch it will be converted to date and 
   time. The import function will skip a header in the csv file before importing
   data. 
-
   For further details see the source file GenericCsvParser.cs
 
 
@@ -178,7 +173,6 @@ Version 0.4 2022-06-08
 
 
 ## Annotations
-===========
 
 **AN1. What is the purpose of an annotation?**
 
@@ -268,9 +262,7 @@ Version 0.4 2022-06-08
 
   https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4
 
-**S5. I have a set with synchronized GaitUp IMU files I would like to synchronize **
-
-with a video. How can I avoid synchronizing every GaitUp file with the video?
+**S5. I have a set with synchronized GaitUp IMU files I would like to synchronize with a video. How can I avoid synchronizing every GaitUp file with the video?**
 
   GaitUp IMU data is stored in a set of binary files. These are synchronized
   towards each other from the GaitUp software. Hence when synchronizing towards 
@@ -278,8 +270,7 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
   and synchronize the video towards the GaitUp data. This means put the gaitup
   data in the left master synchronization window and the video in the slave 
   window.
-  You may synchronize starting with a video, however you must the apply the 
-  same offset to all GaitUp data files. 
+You may synchronize starting with a video, however you must the apply the same offset to all GaitUp data files. 
 
 
 ## Head-to-head
@@ -300,16 +291,14 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
   
 **MT2. Where can I find further information about the Matlab toolbox?**
 
-  The Matlab toolbox is documented in the Matlab Getting Started live script as 
-  well as at the GitHub page: 
-
-  https://github.com/SINTEF/AutoActive-Matlab-toolbox 
+The Matlab toolbox is documented in the Matlab Getting Started live script as 
+well as at the GitHub page: 
+https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
 **MT3. Where can I find example code for the Matlab toolbox?**
 
-  Sample code for the Matlab toolbox is available here:
-
-  https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
+Sample code for the Matlab toolbox is available here:
+https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
 
 
 ## Python toolbox
@@ -321,28 +310,25 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
   
 **PT2. Where can I find further information about the Python toolbox?**
 
-  The Python toolbox is documented at the GitHub page: 
-
-  https://github.com/SINTEF/AutoActive-Python-toolbox
+The Python toolbox is documented at the GitHub page: 
+https://github.com/SINTEF/AutoActive-Python-toolbox
 
 **PT3. Where can I find example code for the Python toolbox?**
 
-  Sample code for the Python toolbox is available here:
-
-  https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
+Sample code for the Python toolbox is available here:
+https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
 
 
 ## Installation
 
 **IN1. How do I install ActivityPresenter?**
 
-  ActivityPresenter is available as a Microsoft Windows App from Microsoft 
-  Store:
+ActivityPresenter is available as a Microsoft Windows App from Microsoft Store:
 
-  https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
+https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
 
-  You may also build your own binary from the source code as described at the
-  GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
+You may also build your own binary from the source code as described at the
+GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
   
 **IN2. Is ActivityPresenter available for other platforms than Microsoft Windows?**
 
@@ -357,12 +343,9 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 
 **IN3. How do I install the AutoActive Matlab toolbox?**
 
-  A binary distribution of the Matlab toolbox can be downloaded as an "Asset" 
-  for the releases at the toolbox Github page:
-
-  https://github.com/SINTEF/AutoActive-Matlab-toolbox
-
-  Open the ".mltbx" file in Matlab to install the toolbox.
+A binary distribution of the Matlab toolbox can be downloaded as an "Asset" for the releases at the toolbox Github page:
+https://github.com/SINTEF/AutoActive-Matlab-toolbox
+Open the ".mltbx" file in Matlab to install the toolbox.
   
 **IN4. How do I install the AutoActive Python toolbox?**
 
@@ -374,14 +357,9 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 
 **E1. Where to look for Examples?**
 
-  The use of ActivityPresenter is shown in the videos available at:
+The use of ActivityPresenter is shown in the videos available at:
+https://github.com/SINTEF/AutoActive-ActivityPresenter
+A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations is available here:
+[TBD - to be added] 
 
-  https://github.com/SINTEF/AutoActive-ActivityPresenter
-
-  A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations
-  is available here:
-
-  [TBD - to be added] 
-
-  There are sample code available for both the Matlab and Python toolboxes, 
-  please see sections for the toolboxes.
+There are sample code available for both the Matlab and Python toolboxes, please see sections for the toolboxes.
