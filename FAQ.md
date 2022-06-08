@@ -42,6 +42,7 @@ Version 0.4 2022-06-08
   data is stored in parquet files, while videos are stored in their original 
   format, as they are already compressed. For further information, please see
   the "Data Handling" section in the paper.md file in the repository:
+
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
 **A4. Can I modify an archive?**
@@ -69,13 +70,14 @@ Version 0.4 2022-06-08
 **I2. What data formats are supported by ActivityPresenter?**
 
   ActivityPresenter supports the following formats:
-    - Comma separated values (csv)
-    - Excel (xlsx)
-    - GaitUp movement data (bin and Excel results)
-    - Garmin (tcx)
-    - Catapult (csv)
-    - json (annotations)
-    - MQTT (Message Queuing Telemetry Transport)
+* Comma separated values (csv)
+* Excel (xlsx)
+* GaitUp movement data (bin and Excel results)
+* Garmin (tcx)
+* Catapult (csv)
+* json (annotations)
+* MQTT (Message Queuing Telemetry Transport)
+
   Data import is plug-in based, hence new formats can be added without deep 
   knowledge of the complete application.
 
@@ -90,6 +92,7 @@ Version 0.4 2022-06-08
   micro-seconds, and if specified as epoch it will be converted to date and 
   time. The import function will skip a header in the csv file before importing
   data. 
+
   For further details see the source file GenericCsvParser.cs
 
 
@@ -111,19 +114,33 @@ Version 0.4 2022-06-08
 **M3. What keyboard shortcuts can be used?**
 
   The following keyboard shortcuts are available:
+
      Spacebar             - Play and Stop
+
      Left                 - Step 1/30s back
+
      Right                - Step 1/30s forward
+
      Shift + Left         - Step 1s back
+
      Shift + Right        - Step 1s forward
+
      Ctrl + Left          - Step 10s back
+
      Ctrl + Right         - Step 10s forward
+
      Ctrl + Shift + Left  - Step 60s back
+
      Ctrl + Shift + Right - Step 60s forward
+
      0                    - remove annotation 
+
      1 to 9               - add annotation 1 to 9
+
      Shift + 1 to 9 and 0 - add annotation 10 to 19  
+
      Ctrl + 1 to 9 and 0  - add annotation 20 to 29  
+
 
 **M4. When right clicking a dataset one may select Timeline, what does it mean?**
 
@@ -143,15 +160,16 @@ Version 0.4 2022-06-08
 **M7. Can I change the view for the data-lines?**
 
   Yes, by pressing the three dots "..." at the dataline you may:
-     - remove the window 
-     - remove a line
-     - select - place the same line
-     - autoscale common - scale all lines in window to a common base
-     - autoscale independent - scale all lines in this view independently
-     - freeze scaling for line
-     - force y scale to whole numbers
-     - scatter plot
-     - column plot
+* remove the window 
+* remove a line
+* select - place the same line
+* autoscale common - scale all lines in window to a common base
+* autoscale independent - scale all lines in this view independently
+* freeze scaling for line
+* force y scale to whole numbers
+* scatter plot
+* column plot
+
      
 **M8. What does the time shown at the right and left bottom side mean?**
 
@@ -230,7 +248,9 @@ Version 0.4 2022-06-08
   selecting "Save Sync". The relative time difference is stored in the 
   time data for the slave. Play through the dataset to verify that 
   synchronization is correct.
+
   See video for synchronization here:
+
   https://user-images.githubusercontent.com/2269482/115603893-ff07b000-a2e0-11eb-8327-e0b5244880c8.mp4
   
 **S3. What does the "Mark Features" do?**
@@ -245,6 +265,7 @@ Version 0.4 2022-06-08
   signals. Open the master and slave timeline data and press AutoSync. Select a 
   correlation point and press "Save Sync" to use the synchronization point.
   See video for AutoSync here:
+
   https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4
 
 **S5. I have a set with synchronized GaitUp IMU files I would like to synchronize **
@@ -281,11 +302,13 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 
   The Matlab toolbox is documented in the Matlab Getting Started live script as 
   well as at the GitHub page: 
+
   https://github.com/SINTEF/AutoActive-Matlab-toolbox 
 
 **MT3. Where can I find example code for the Matlab toolbox?**
 
   Sample code for the Matlab toolbox is available here:
+
   https://github.com/SINTEF/AutoActive-Matlab-toolbox/tree/master/MatlabToolbox/examples
 
 
@@ -299,11 +322,13 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 **PT2. Where can I find further information about the Python toolbox?**
 
   The Python toolbox is documented at the GitHub page: 
+
   https://github.com/SINTEF/AutoActive-Python-toolbox
 
 **PT3. Where can I find example code for the Python toolbox?**
 
   Sample code for the Python toolbox is available here:
+
   https://github.com/SINTEF/AutoActive-Python-toolbox/tree/master/examples 
 
 
@@ -313,7 +338,9 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 
   ActivityPresenter is available as a Microsoft Windows App from Microsoft 
   Store:
+
   https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7
+
   You may also build your own binary from the source code as described at the
   GitHub page: https://github.com/SINTEF/AutoActive-ActivityPresenter
   
@@ -332,7 +359,9 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 
   A binary distribution of the Matlab toolbox can be downloaded as an "Asset" 
   for the releases at the toolbox Github page:
+
   https://github.com/SINTEF/AutoActive-Matlab-toolbox
+
   Open the ".mltbx" file in Matlab to install the toolbox.
   
 **IN4. How do I install the AutoActive Python toolbox?**
@@ -346,9 +375,13 @@ with a video. How can I avoid synchronizing every GaitUp file with the video?
 **E1. Where to look for Examples?**
 
   The use of ActivityPresenter is shown in the videos available at:
+
   https://github.com/SINTEF/AutoActive-ActivityPresenter
+
   A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations
   is available here:
+
   [TBD - to be added] 
+
   There are sample code available for both the Matlab and Python toolboxes, 
   please see sections for the toolboxes.
