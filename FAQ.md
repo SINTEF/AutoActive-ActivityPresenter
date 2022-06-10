@@ -1,6 +1,6 @@
 # ActivityPresenter - Frequently Asked Questions
 
-Version 0.4 2022-06-08
+Last updated: 2022-06-10
 
 ## Archives
 
@@ -74,9 +74,9 @@ ActivityPresenter supports the following formats:
 * Garmin (tcx)
 * Catapult (csv)
 * json (annotations)
-* MQTT (Message Queuing Telemetry Transport)
+* MQTT (Message Queuing Telemetry Transport) [incomplete, framework only]
 
-Data import is plug-in based, hence new formats can be added without deep knowledge of the complete application.
+Data import is plug-in based, hence new formats can be added without deep knowledge of the ActivityPresenter application.
 
 **I3. What video formats are supported by ActivityPresenter?**
 
@@ -383,3 +383,21 @@ There are sample code available for both the Matlab and Python toolboxes, please
 Please see the following page for further documentation:
 
 https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/README.md
+
+**MD2 Instruction videos for ActivityPresenter**
+
+* [Import data](https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4)
+* [Syncronize data](https://user-images.githubusercontent.com/2269482/115603893-ff07b000-a2e0-11eb-8327-e0b5244880c8.mp4)
+* [Save data](https://user-images.githubusercontent.com/2269482/115671110-758cc800-a34a-11eb-86a7-d1c8d9439a22.mp4)
+* [Visualize data](https://user-images.githubusercontent.com/2269482/115603974-1ba3e800-a2e1-11eb-9660-a314641c0cd6.mp4)
+* [Matlab toolbox](https://user-images.githubusercontent.com/2269482/115671205-8dfce280-a34a-11eb-8892-1031a8101da4.mp4)
+* [Multiple aaz archives](https://user-images.githubusercontent.com/2269482/115604046-324a3f00-a2e1-11eb-8253-8d73e52fba69.mp4)
+* [Automatic synchronization of data](https://user-images.githubusercontent.com/2269482/115604090-4130f180-a2e1-11eb-9505-2d79537ac827.mp4)
+* [Head to head](https://user-images.githubusercontent.com/2269482/115604146-5443c180-a2e1-11eb-802a-2e11029f6781.mp4)
+* [Save and load views](https://user-images.githubusercontent.com/2269482/115604181-5dcd2980-a2e1-11eb-8cb7-bb1b40573ea9.mp4)
+
+
+**MD3 Publications**
+
+A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
+https://joss.theoj.org/papers/10.21105/joss.04061
