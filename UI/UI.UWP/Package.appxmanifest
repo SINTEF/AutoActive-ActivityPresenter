@@ -1,6 +1,12 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" IgnorableNamespaces="uap mp">
-  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="2.0.1.0" />
+<Package xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10" 
+         xmlns:mp="http://schemas.microsoft.com/appx/2014/phone/manifest" 
+         xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10" 
+         xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities" 
+         xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
+         xmlns:iot2="http://schemas.microsoft.com/appx/manifest/iot/windows10/2" 
+         IgnorableNamespaces="uap mp desktop4 iot2">
+  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="2.1.0.0" />
   <mp:PhoneIdentity PhoneProductId="53a827b3-8711-447d-a679-09cc0317022e" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Activity Presenter</DisplayName>
@@ -14,7 +20,11 @@
     <Resource Language="x-generate" />
   </Resources>
   <Applications>
-    <Application Id="App" Executable="$targetnametoken$.exe" EntryPoint="SINTEF.AutoActive.UI.UWP.App">
+    <Application Id="App"
+  Executable="$targetnametoken$.exe"
+  EntryPoint="SINTEF.AutoActive.UI.UWP.App"
+  desktop4:SupportsMultipleInstances="true"
+  iot2:SupportsMultipleInstances="true">
       <uap:VisualElements DisplayName="Activity Presenter" Square150x150Logo="Assets\Square150x150Logo.png" Square44x44Logo="Assets\ActivityPresenterIcon.png" Description="Activity Presenter is a tool to enable easy handling of sensor data from different commercially available wearable sensors for human activity and video. The tool provides support for sensor data synchronization, visualization, analysis and storage." BackgroundColor="#23A2B1">
         <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" Square310x310Logo="Assets\LargeTile.png" ShortName="Activity Presenter" Square71x71Logo="Assets\SmallTile.png">
           <uap:ShowNameOnTiles>
