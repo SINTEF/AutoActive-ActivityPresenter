@@ -1,5 +1,9 @@
 # Changelog AutoActive Activity Presenter
 # ---------------------------------------
+## [2.1.0] - 2022-06-13
+### Added
+- Help button (?) opening documetation in web browser
+- Support for multiple instances of ActivityPresenter
 ## [2.0.1] - 2022-06-03
 ### Changed
 - Bugfix for Open archive
