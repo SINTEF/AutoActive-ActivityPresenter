@@ -384,7 +384,7 @@ Please see the following page for further documentation:
 
 https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/README.md
 
-**MD2 Instruction videos for ActivityPresenter**
+**MD2. Instruction videos for ActivityPresenter**
 
 * [Import data](https://user-images.githubusercontent.com/2269482/115543050-3fdfd480-a2a1-11eb-8c5d-1150adb3e2b1.mp4)
 * [Syncronize data](https://user-images.githubusercontent.com/2269482/115603893-ff07b000-a2e0-11eb-8327-e0b5244880c8.mp4)
@@ -397,7 +397,12 @@ https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/README.md
 * [Save and load views](https://user-images.githubusercontent.com/2269482/115604181-5dcd2980-a2e1-11eb-8cb7-bb1b40573ea9.mp4)
 
 
-**MD3 Publications**
+**MD3. Publications**
 
 A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
 https://joss.theoj.org/papers/10.21105/joss.04061
+
+**MD4. Release notes/change log**
+Please see the following file for release notes/change log:
+https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/CHANGELOG_AP.txt
+
