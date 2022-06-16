@@ -33,9 +33,12 @@ Last updated: 2022-06-10
   terminated before saving is complete.  
   Note also that the saved archive is not automatically opened in 
   ActivityPresenter. To work with the new archive you must manually open the 
-  new archive.  
+  new archive.
 
-**A3. How is data stored in an archive?**
+**A3. Is there a quick way to save an archive?**
+  To quickly save the project select "Save Project", "Add all" and "Save".
+
+**A4. How is data stored in an archive?**
 
   Data is stored in an uncompressed zip file named aaz (AutoActiveZip). Sensor 
   data is stored in parquet files, while videos are stored in their original 
@@ -44,7 +47,7 @@ Last updated: 2022-06-10
 
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
-**A4. Can I modify an archive?**
+**A5. Can I modify an archive?**
 
   To modify an archive you must create a new archive and copy and modify data 
   in the new archive. When a archive is saved, it becomes immutable and is 
@@ -52,7 +55,7 @@ Last updated: 2022-06-10
   sessions, and enables traceability and reproducibility as analysed information 
   is referenced to the session where the data for that analysis was stored.
 
-**A5. Can I open multiple archives?**
+**A6. Can I open multiple archives?**
 
   Yes, multiple archives can be opened and combined.
 
@@ -404,5 +407,6 @@ https://joss.theoj.org/papers/10.21105/joss.04061
 
 **MD4. Release notes/change log**
 Please see the following file for release notes/change log:
+
 https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/CHANGELOG_AP.txt
 
