@@ -218,10 +218,14 @@ Data import is plug-in based, hence new formats can be added without deep knowle
   Yes, by changing the Window Length in the Settings menu you may change the
   scaling of data-lines.
 
+  The Window Length is saved when selecting Save View and recalled with Load View.
+
 **SE2. Can I change the playback speed for video and data-lines?**
 
   The playback speed can be set to 1x, 2x, 5x, 0.1x, 0.25x and 0.5x in the 
   settings menu.
+
+  The playback speed is saved when selecting Save View and recalled with Load View.
 
 
 ## Synchronization
