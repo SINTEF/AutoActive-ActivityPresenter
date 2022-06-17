@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using SINTEF.AutoActive.FileSystem;
 using SINTEF.AutoActive.UI.Interfaces;
+using SINTEF.AutoActive.Plugins.Import.Json;
 using Xamarin.Forms;
 
 namespace SINTEF.AutoActive.UI.Pages.Player
@@ -209,6 +210,21 @@ namespace SINTEF.AutoActive.UI.Pages.Player
             loadViewAction.Clicked += LoadViewClicked;
             ContextActions.Add(loadViewAction);
 
+            var exportAnnotationAction = new MenuItem { Text = "Export Annotations", IsDestructive = true };
+            exportAnnotationAction.Clicked += exportAnnotationClicked;
+            ContextActions.Add(exportAnnotationAction);
+
+            /*
+            TBD - Save and load annotation info, do not load to correct provider
+            var exportAnnotationInfoAction = new MenuItem { Text = "Save Annotation Info", IsDestructive = true };
+            exportAnnotationInfoAction.Clicked += saveAnnotationInfoClicked;
+            ContextActions.Add(exportAnnotationInfoAction);
+
+            var loadAnnotationInfoAction = new MenuItem { Text = "Load Annotation Info", IsDestructive = true };
+            loadAnnotationInfoAction.Clicked += LoadAnnotationInfoClicked;
+            ContextActions.Add(loadAnnotationInfoAction);
+            */
+
             var closeAction = new MenuItem { Text = "Close", IsDestructive = true };
             closeAction.Clicked += CloseClicked;
             ContextActions.Add(closeAction);
@@ -297,6 +313,93 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 serializer.Serialize(writer, root);
             }
         }
+
+        private async void exportAnnotationClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataProviderItem;
+            IReadWriteSeekStreamFactory file = await _browser.BrowseForSave((".json", "Export Annotations"));
+
+            if (file == null)
+            {
+                return;
+            }
+
+            var provider = AnnotationProvider.GetAnnotationProvider(false);
+            var annotationSet = provider.AnnotationSet;
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, annotationSet);
+            }
+        }
+
+        /*
+        private class AnnotationInfoFile
+        {
+            public AnnotationInfoFile()
+            {
+                AutoActiveType = "Annotation";
+                Version = "1.0.0";
+
+                AnnotationInfo = new Dictionary<int, AnnotationInfo>();
+            }
+            public string AutoActiveType { get; set; }
+
+            [JsonProperty("version")]
+            public string Version { get; set; }
+
+            [JsonProperty("annotation_info")]
+            public Dictionary<int, AnnotationInfo> AnnotationInfo { get; set; }
+        }
+
+        private async void saveAnnotationInfoClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataProviderItem;
+            IReadWriteSeekStreamFactory file = await _browser.BrowseForSave((".aai", "AutoActive Annotation Info"));
+
+            if (file == null)
+            {
+                return;
+            }
+
+            var provider = AnnotationProvider.GetAnnotationProvider(false);
+            var annotationSet = provider.AnnotationSet;
+            var annotationInfoJsonFile = new AnnotationInfoFile();
+            annotationInfoJsonFile.AnnotationInfo = annotationSet.AnnotationInfo;
+
+            var stream = await file.GetReadWriteStream();
+            using (var streamWriter = new StreamWriter(stream))
+            using (var writer = new JsonTextWriter(streamWriter))
+            {
+                var serializer = new JsonSerializer
+                {
+                    Formatting = Formatting.Indented
+                };
+                serializer.Serialize(writer, annotationInfoJsonFile);
+            }
+        }
+
+        private async void LoadAnnotationInfoClicked(object sender, EventArgs e)
+        {
+            var dataProviderItem = BindingContext as DataProviderItem;
+            IReadSeekStreamFactory file = await _browser.BrowseForLoad((".aai", "AutoActive Annotation Info"));
+
+            if (file == null)
+            {
+                return;
+            }
+
+            var provider = AnnotationProvider.GetAnnotationProvider(false);
+            var stream = await file.GetReadStream();
+            provider.ParseFile(stream);
+        }
+        */
     }
 
     // Class for cell with no data

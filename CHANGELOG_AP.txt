@@ -1,5 +1,10 @@
 # Changelog AutoActive Activity Presenter
 # ---------------------------------------
+## [2.2.0] - 2022-06-17
+### Added
+- Window Size and Playback speed saved with Save View and restored with Load View
+- Added "Export Annotation" options by right clicking the top-level folder for 
+  archives at the right-hand side at the "Main Page"
 ## [2.1.0] - 2022-06-13
 ### Added
 - Help button (?) opening documetation in web browser

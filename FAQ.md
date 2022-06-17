@@ -77,7 +77,7 @@ ActivityPresenter supports the following formats:
 * Garmin (tcx)
 * Catapult (csv)
 * json (annotations)
-* MQTT (Message Queuing Telemetry Transport) [incomplete, framework only]
+* MQTT (Message Queuing Telemetry Transport) [incomplete framework for importing streaming data]
 
 Data import is plug-in based, hence new formats can be added without deep knowledge of the ActivityPresenter application.
 
@@ -210,6 +210,11 @@ Data import is plug-in based, hence new formats can be added without deep knowle
   Yes, annotations may be accessed from the toolboxes. Please see examples in
   the toolboxes. 
 
+**AN7. Can annotations be exported?**
+  Yes, you can export annotations as a json file by right clicking the top-level folder for 
+  archives at the right-hand side at the "Main Page" and select "Export Annotations".
+
+  The exported annotations may be imported in tools like Microsoft Excel by using the json data import option.
 
 ## Settings
 
