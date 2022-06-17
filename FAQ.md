@@ -1,6 +1,6 @@
 # ActivityPresenter - Frequently Asked Questions
 
-Last updated: 2022-06-10
+Last updated: 2022-06-17
 
 ## Archives
 
@@ -37,6 +37,7 @@ Last updated: 2022-06-10
 
 **A3. Is there a quick way to save an archive?**
   To quickly save the project select "Save Project", "Add all" and "Save".
+  (In version 2.0, 2.1 and 2.2 there is a known bug preventing saving annotations without adding a top level folder.)
 
 **A4. How is data stored in an archive?**
 
@@ -212,7 +213,7 @@ Data import is plug-in based, hence new formats can be added without deep knowle
 
 **AN7. Can annotations be exported?**
   Yes, you can export annotations as a json file by right clicking the top-level folder for 
-  archives at the right-hand side at the "Main Page" and select "Export Annotations".
+  archives at the right-hand side at the "Main Page" and select "Export Annotations". (from version 2.2.0)
 
   The exported annotations may be imported in tools like Microsoft Excel by using the json data import option.
 
