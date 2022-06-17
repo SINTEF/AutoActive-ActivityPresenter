@@ -450,12 +450,23 @@ namespace SINTEF.AutoActive.UI.Pages.Player
                 }
 
             }
+            if (root.ContainsKey("window_size"))
+            {
+                WindowSize = root["window_size"].Value<long>();
+            }
+            if (root.ContainsKey("playback_speed"))
+            {
+                PlaybackSpeed = root["playback_speed"].Value<long>();
+            }
         }
 
         public JObject SerializeView(JObject root = null)
         {
             root = SerializableViewHelper.SerializeDefaults(root, this);
             root["preview_figure"] = _previewView?.SerializeView();
+
+            root["window_size"] = WindowSize;
+            root["playback_speed"] = PlaybackSpeed;
 
             return root;
         }

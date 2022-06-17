@@ -33,9 +33,12 @@ Last updated: 2022-06-10
   terminated before saving is complete.  
   Note also that the saved archive is not automatically opened in 
   ActivityPresenter. To work with the new archive you must manually open the 
-  new archive.  
+  new archive.
 
-**A3. How is data stored in an archive?**
+**A3. Is there a quick way to save an archive?**
+  To quickly save the project select "Save Project", "Add all" and "Save".
+
+**A4. How is data stored in an archive?**
 
   Data is stored in an uncompressed zip file named aaz (AutoActiveZip). Sensor 
   data is stored in parquet files, while videos are stored in their original 
@@ -44,7 +47,7 @@ Last updated: 2022-06-10
 
   https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/Paper/paper.md
 
-**A4. Can I modify an archive?**
+**A5. Can I modify an archive?**
 
   To modify an archive you must create a new archive and copy and modify data 
   in the new archive. When a archive is saved, it becomes immutable and is 
@@ -52,7 +55,7 @@ Last updated: 2022-06-10
   sessions, and enables traceability and reproducibility as analysed information 
   is referenced to the session where the data for that analysis was stored.
 
-**A5. Can I open multiple archives?**
+**A6. Can I open multiple archives?**
 
   Yes, multiple archives can be opened and combined.
 
@@ -74,7 +77,7 @@ ActivityPresenter supports the following formats:
 * Garmin (tcx)
 * Catapult (csv)
 * json (annotations)
-* MQTT (Message Queuing Telemetry Transport) [incomplete, framework only]
+* MQTT (Message Queuing Telemetry Transport) [incomplete framework for importing streaming data]
 
 Data import is plug-in based, hence new formats can be added without deep knowledge of the ActivityPresenter application.
 
@@ -207,6 +210,11 @@ Data import is plug-in based, hence new formats can be added without deep knowle
   Yes, annotations may be accessed from the toolboxes. Please see examples in
   the toolboxes. 
 
+**AN7. Can annotations be exported?**
+  Yes, you can export annotations as a json file by right clicking the top-level folder for 
+  archives at the right-hand side at the "Main Page" and select "Export Annotations".
+
+  The exported annotations may be imported in tools like Microsoft Excel by using the json data import option.
 
 ## Settings
 
@@ -215,10 +223,14 @@ Data import is plug-in based, hence new formats can be added without deep knowle
   Yes, by changing the Window Length in the Settings menu you may change the
   scaling of data-lines.
 
+  The Window Length is saved when selecting Save View and recalled with Load View.
+
 **SE2. Can I change the playback speed for video and data-lines?**
 
   The playback speed can be set to 1x, 2x, 5x, 0.1x, 0.25x and 0.5x in the 
   settings menu.
+
+  The playback speed is saved when selecting Save View and recalled with Load View.
 
 
 ## Synchronization
@@ -404,5 +416,6 @@ https://joss.theoj.org/papers/10.21105/joss.04061
 
 **MD4. Release notes/change log**
 Please see the following file for release notes/change log:
+
 https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/CHANGELOG_AP.txt
 
