@@ -40,8 +40,9 @@ ARE supports the following operations:
    - video and sensor data
    - various sensor data
 3. Visualisation and inspection of multiple sensor data and video
-4. Support for analysis tools like MATLAB® and Python
-5. Organized storage of data from multiple sources
+4. Annotation of sensor data and videos
+5. Support for analysis tools like MATLAB® and Python
+6. Organized storage of data from multiple sources
 
 ## Why?
 The most time consuming, and typically least enjoyable task for data scientists is collecting, cleaning, and organizing data (Source: CrowdFlowerDataScientist report 2017 ). This is caused by a tool-gap, as there are few established good tools available for this work. ARE is intended to ease this by providing a tool to simplify this work.

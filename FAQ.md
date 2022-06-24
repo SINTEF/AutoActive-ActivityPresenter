@@ -37,7 +37,8 @@ Last updated: 2022-06-17
 
 **A3. Is there a quick way to save an archive?**
   To quickly save the project select "Save Project", "Add all" and "Save".
-  (In version 2.0, 2.1 and 2.2 there is a known bug preventing saving annotations without adding a top level folder.)
+  (In version 2.0, 2.1 and 2.2 there is a known bug preventing saving annotations 
+  (AnnotationProvider) without adding a top level folder and include AnnotationProvider in the folder.)
 
 **A4. How is data stored in an archive?**
 
