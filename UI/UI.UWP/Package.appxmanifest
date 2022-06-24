@@ -6,8 +6,8 @@
          xmlns:desktop4="http://schemas.microsoft.com/appx/manifest/desktop/windows10/4"
          xmlns:iot2="http://schemas.microsoft.com/appx/manifest/iot/windows10/2" 
          IgnorableNamespaces="uap mp desktop4 iot2">
-  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="2.2.0.0" />
-  <mp:PhoneIdentity PhoneProductId="53a827b3-8711-447d-a679-09cc0317022e" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
+  <Identity Name="49070SINTEF.ActivityPresenter" Publisher="CN=4D5269C1-0C76-4E6E-9EB9-025AFE1164A5" Version="2.2.2.0" />
+  <mp:PhoneIdentity PhoneProductId="9abb8d04-9db6-4329-b2f4-52bd48e15fcc" PhonePublisherId="00000000-0000-0000-0000-000000000000" />
   <Properties>
     <DisplayName>Activity Presenter</DisplayName>
     <PublisherDisplayName>SINTEF</PublisherDisplayName>

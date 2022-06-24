@@ -24,7 +24,7 @@
     <AppxPackageDir>C:\temp\AutoActive\Microsoft Store\</AppxPackageDir>
     <AppxBundle>Always</AppxBundle>
     <AppxBundlePlatforms>x64</AppxBundlePlatforms>
-    <PackageCertificateThumbprint>327065F180FA8263DE200234C25CA7191CCC63EC</PackageCertificateThumbprint>
+    <PackageCertificateThumbprint>C51086F43E14230DBEB0CF86D686E7818658BBB5</PackageCertificateThumbprint>
     <AppInstallerUpdateFrequency>0</AppInstallerUpdateFrequency>
     <AppInstallerCheckForUpdateFrequency>OnApplicationRun</AppInstallerCheckForUpdateFrequency>
     <AppxSymbolPackageEnabled>False</AppxSymbolPackageEnabled>
@@ -196,7 +196,7 @@
     <Content Include="Assets\Wide310x150Logo.scale-200.png" />
     <Content Include="Assets\Wide310x150Logo.scale-400.png" />
     <EmbeddedResource Include="Assets\AutoActive-logo.png" />
-    <None Include="AA_327065F180FA8263DE200234C25CA7191CCC63EC.pfx" />
+    <None Include="Anders Liverud.pfx" />
     <None Include="Package.StoreAssociation.xml" />
     <Content Include="Properties\Default.rd.xml" />
   </ItemGroup>
