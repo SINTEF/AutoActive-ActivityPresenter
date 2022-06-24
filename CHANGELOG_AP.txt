@@ -3,6 +3,7 @@
 ## [2.2.2] - 2022-06-24
 ### Changed
 - Bugfix for archives, made independent of date-time format
+- Reverted to previous certificate for application signing
 ### Known issues
 - Annotations (AnnotationProvider) cannot be saved at session top level and must be included in a folder before saving archive. 
 ## [2.2.1] - 2022-06-20
