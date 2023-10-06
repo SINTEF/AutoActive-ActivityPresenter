@@ -1,5 +1,5 @@
 # AutoActive Research Environment
-Last updated: 2022-June-02
+Last updated: 2023-October-06
 
 SINTEF - https://www.sintef.com
 
@@ -10,23 +10,12 @@ Apache License Version 2.0
 ActivityPresenter is available as a binary package for Microsoft Windows in Microsoft Store at the following link:
 https://www.microsoft.com/en-us/p/activity-presenter/9n01v94ljlx7?
 
-You can also clone the repository and build it localy, however, you will need a self signed certificate. If you do not have a self signed certificate you can otain one by following these instructions: https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-self-signed-certificate 
-
-To add the certificate to the project 
-1. Open the solution in Visual Studio
-2. Right click on ActivityPresenter.UWP (Universal Windows) in the solution explorer and choose properties 
-3. Choose Package Manifest in the Application tab
-4. Choose the Packaging tab 
-5. Click on Choose Certificate and select from file
-
-You should now be able to compile and run the project.
-
-The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
+You can also clone the repository and build it localy, see section "How to build ActivityPresenter".
 
 ## Community guidelines
 All contributions, bug reports, bug fixes, documentation improvements, enhancements, and ideas are welcome. If you find any bugs, have any ideas for improving the software or need support please create a new issue.
 
-## Binary distribution
+## Introduction
 AutoActive Research Environment (ARE) is developed in the research project AutoActive (Norwegian Research Council project, project number 282039) to enable easy handling (synchronization, visualization, analysation) of sensor data from different commercially available wearable sensors for human activity and video.
 ARE supports the following operations:
 
@@ -93,17 +82,24 @@ None of the conventional data storage file formats supported our requirements, h
 4.	The ZIP archive is itself written using uncompressed/stored mode. This way, individual files inside the archive can easily be read without decompressing. Additional ZIP compression schemes would not result in much gain in terms of file size for data that has already been compressed.
 By using this custom file format, multiple datasets can be stored in a single file, which makes it easy to transfer between devices and users. Relying on different kinds of storage and compression for different types of data, the file size will be kept minimal. Also, since there are many tools for working with ZIP archives, users can easily extract data manually by unzipping the archive locally, and other software should be able to extract data without relying on the ARE tools.
 
+## Examples
+**Cross country skiing example with ActivityPresenter**
+
+An example with IMU sensors and a video recording of a subject doing classical cross-country skiing is available here: https://www.sintef.no/projectweb/autoactive/code-example/
+
 ## Interfacing of other tools
 **MATLAB library**
 
 The session lib is a set of classes using ArchiveWriter and ArchiveReader to write and read ARE files (.aaz files). The library is based on a set of classes storing data of different formats all based on the class Dataobject as a super class. The class Dataobject supports all transformations needed for converting between MATLAB formats and the archive storage formats. The split into user- and meta-data is built into the class with accessors available for read/write of user-data. This makes its behaviour to be like a Struct element when using it in a MATLAB script. 
 All Dataobject sub-classes are plugins, each identified by a jsonType string. This makes it possible to load a session from json and create objects representing its content. The plugin-register acts as an object factory, finding and creating the correct jsonPlugin object on demand. It is possible for the user to add custom plugins without adding them to the library. When saving a session to archive, it is possible to transform native MATLAB types into a plugin making transformation for storage possible. This is done for MATLAB tables. The plugin is identified by its classType. The plugin register act as an object factory finding and creating the correct native Plugin object on demand
 The MATLAB interface is implemented as a MATLAB toolbox that can easily be deployed and includes documentation with examples.
+
 Available here: https://github.com/SINTEF/AutoActive-Matlab-toolbox
 
 **Python library**
 
 A Python library is available and supports similar functionality as the MATLAB library.
+
 Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 
 
@@ -123,7 +119,20 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
 https://joss.theoj.org/papers/10.21105/joss.04061
 
-
 ## Frequently Asked Questions (FAQ), see:
 https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/FAQ.md
+
+## How to build ActivityPresenter
+You can also clone the repository and build it localy, however, you will need a self signed certificate. If you do not have a self signed certificate you can otain one by following these instructions: https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-self-signed-certificate 
+
+To add the certificate to the project 
+1. Open the solution in Visual Studio
+2. Right click on ActivityPresenter.UWP (Universal Windows) in the solution explorer and choose properties 
+3. Choose Package Manifest in the Application tab
+4. Choose the Packaging tab 
+5. Click on Choose Certificate and select from file
+
+You should now be able to compile and run the project.
+
+The ActivityPresenter software is implemented using Xamarin and Xamarin.Forms. A Xamarin app runs on various platforms through bindings to a native runtime component. For Xamarin, this runtime is a Common Language Runtime (CLR), which was created for Windows, but is also supported on Linux, Android and iOS through the Mono project. Currently, ARE is tested on Microsoft Windows. However, future porting to Android is planned. Data between the various application parts is shared through a common internal data bus providing a flexible architecture.
 
