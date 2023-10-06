@@ -80,7 +80,7 @@ Sessions have two important features to help with traceability and reproducibili
 For programmers, sessions are quite analogous to commits in a version-control system, enabling control over source code versions without copying the whole source code for every version.
 Sessions are identified by a unique identifier compliant with RFC4122 version 4, commonly known as a random UUID or GUID.
 
-File format for data storage (Archive)
+##File format for data storage (Archive)
 The following requirements were made for the file format:
 a)	Storing multiple datasets in a single file
 b)	Storing metadata necessary to describe the data itself, its origin, and structure of coupled datasets
@@ -122,3 +122,8 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 ## Publications
 A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
 https://joss.theoj.org/papers/10.21105/joss.04061
+
+
+## Frequently Asked Questions (FAQ), see:
+https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/FAQ.md
+
