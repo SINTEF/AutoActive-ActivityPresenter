@@ -1,6 +1,6 @@
 # ActivityPresenter - Frequently Asked Questions
 
-Last updated: 2022-06-17
+Last updated: 2023-10-06
 
 ## Archives
 
@@ -8,7 +8,7 @@ Last updated: 2022-06-17
 
   At the main page, press "OPEN" and select an archive file (.aaz) in the file-
   browser. The archive appears as a green box at the top right corner named as 
-  the archive top level folder name.
+  the archive top-level folder name.
   The content of the folder can be expanded by pressing the folder.
   Multiple archives can be opened at the same time by pression "OPEN".
   An archive can be closed by right-clicking the folder name and selecting 
@@ -19,7 +19,7 @@ Last updated: 2022-06-17
   Data is saved in archives as a single file named aaz. Select "SAVE PROJECT" 
   in the main menu to save data. The current folders and data will be shown in 
   the left window, while the structure of the new archive is shown in the right 
-  window. To define a new archive you must start by adding a new top level 
+  window. To define a new archive you must start by adding a new top-level 
   folder by dragging from "Add Folder" to the right window. 
   You may now add new folders or drag data from the left window to the new 
   archive. There are three types of folders: standard folders, data folders 
@@ -37,7 +37,7 @@ Last updated: 2022-06-17
 
 **A3. Is there a quick way to save an archive?**
   To quickly save the project select "Save Project", "Add all" and "Save".
-  (In version 2.0, 2.1 and 2.2 there is a known bug preventing saving annotations without adding a top level folder.)
+  (In version 2.0, 2.1 and 2.2 there is a known bug preventing saving annotations without adding a top-level folder.)
 
 **A4. How is data stored in an archive?**
 
@@ -60,6 +60,22 @@ Last updated: 2022-06-17
 
   Yes, multiple archives can be opened and combined.
 
+**A7. How should I store data in archives?**
+
+Best practice for archive structure:
+
+* Start by importing the video file(s) and sensor data by pressing 'Import File'.
+* If required, synchronize data on the 'Synchronize' page.
+* Verify the imported data on the 'Main Page'.
+* Select the 'Save Project' page.
+* Select and drag 'Add Folder' on the right-hand side to add a top-level folder. 
+* Right click on the top-level folder and give the folder a top-level name describing the dataset.
+* Note: It is recommended to always put data under a common top-level folder.
+* Add all the imported data folder by pressing "Add all", then 'drag' the imported folders on to the main folder so they appear as sub-folder under the top-level folder.
+* You may rearrange data below the top-level folder by adding and removing folders and change the hierarchy.
+* Note that video and data must be stored in respective folder types, and that video and data folders must be stored in a standard folder type.
+* You may rename folders by right click the folder box.
+* When you have completed archive structure, press 'Save' to save the folder structure in an archive.
 
 ## Import
 
@@ -383,9 +399,8 @@ The use of ActivityPresenter is shown in the videos available at:
 
 https://github.com/SINTEF/AutoActive-ActivityPresenter
 
-A cross-country skiing example using ActivityPresenter, the Matlab toolbox and annotations is available here:
+An example with IMU sensors and a video recording of a subject doing classical cross-country skiing is available here: https://www.sintef.no/projectweb/autoactive/code-example/
 
-[TBD - to be added] 
 
 There are sample code available for both the Matlab and Python toolboxes, please see sections for the toolboxes.
 

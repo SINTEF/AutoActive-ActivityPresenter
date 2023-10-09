@@ -1,5 +1,5 @@
 # AutoActive Research Environment
-Last updated: 2023-January-23
+Last updated: 2023-October-06
 
 SINTEF - https://www.sintef.com
 
@@ -29,7 +29,7 @@ ARE supports the following operations:
    - video and sensor data
    - various sensor data
 3. Visualisation and inspection of multiple sensor data and video
-4. Annotation of data
+4. Annotation of sensor data and videos
 5. Support for analysis tools like MATLAB® and Python
 6. Organized storage of data from multiple sources
 
@@ -48,24 +48,18 @@ ARE consists of the following three main parts:
 ## Application, ActivityPresenter
 The ActivityPresenter is the main visualization tool in ARE.
 Activity presenter provides the following functionality:
--	**File import.**
-    Video and time series data can be automatically imported into the tool. CSV, Excel files, as well as binary IMU data can be imported automatically. The import function is plugin-based and can easily be extended for new types of data. The tool handles data import timing automatically, hence timing information in various format is automatically converted to a common time format.
-
--	**Data visualisation.**
-    Video and figures from data from arbitrary sensors can be placed and resized in the main window. Data can be stepped through in a frame-by-frame manner or played back in real time, slow-motion or at a fast-forward speed. The visualisation point can be changed in the data-track line. The figure views include autoscaling of the plots, visualization of the current time, legends describing each line, dynamic values on the axes, independent scaling of lines in each figure, and an option to freeze the current scale to prevent rescaling due to outliers. The plotting style can be manually changed between line plots (default), scatter plots or column plots. Additionally, the length of the time axis can be changed to decide how much of the time series is seen in the plot window. 
-
--	**Open archive and save.**
-    Data is organized and stored in archives that can be created and opened from ActivityPresenter. The archives can also be created in MATLAB® or Python by using the developed toolboxes. See File Format section for more information.
-
--	**Synchronize.**
-    Video and data from arbitrary sensors can be synchronized in time by placing synchronization points in each dataset. The synchronization is performed by using one dataset as master, and then moving the other datasets (slaves) relative to the master.
- 
--	**Head2Head.**
-    The head-to-head module is intended to compare two separate data recording sessions performed on different occasions or by different users. Two sets of data can be shown and the point in time can be changed individually to compare the two different sessions. 
-
--   **Annotations.**
-    Annotations can be used to used to mark specific part of video and data and is useful as input for machine learning and data analysis. Please see the FAQ for a description on how to add annotations to data.
-
+-	File import
+Video and time series data can be automatically imported into the tool. CSV, Excel files, as well as binary IMU data can be imported automatically. The import function is plugin-based and can easily be extended for new types of data. The tool handles data import timing automatically, hence timing information in various format is automatically converted to a common time format.
+-	Data visualisation
+Video and figures from data from arbitrary sensors can be placed and resized in the main window. Data can be stepped through in a frame-by-frame manner or played back in real time, slow-motion or at a fast-forward speed. The visualisation point can be changed in the data-track line. The figure views include autoscaling of the plots, visualization of the current time, legends describing each line, dynamic values on the axes, independent scaling of lines in each figure, and an option to freeze the current scale to prevent rescaling due to outliers. The plotting style can be manually changed between line plots (default), scatter plots or column plots. Additionally, the length of the time axis can be changed to decide how much of the time series is seen in the plot window. 
+-	Open archive and save
+Data is organized and stored in archives that can be created and opened from ActivityPresenter. The archives can also be created in MATLAB® or Python by using the developed toolboxes. See File Format section for more information.
+-	Synchronize
+Video and data from arbitrary sensors can be synchronized in time by placing synchronization points in each dataset. The synchronization is performed by using one dataset as master, and then moving the other datasets (slaves) relative to the master. 
+-	Head2Head
+The head-to-head module is intended to compare two separate data recording sessions performed on different occasions or by different users. Two sets of data can be shown and the point in time can be changed individually to compare the two different sessions. 
+-   Annotations
+Annotations can be used to used to mark specific part of video and data and is useful as input for machine learning and data analysis. Please see the FAQ for a description on how to add annotations to data.
 
 ## File Format - Sessions
 The concept of sessions is key to how data is stored in ARE; they are the root containers of datasets. A session represents an activity – bounded in time and space – performed by one user of the platform and stores the information about the context of the activity, and the data generated during that activity. Examples of such activities include a data recording in a lab or in the field, data processing using MATLAB, and comparing two datasets from two different recordings using the ActivityPresenter App.
@@ -75,11 +69,11 @@ Sessions have two important features to help with traceability and reproducibili
 For programmers, sessions are quite analogous to commits in a version-control system, enabling control over source code versions without copying the whole source code for every version.
 Sessions are identified by a unique identifier compliant with RFC4122 version 4, commonly known as a random UUID or GUID.
 
-File format for data storage (Archive)
+##File format for data storage (Archive)
 The following requirements were made for the file format:
-1. Storing multiple datasets in a single file
-2. Storing metadata necessary to describe the data itself, its origin, and structure of coupled datasets
-3. Compressing data in a binary format suitable for different types of data (tables, video, images, etc.) 
+a)	Storing multiple datasets in a single file
+b)	Storing metadata necessary to describe the data itself, its origin, and structure of coupled datasets
+c)	Compressing data in a binary format suitable for different types of data (tables, video, images, etc.) 
 
 None of the conventional data storage file formats supported our requirements, hence a custom file format based on the ZIP archive file format was introduced. This format has libraries and tools for practically all used platforms and is widely adopted. The custom file format has the following properties:
 1.	Stores meta-data in JSON-encoded files. This format is both easily encoded and decoded in software, as well as somewhat readable for humans.
@@ -124,6 +118,9 @@ Available here: https://github.com/SINTEF/AutoActive-Python-toolbox
 ## Publications
 A publication for the AutoActive Reserach Environment is available in the Journal of Open Source Software (JOSS):
 https://joss.theoj.org/papers/10.21105/joss.04061
+
+## Frequently Asked Questions (FAQ), see:
+https://github.com/SINTEF/AutoActive-ActivityPresenter/blob/develop/FAQ.md
 
 ## How to build ActivityPresenter
 You can also clone the repository and build it localy, however, you will need a self signed certificate. If you do not have a self signed certificate you can otain one by following these instructions: https://docs.microsoft.com/en-us/azure/active-directory/develop/howto-create-self-signed-certificate 

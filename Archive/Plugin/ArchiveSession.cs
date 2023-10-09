@@ -5,8 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
+
 
 namespace SINTEF.AutoActive.Archive.Plugin
 {
@@ -56,7 +58,7 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             Guid sessionId = Guid.NewGuid();
             var meta = new JObject { ["id"] = sessionId, ["based_on"] = JToken.FromObject(basedOn) };
-            var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now };
+            var user = new JObject { ["name"] = name, ["created"] = DateTimeOffset.Now.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'") };
             var json = new JObject { ["meta"] = meta, ["user"] = user };
 
             return new ArchiveSession(json, archive, sessionId) { IsSaved = false, _basedOn = basedOn };
@@ -234,15 +236,13 @@ namespace SINTEF.AutoActive.Archive.Plugin
         {
             await base.WriteData(root, writer);
 
-            // FIXME This is never called during save ....
-
             // Copy previous session selectivly
             root["meta"]["type"] = Type;
             root["meta"]["id"] = Id.ToString();
             root["meta"]["based_on"] = new JObject(_basedOn);
             root["meta"]["version"] = Meta["version"];
 
-            root["user"]["created"] = Created.ToString();
+            root["user"]["created"] = Created.ToString("yyyy'-'MM'-'dd'T'HH':'mm':'ss'.'ffffff'Z'");
             root["user"]["name"] = User["name"];
 
             return true;
